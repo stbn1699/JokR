@@ -1,0 +1,46 @@
+PlayForge License (AGPL-3.0 + NonCommercial)
+Copyright (c) 2025 Elina
+
+This project is licensed under the GNU Affero General Public License v3.0,
+with an additional NonCommercial clause as described below.
+
+You are free to use, copy, modify, and distribute this software under the
+terms of the GNU Affero General Public License v3.0 (see below), provided that
+you ALSO comply with the following additional condition:
+
+---------------------------------------------------------------------------
+NONCOMMERCIAL CLAUSE
+---------------------------------------------------------------------------
+
+The Software, including any modified or derivative versions, may NOT be used
+for commercial purposes without the express written permission of the
+copyright holder (Elina).
+
+"Commercial purposes" means using the Software, or any part of it, in a way
+primarily intended for or directed toward commercial advantage, monetary
+compensation, or financial gain.
+
+Examples of prohibited uses include (but are not limited to):
+- Selling access to the Software or any of its components.
+- Running the Software on a platform with paid subscriptions or advertisements.
+- Integrating the Software into a commercial product or service.
+
+You MAY:
+- Use, modify, and share the Software for personal, educational, or
+  non-commercial projects.
+- Contribute improvements via pull requests, subject to approval by the
+  copyright holder.
+- Host non-commercial instances of the project for community or personal use.
+
+---------------------------------------------------------------------------
+
+For the full AGPL-3.0 terms, see:
+https://www.gnu.org/licenses/agpl-3.0.html
+
+The Software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose, and noninfringement. In no event shall the
+authors or copyright holders be liable for any claim, damages, or other
+liability, whether in an action of contract, tort, or otherwise, arising from,
+out of, or in connection with the Software or the use or other dealings in the
+Software.
