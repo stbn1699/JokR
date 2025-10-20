@@ -53,7 +53,24 @@ type RoomViewProps = {
 
 const MAX_PLAYERS = 8;
 const STORAGE_KEY = "jokr:playerName";
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+const resolveApiUrl = (): string | undefined => {
+    const configuredUrl = import.meta.env.VITE_API_URL;
+    if (configuredUrl) {
+        return configuredUrl;
+    }
+
+    if (import.meta.env.DEV) {
+        return "http://localhost:3001";
+    }
+
+    if (typeof window !== "undefined") {
+        return window.location.origin;
+    }
+
+    return undefined;
+};
+
+const API_URL = resolveApiUrl();
 
 const statusLabel: Record<PlayerStatus, string> = {
     ready: "Prêt",
