@@ -19,7 +19,10 @@
     "deploy:api": "pnpm build:api && pnpm start:api:prod",
     "updateDeploy:web": "pnpm update && pnpm build:web && pnpm deploy:web",
     "updateDeploy:api": "pnpm update && pnpm deploy:api",
-    "updateDeploy": "pnpm update && pnpm build && pnpm deploy:web && pnpm start:api:prod && pm2 save"
+    "updateDeploy": "pnpm update && pnpm build && pnpm deploy:web && pnpm start:api:prod && pm2 save",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "dev": "concurrently -k -n web,api \"pnpm dev:web\" \"pnpm dev:api\""
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
