@@ -1,13 +1,20 @@
 :root {
+  --jokr-midnight: #050312;
+  --jokr-indigo: #2f197a;
+  --jokr-magenta: #ff2d75;
+  --jokr-orange: #ff8a3d;
+  --jokr-gold: #ffd166;
+  --jokr-cream: #fdf4ff;
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #e2e8f0;
-  background-color: #0f172a;
+  color: var(--jokr-cream);
+  background-color: var(--jokr-midnight);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
 }
 
 *,
@@ -17,19 +24,19 @@
 }
 
 a {
-  font-weight: 500;
-  color: #a855f7;
+  font-weight: 600;
+  color: var(--jokr-gold);
   text-decoration: none;
 }
 
 a:hover {
-  color: #c084fc;
+  color: var(--jokr-orange);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #0f172a;
+  background-color: var(--jokr-midnight);
 }
 
 #root {

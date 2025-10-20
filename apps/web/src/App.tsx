@@ -110,6 +110,7 @@ const normalizeBasePath = (value: string | undefined) => {
 };
 
 const BASE_PATH = normalizeBasePath(import.meta.env.BASE_URL);
+const heroImageSrc = `${BASE_PATH}/JokR.png`;
 
 const ROOM_ROUTE_REGEX = /^\/rooms\/([^/?#]+)/i;
 
@@ -249,24 +250,44 @@ export default function App() {
 }
 
 function HomeView({onSelectGame}: HomeViewProps) {
-    const handleSelectGame = (game: Game) => {
-        onSelectGame(game.id);
+    const handleSelectGame = (gameId: string | null) => {
+        onSelectGame(gameId);
     };
 
     return (
         <>
-            <header className="home-header">
-                <h1>Choisissez un jeu JokR</h1>
-                <p>Sélectionnez un mode de jeu pour créer un salon et inviter vos amis.</p>
-            </header>
-            <div className="game-grid">
-                {games.map((game) => (
-                    <button key={game.id} className="game-card" type="button" onClick={() => handleSelectGame(game)}>
-                        <span className="game-title">{game.label}</span>
-                        <span className="game-description">{game.description}</span>
-                    </button>
-                ))}
-            </div>
+            <section className="home-hero">
+                <div className="home-hero__text">
+                    <span className="hero-eyebrow">Arcade sociale JokR</span>
+                    <h1>Plongez dans l'univers coloré de JokR</h1>
+                    <p>
+                        Retrouvez les teintes vibrantes de notre logo pour lancer vos soirées jeux en un clin d'œil.
+                        Créez un salon, invitez vos amis et partagez des moments hauts en couleur.
+                    </p>
+                    <div className="hero-actions">
+                        <button className="ghost hero-action" type="button" onClick={() => handleSelectGame(null)}>
+                            Créer un salon surprise
+                        </button>
+                    </div>
+                </div>
+                <div className="home-hero__media">
+                    <img src={heroImageSrc} alt="Illustration JokR" loading="lazy" />
+                </div>
+            </section>
+            <section className="game-section">
+                <header className="game-section__header">
+                    <h2>Choisissez votre jeu JokR</h2>
+                    <p>Sélectionnez un mode de jeu pour créer un salon et inviter vos amis.</p>
+                </header>
+                <div className="game-grid">
+                    {games.map((game) => (
+                        <button key={game.id} className="game-card" type="button" onClick={() => handleSelectGame(game.id)}>
+                            <span className="game-title">{game.label}</span>
+                            <span className="game-description">{game.description}</span>
+                        </button>
+                    ))}
+                </div>
+            </section>
         </>
     );
 }
