@@ -1,6 +1,7 @@
 {
   "name": "api",
   "private": true,
+  "version": "pre-beta 0.1",
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
