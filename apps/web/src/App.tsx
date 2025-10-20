@@ -3,7 +3,7 @@ import {io, Socket} from "socket.io-client";
 
 type AnyObj = Record<string, unknown>;
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL ?? `${window.location.origin}/api`;
 
 export default function App() {
     const [ping, setPing] = useState<AnyObj | null>(null);

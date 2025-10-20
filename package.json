@@ -15,13 +15,11 @@
     "build:api": "pnpm --filter api build",
     "build": "pnpm -r build",
     "deploy:web": "sudo mkdir -p /var/www/jokr.ebasson.fr && sudo rsync -a --delete apps/web/dist/ /var/www/jokr.ebasson.fr/",
-    "start:api:prod": "pm2 delete jokr-api || true && pm2 start apps/api/dist/index.js --name jokr-api",
+    "start:api:prod": "pm2 start ecosystem.config.cjs --only jokr-api --update-env || pm2 reload jokr-api",
     "deploy:api": "pnpm build:api && pnpm start:api:prod",
     "updateDeploy:web": "pnpm update && pnpm build:web && pnpm deploy:web",
     "updateDeploy:api": "pnpm update && pnpm deploy:api",
-    "updateDeploy": "pnpm update && pnpm build && pnpm deploy:web && pnpm start:api:prod",
-    "init:web": "sudo mkdir -p /var/www/jokr.ebasson.fr",
-    "init:pm2": "pm2 save"
+    "updateDeploy": "pnpm update && pnpm build && pnpm deploy:web && pnpm start:api:prod && pm2 save"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
