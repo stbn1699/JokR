@@ -343,6 +343,18 @@
     border: 1px solid rgba(148, 163, 184, 0.1);
 }
 
+.player-card.active-turn {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.55);
+    box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.25);
+}
+
+.player-card.winner {
+    background: rgba(250, 204, 21, 0.12);
+    border-color: rgba(234, 179, 8, 0.55);
+    box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.2);
+}
+
 .player-card.empty {
     justify-content: center;
     color: rgba(226, 232, 240, 0.7);
@@ -379,6 +391,23 @@
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.player-symbol {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    color: rgba(226, 232, 240, 0.88);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.player-tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
 .player-name {
@@ -424,6 +453,16 @@
 .player-tag.host {
     background: rgba(99, 102, 241, 0.18);
     color: #c7d2fe;
+}
+
+.player-tag.turn {
+    background: rgba(34, 197, 94, 0.2);
+    color: rgba(190, 242, 100, 0.95);
+}
+
+.player-tag.winner {
+    background: rgba(250, 204, 21, 0.18);
+    color: rgba(254, 240, 138, 0.95);
 }
 
 .invite-card {
@@ -717,4 +756,111 @@
     .chat-messages {
         max-height: none;
     }
+}
+
+.game-panel {
+    background: rgba(30, 41, 59, 0.65);
+    border-radius: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.morpion-board {
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 1 / 1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.morpion-cell {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    border: 2px solid rgba(255, 208, 102, 0.25);
+    background: rgba(12, 9, 30, 0.72);
+    color: #ffe4e6;
+    font-size: clamp(36px, 8vw, 64px);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease, transform 160ms ease, color 160ms ease;
+}
+
+.morpion-cell:hover {
+    background: rgba(255, 208, 102, 0.1);
+    border-color: rgba(255, 208, 102, 0.45);
+    transform: translateY(-2px);
+}
+
+.morpion-cell:disabled,
+.morpion-cell[disabled] {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+}
+
+.morpion-cell.locked {
+    opacity: 0.5;
+}
+
+.morpion-cell.winning {
+    border-color: rgba(34, 197, 94, 0.6);
+    background: rgba(34, 197, 94, 0.18);
+    color: #bbf7d0;
+}
+
+.morpion-cell.filled {
+    color: #fdf4ff;
+}
+
+.morpion-cell:focus-visible {
+    outline: 2px solid rgba(255, 208, 102, 0.55);
+    outline-offset: 3px;
+}
+
+.game-status {
+    margin: 0;
+    font-weight: 600;
+    color: rgba(255, 241, 235, 0.88);
+    text-align: center;
+}
+
+.turn-timer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: rgba(96, 165, 250, 0.9);
+    background: rgba(96, 165, 250, 0.12);
+    border-radius: 999px;
+    padding: 8px 14px;
+}
+
+.turn-timer span {
+    font-variant-numeric: tabular-nums;
+}
+
+.turn-timer.critical {
+    color: rgba(248, 113, 113, 0.95);
+    background: rgba(248, 113, 113, 0.14);
+}
+
+.turn-hint {
+    margin: 8px 0 0;
+    color: rgba(148, 163, 184, 0.85);
+    font-size: 14px;
+    text-align: center;
+}
+
+.turn-hint.self {
+    color: rgba(190, 242, 100, 0.92);
+    font-weight: 600;
 }

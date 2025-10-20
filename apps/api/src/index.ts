@@ -6,9 +6,27 @@ import {randomUUID} from "node:crypto";
 
 const PORT = Number(process.env.PORT) || 3001;
 const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "http://localhost:5173";
-const MAX_PLAYERS = 8;
+const MAX_PLAYERS = 2;
+const MORPION_GRID_SIZE = 9;
+const MORPION_TURN_DURATION_MS = 30_000;
 
 type PlayerStatus = "ready" | "waiting";
+
+type RoomStatus = "lobby" | "started";
+
+type MorpionSymbol = "X" | "O";
+
+type MorpionStatus = "waiting" | "playing" | "won" | "draw";
+
+type MorpionState = {
+    board: (MorpionSymbol | null)[];
+    currentPlayerId: string | null;
+    symbols: Record<string, MorpionSymbol>;
+    status: MorpionStatus;
+    winnerId: string | null;
+    winningLine: number[] | null;
+    turnExpiresAt: number | null;
+};
 
 type RoomPlayer = {
     id: string;
@@ -31,6 +49,8 @@ type RoomSnapshot = {
     gameId: string | null;
     hostId: string | null;
     players: RoomPlayer[];
+    status: RoomStatus;
+    morpion: MorpionState | null;
 };
 
 type RoomData = {
@@ -39,6 +59,8 @@ type RoomData = {
     hostId: string | null;
     players: Map<string, RoomPlayer>;
     messages: ChatMessage[];
+    status: RoomStatus;
+    morpion: MorpionState | null;
 };
 
 type JoinPayload = {
@@ -102,7 +124,56 @@ const serializeRoom = (room: RoomData): RoomSnapshot => ({
     gameId: room.gameId,
     hostId: room.hostId,
     players: Array.from(room.players.values()).sort((a, b) => a.joinedAt - b.joinedAt),
+    status: room.status,
+    morpion: room.morpion,
 });
+
+const WINNING_LINES: number[][] = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+];
+
+const createInitialMorpionState = (players: RoomPlayer[]): MorpionState => {
+    const [firstPlayer, secondPlayer] = [...players].sort((a, b) => a.joinedAt - b.joinedAt);
+    const symbols: Record<string, MorpionSymbol> = {};
+
+    if (firstPlayer) {
+        symbols[firstPlayer.id] = "X";
+    }
+
+    if (secondPlayer) {
+        symbols[secondPlayer.id] = "O";
+    }
+
+    return {
+        board: Array(MORPION_GRID_SIZE).fill(null),
+        currentPlayerId: firstPlayer?.id ?? null,
+        symbols,
+        status: "playing",
+        winnerId: null,
+        winningLine: null,
+        turnExpiresAt: Date.now() + MORPION_TURN_DURATION_MS,
+    };
+};
+
+const evaluateMorpionBoard = (board: (MorpionSymbol | null)[]) => {
+    for (const line of WINNING_LINES) {
+        const [a, b, c] = line;
+        const value = board[a];
+        if (value && value === board[b] && value === board[c]) {
+            return {symbol: value, winningLine: line};
+        }
+    }
+
+    const isFull = board.every((cell) => cell !== null);
+    return {symbol: null, winningLine: null, isFull};
+};
 
 const broadcastRoomState = (roomId: string) => {
     const room = rooms.get(roomId);
@@ -130,6 +201,14 @@ const removePlayerFromRoom = (roomId: string, socketId: string) => {
     if (room.hostId === socketId) {
         const [nextHost] = Array.from(room.players.values()).sort((a, b) => a.joinedAt - b.joinedAt);
         room.hostId = nextHost?.id ?? null;
+    }
+
+    if (room.status === "started") {
+        room.status = "lobby";
+        room.players.forEach((player) => {
+            player.status = "waiting";
+        });
+        room.morpion = null;
     }
 
     if (room.players.size === 0) {
@@ -177,6 +256,8 @@ io.on("connection", (socket) => {
                 hostId: socket.id,
                 players: new Map<string, RoomPlayer>(),
                 messages: [],
+                status: "lobby",
+                morpion: null,
             };
             rooms.set(trimmedRoomId, room);
         }
@@ -247,6 +328,10 @@ io.on("connection", (socket) => {
             return;
         }
 
+        if (room.status === "started") {
+            return;
+        }
+
         const player = room.players.get(socket.id);
         if (!player) {
             return;
@@ -254,6 +339,149 @@ io.on("connection", (socket) => {
 
         player.status = player.status === "ready" ? "waiting" : "ready";
         broadcastRoomState(roomId);
+    };
+
+    const handleStartGame = () => {
+        const roomId = socketRooms.get(socket.id);
+        if (!roomId) {
+            return;
+        }
+
+        const room = rooms.get(roomId);
+        if (!room) {
+            return;
+        }
+
+        if (room.hostId !== socket.id) {
+            socket.emit("room:error", {message: "Seul l'organisateur peut lancer la partie."});
+            return;
+        }
+
+        if (room.status === "started") {
+            socket.emit("room:error", {message: "La partie est déjà en cours."});
+            return;
+        }
+
+        if (room.players.size < MAX_PLAYERS) {
+            socket.emit("room:error", {message: "Deux joueurs doivent être présents pour lancer le Morpion."});
+            return;
+        }
+
+        const everyoneReady = Array.from(room.players.values()).every((player) => player.status === "ready");
+        if (!everyoneReady) {
+            socket.emit("room:error", {message: "Tous les joueurs doivent être prêts pour démarrer le duel."});
+            return;
+        }
+
+        room.status = "started";
+        room.morpion = createInitialMorpionState(Array.from(room.players.values()));
+
+        const startMessage = createSystemMessage("La partie de Morpion commence !");
+        room.messages.push(startMessage);
+        room.messages = room.messages.slice(-100);
+
+        io.to(roomId).emit("room:message", startMessage);
+        broadcastRoomState(roomId);
+    };
+
+    const handleMorpionMove = ({cellIndex}: {cellIndex?: number}) => {
+        if (typeof cellIndex !== "number" || Number.isNaN(cellIndex)) {
+            return;
+        }
+
+        const roomId = socketRooms.get(socket.id);
+        if (!roomId) {
+            return;
+        }
+
+        const room = rooms.get(roomId);
+        if (!room || room.status !== "started" || !room.morpion) {
+            return;
+        }
+
+        const state = room.morpion;
+        if (state.status !== "playing") {
+            return;
+        }
+
+        if (socket.id !== state.currentPlayerId) {
+            return;
+        }
+
+        if (cellIndex < 0 || cellIndex >= state.board.length) {
+            return;
+        }
+
+        if (state.board[cellIndex] !== null) {
+            return;
+        }
+
+        const symbol = state.symbols[socket.id];
+        if (!symbol) {
+            return;
+        }
+
+        state.board = state.board.slice();
+        state.board[cellIndex] = symbol;
+
+        const {symbol: winningSymbol, winningLine, isFull} = evaluateMorpionBoard(state.board);
+
+        if (winningSymbol) {
+            const winnerEntry = Object.entries(state.symbols).find(([, value]) => value === winningSymbol);
+            const winnerId = winnerEntry ? winnerEntry[0] : socket.id;
+            state.status = "won";
+            state.winnerId = winnerId;
+            state.winningLine = winningLine;
+            state.currentPlayerId = null;
+            state.turnExpiresAt = null;
+
+            const winner = room.players.get(winnerId);
+            const victoryMessage = createSystemMessage(
+                winner ? `${winner.name} a remporté le duel de Morpion !` : "La partie est terminée."
+            );
+            room.messages.push(victoryMessage);
+            room.messages = room.messages.slice(-100);
+            io.to(roomId).emit("room:message", victoryMessage);
+            broadcastRoomState(roomId);
+            io.to(roomId).emit("morpion:finished", {reason: "win", winnerId});
+            return;
+        }
+
+        if (isFull) {
+            state.status = "draw";
+            state.winnerId = null;
+            state.winningLine = null;
+            state.currentPlayerId = null;
+            state.turnExpiresAt = null;
+
+            const drawMessage = createSystemMessage("Match nul au Morpion.");
+            room.messages.push(drawMessage);
+            room.messages = room.messages.slice(-100);
+            io.to(roomId).emit("room:message", drawMessage);
+            broadcastRoomState(roomId);
+            io.to(roomId).emit("morpion:finished", {reason: "draw"});
+            return;
+        }
+
+        const otherPlayerId = Object.keys(state.symbols).find((playerId) => playerId !== socket.id);
+        state.currentPlayerId = otherPlayerId ?? null;
+        state.turnExpiresAt = otherPlayerId ? Date.now() + MORPION_TURN_DURATION_MS : null;
+
+        broadcastRoomState(roomId);
+    };
+
+    const handleSyncState = () => {
+        const roomId = socketRooms.get(socket.id);
+        if (!roomId) {
+            return;
+        }
+
+        const room = rooms.get(roomId);
+        if (!room) {
+            return;
+        }
+
+        socket.emit("room:state", serializeRoom(room));
     };
 
     const handleMessage = ({body}: MessagePayload) => {
@@ -316,8 +544,11 @@ io.on("connection", (socket) => {
 
     socket.on("room:join", handleJoin);
     socket.on("room:toggleReady", handleToggleReady);
+    socket.on("room:start", handleStartGame);
     socket.on("room:message", handleMessage);
     socket.on("room:leave", handleLeave);
+    socket.on("room:sync", handleSyncState);
+    socket.on("morpion:move", handleMorpionMove);
 
     socket.on("disconnect", (reason) => {
         const roomId = socketRooms.get(socket.id);
