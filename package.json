@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "update": "git fetch --all && git reset --hard origin/main && pnpm install --frozen-lockfile",
+    "update": "git fetch --all && git reset --hard origin/main && pnpm install -r --include=dev --frozen-lockfile",
     "build:web": "pnpm --filter web build",
     "build:api": "pnpm --filter api build",
     "build": "pnpm -r build",
