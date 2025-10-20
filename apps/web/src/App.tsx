@@ -97,24 +97,99 @@ const generateRoomId = () => {
     return Math.random().toString(36).slice(2, 10).toUpperCase();
 };
 
+const normalizeBasePath = (value: string | undefined) => {
+    if (!value) {
+        return "";
+    }
+
+    if (value === "/") {
+        return "";
+    }
+
+    return value.endsWith("/") ? value.slice(0, -1) : value;
+};
+
+const BASE_PATH = normalizeBasePath(import.meta.env.BASE_URL);
+
+const ROOM_ROUTE_REGEX = /^\/rooms\/([^/?#]+)/i;
+
+const stripBasePath = (pathname: string) => {
+    if (!BASE_PATH) {
+        return pathname;
+    }
+
+    if (pathname.toLowerCase().startsWith(BASE_PATH.toLowerCase())) {
+        const stripped = pathname.slice(BASE_PATH.length) || "/";
+        return stripped.startsWith("/") ? stripped : `/${stripped}`;
+    }
+
+    return pathname;
+};
+
 const readRouteFromLocation = (): Route => {
     if (typeof window === "undefined") {
         return {name: "home"};
     }
 
     const {pathname, search} = window.location;
-    if (pathname.startsWith("/rooms/")) {
-        const [, , rawId] = pathname.split("/");
-        const roomId = decodeURIComponent(rawId ?? "").trim();
+    const relativePath = stripBasePath(pathname);
+    const match = relativePath.match(ROOM_ROUTE_REGEX);
+    if (match) {
+        const roomId = decodeURIComponent(match[1] ?? "").trim();
         if (roomId) {
-            return {name: "room", roomId, search};
+            return {name: "room", roomId, search: search ?? ""};
         }
     }
 
     return {name: "home"};
 };
 
-const buildRoomPath = (roomId: string, search: string) => `/rooms/${roomId}${search}`;
+const copyTextToClipboard = async (text: string): Promise<boolean> => {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    if (typeof document === "undefined") {
+        return false;
+    }
+
+    try {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.top = "-1000px";
+        textArea.style.left = "-1000px";
+        document.body.appendChild(textArea);
+
+        const selection = document.getSelection();
+        const originalRange = selection?.rangeCount ? selection.getRangeAt(0) : null;
+
+        textArea.select();
+        const successful = document.execCommand("copy");
+
+        document.body.removeChild(textArea);
+
+        if (originalRange) {
+            selection?.removeAllRanges();
+            selection?.addRange(originalRange);
+        }
+
+        return successful;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
+};
+
+const buildHomePath = () => BASE_PATH || "/";
+
+const buildRoomPath = (roomId: string, search: string) => `${BASE_PATH}/rooms/${roomId}${search}`;
 
 export default function App() {
     const [route, setRoute] = useState<Route>(() => readRouteFromLocation());
@@ -138,7 +213,7 @@ export default function App() {
             return;
         }
 
-        const targetPath = target.name === "home" ? "/" : buildRoomPath(target.roomId, target.search);
+        const targetPath = target.name === "home" ? buildHomePath() : buildRoomPath(target.roomId, target.search);
         const currentPath = `${window.location.pathname}${window.location.search}`;
 
         if (targetPath !== currentPath) {
@@ -399,20 +474,19 @@ function RoomView({roomId, search, onBackToHome}: RoomViewProps) {
         socketRef.current?.emit("room:toggleReady");
     };
 
-    const handleCopyLink = async () => {
-        try {
-            const linkToCopy = roomLink || (typeof window !== "undefined" ? window.location.href : "");
-            if (!navigator.clipboard) {
-                throw new Error("clipboard unavailable");
-            }
+    const getRoomLink = () => roomLink || (typeof window !== "undefined" ? window.location.href : "");
 
-            await navigator.clipboard.writeText(linkToCopy);
+    const handleCopyLink = async () => {
+        const linkToCopy = getRoomLink();
+        const copied = await copyTextToClipboard(linkToCopy);
+
+        if (copied) {
             setFeedback("Lien du salon copié dans le presse-papier");
             setShareError(null);
-        } catch (error) {
-            console.error(error);
-            setShareError("Impossible de copier le lien. Copiez-le manuellement.");
+            return;
         }
+
+        setShareError("Impossible de copier le lien. Copiez-le manuellement.");
     };
 
     const handleShareLink = async () => {
@@ -420,7 +494,7 @@ function RoomView({roomId, search, onBackToHome}: RoomViewProps) {
         const shareText = selectedGame
             ? `Rejoins ma partie de ${selectedGame.label} sur JokR !`
             : "Rejoins ma partie sur JokR !";
-        const linkToShare = roomLink || (typeof window !== "undefined" ? window.location.href : "");
+        const linkToShare = getRoomLink();
 
         if (navigator.share) {
             try {
@@ -440,8 +514,14 @@ function RoomView({roomId, search, onBackToHome}: RoomViewProps) {
             return;
         }
 
-        await handleCopyLink();
-        setShareError("Votre navigateur ne gère pas le partage automatique. Le lien a été copié.");
+        const copied = await copyTextToClipboard(linkToShare);
+        if (copied) {
+            setFeedback("Lien du salon copié dans le presse-papier");
+            setShareError("Votre navigateur ne gère pas le partage automatique. Le lien a été copié.");
+            return;
+        }
+
+        setShareError("Votre navigateur ne gère pas le partage automatique. Copiez le lien manuellement.");
     };
 
     const handleSendMessage = (event: FormEvent<HTMLFormElement>) => {
