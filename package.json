@@ -10,16 +10,16 @@
     "packages/*"
   ],
   "scripts": {
-    "update": "git fetch --all && git reset --hard origin/main && pnpm install -r --include=dev --frozen-lockfile",
+    "update": "git fetch --all && git reset --hard origin/main && pnpm install",
     "build:web": "pnpm --filter web build",
     "build:api": "pnpm --filter api build",
     "build": "pnpm -r build",
     "deploy:web": "sudo mkdir -p /var/www/jokr.ebasson.fr && sudo rsync -a --delete apps/web/dist/ /var/www/jokr.ebasson.fr/",
     "start:api:prod": "pm2 start ecosystem.config.cjs --only jokr-api --update-env || pm2 reload jokr-api",
     "deploy:api": "pnpm build:api && pnpm start:api:prod",
-    "updateDeploy:web": "pnpm update && pnpm build:web && pnpm deploy:web",
-    "updateDeploy:api": "pnpm update && pnpm deploy:api",
-    "updateDeploy": "pnpm update && pnpm build && pnpm deploy:web && pnpm start:api:prod && pm2 save",
+    "updateDeploy:web": "pnpm build:web && pnpm deploy:web",
+    "updateDeploy:api": "pnpm deploy:api",
+    "updateDeploy": "pnpm run update && pnpm build && pnpm deploy:web && pnpm start:api:prod && pm2 save",
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api dev",
     "dev": "concurrently -k -n web,api \"pnpm dev:web\" \"pnpm dev:api\""
