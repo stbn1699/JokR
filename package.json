@@ -1,0 +1,22 @@
+{
+  "name": "jokr",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Jeux en ligne - JokR",
+  "author": "Elina",
+  "license": "AGPL-3.0+NonCommercial",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "dev": "concurrently -k -n web,api \"pnpm dev:web\" \"pnpm dev:api\"",
+    "build": "pnpm -r build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  },
+  "packageManager": "pnpm@10.18.3"
+}
