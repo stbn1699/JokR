@@ -180,6 +180,12 @@
   color: #fed7aa;
 }
 
+.feedback.error {
+  background: rgba(248, 113, 113, 0.18);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+}
+
 .room-main {
   display: grid;
   grid-template-columns: minmax(240px, 300px) 1fr;
@@ -231,6 +237,18 @@
   border-radius: 16px;
   background: rgba(148, 163, 184, 0.08);
   border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.player-card.empty {
+  justify-content: center;
+  color: rgba(226, 232, 240, 0.7);
+  font-style: italic;
+}
+
+.player-card > button {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .player-avatar {
@@ -297,6 +315,11 @@
   background: rgba(148, 163, 184, 0.14);
   color: rgba(226, 232, 240, 0.85);
   width: fit-content;
+}
+
+.player-tag.host {
+  background: rgba(99, 102, 241, 0.18);
+  color: #c7d2fe;
 }
 
 .invite-card {
@@ -400,6 +423,11 @@
   outline-offset: 2px;
 }
 
+.chat-form input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .primary,
 .secondary,
 .ghost {
@@ -443,6 +471,15 @@
 .ghost:hover {
   transform: translateY(-1px);
   background: rgba(148, 163, 184, 0.16);
+}
+
+.primary:disabled,
+.secondary:disabled,
+.ghost:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .modal-backdrop {
