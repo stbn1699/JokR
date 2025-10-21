@@ -2,17 +2,16 @@ import {type FormEvent, useCallback, useEffect, useMemo, useRef, useState} from 
 import {io, type Socket} from "socket.io-client";
 import {API_URL} from "../config/api";
 import {GAMES} from "../data/games";
-import {MAX_PLAYERS} from "../room/constants";
-import type {
-    ChatMessage,
-    MorpionSymbol,
-    RoomInitPayload,
-    RoomSnapshot,
-    RoomStatus,
-} from "../room/types";
+import {
+    MORPION_CONFIG,
+    MORPION_MESSAGES,
+    MorpionGamePage,
+    MorpionLobbySettings,
+    buildMorpionSettingsWithCross,
+} from "../games/morpion";
+import type {ChatMessage, RoomInitPayload, RoomSnapshot, RoomStatus} from "../room/types";
 import {copyTextToClipboard} from "../utils/clipboard";
 import {LobbyPage} from "./LobbyPage";
-import {MorpionGamePage} from "./MorpionGamePage";
 
 type RoomPageProps = {
     roomId: string;
@@ -21,6 +20,19 @@ type RoomPageProps = {
 };
 
 const STORAGE_KEY = "jokr:playerName";
+
+const MORPION_LOBBY_CONFIG = {
+    name: MORPION_CONFIG.name,
+    maxPlayers: MORPION_CONFIG.maxPlayers,
+    waitingStatus: MORPION_MESSAGES.waitingStatus,
+    startedStatus: MORPION_MESSAGES.startedStatus,
+    startButtonLabel: MORPION_MESSAGES.startButtonLabel,
+    startButtonLaunchedLabel: MORPION_MESSAGES.startButtonLaunchedLabel,
+    inviteHintFull: MORPION_MESSAGES.inviteHintFull,
+    inviteHintWaiting: MORPION_MESSAGES.inviteHintWaiting,
+} as const;
+
+const MORPION_ROOM_FULL_MESSAGE = MORPION_MESSAGES.roomFullWithCount(MORPION_CONFIG.maxPlayers);
 
 export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
     const normalizedRoomId = roomId.trim();
@@ -118,7 +130,7 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
 
     useEffect(() => {
         if (room.status === "started" && previousStatusRef.current !== "started") {
-            setFeedback("La partie de Morpion commence !");
+            setFeedback(MORPION_MESSAGES.startAnnouncement);
         }
 
         previousStatusRef.current = room.status;
@@ -302,14 +314,14 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
             return;
         }
 
-        if (room.players.length < MAX_PLAYERS) {
-            setShareError("Deux joueurs doivent être présents pour lancer le Morpion.");
+        if (room.players.length < MORPION_CONFIG.maxPlayers) {
+            setShareError(MORPION_MESSAGES.notEnoughPlayersToStart);
             return;
         }
 
         const everyoneReady = room.players.every((player) => player.status === "ready");
         if (!everyoneReady) {
-            setShareError("Tous les joueurs doivent être prêts pour démarrer le duel.");
+            setShareError(MORPION_MESSAGES.notEveryoneReady);
             return;
         }
 
@@ -319,8 +331,8 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
     const getRoomLink = () => roomLink || (typeof window !== "undefined" ? window.location.href : "");
 
     const handleCopyLink = async () => {
-        if (room.players.length >= MAX_PLAYERS) {
-            setShareError("Le salon est complet (2 joueurs).");
+        if (room.players.length >= MORPION_CONFIG.maxPlayers) {
+            setShareError(MORPION_ROOM_FULL_MESSAGE);
             return;
         }
 
@@ -337,8 +349,8 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
     };
 
     const handleShareLink = async () => {
-        if (room.players.length >= MAX_PLAYERS) {
-            setShareError("Le salon est complet (2 joueurs).");
+        if (room.players.length >= MORPION_CONFIG.maxPlayers) {
+            setShareError(MORPION_ROOM_FULL_MESSAGE);
             return;
         }
 
@@ -406,8 +418,8 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
     };
 
     const handleInvitePlaceholder = () => {
-        if (room.players.length >= MAX_PLAYERS) {
-            setShareError("Le salon est complet (2 joueurs).");
+        if (room.players.length >= MORPION_CONFIG.maxPlayers) {
+            setShareError(MORPION_ROOM_FULL_MESSAGE);
             return;
         }
 
@@ -423,36 +435,11 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
                 }
 
                 const sortedPlayers = [...players].sort((a, b) => a.joinedAt - b.joinedAt);
-                const hasTarget = crossPlayerId
-                    ? sortedPlayers.some((player) => player.id === crossPlayerId)
-                    : false;
-                const preferredCrossId = hasTarget ? crossPlayerId : sortedPlayers[0]?.id ?? null;
-
-                if (!preferredCrossId) {
-                    return current;
-                }
-
-                const nextSymbols: Record<string, MorpionSymbol | undefined> = {};
-                let assignedO = false;
-
-                for (const player of sortedPlayers) {
-                    if (player.id === preferredCrossId) {
-                        nextSymbols[player.id] = "X";
-                        continue;
-                    }
-
-                    if (!assignedO) {
-                        nextSymbols[player.id] = "O";
-                        assignedO = true;
-                    }
-                }
-
+                const nextSettings = buildMorpionSettingsWithCross(sortedPlayers, crossPlayerId);
                 const currentSymbols = current.morpionSettings.symbols;
-                const hasChanges = sortedPlayers.some((player) => {
-                    const previous = currentSymbols[player.id] ?? undefined;
-                    const next = nextSymbols[player.id] ?? undefined;
-                    return previous !== next;
-                });
+                const hasChanges = sortedPlayers.some(
+                    (player) => currentSymbols[player.id] !== nextSettings.symbols[player.id]
+                );
 
                 if (!hasChanges) {
                     return current;
@@ -460,9 +447,7 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
 
                 return {
                     ...current,
-                    morpionSettings: {
-                        symbols: nextSymbols,
-                    },
+                    morpionSettings: nextSettings,
                 };
             });
 
@@ -503,6 +488,16 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
     };
 
     const displayRoomId = room.id || normalizedRoomId;
+    const lobbySettingsPanel = (
+        <MorpionLobbySettings
+            players={room.players}
+            hostId={room.hostId}
+            settings={room.morpionSettings}
+            isHost={room.hostId === selfId}
+            isGameStarted={room.status === "started"}
+            onAssignCross={handleUpdateMorpionSettings}
+        />
+    );
 
     if (room.status === "started") {
         return (
@@ -530,13 +525,14 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
             playersReady={playersReady}
             playerName={playerName}
             roomCode={displayRoomId}
+            game={MORPION_LOBBY_CONFIG}
             onBackToHome={handleLeaveRoom}
             onCopyLink={handleCopyLink}
             onShareLink={handleShareLink}
             onStartGame={handleStartGame}
             onToggleReady={handleToggleReady}
             onInvite={handleInvitePlaceholder}
-            onUpdateMorpionSettings={handleUpdateMorpionSettings}
+            settingsPanel={lobbySettingsPanel}
             messages={messages}
             chatEndRef={chatEndRef}
             onSendMessage={handleSendMessage}

@@ -1,7 +1,8 @@
 import {type FormEvent, type MutableRefObject, useEffect, useMemo, useState} from "react";
-import {MAX_PLAYERS} from "../room/constants";
-import type {ChatMessage, MorpionState, RoomPlayer, RoomSnapshot} from "../room/types";
-import {formatTimestamp} from "../utils/datetime";
+import type {ChatMessage, RoomPlayer, RoomSnapshot} from "../../room/types";
+import {formatTimestamp} from "../../utils/datetime";
+import {MORPION_CONFIG} from "./config";
+import type {MorpionState} from "./types";
 
 type MorpionGamePageProps = {
     room: RoomSnapshot;
@@ -100,7 +101,7 @@ export function MorpionGamePage({
     }, [morpion, winnerPlayer, currentPlayer, activePlayerId]);
 
     const headerStatus = useMemo(() => {
-        const base = `${playersLength}/${MAX_PLAYERS} joueurs connectés`;
+        const base = `${playersLength}/${MORPION_CONFIG.maxPlayers} joueurs connectés`;
         return gameStatus ? `${base} • ${gameStatus}` : base;
     }, [playersLength, gameStatus]);
 
@@ -180,7 +181,7 @@ export function MorpionGamePage({
                     <div className="panel-header">
                         <h2>Participants</h2>
                         <span className="player-count">
-                            {playersLength}/{MAX_PLAYERS}
+                            {playersLength}/{MORPION_CONFIG.maxPlayers}
                         </span>
                     </div>
                     <div className="player-list">

@@ -1,7 +1,18 @@
-import {type FormEvent, type MutableRefObject, useMemo, useState} from "react";
-import {statusLabel, MAX_PLAYERS} from "../room/constants";
+import {type FormEvent, type MutableRefObject, type ReactNode, useMemo, useState} from "react";
+import {statusLabel} from "../room/constants";
 import type {ChatMessage, RoomPlayer, RoomSnapshot} from "../room/types";
 import {formatTimestamp} from "../utils/datetime";
+
+export type LobbyGameConfig = {
+    name: string;
+    maxPlayers: number;
+    waitingStatus: (ready: number, maxPlayers: number) => string;
+    startedStatus: string;
+    startButtonLabel: string;
+    startButtonLaunchedLabel: string;
+    inviteHintFull: string;
+    inviteHintWaiting: string;
+};
 
 export type LobbyPageProps = {
     room: RoomSnapshot;
@@ -10,13 +21,14 @@ export type LobbyPageProps = {
     playersReady: number;
     playerName: string;
     roomCode: string;
+    game: LobbyGameConfig;
     onBackToHome: () => void;
     onCopyLink: () => void;
     onShareLink: () => void;
     onStartGame: () => void;
     onToggleReady: () => void;
     onInvite: () => void;
-    onUpdateMorpionSettings: (crossPlayerId: string | null) => void;
+    settingsPanel?: ReactNode;
     messages: ChatMessage[];
     chatEndRef: MutableRefObject<HTMLDivElement | null>;
     onSendMessage: (event: FormEvent<HTMLFormElement>) => void;
@@ -41,13 +53,14 @@ export function LobbyPage({
     playersReady,
     playerName,
     roomCode,
+    game,
     onBackToHome,
     onCopyLink,
     onShareLink,
     onStartGame,
     onToggleReady,
     onInvite,
-    onUpdateMorpionSettings,
+    settingsPanel,
     messages,
     chatEndRef,
     onSendMessage,
@@ -70,38 +83,14 @@ export function LobbyPage({
     const totalPlayers = players.length;
     const isGameStarted = room.status === "started";
     const isHost = room.hostId === selfId;
-    const isRoomFull = totalPlayers >= MAX_PLAYERS;
-    const canStartGame = isHost && !isGameStarted && totalPlayers === MAX_PLAYERS && playersReady === totalPlayers;
+    const isRoomFull = totalPlayers >= game.maxPlayers;
+    const canStartGame =
+        isHost && !isGameStarted && totalPlayers === game.maxPlayers && playersReady === totalPlayers;
     const localPlayerName = localPlayer?.name ?? playerName;
-    const morpionSymbols = room.morpionSettings?.symbols ?? {};
-    const crossPlayer = useMemo(
-        () => players.find((player) => morpionSymbols[player.id] === "X") ?? null,
-        [players, morpionSymbols]
+    const waitingStatus = useMemo(
+        () => game.waitingStatus(playersReady, game.maxPlayers),
+        [game, playersReady]
     );
-    const circlePlayer = useMemo(
-        () => players.find((player) => morpionSymbols[player.id] === "O") ?? null,
-        [players, morpionSymbols]
-    );
-    const hostPlayer = useMemo(
-        () => players.find((player) => player.id === room.hostId) ?? null,
-        [players, room.hostId]
-    );
-    const opponentPlayer = useMemo(
-        () => players.find((player) => player.id !== room.hostId) ?? null,
-        [players, room.hostId]
-    );
-    const hostStarts = Boolean(hostPlayer && morpionSymbols[hostPlayer.id] === "X");
-    const canEditSettings = isHost && !isGameStarted;
-    const canToggleStart = canEditSettings && Boolean(hostPlayer && opponentPlayer);
-
-    const handleToggleStart = () => {
-        if (!canToggleStart || !hostPlayer || !opponentPlayer) {
-            return;
-        }
-
-        const nextCrossId = hostStarts ? opponentPlayer.id : hostPlayer.id;
-        onUpdateMorpionSettings(nextCrossId);
-    };
 
     return (
         <>
@@ -114,12 +103,8 @@ export function LobbyPage({
             <header className="room-header">
                 <div className="room-info">
                     <p className="room-code">Salon #{roomCode}</p>
-                    <h1>Salon Morpion</h1>
-                    <p className="room-status">
-                        {isGameStarted
-                            ? "La partie de Morpion est en cours."
-                            : `${playersReady}/${MAX_PLAYERS} joueurs sont prêts. Attendez que chacun confirme pour lancer le Morpion.`}
-                    </p>
+                    <h1>Salon {game.name}</h1>
+                    <p className="room-status">{isGameStarted ? game.startedStatus : waitingStatus}</p>
                 </div>
                 <div className="room-actions">
                     <button className="ghost" type="button" onClick={onCopyLink} disabled={isRoomFull || isGameStarted}>
@@ -130,7 +115,7 @@ export function LobbyPage({
                     </button>
                     {isHost && (
                         <button className="primary" type="button" onClick={onStartGame} disabled={!canStartGame}>
-                            {isGameStarted ? "Partie lancée" : "Lancer le Morpion"}
+                            {isGameStarted ? game.startButtonLaunchedLabel : game.startButtonLabel}
                         </button>
                     )}
                 </div>
@@ -150,7 +135,7 @@ export function LobbyPage({
                     <div className="panel-header">
                         <h2>Joueurs</h2>
                         <span className="player-count">
-                            {totalPlayers}/{MAX_PLAYERS}
+                            {totalPlayers}/{game.maxPlayers}
                         </span>
                     </div>
                     <div className="player-list">
@@ -199,9 +184,7 @@ export function LobbyPage({
                     </div>
                     <div className="invite-card">
                         <p>
-                            {isRoomFull
-                                ? "Salon complet : le duel peut commencer."
-                                : "Invitez votre adversaire à rejoindre la partie."}
+                            {isRoomFull ? game.inviteHintFull : game.inviteHintWaiting}
                         </p>
                         <button className="ghost" type="button" onClick={onInvite} disabled={isRoomFull || isGameStarted}>
                             Inviter manuellement
@@ -275,64 +258,14 @@ export function LobbyPage({
                             </form>
                         </>
                     ) : (
-                        <div className="settings-panel">
-                            <div className="settings-header">
-                                <h2>Paramètres de jeu</h2>
-                                <p>
-                                    Choisissez qui joue avec les croix (X) et qui prend les ronds (O).
-                                    Les croix commencent la partie.
-                                </p>
-                            </div>
-                            <div className="start-toggle">
-                                <h3>Qui commence ?</h3>
-                                <p>Activez le bouton pour démarrer la partie avec les croix (X).</p>
-                                <button
-                                    type="button"
-                                    role="switch"
-                                    aria-checked={hostStarts}
-                                    className={`start-switch${hostStarts ? " active" : ""}`}
-                                    onClick={handleToggleStart}
-                                    disabled={!canToggleStart}
-                                >
-                                    <span className="start-switch-track" aria-hidden>
-                                        <span className="start-switch-thumb" />
-                                    </span>
-                                    <span className="start-switch-label">
-                                        {hostPlayer
-                                            ? hostStarts
-                                                ? "Je commence"
-                                                : opponentPlayer
-                                                  ? `${opponentPlayer.name} commence`
-                                                  : "En attente d'un adversaire"
-                                            : "À déterminer"}
-                                    </span>
-                                </button>
-                                {canEditSettings && !opponentPlayer && (
-                                    <p className="settings-helper">Invitez un adversaire pour choisir qui commence.</p>
-                                )}
-                            </div>
-                            <div className="start-summary">
-                                <div className="start-summary-row">
-                                    <span className="start-badge">X</span>
-                                    <span>{crossPlayer ? crossPlayer.name : "À déterminer"}</span>
-                                </div>
-                                <div className="start-summary-row">
-                                    <span className="start-badge">O</span>
-                                    <span>
-                                        {circlePlayer
-                                            ? circlePlayer.name
-                                            : totalPlayers === MAX_PLAYERS
-                                              ? "À déterminer"
-                                              : "En attente d'un joueur"}
-                                    </span>
+                        settingsPanel ?? (
+                            <div className="settings-panel">
+                                <div className="settings-header">
+                                    <h2>Paramètres de jeu</h2>
+                                    <p>Les paramètres spécifiques à ce jeu seront bientôt disponibles.</p>
                                 </div>
                             </div>
-                            {!canEditSettings && (
-                                <p className="settings-helper">
-                                    Seul l'organisateur peut modifier ces paramètres tant que la partie n'a pas commencé.
-                                </p>
-                            )}
-                        </div>
+                        )
                     )}
                 </section>
             </main>

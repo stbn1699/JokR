@@ -3,34 +3,26 @@ import cors from "cors";
 import {createServer} from "http";
 import {Server} from "socket.io";
 import {randomUUID} from "node:crypto";
+import {
+    MORPION_CONFIG,
+    MORPION_MESSAGES,
+    createDefaultMorpionSettings,
+    createInitialMorpionState,
+    ensureMorpionSettingsForPlayers,
+    evaluateMorpionBoard,
+    findMorpionWinnerId,
+    getNextMorpionPlayerId,
+    type MorpionSettings,
+    type MorpionState,
+    type MorpionSymbol,
+} from "./games/morpion";
 
 const PORT = Number(process.env.PORT) || 3001;
 const FRONT_ORIGIN = process.env.FRONT_ORIGIN || "http://localhost:5173";
-const MAX_PLAYERS = 2;
-const MORPION_GRID_SIZE = 9;
-const MORPION_TURN_DURATION_MS = 30_000;
 
 type PlayerStatus = "ready" | "waiting";
 
 type RoomStatus = "lobby" | "started";
-
-type MorpionSymbol = "X" | "O";
-
-type MorpionStatus = "waiting" | "playing" | "won" | "draw";
-
-type MorpionSettings = {
-    symbols: Record<string, MorpionSymbol>;
-};
-
-type MorpionState = {
-    board: (MorpionSymbol | null)[];
-    currentPlayerId: string | null;
-    symbols: Record<string, MorpionSymbol>;
-    status: MorpionStatus;
-    winnerId: string | null;
-    winningLine: number[] | null;
-    turnExpiresAt: number | null;
-};
 
 type RoomPlayer = {
     id: string;
@@ -129,51 +121,13 @@ const createSystemMessage = (body: string): ChatMessage => ({
     type: "system",
 });
 
-const sanitizeMorpionSymbols = (
-    players: RoomPlayer[],
-    base: Record<string, MorpionSymbol> = {}
-): Record<string, MorpionSymbol> => {
-    const sortedPlayers = [...players].sort((a, b) => a.joinedAt - b.joinedAt);
-    const assigned = new Set<MorpionSymbol>();
-    const symbols: Record<string, MorpionSymbol> = {};
+const getMorpionPlayerRefs = (room: RoomData) =>
+    Array.from(room.players.values(), (player) => ({id: player.id, joinedAt: player.joinedAt}));
 
-    for (const player of sortedPlayers) {
-        const symbol = base[player.id];
-        if (symbol && !assigned.has(symbol)) {
-            symbols[player.id] = symbol;
-            assigned.add(symbol);
-        }
-    }
-
-    for (const player of sortedPlayers) {
-        if (symbols[player.id]) {
-            continue;
-        }
-
-        if (!assigned.has("X")) {
-            symbols[player.id] = "X";
-            assigned.add("X");
-            continue;
-        }
-
-        if (!assigned.has("O")) {
-            symbols[player.id] = "O";
-            assigned.add("O");
-        }
-    }
-
-    return symbols;
-};
-
-const ensureMorpionSettings = (room: RoomData): MorpionSettings => {
-    if (!room.morpionSettings) {
-        room.morpionSettings = {symbols: {}};
-    }
-
-    const players = Array.from(room.players.values());
-    room.morpionSettings.symbols = sanitizeMorpionSymbols(players, room.morpionSettings.symbols);
-
-    return room.morpionSettings;
+const syncMorpionSettings = (room: RoomData): MorpionSettings => {
+    const settings = ensureMorpionSettingsForPlayers(getMorpionPlayerRefs(room), room.morpionSettings);
+    room.morpionSettings = settings;
+    return settings;
 };
 
 const serializeRoom = (room: RoomData): RoomSnapshot => ({
@@ -183,48 +137,8 @@ const serializeRoom = (room: RoomData): RoomSnapshot => ({
     players: Array.from(room.players.values()).sort((a, b) => a.joinedAt - b.joinedAt),
     status: room.status,
     morpion: room.morpion,
-    morpionSettings: ensureMorpionSettings(room),
+    morpionSettings: syncMorpionSettings(room),
 });
-
-const WINNING_LINES: number[][] = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-];
-
-const createInitialMorpionState = (players: RoomPlayer[], settings: MorpionSettings): MorpionState => {
-    const orderedPlayers = [...players].sort((a, b) => a.joinedAt - b.joinedAt);
-    const symbols = sanitizeMorpionSymbols(orderedPlayers, settings.symbols);
-    const firstPlayerId = orderedPlayers.find((player) => symbols[player.id] === "X")?.id ?? null;
-
-    return {
-        board: Array(MORPION_GRID_SIZE).fill(null),
-        currentPlayerId: firstPlayerId,
-        symbols,
-        status: "playing",
-        winnerId: null,
-        winningLine: null,
-        turnExpiresAt: Date.now() + MORPION_TURN_DURATION_MS,
-    };
-};
-
-const evaluateMorpionBoard = (board: (MorpionSymbol | null)[]) => {
-    for (const line of WINNING_LINES) {
-        const [a, b, c] = line;
-        const value = board[a];
-        if (value && value === board[b] && value === board[c]) {
-            return {symbol: value, winningLine: line};
-        }
-    }
-
-    const isFull = board.every((cell) => cell !== null);
-    return {symbol: null, winningLine: null, isFull};
-};
 
 const broadcastRoomState = (roomId: string) => {
     const room = rooms.get(roomId);
@@ -265,7 +179,7 @@ const removePlayerFromRoom = (roomId: string, socketId: string) => {
     if (room.players.size === 0) {
         rooms.delete(roomId);
     } else {
-        ensureMorpionSettings(room);
+        syncMorpionSettings(room);
     }
 
     return {room, player};
@@ -311,13 +225,13 @@ io.on("connection", (socket) => {
                 messages: [],
                 status: "lobby",
                 morpion: null,
-                morpionSettings: {symbols: {}},
+                morpionSettings: createDefaultMorpionSettings(),
             };
             rooms.set(trimmedRoomId, room);
         }
 
-        if (room.players.size >= MAX_PLAYERS) {
-            socket.emit("room:error", {message: "Le salon est complet."});
+        if (room.players.size >= MORPION_CONFIG.maxPlayers) {
+            socket.emit("room:error", {message: MORPION_MESSAGES.roomFull});
             return;
         }
 
@@ -332,7 +246,7 @@ io.on("connection", (socket) => {
         const existingPlayer = room.players.get(socket.id);
         if (existingPlayer) {
             existingPlayer.name = safeName;
-            ensureMorpionSettings(room);
+            syncMorpionSettings(room);
             socket.emit("room:init", {
                 selfId: socket.id,
                 room: serializeRoom(room),
@@ -358,7 +272,7 @@ io.on("connection", (socket) => {
         socketRooms.set(socket.id, trimmedRoomId);
         socket.join(trimmedRoomId);
 
-        ensureMorpionSettings(room);
+        syncMorpionSettings(room);
 
         const joinMessage = createSystemMessage(`${player.name} a rejoint le salon.`);
         room.messages.push(joinMessage);
@@ -419,23 +333,23 @@ io.on("connection", (socket) => {
             return;
         }
 
-        if (room.players.size < MAX_PLAYERS) {
-            socket.emit("room:error", {message: "Deux joueurs doivent être présents pour lancer le Morpion."});
+        if (room.players.size < MORPION_CONFIG.maxPlayers) {
+            socket.emit("room:error", {message: MORPION_MESSAGES.notEnoughPlayersToStart});
             return;
         }
 
         const everyoneReady = Array.from(room.players.values()).every((player) => player.status === "ready");
         if (!everyoneReady) {
-            socket.emit("room:error", {message: "Tous les joueurs doivent être prêts pour démarrer le duel."});
+            socket.emit("room:error", {message: MORPION_MESSAGES.notEveryoneReady});
             return;
         }
 
         room.status = "started";
         const playersList = Array.from(room.players.values());
-        const settings = ensureMorpionSettings(room);
+        const settings = syncMorpionSettings(room);
         room.morpion = createInitialMorpionState(playersList, settings);
 
-        const startMessage = createSystemMessage("La partie de Morpion commence !");
+        const startMessage = createSystemMessage(MORPION_MESSAGES.startAnnouncement);
         room.messages.push(startMessage);
         room.messages = room.messages.slice(-100);
 
@@ -486,8 +400,7 @@ io.on("connection", (socket) => {
         const {symbol: winningSymbol, winningLine, isFull} = evaluateMorpionBoard(state.board);
 
         if (winningSymbol) {
-            const winnerEntry = Object.entries(state.symbols).find(([, value]) => value === winningSymbol);
-            const winnerId = winnerEntry ? winnerEntry[0] : socket.id;
+            const winnerId = findMorpionWinnerId(state.symbols, winningSymbol, socket.id);
             state.status = "won";
             state.winnerId = winnerId;
             state.winningLine = winningLine;
@@ -495,9 +408,7 @@ io.on("connection", (socket) => {
             state.turnExpiresAt = null;
 
             const winner = room.players.get(winnerId);
-            const victoryMessage = createSystemMessage(
-                winner ? `${winner.name} a remporté le duel de Morpion !` : "La partie est terminée."
-            );
+            const victoryMessage = createSystemMessage(MORPION_MESSAGES.victory(winner?.name));
             room.messages.push(victoryMessage);
             room.messages = room.messages.slice(-100);
             io.to(roomId).emit("room:message", victoryMessage);
@@ -513,7 +424,7 @@ io.on("connection", (socket) => {
             state.currentPlayerId = null;
             state.turnExpiresAt = null;
 
-            const drawMessage = createSystemMessage("Match nul au Morpion.");
+            const drawMessage = createSystemMessage(MORPION_MESSAGES.draw);
             room.messages.push(drawMessage);
             room.messages = room.messages.slice(-100);
             io.to(roomId).emit("room:message", drawMessage);
@@ -522,9 +433,9 @@ io.on("connection", (socket) => {
             return;
         }
 
-        const otherPlayerId = Object.keys(state.symbols).find((playerId) => playerId !== socket.id);
-        state.currentPlayerId = otherPlayerId ?? null;
-        state.turnExpiresAt = otherPlayerId ? Date.now() + MORPION_TURN_DURATION_MS : null;
+        const nextPlayerId = getNextMorpionPlayerId(state.symbols, socket.id);
+        state.currentPlayerId = nextPlayerId;
+        state.turnExpiresAt = nextPlayerId ? Date.now() + MORPION_CONFIG.turnDurationMs : null;
 
         broadcastRoomState(roomId);
     };
@@ -590,20 +501,20 @@ io.on("connection", (socket) => {
 
         if (room.hostId !== socket.id) {
             socket.emit("room:error", {
-                message: "Seul l'organisateur peut modifier les paramètres du Morpion.",
+                message: MORPION_MESSAGES.hostOnlySettings,
             });
             return;
         }
 
         if (room.status !== "lobby") {
             socket.emit("room:error", {
-                message: "Les paramètres du Morpion ne peuvent plus être modifiés pendant la partie.",
+                message: MORPION_MESSAGES.settingsLocked,
             });
             return;
         }
 
         const players = Array.from(room.players.values());
-        const sortedPlayers = players.sort((a, b) => a.joinedAt - b.joinedAt);
+        const sortedPlayers = [...players].sort((a, b) => a.joinedAt - b.joinedAt);
         const hasTarget = crossPlayerId ? sortedPlayers.some((player) => player.id === crossPlayerId) : false;
         const preferredCrossId = hasTarget ? crossPlayerId : sortedPlayers[0]?.id;
         const baseSymbols: Record<string, MorpionSymbol> = {};
@@ -612,7 +523,7 @@ io.on("connection", (socket) => {
             baseSymbols[preferredCrossId] = "X";
         }
 
-        room.morpionSettings.symbols = sanitizeMorpionSymbols(sortedPlayers, baseSymbols);
+        room.morpionSettings = ensureMorpionSettingsForPlayers(sortedPlayers, {symbols: baseSymbols});
         broadcastRoomState(roomId);
     };
 
