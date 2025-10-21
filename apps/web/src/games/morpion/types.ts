@@ -20,3 +20,8 @@ export type MorpionPlayerRef = {
     id: string;
     joinedAt: number;
 };
+
+export type MorpionOutcome = {
+    reason: "win" | "draw";
+    winnerId: string | null;
+};

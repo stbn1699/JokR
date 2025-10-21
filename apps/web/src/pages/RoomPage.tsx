@@ -7,7 +7,9 @@ import {
     MORPION_MESSAGES,
     MorpionGamePage,
     MorpionLobbySettings,
+    MorpionResultDialog,
     buildMorpionSettingsWithCross,
+    type MorpionOutcome,
 } from "../games/morpion";
 import type {ChatMessage, RoomInitPayload, RoomSnapshot, RoomStatus} from "../room/types";
 import {copyTextToClipboard} from "../utils/clipboard";
@@ -60,6 +62,7 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
         morpion: null,
         morpionSettings: {symbols: {}},
     });
+    const [morpionOutcome, setMorpionOutcome] = useState<MorpionOutcome | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [selfId, setSelfId] = useState<string | null>(null);
     const [messageDraft, setMessageDraft] = useState("Je suis prêt !");
@@ -74,6 +77,8 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
     const hasJoinedRef = useRef(false);
     const chatEndRef = useRef<HTMLDivElement | null>(null);
     const previousStatusRef = useRef<RoomStatus>("lobby");
+    const roomStatusRef = useRef<RoomStatus>("lobby");
+    const pendingMorpionOutcomeRef = useRef<MorpionOutcome | null>(null);
     const syncIntervalRef = useRef<number | null>(null);
 
     const selectedGame = useMemo(() => {
@@ -94,6 +99,10 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
         () => room.players.find((player) => player.id === selfId) ?? null,
         [room.players, selfId]
     );
+
+    const localPlayerName = localPlayer?.name?.trim() || playerName.trim() || null;
+
+    const morpionStatus = room.morpion?.status ?? null;
 
     useEffect(() => {
         if (typeof window === "undefined") {
@@ -134,6 +143,12 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
         }
 
         previousStatusRef.current = room.status;
+        roomStatusRef.current = room.status;
+
+        if (room.status !== "started" && pendingMorpionOutcomeRef.current) {
+            setMorpionOutcome(pendingMorpionOutcomeRef.current);
+            pendingMorpionOutcomeRef.current = null;
+        }
     }, [room.status]);
 
     useEffect(() => {
@@ -149,6 +164,13 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
         }
     }, [localPlayer, playerName]);
 
+    useEffect(() => {
+        if (room.status === "started" && morpionStatus === "playing") {
+            setMorpionOutcome(null);
+            pendingMorpionOutcomeRef.current = null;
+        }
+    }, [room.status, morpionStatus]);
+
     const performLeave = useCallback(() => {
         const socket = socketRef.current;
         if (socket) {
@@ -160,6 +182,8 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
         socketRef.current = null;
         hasJoinedRef.current = false;
         setHasJoinedRoom(false);
+        setMorpionOutcome(null);
+        pendingMorpionOutcomeRef.current = null;
         onBackToHome();
     }, [onBackToHome]);
 
@@ -194,8 +218,21 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
             setRoomError(error.message ?? "Une erreur est survenue.");
         };
 
-        const handleMorpionFinished = () => {
-            performLeave();
+        const handleMorpionFinished = (payload?: MorpionOutcome) => {
+            if (!payload || (payload.reason !== "win" && payload.reason !== "draw")) {
+                return;
+            }
+
+            const normalizedWinnerId = payload.reason === "win" ? payload.winnerId ?? null : null;
+            const normalizedOutcome: MorpionOutcome = {
+                reason: payload.reason,
+                winnerId: normalizedWinnerId,
+            };
+            pendingMorpionOutcomeRef.current = normalizedOutcome;
+            if (roomStatusRef.current !== "started") {
+                setMorpionOutcome(normalizedOutcome);
+                pendingMorpionOutcomeRef.current = null;
+            }
         };
 
         socket.on("connect", () => {
@@ -236,7 +273,7 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
             socketRef.current = null;
             hasJoinedRef.current = false;
         };
-    }, [normalizedRoomId, performLeave]);
+    }, [normalizedRoomId]);
 
     useEffect(() => {
         hasJoinedRef.current = false;
@@ -295,6 +332,17 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
         });
         hasJoinedRef.current = true;
     }, [socketConnected, normalizedRoomId, playerName, queryGameId]);
+
+    useEffect(() => {
+        if (room.status !== "started") {
+            return;
+        }
+
+        if (morpionStatus === "playing" || morpionStatus === "waiting") {
+            setMorpionOutcome(null);
+            pendingMorpionOutcomeRef.current = null;
+        }
+    }, [room.status, morpionStatus]);
 
     const handleToggleReady = () => {
         if (!localPlayer || room.status === "started") {
@@ -387,6 +435,15 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
 
         setShareError("Votre navigateur ne gère pas le partage automatique. Copiez le lien manuellement.");
     };
+
+    const handleCloseResultDialog = useCallback(() => {
+        setMorpionOutcome(null);
+        pendingMorpionOutcomeRef.current = null;
+    }, []);
+
+    const handleResultGoHome = useCallback(() => {
+        performLeave();
+    }, [performLeave]);
 
     const handleSendMessage = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -499,55 +556,73 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
         />
     );
 
+    const resultDialog =
+        morpionOutcome !== null ? (
+            <MorpionResultDialog
+                room={room}
+                outcome={morpionOutcome}
+                selfId={selfId}
+                localPlayerName={localPlayerName}
+                onClose={handleCloseResultDialog}
+                onGoHome={handleResultGoHome}
+            />
+        ) : null;
+
     if (room.status === "started") {
         return (
-            <MorpionGamePage
+            <>
+                <MorpionGamePage
+                    room={room}
+                    morpion={room.morpion}
+                    selfId={selfId}
+                    localPlayer={localPlayer}
+                    onLeaveRoom={handleLeaveRoom}
+                    onPlayCell={handlePlayMorpionCell}
+                    messages={messages}
+                    chatEndRef={chatEndRef}
+                    onSendMessage={handleSendMessage}
+                    messageDraft={messageDraft}
+                    onMessageDraftChange={setMessageDraft}
+                />
+                {resultDialog}
+            </>
+        );
+    }
+
+    return (
+        <>
+            <LobbyPage
                 room={room}
-                morpion={room.morpion}
                 selfId={selfId}
                 localPlayer={localPlayer}
-                onLeaveRoom={handleLeaveRoom}
-                onPlayCell={handlePlayMorpionCell}
+                playersReady={playersReady}
+                playerName={playerName}
+                roomCode={displayRoomId}
+                game={MORPION_LOBBY_CONFIG}
+                onBackToHome={handleLeaveRoom}
+                onCopyLink={handleCopyLink}
+                onShareLink={handleShareLink}
+                onStartGame={handleStartGame}
+                onToggleReady={handleToggleReady}
+                onInvite={handleInvitePlaceholder}
+                settingsPanel={lobbySettingsPanel}
                 messages={messages}
                 chatEndRef={chatEndRef}
                 onSendMessage={handleSendMessage}
                 messageDraft={messageDraft}
                 onMessageDraftChange={setMessageDraft}
+                feedback={feedback}
+                shareError={shareError}
+                roomError={roomError}
+                socketConnected={socketConnected}
+                hasJoinedRoom={hasJoinedRoom}
+                isNameModalOpen={isNameModalOpen}
+                nameDraft={nameDraft}
+                onNameDraftChange={setNameDraft}
+                onCloseNameModal={handleCloseNameModal}
+                onSubmitName={handleSubmitName}
             />
-        );
-    }
-
-    return (
-        <LobbyPage
-            room={room}
-            selfId={selfId}
-            localPlayer={localPlayer}
-            playersReady={playersReady}
-            playerName={playerName}
-            roomCode={displayRoomId}
-            game={MORPION_LOBBY_CONFIG}
-            onBackToHome={handleLeaveRoom}
-            onCopyLink={handleCopyLink}
-            onShareLink={handleShareLink}
-            onStartGame={handleStartGame}
-            onToggleReady={handleToggleReady}
-            onInvite={handleInvitePlaceholder}
-            settingsPanel={lobbySettingsPanel}
-            messages={messages}
-            chatEndRef={chatEndRef}
-            onSendMessage={handleSendMessage}
-            messageDraft={messageDraft}
-            onMessageDraftChange={setMessageDraft}
-            feedback={feedback}
-            shareError={shareError}
-            roomError={roomError}
-            socketConnected={socketConnected}
-            hasJoinedRoom={hasJoinedRoom}
-            isNameModalOpen={isNameModalOpen}
-            nameDraft={nameDraft}
-            onNameDraftChange={setNameDraft}
-            onCloseNameModal={handleCloseNameModal}
-            onSubmitName={handleSubmitName}
-        />
+            {resultDialog}
+        </>
     );
 }

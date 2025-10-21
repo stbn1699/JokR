@@ -149,6 +149,22 @@ const broadcastRoomState = (roomId: string) => {
     io.to(roomId).emit("room:state", serializeRoom(room));
 };
 
+const transitionMorpionRoomToLobby = (roomId: string, room: RoomData) => {
+    room.status = "lobby";
+    room.morpion = null;
+    room.players.forEach((player) => {
+        player.status = "waiting";
+    });
+
+    const returnMessage = createSystemMessage(MORPION_MESSAGES.returnToLobby);
+    room.messages.push(returnMessage);
+    room.messages = room.messages.slice(-100);
+
+    io.to(roomId).emit("room:message", returnMessage);
+    syncMorpionSettings(room);
+    broadcastRoomState(roomId);
+};
+
 const removePlayerFromRoom = (roomId: string, socketId: string) => {
     const room = rooms.get(roomId);
     if (!room) {
@@ -412,8 +428,8 @@ io.on("connection", (socket) => {
             room.messages.push(victoryMessage);
             room.messages = room.messages.slice(-100);
             io.to(roomId).emit("room:message", victoryMessage);
-            broadcastRoomState(roomId);
             io.to(roomId).emit("morpion:finished", {reason: "win", winnerId});
+            transitionMorpionRoomToLobby(roomId, room);
             return;
         }
 
@@ -428,8 +444,8 @@ io.on("connection", (socket) => {
             room.messages.push(drawMessage);
             room.messages = room.messages.slice(-100);
             io.to(roomId).emit("room:message", drawMessage);
-            broadcastRoomState(roomId);
-            io.to(roomId).emit("morpion:finished", {reason: "draw"});
+            io.to(roomId).emit("morpion:finished", {reason: "draw", winnerId: null});
+            transitionMorpionRoomToLobby(roomId, room);
             return;
         }
 
@@ -527,6 +543,28 @@ io.on("connection", (socket) => {
         broadcastRoomState(roomId);
     };
 
+    const handleReturnToLobby = () => {
+        const roomId = socketRooms.get(socket.id);
+        if (!roomId) {
+            return;
+        }
+
+        const room = rooms.get(roomId);
+        if (!room) {
+            return;
+        }
+
+        if (room.status !== "started" || !room.morpion) {
+            return;
+        }
+
+        if (room.morpion.status === "playing") {
+            return;
+        }
+
+        transitionMorpionRoomToLobby(roomId, room);
+    };
+
     const handleLeave = () => {
         const roomId = socketRooms.get(socket.id);
         if (!roomId) {
@@ -556,6 +594,7 @@ io.on("connection", (socket) => {
     socket.on("room:start", handleStartGame);
     socket.on("room:message", handleMessage);
     socket.on("room:leave", handleLeave);
+    socket.on("room:returnToLobby", handleReturnToLobby);
     socket.on("room:sync", handleSyncState);
     socket.on("morpion:move", handleMorpionMove);
     socket.on("morpion:updateSettings", handleUpdateMorpionSettings);

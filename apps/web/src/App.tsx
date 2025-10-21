@@ -21,7 +21,6 @@ const BASE_PATH = normalizeBasePath(import.meta.env.BASE_URL);
 const heroImageSrc = `${BASE_PATH}/JokR.png`;
 
 const ROOM_ROUTE_REGEX = /^\/rooms\/([^/?#]+)/i;
-
 const stripBasePath = (pathname: string) => {
     if (!BASE_PATH) {
         return pathname;
@@ -87,7 +86,10 @@ export default function App() {
             return;
         }
 
-        const targetPath = target.name === "home" ? buildHomePath() : buildRoomPath(target.roomId, target.search);
+        const targetPath =
+            target.name === "home"
+                ? buildHomePath()
+                : buildRoomPath(target.roomId, target.search);
         const currentPath = `${window.location.pathname}${window.location.search}`;
 
         if (targetPath !== currentPath) {
@@ -107,15 +109,21 @@ export default function App() {
         navigateTo({name: "home"});
     };
 
-    const isLobby = route.name === "room";
+    const isRoomView = route.name === "room";
 
     return (
-        <div className={`app-shell ${isLobby ? "lobby-view" : "home-view"}`}>
-            <div className={`app-container ${isLobby ? "lobby" : "home"}`}>
-                {route.name === "home" ? (
+        <div className={`app-shell ${isRoomView ? "lobby-view" : "home-view"}`}>
+            <div className={`app-container ${isRoomView ? "lobby" : "home"}`}>
+                {route.name === "home" && (
                     <HomePage heroImageSrc={heroImageSrc} onSelectGame={handleSelectGame} />
-                ) : (
-                    <RoomPage roomId={route.roomId} search={route.search} onBackToHome={handleBackToHome} />
+                )}
+                {route.name === "room" && (
+                    <RoomPage
+                        key={route.roomId}
+                        roomId={route.roomId}
+                        search={route.search}
+                        onBackToHome={handleBackToHome}
+                    />
                 )}
             </div>
         </div>

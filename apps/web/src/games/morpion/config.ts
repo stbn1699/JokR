@@ -37,4 +37,5 @@ export const MORPION_MESSAGES = {
     startedStatus: "La partie de Morpion est en cours.",
     waitingStatus: (ready: number, max: number) =>
         `${ready}/${max} joueurs sont prêts. Attendez que chacun confirme pour lancer le Morpion.`,
+    returnToLobby: "Retour au salon pour préparer la revanche.",
 };
