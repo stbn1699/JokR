@@ -235,11 +235,14 @@ export function MorpionGamePage({
                                 Boolean(value) ||
                                 !isYourTurn;
 
+                            const symbolClassName = value === "X" ? "cross" : value === "O" ? "circle" : "";
+
                             const cellClassName = [
                                 "morpion-cell",
                                 isWinningCell ? "winning" : "",
                                 !isYourTurn && morpion?.status === "playing" ? "locked" : "",
                                 value ? "filled" : "",
+                                symbolClassName,
                             ]
                                 .filter(Boolean)
                                 .join(" ");

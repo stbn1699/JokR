@@ -998,6 +998,14 @@
     color: #fdf4ff;
 }
 
+.morpion-cell.cross {
+    color: #60a5fa;
+}
+
+.morpion-cell.circle {
+    color: #f87171;
+}
+
 .morpion-cell:focus-visible {
     outline: 2px solid rgba(255, 208, 102, 0.55);
     outline-offset: 3px;
