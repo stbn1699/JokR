@@ -14,6 +14,10 @@ export type MorpionSymbol = "X" | "O";
 
 export type MorpionStatus = "waiting" | "playing" | "won" | "draw";
 
+export type MorpionSettings = {
+    symbols: Record<string, MorpionSymbol | undefined>;
+};
+
 export type MorpionState = {
     board: (MorpionSymbol | null)[];
     currentPlayerId: string | null;
@@ -31,6 +35,7 @@ export type RoomSnapshot = {
     players: RoomPlayer[];
     status: RoomStatus;
     morpion: MorpionState | null;
+    morpionSettings: MorpionSettings;
 };
 
 export type ChatMessage = {

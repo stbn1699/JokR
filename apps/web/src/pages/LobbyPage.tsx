@@ -1,4 +1,4 @@
-import {type FormEvent, type MutableRefObject} from "react";
+import {type FormEvent, type MutableRefObject, useMemo, useState} from "react";
 import {statusLabel, MAX_PLAYERS} from "../room/constants";
 import type {ChatMessage, RoomPlayer, RoomSnapshot} from "../room/types";
 import {formatTimestamp} from "../utils/datetime";
@@ -16,6 +16,7 @@ export type LobbyPageProps = {
     onStartGame: () => void;
     onToggleReady: () => void;
     onInvite: () => void;
+    onUpdateMorpionSettings: (crossPlayerId: string | null) => void;
     messages: ChatMessage[];
     chatEndRef: MutableRefObject<HTMLDivElement | null>;
     onSendMessage: (event: FormEvent<HTMLFormElement>) => void;
@@ -46,6 +47,7 @@ export function LobbyPage({
     onStartGame,
     onToggleReady,
     onInvite,
+    onUpdateMorpionSettings,
     messages,
     chatEndRef,
     onSendMessage,
@@ -62,6 +64,8 @@ export function LobbyPage({
     onCloseNameModal,
     onSubmitName,
 }: LobbyPageProps) {
+    const [activeTab, setActiveTab] = useState<"chat" | "settings">("chat");
+
     const players = room.players;
     const totalPlayers = players.length;
     const isGameStarted = room.status === "started";
@@ -69,6 +73,35 @@ export function LobbyPage({
     const isRoomFull = totalPlayers >= MAX_PLAYERS;
     const canStartGame = isHost && !isGameStarted && totalPlayers === MAX_PLAYERS && playersReady === totalPlayers;
     const localPlayerName = localPlayer?.name ?? playerName;
+    const morpionSymbols = room.morpionSettings?.symbols ?? {};
+    const crossPlayer = useMemo(
+        () => players.find((player) => morpionSymbols[player.id] === "X") ?? null,
+        [players, morpionSymbols]
+    );
+    const circlePlayer = useMemo(
+        () => players.find((player) => morpionSymbols[player.id] === "O") ?? null,
+        [players, morpionSymbols]
+    );
+    const hostPlayer = useMemo(
+        () => players.find((player) => player.id === room.hostId) ?? null,
+        [players, room.hostId]
+    );
+    const opponentPlayer = useMemo(
+        () => players.find((player) => player.id !== room.hostId) ?? null,
+        [players, room.hostId]
+    );
+    const hostStarts = Boolean(hostPlayer && morpionSymbols[hostPlayer.id] === "X");
+    const canEditSettings = isHost && !isGameStarted;
+    const canToggleStart = canEditSettings && Boolean(hostPlayer && opponentPlayer);
+
+    const handleToggleStart = () => {
+        if (!canToggleStart || !hostPlayer || !opponentPlayer) {
+            return;
+        }
+
+        const nextCrossId = hostStarts ? opponentPlayer.id : hostPlayer.id;
+        onUpdateMorpionSettings(nextCrossId);
+    };
 
     return (
         <>
@@ -177,46 +210,130 @@ export function LobbyPage({
                 </aside>
 
                 <section className="chat-panel">
-                    <div className="chat-header">
-                        <h2>Chat du salon</h2>
-                        <p>Organisez-vous avant de lancer la partie.</p>
-                    </div>
-                    <div className="chat-messages">
-                        {messages.map((message) => (
-                            <div
-                                key={message.id}
-                                className={`chat-message ${
-                                    message.type === "system"
-                                        ? "system"
-                                        : message.author === localPlayer?.name
-                                          ? "self"
-                                          : ""
-                                }`}
-                            >
-                                <div className="chat-meta">
-                                    <span className="chat-author">{message.author}</span>
-                                    <span className="chat-time">{formatTimestamp(message.timestamp)}</span>
-                                </div>
-                                <p className="chat-body">{message.body}</p>
-                            </div>
-                        ))}
-                        <div ref={chatEndRef} />
-                    </div>
-                    <form className="chat-form" onSubmit={onSendMessage}>
-                        <input
-                            type="text"
-                            name="message"
-                            aria-label="Votre message"
-                            placeholder="Écrire un message..."
-                            value={messageDraft}
-                            onChange={(event) => onMessageDraftChange(event.target.value)}
-                            autoComplete="off"
-                            disabled={!localPlayer}
-                        />
-                        <button className="primary" type="submit" disabled={!localPlayer}>
-                            Envoyer
+                    <div className="panel-tabs" role="tablist" aria-label="Salon de discussion et paramètres">
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={activeTab === "chat"}
+                            className={`panel-tab${activeTab === "chat" ? " active" : ""}`}
+                            onClick={() => setActiveTab("chat")}
+                        >
+                            Chat
                         </button>
-                    </form>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={activeTab === "settings"}
+                            className={`panel-tab${activeTab === "settings" ? " active" : ""}`}
+                            onClick={() => setActiveTab("settings")}
+                        >
+                            Paramètres de jeu
+                        </button>
+                    </div>
+
+                    {activeTab === "chat" ? (
+                        <>
+                            <div className="chat-header">
+                                <h2>Chat du salon</h2>
+                                <p>Organisez-vous avant de lancer la partie.</p>
+                            </div>
+                            <div className="chat-messages">
+                                {messages.map((message) => (
+                                    <div
+                                        key={message.id}
+                                        className={`chat-message ${
+                                            message.type === "system"
+                                                ? "system"
+                                                : message.author === localPlayer?.name
+                                                  ? "self"
+                                                  : ""
+                                        }`}
+                                    >
+                                        <div className="chat-meta">
+                                            <span className="chat-author">{message.author}</span>
+                                            <span className="chat-time">{formatTimestamp(message.timestamp)}</span>
+                                        </div>
+                                        <p className="chat-body">{message.body}</p>
+                                    </div>
+                                ))}
+                                <div ref={chatEndRef} />
+                            </div>
+                            <form className="chat-form" onSubmit={onSendMessage}>
+                                <input
+                                    type="text"
+                                    name="message"
+                                    aria-label="Votre message"
+                                    placeholder="Écrire un message..."
+                                    value={messageDraft}
+                                    onChange={(event) => onMessageDraftChange(event.target.value)}
+                                    autoComplete="off"
+                                    disabled={!localPlayer}
+                                />
+                                <button className="primary" type="submit" disabled={!localPlayer}>
+                                    Envoyer
+                                </button>
+                            </form>
+                        </>
+                    ) : (
+                        <div className="settings-panel">
+                            <div className="settings-header">
+                                <h2>Paramètres de jeu</h2>
+                                <p>
+                                    Choisissez qui joue avec les croix (X) et qui prend les ronds (O).
+                                    Les croix commencent la partie.
+                                </p>
+                            </div>
+                            <div className="start-toggle">
+                                <h3>Qui commence ?</h3>
+                                <p>Activez le bouton pour démarrer la partie avec les croix (X).</p>
+                                <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={hostStarts}
+                                    className={`start-switch${hostStarts ? " active" : ""}`}
+                                    onClick={handleToggleStart}
+                                    disabled={!canToggleStart}
+                                >
+                                    <span className="start-switch-track" aria-hidden>
+                                        <span className="start-switch-thumb" />
+                                    </span>
+                                    <span className="start-switch-label">
+                                        {hostPlayer
+                                            ? hostStarts
+                                                ? "Je commence"
+                                                : opponentPlayer
+                                                  ? `${opponentPlayer.name} commence`
+                                                  : "En attente d'un adversaire"
+                                            : "À déterminer"}
+                                    </span>
+                                </button>
+                                {canEditSettings && !opponentPlayer && (
+                                    <p className="settings-helper">Invitez un adversaire pour choisir qui commence.</p>
+                                )}
+                            </div>
+                            <div className="start-summary">
+                                <div className="start-summary-row">
+                                    <span className="start-badge">X</span>
+                                    <span>{crossPlayer ? crossPlayer.name : "À déterminer"}</span>
+                                </div>
+                                <div className="start-summary-row">
+                                    <span className="start-badge">O</span>
+                                    <span>
+                                        {circlePlayer
+                                            ? circlePlayer.name
+                                            : totalPlayers === MAX_PLAYERS
+                                              ? "À déterminer"
+                                              : "En attente d'un joueur"}
+                                    </span>
+                                </div>
+                            </div>
+                            {!canEditSettings && (
+                                <p className="settings-helper">
+                                    Seul l'organisateur peut modifier ces paramètres tant que la partie n'a pas commencé.
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </section>
             </main>
 

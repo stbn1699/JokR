@@ -3,7 +3,13 @@ import {io, type Socket} from "socket.io-client";
 import {API_URL} from "../config/api";
 import {GAMES} from "../data/games";
 import {MAX_PLAYERS} from "../room/constants";
-import type {ChatMessage, RoomInitPayload, RoomSnapshot, RoomStatus} from "../room/types";
+import type {
+    ChatMessage,
+    MorpionSymbol,
+    RoomInitPayload,
+    RoomSnapshot,
+    RoomStatus,
+} from "../room/types";
 import {copyTextToClipboard} from "../utils/clipboard";
 import {LobbyPage} from "./LobbyPage";
 import {MorpionGamePage} from "./MorpionGamePage";
@@ -40,6 +46,7 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
         players: [],
         status: "lobby",
         morpion: null,
+        morpionSettings: {symbols: {}},
     });
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [selfId, setSelfId] = useState<string | null>(null);
@@ -407,6 +414,68 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
         setFeedback("Fonctionnalité d'invitation avancée à venir.");
     };
 
+    const handleUpdateMorpionSettings = useCallback(
+        (crossPlayerId: string | null) => {
+            setRoom((current) => {
+                const players = current.players;
+                if (players.length === 0) {
+                    return current;
+                }
+
+                const sortedPlayers = [...players].sort((a, b) => a.joinedAt - b.joinedAt);
+                const hasTarget = crossPlayerId
+                    ? sortedPlayers.some((player) => player.id === crossPlayerId)
+                    : false;
+                const preferredCrossId = hasTarget ? crossPlayerId : sortedPlayers[0]?.id ?? null;
+
+                if (!preferredCrossId) {
+                    return current;
+                }
+
+                const nextSymbols: Record<string, MorpionSymbol | undefined> = {};
+                let assignedO = false;
+
+                for (const player of sortedPlayers) {
+                    if (player.id === preferredCrossId) {
+                        nextSymbols[player.id] = "X";
+                        continue;
+                    }
+
+                    if (!assignedO) {
+                        nextSymbols[player.id] = "O";
+                        assignedO = true;
+                    }
+                }
+
+                const currentSymbols = current.morpionSettings.symbols;
+                const hasChanges = sortedPlayers.some((player) => {
+                    const previous = currentSymbols[player.id] ?? undefined;
+                    const next = nextSymbols[player.id] ?? undefined;
+                    return previous !== next;
+                });
+
+                if (!hasChanges) {
+                    return current;
+                }
+
+                return {
+                    ...current,
+                    morpionSettings: {
+                        symbols: nextSymbols,
+                    },
+                };
+            });
+
+            const socket = socketRef.current;
+            if (!socket) {
+                return;
+            }
+
+            socket.emit("morpion:updateSettings", {crossPlayerId});
+        },
+        []
+    );
+
     const handleLeaveRoom = useCallback(() => {
         performLeave();
     }, [performLeave]);
@@ -467,6 +536,7 @@ export function RoomPage({roomId, search, onBackToHome}: RoomPageProps) {
             onStartGame={handleStartGame}
             onToggleReady={handleToggleReady}
             onInvite={handleInvitePlaceholder}
+            onUpdateMorpionSettings={handleUpdateMorpionSettings}
             messages={messages}
             chatEndRef={chatEndRef}
             onSendMessage={handleSendMessage}
