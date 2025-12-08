@@ -7,3 +7,5 @@ apps/api/node_modules
 .env
 apps/web/.env
 apps/api/.env
+
+package-lock.json
