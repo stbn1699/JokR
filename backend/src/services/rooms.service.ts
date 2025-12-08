@@ -112,6 +112,16 @@ class RoomsService {
         return room;
     }
 
+    closeRoom(roomId: RoomId): Room {
+        const room = this.rooms.get(roomId);
+        if (!room) {
+            throw new Error("ROOM_NOT_FOUND");
+        }
+
+        this.rooms.delete(roomId);
+        return room;
+    }
+
     listRooms(): Room[] {
         return Array.from(this.rooms.values());
     }

@@ -121,6 +121,23 @@ export const RoomsController = {
         }
     },
 
+    // DELETE /rooms/:roomId
+    closeRoom(req: Request, res: Response) {
+        const { roomId } = req.params;
+
+        try {
+            const room = roomsService.closeRoom(roomId);
+            return res.status(200).json({ room });
+        } catch (err) {
+            const message = (err as Error).message;
+            if (message === "ROOM_NOT_FOUND") {
+                return res.status(404).json({ error: "ROOM_NOT_FOUND" });
+            }
+            console.error(err);
+            return res.status(500).json({ error: "UNKNOWN_ERROR" });
+        }
+    },
+
     // GET /rooms/:roomId
     getRoom(req: Request, res: Response) {
         const { roomId } = req.params;

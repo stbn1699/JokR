@@ -15,6 +15,9 @@ router.post("/rooms/:roomId/leave", RoomsController.leaveRoom);
 // retirer un joueur (maître du jeu)
 router.post("/rooms/:roomId/kick", RoomsController.kickPlayer);
 
+// fermer une room
+router.delete("/rooms/:roomId", RoomsController.closeRoom);
+
 // récupérer une room
 router.get("/rooms/:roomId", RoomsController.getRoom);
 
