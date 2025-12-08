@@ -1,4 +1,4 @@
-import {type FormEvent, useEffect, useState} from "react";
+import {type FormEvent, useEffect, useRef, useState} from "react";
 import {API_URL} from "../../config/api";
 import {GAMES, type GameDefinition} from "../../config/games";
 import type {Room} from "../rooms/types";
@@ -19,6 +19,37 @@ interface CreateRoomResponse {
 interface JoinRoomResponse {
     room: Room;
     player: RoomPlayer;
+}
+
+async function leaveRoom(roomId: string, playerId: string, useBeacon = false): Promise<void> {
+    if (useBeacon && typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+        const payload = JSON.stringify({playerId});
+        const success = navigator.sendBeacon(
+            `${API_URL}/rooms/${roomId}/leave`,
+            new Blob([payload], {type: "application/json"}),
+        );
+
+        if (success) {
+            return;
+        }
+    }
+
+    const res = await fetch(`${API_URL}/rooms/${roomId}/leave`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({playerId}),
+        keepalive: true,
+    });
+
+    if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as
+            | { message?: string; error?: string }
+            | null;
+        const message = payload?.message || payload?.error || "Impossible de quitter le salon.";
+        throw new Error(message);
+    }
 }
 
 function formatPlayerNumbers(nums?: number[]): string {
@@ -121,20 +152,51 @@ async function joinRoom(roomId: string, username: string): Promise<JoinRoomRespo
 export function GamesList({username}: GamesListProps) {
     const [creatingGameId, setCreatingGameId] = useState<string | null>(null);
     const [activeRoom, setActiveRoom] = useState<Room | null>(null);
+    const [activePlayer, setActivePlayer] = useState<RoomPlayer | null>(null);
     const [joinRoomId, setJoinRoomId] = useState("");
     const [isJoiningRoom, setIsJoiningRoom] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const activeRoomRef = useRef<Room | null>(null);
+    const activePlayerRef = useRef<RoomPlayer | null>(null);
+
+    useEffect(() => {
+        activeRoomRef.current = activeRoom;
+    }, [activeRoom]);
+
+    useEffect(() => {
+        activePlayerRef.current = activePlayer;
+    }, [activePlayer]);
+
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            const room = activeRoomRef.current;
+            const player = activePlayerRef.current;
+
+            if (room && player) {
+                void leaveRoom(room.id, player.id, true);
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            handleBeforeUnload();
+        };
+    }, []);
 
     const handleCreateRoom = async (game: GameDefinition) => {
         setCreatingGameId(game.id);
         setError(null);
 
         try {
-            const {room} = await createRoom(game, username);
+            const {room, player} = await createRoom(game, username);
             setActiveRoom(room);
+            setActivePlayer(player);
         } catch (err) {
             setError((err as Error).message);
             setActiveRoom(null);
+            setActivePlayer(null);
         } finally {
             setCreatingGameId(null);
         }
@@ -153,18 +215,30 @@ export function GamesList({username}: GamesListProps) {
         setError(null);
 
         try {
-            const {room} = await joinRoom(trimmedRoomId, username);
+            const {room, player} = await joinRoom(trimmedRoomId, username);
             setActiveRoom(room);
+            setActivePlayer(player);
         } catch (err) {
             setError((err as Error).message);
             setActiveRoom(null);
+            setActivePlayer(null);
         } finally {
             setIsJoiningRoom(false);
         }
     };
 
     const handleCloseRoom = () => {
+        const room = activeRoom;
+        const player = activePlayer;
+
+        if (room && player) {
+            void leaveRoom(room.id, player.id).catch((err: unknown) => {
+                setError((err as Error).message);
+            });
+        }
+
         setActiveRoom(null);
+        setActivePlayer(null);
         setError(null);
     };
 
