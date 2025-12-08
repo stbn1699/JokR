@@ -21,6 +21,40 @@ interface JoinRoomResponse {
     player: RoomPlayer;
 }
 
+async function kickPlayerFromRoom(roomId: string, masterId: string, playerId: string): Promise<Room> {
+    const res = await fetch(`${API_URL}/rooms/${roomId}/kick`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ masterId, playerId }),
+    });
+
+    if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as
+            | { message?: string; error?: string }
+            | null;
+
+        if (payload?.error === "ROOM_NOT_FOUND") {
+            throw new Error("Ce salon n'existe pas.");
+        }
+
+        if (payload?.error === "NOT_GAME_MASTER") {
+            throw new Error("Seul le maître du jeu peut retirer un joueur.");
+        }
+
+        if (payload?.error === "PLAYER_NOT_IN_ROOM") {
+            throw new Error("Ce joueur n'est plus dans le salon.");
+        }
+
+        const message = payload?.message || payload?.error || "Impossible de retirer ce joueur.";
+        throw new Error(message);
+    }
+
+    const {room} = (await res.json()) as { room: Room };
+    return room;
+}
+
 async function leaveRoom(roomId: string, playerId: string, useBeacon = false): Promise<void> {
     if (useBeacon && typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
         const payload = JSON.stringify({playerId});
@@ -242,6 +276,24 @@ export function GamesList({username}: GamesListProps) {
         setError(null);
     };
 
+    const handleKickPlayer = async (playerId: string) => {
+        const room = activeRoomRef.current;
+        const player = activePlayerRef.current;
+
+        if (!room || !player) {
+            return;
+        }
+
+        setError(null);
+
+        try {
+            const updatedRoom = await kickPlayerFromRoom(room.id, player.id, playerId);
+            setActiveRoom(updatedRoom);
+        } catch (err) {
+            setError((err as Error).message);
+        }
+    };
+
     useEffect(() => {
         if (!activeRoom) {
             return undefined;
@@ -253,6 +305,18 @@ export function GamesList({username}: GamesListProps) {
             try {
                 const room = await fetchRoom(activeRoom.id);
                 if (!cancelled) {
+                    const player = activePlayerRef.current;
+                    const stillInRoom = player
+                        ? room.players.some((p) => p.id === player.id)
+                        : false;
+
+                    if (player && !stillInRoom) {
+                        setActiveRoom(null);
+                        setActivePlayer(null);
+                        setError("Vous avez été retiré du salon.");
+                        return;
+                    }
+
                     setActiveRoom(room);
                     setError(null);
                 }
@@ -263,10 +327,10 @@ export function GamesList({username}: GamesListProps) {
             }
         };
 
-        void refreshRoom();
-        const intervalId = window.setInterval(() => {
             void refreshRoom();
-        }, 2000);
+            const intervalId = window.setInterval(() => {
+                void refreshRoom();
+            }, 2000);
 
         return () => {
             cancelled = true;
@@ -286,6 +350,8 @@ export function GamesList({username}: GamesListProps) {
                     room={activeRoom}
                     onClose={handleCloseRoom}
                     fullPage
+                    currentPlayerId={activePlayer?.id}
+                    onKickPlayer={handleKickPlayer}
                 />
             </section>
         );

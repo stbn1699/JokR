@@ -84,6 +84,43 @@ export const RoomsController = {
         }
     },
 
+    // POST /rooms/:roomId/kick
+    kickPlayer(req: Request, res: Response) {
+        const { roomId } = req.params;
+        const { masterId, playerId } = req.body as {
+            masterId?: string;
+            playerId?: string;
+        };
+
+        if (!masterId || !playerId) {
+            return res.status(400).json({
+                error: "MISSING_FIELDS",
+                message: "Required fields: masterId, playerId",
+            });
+        }
+
+        try {
+            const room = roomsService.kickPlayer(roomId, masterId, playerId);
+            return res.status(200).json({ room });
+        } catch (err) {
+            const message = (err as Error).message;
+            if (message === "ROOM_NOT_FOUND") {
+                return res.status(404).json({ error: "ROOM_NOT_FOUND" });
+            }
+            if (message === "NOT_GAME_MASTER") {
+                return res.status(403).json({ error: "NOT_GAME_MASTER" });
+            }
+            if (message === "PLAYER_NOT_IN_ROOM") {
+                return res.status(404).json({ error: "PLAYER_NOT_IN_ROOM" });
+            }
+            if (message === "CANNOT_KICK_MASTER") {
+                return res.status(400).json({ error: "CANNOT_KICK_MASTER" });
+            }
+            console.error(err);
+            return res.status(500).json({ error: "UNKNOWN_ERROR" });
+        }
+    },
+
     // GET /rooms/:roomId
     getRoom(req: Request, res: Response) {
         const { roomId } = req.params;

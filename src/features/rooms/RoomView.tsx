@@ -5,9 +5,13 @@ interface RoomViewProps {
     room: Room;
     onClose?: () => void;
     fullPage?: boolean;
+    currentPlayerId?: string;
+    onKickPlayer?: (playerId: string) => void;
 }
 
-export function RoomView({room, onClose, fullPage = false}: RoomViewProps) {
+export function RoomView({room, onClose, fullPage = false, currentPlayerId, onKickPlayer}: RoomViewProps) {
+    const isGameMaster = currentPlayerId === room.masterId;
+
     return (
         <div className={`room-view${fullPage ? " room-view--full" : ""}`}>
             <div className="room-view__header">
@@ -30,7 +34,21 @@ export function RoomView({room, onClose, fullPage = false}: RoomViewProps) {
             <ul className="room-view__players">
                 {room.players.map((player) => (
                     <li key={player.id} className="room-view__player">
-                        <span className="room-view__player-name">{player.username}</span>
+                        <div className="room-view__player-info">
+                            <span className="room-view__player-name">{player.username}</span>
+                            {player.id === room.masterId && (
+                                <span className="room-view__badge">Maître du jeu</span>
+                            )}
+                        </div>
+                        {isGameMaster && player.id !== currentPlayerId && (
+                            <button
+                                className="room-view__button room-view__kick"
+                                type="button"
+                                onClick={() => onKickPlayer?.(player.id)}
+                            >
+                                Retirer
+                            </button>
+                        )}
                     </li>
                 ))}
             </ul>

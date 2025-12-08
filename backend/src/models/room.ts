@@ -11,6 +11,7 @@ export interface Room {
     id: RoomId;
     gameId: string;
     createdAt: Date;
+    masterId: PlayerId;
     players: Player[];
     maxPlayers: number;
 }

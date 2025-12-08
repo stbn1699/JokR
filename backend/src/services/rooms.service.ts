@@ -25,6 +25,7 @@ class RoomsService {
             id: roomId,
             gameId,
             createdAt: new Date(),
+            masterId: player.id,
             players: [player],
             maxPlayers: 8, // valeur arbitraire pour l’instant
         };
@@ -80,6 +81,30 @@ class RoomsService {
         }
 
         // si rien n’a changé, playerId inconnu
+        if (before === room.players.length) {
+            throw new Error("PLAYER_NOT_IN_ROOM");
+        }
+
+        return room;
+    }
+
+    kickPlayer(roomId: RoomId, masterId: PlayerId, playerId: PlayerId): Room {
+        const room = this.rooms.get(roomId);
+        if (!room) {
+            throw new Error("ROOM_NOT_FOUND");
+        }
+
+        if (room.masterId !== masterId) {
+            throw new Error("NOT_GAME_MASTER");
+        }
+
+        if (playerId === masterId) {
+            throw new Error("CANNOT_KICK_MASTER");
+        }
+
+        const before = room.players.length;
+        room.players = room.players.filter((p) => p.id !== playerId);
+
         if (before === room.players.length) {
             throw new Error("PLAYER_NOT_IN_ROOM");
         }

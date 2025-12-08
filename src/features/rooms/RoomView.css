@@ -96,10 +96,38 @@
         border:     1px solid rgba(148, 163, 184, 0.25);
         border-radius: 0.75rem;
         display:    flex;
+        justify-content: space-between;
         padding:    0.75rem 1rem;
+}
+
+.room-view__player-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
 }
 
 .room-view__player-name {
         font-size:   1rem;
         font-weight: 600;
+}
+
+.room-view__badge {
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        border-radius: 999px;
+        color: #bfdbfe;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+}
+
+.room-view__kick {
+        background: rgba(248, 113, 113, 0.15);
+        border: 1px solid rgba(248, 113, 113, 0.4);
+        color: #fecdd3;
+}
+
+.room-view__kick:hover:not(:disabled) {
+        background: rgba(248, 113, 113, 0.25);
+        box-shadow: 0 8px 14px rgba(248, 113, 113, 0.25);
 }
