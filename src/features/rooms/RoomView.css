@@ -1,0 +1,105 @@
+.room-view {
+        background:     rgba(15, 23, 42, 0.85);
+        border:         1px solid rgba(148, 163, 184, 0.35);
+        border-radius:  1.5rem;
+        box-shadow:     0 12px 30px rgba(15, 23, 42, 0.6);
+        margin-bottom:  1.5rem;
+        max-width:      700px;
+        padding:        1.5rem;
+        width:          100%;
+}
+
+.room-view--full {
+        margin:     0 auto;
+        max-width:  950px;
+        min-height: 60vh;
+        padding:   2rem;
+}
+
+.room-view__header {
+        align-items:     center;
+        display:         flex;
+        justify-content: space-between;
+        gap:             1rem;
+}
+
+.room-view__label {
+        color:       #cbd5e1;
+        font-size:   0.9rem;
+        margin:      0;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+}
+
+.room-view__id {
+        font-family:  "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size:    1.7rem;
+        font-weight:  700;
+        letter-spacing: 0.03em;
+}
+
+.room-view__actions {
+        display:    flex;
+        gap:        0.75rem;
+        flex-wrap:  wrap;
+        justify-content: flex-end;
+}
+
+.room-view__button {
+        background:     #3b82f6;
+        border:         none;
+        border-radius:  999px;
+        color:          #0b1020;
+        cursor:         pointer;
+        font-weight:    700;
+        padding:        0.55rem 1.1rem;
+        transition:     transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+}
+
+.room-view__button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        transform: none;
+        box-shadow: none;
+}
+
+.room-view__button:hover:not(:disabled) {
+        background: #60a5fa;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 14px rgba(59, 130, 246, 0.35);
+}
+
+.room-view__button--ghost {
+        background:     transparent;
+        border:         1px solid rgba(148, 163, 184, 0.4);
+        color:          #e5e7eb;
+}
+
+.room-view__subtitle {
+        color:       #cbd5e1;
+        margin:      1rem 0 0.5rem;
+        font-weight: 600;
+}
+
+.room-view__players {
+        list-style: none;
+        margin:     0;
+        padding:    0;
+        display:    flex;
+        flex-direction: column;
+        gap:        0.5rem;
+}
+
+.room-view__player {
+        align-items: center;
+        background: rgba(30, 41, 59, 0.7);
+        border:     1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 0.75rem;
+        display:    flex;
+        padding:    0.75rem 1rem;
+}
+
+.room-view__player-name {
+        font-size:   1rem;
+        font-weight: 600;
+}

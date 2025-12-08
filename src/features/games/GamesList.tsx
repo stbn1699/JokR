@@ -1,6 +1,8 @@
 import {useState} from "react";
 import {API_URL} from "../../config/api";
 import {GAMES, type GameDefinition} from "../../config/games";
+import type {Room} from "../rooms/types";
+import {RoomView} from "../rooms/RoomView";
 import "./GamesList.css";
 
 interface GamesListProps {
@@ -8,8 +10,8 @@ interface GamesListProps {
 }
 
 interface CreateRoomResponse {
-    room: { id: string; gameId: string };
-    player: { id: string; username: string };
+    room: Room;
+    player: Room["players"][number];
 }
 
 function formatPlayerNumbers(nums?: number[]): string {
@@ -61,9 +63,25 @@ async function createRoom(game: GameDefinition, username: string): Promise<Creat
     return (await res.json()) as CreateRoomResponse;
 }
 
+async function fetchRoom(roomId: string): Promise<Room> {
+    const res = await fetch(`${API_URL}/rooms/${roomId}`);
+
+    if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as
+            | { message?: string; error?: string }
+            | null;
+        const message = payload?.message || payload?.error || "Impossible de récupérer le salon.";
+        throw new Error(message);
+    }
+
+    const {room} = (await res.json()) as { room: Room };
+    return room;
+}
+
 export function GamesList({username}: GamesListProps) {
     const [creatingGameId, setCreatingGameId] = useState<string | null>(null);
-    const [lastRoomId, setLastRoomId] = useState<string | null>(null);
+    const [activeRoom, setActiveRoom] = useState<Room | null>(null);
+    const [refreshingRoomId, setRefreshingRoomId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const handleCreateRoom = async (game: GameDefinition) => {
@@ -72,23 +90,56 @@ export function GamesList({username}: GamesListProps) {
 
         try {
             const {room} = await createRoom(game, username);
-            setLastRoomId(room.id);
+            setActiveRoom(room);
         } catch (err) {
-            setLastRoomId(null);
             setError((err as Error).message);
+            setActiveRoom(null);
         } finally {
             setCreatingGameId(null);
         }
     };
 
+    const handleRefreshRoom = async (roomId: string) => {
+        setRefreshingRoomId(roomId);
+        setError(null);
+
+        try {
+            const room = await fetchRoom(roomId);
+            setActiveRoom(room);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setRefreshingRoomId(null);
+        }
+    };
+
+    const handleCloseRoom = () => {
+        setActiveRoom(null);
+        setError(null);
+    };
+
+    if (activeRoom) {
+        return (
+            <section className="room-page">
+                {error && (
+                    <div className="room-banner error">
+                        Erreur : {error}
+                    </div>
+                )}
+                <RoomView
+                    room={activeRoom}
+                    onRefresh={() => handleRefreshRoom(activeRoom.id)}
+                    isRefreshing={refreshingRoomId === activeRoom.id}
+                    onClose={handleCloseRoom}
+                    fullPage
+                />
+            </section>
+        );
+    }
+
     return (
         <section>
             <h2 className="section-title">Choisis un jeu</h2>
-            {lastRoomId && (
-                <div className="room-banner success">
-                    Salon créé ! ID du salon : <code>{lastRoomId}</code>
-                </div>
-            )}
             {error && (
                 <div className="room-banner error">
                     Erreur : {error}

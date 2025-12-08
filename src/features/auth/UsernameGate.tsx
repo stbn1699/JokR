@@ -1,5 +1,5 @@
 import type {FormEvent} from "react";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 interface UsernameGateProps {
     onUsernameSet: (username: string) => void;
@@ -8,14 +8,16 @@ interface UsernameGateProps {
 const STORAGE_KEY = "jokr.username";
 
 export function UsernameGate({onUsernameSet}: UsernameGateProps) {
-    const [username, setUsername] = useState("");
+    const [username, setUsername] = useState(() => {
+        if (typeof window === "undefined") return "";
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored?.trim() ?? "";
+    });
+    const initialUsername = useRef(username);
 
     useEffect(() => {
-        if (typeof window === "undefined") return;
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored && stored.trim()) {
-            setUsername(stored);
-            onUsernameSet(stored);
+        if (initialUsername.current) {
+            onUsernameSet(initialUsername.current);
         }
     }, [onUsernameSet]);
 
