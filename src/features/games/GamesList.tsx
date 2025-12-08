@@ -1,4 +1,4 @@
-import {type FormEvent, useState} from "react";
+import {type FormEvent, useEffect, useState} from "react";
 import {API_URL} from "../../config/api";
 import {GAMES, type GameDefinition} from "../../config/games";
 import type {Room} from "../rooms/types";
@@ -121,7 +121,6 @@ async function joinRoom(roomId: string, username: string): Promise<JoinRoomRespo
 export function GamesList({username}: GamesListProps) {
     const [creatingGameId, setCreatingGameId] = useState<string | null>(null);
     const [activeRoom, setActiveRoom] = useState<Room | null>(null);
-    const [refreshingRoomId, setRefreshingRoomId] = useState<string | null>(null);
     const [joinRoomId, setJoinRoomId] = useState("");
     const [isJoiningRoom, setIsJoiningRoom] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -138,20 +137,6 @@ export function GamesList({username}: GamesListProps) {
             setActiveRoom(null);
         } finally {
             setCreatingGameId(null);
-        }
-    };
-
-    const handleRefreshRoom = async (roomId: string) => {
-        setRefreshingRoomId(roomId);
-        setError(null);
-
-        try {
-            const room = await fetchRoom(roomId);
-            setActiveRoom(room);
-        } catch (err) {
-            setError((err as Error).message);
-        } finally {
-            setRefreshingRoomId(null);
         }
     };
 
@@ -183,6 +168,38 @@ export function GamesList({username}: GamesListProps) {
         setError(null);
     };
 
+    useEffect(() => {
+        if (!activeRoom) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        const refreshRoom = async () => {
+            try {
+                const room = await fetchRoom(activeRoom.id);
+                if (!cancelled) {
+                    setActiveRoom(room);
+                    setError(null);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError((err as Error).message);
+                }
+            }
+        };
+
+        void refreshRoom();
+        const intervalId = window.setInterval(() => {
+            void refreshRoom();
+        }, 2000);
+
+        return () => {
+            cancelled = true;
+            window.clearInterval(intervalId);
+        };
+    }, [activeRoom]);
+
     if (activeRoom) {
         return (
             <section className="room-page">
@@ -193,8 +210,6 @@ export function GamesList({username}: GamesListProps) {
                 )}
                 <RoomView
                     room={activeRoom}
-                    onRefresh={() => handleRefreshRoom(activeRoom.id)}
-                    isRefreshing={refreshingRoomId === activeRoom.id}
                     onClose={handleCloseRoom}
                     fullPage
                 />

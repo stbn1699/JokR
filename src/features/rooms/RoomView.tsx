@@ -3,13 +3,11 @@ import "./RoomView.css";
 
 interface RoomViewProps {
     room: Room;
-    onRefresh?: () => Promise<void> | void;
-    isRefreshing?: boolean;
     onClose?: () => void;
     fullPage?: boolean;
 }
 
-export function RoomView({room, onRefresh, isRefreshing = false, onClose, fullPage = false}: RoomViewProps) {
+export function RoomView({room, onClose, fullPage = false}: RoomViewProps) {
     return (
         <div className={`room-view${fullPage ? " room-view--full" : ""}`}>
             <div className="room-view__header">
@@ -18,16 +16,6 @@ export function RoomView({room, onRefresh, isRefreshing = false, onClose, fullPa
                     <div className="room-view__id">{room.id}</div>
                 </div>
                 <div className="room-view__actions">
-                    {onRefresh && (
-                        <button
-                            className="room-view__button"
-                            type="button"
-                            onClick={() => void onRefresh()}
-                            disabled={isRefreshing}
-                        >
-                            {isRefreshing ? "Actualisation…" : "Actualiser"}
-                        </button>
-                    )}
                     {onClose && (
                         <button className="room-view__button room-view__button--ghost" type="button" onClick={onClose}>
                             Retour au menu
