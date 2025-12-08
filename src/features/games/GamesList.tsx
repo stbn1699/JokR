@@ -1,5 +1,16 @@
-import {GAMES} from "../../config/games";
-import "./GamesList.css"
+import {useState} from "react";
+import {API_URL} from "../../config/api";
+import {GAMES, type GameDefinition} from "../../config/games";
+import "./GamesList.css";
+
+interface GamesListProps {
+    username: string;
+}
+
+interface CreateRoomResponse {
+    room: { id: string; gameId: string };
+    player: { id: string; username: string };
+}
 
 function formatPlayerNumbers(nums?: number[]): string {
     if (!nums || nums.length === 0) return "";
@@ -30,18 +41,66 @@ function formatPlayerNumbers(nums?: number[]): string {
     return `${joined} joueurs`;
 }
 
-export function GamesList() {
+async function createRoom(game: GameDefinition, username: string): Promise<CreateRoomResponse> {
+    const res = await fetch(`${API_URL}/rooms`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ gameId: game.id, username }),
+    });
+
+    if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as
+            | { message?: string; error?: string }
+            | null;
+        const message = payload?.message || payload?.error || "Impossible de créer le salon.";
+        throw new Error(message);
+    }
+
+    return (await res.json()) as CreateRoomResponse;
+}
+
+export function GamesList({username}: GamesListProps) {
+    const [creatingGameId, setCreatingGameId] = useState<string | null>(null);
+    const [lastRoomId, setLastRoomId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleCreateRoom = async (game: GameDefinition) => {
+        setCreatingGameId(game.id);
+        setError(null);
+
+        try {
+            const {room} = await createRoom(game, username);
+            setLastRoomId(room.id);
+        } catch (err) {
+            setLastRoomId(null);
+            setError((err as Error).message);
+        } finally {
+            setCreatingGameId(null);
+        }
+    };
+
     return (
         <section>
             <h2 className="section-title">Choisis un jeu</h2>
+            {lastRoomId && (
+                <div className="room-banner success">
+                    Salon créé ! ID du salon : <code>{lastRoomId}</code>
+                </div>
+            )}
+            {error && (
+                <div className="room-banner error">
+                    Erreur : {error}
+                </div>
+            )}
             <div className="games-list">
                 {GAMES.map((game) => (
                     <button
                         key={game.id}
                         className="game-button"
-                        onClick={() => {
-                            console.log("[JokR] Jeu cliqué :", game.id);
-                        }}
+                        disabled={creatingGameId === game.id}
+                        onClick={() => handleCreateRoom(game)}
                     >
                         <img
                             src={`public/gameIcons/${game.id}.png`}
@@ -51,7 +110,9 @@ export function GamesList() {
                         <div className="game-button-title">{game.name}</div>
                         <div className="game-button-description">{game.description}</div>
                         <div className="game-button-players">{formatPlayerNumbers(game.playerNumbers)}</div>
-                        <div className="game-button-start">Créer un salon</div>
+                        <div className="game-button-start">
+                            {creatingGameId === game.id ? "Création…" : "Créer un salon"}
+                        </div>
                     </button>
                 ))}
             </div>

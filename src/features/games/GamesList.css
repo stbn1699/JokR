@@ -23,14 +23,24 @@
 }
 
 .game-button:hover {
-	background: rgba(30, 64, 175, 0.85);
-	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.9);
-	transform:  translateY(-2px) scale(1.01);
+        background: rgba(30, 64, 175, 0.85);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.9);
+        transform:  translateY(-2px) scale(1.01);
 }
 
 .game-button:active {
-	box-shadow: none;
-	transform:  translateY(0) scale(0.99);
+        box-shadow: none;
+        transform:  translateY(0) scale(0.99);
+}
+
+.game-button:disabled,
+.game-button:disabled:hover,
+.game-button:disabled:active {
+        background: rgba(15, 23, 42, 0.5);
+        color: #9ca3af;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
 }
 
 .game-button-icon {
@@ -62,9 +72,28 @@
 }
 
 .game-button-start {
-	align-self:    flex-end;
-	border:        1px solid #3bf644;
-	border-radius: 1rem;
-	font-size:     0.75rem;
-	padding:       .2rem .5rem;
+        align-self:    flex-end;
+        border:        1px solid #3bf644;
+        border-radius: 1rem;
+        font-size:     0.75rem;
+        padding:       .2rem .5rem;
+}
+
+.room-banner {
+        border-radius: 1rem;
+        margin:        0 0 1rem;
+        padding:       0.75rem 1rem;
+        text-align:    center;
+}
+
+.room-banner.success {
+        background:    rgba(34, 197, 94, 0.15);
+        border:        1px solid rgba(34, 197, 94, 0.6);
+        color:         #bbf7d0;
+}
+
+.room-banner.error {
+        background:    rgba(248, 113, 113, 0.1);
+        border:        1px solid rgba(248, 113, 113, 0.6);
+        color:         #fecdd3;
 }

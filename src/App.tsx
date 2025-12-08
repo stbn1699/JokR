@@ -14,7 +14,7 @@ function App() {
     return (
         <div className="app-root">
             <MainLayout username={username}>
-                <GamesList/>
+                <GamesList username={username}/>
             </MainLayout>
         </div>
     );
