@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {type FormEvent, useState} from "react";
 import {API_URL} from "../../config/api";
 import {GAMES, type GameDefinition} from "../../config/games";
 import type {Room} from "../rooms/types";
@@ -9,9 +9,16 @@ interface GamesListProps {
     username: string;
 }
 
+type RoomPlayer = Room["players"][number];
+
 interface CreateRoomResponse {
     room: Room;
-    player: Room["players"][number];
+    player: RoomPlayer;
+}
+
+interface JoinRoomResponse {
+    room: Room;
+    player: RoomPlayer;
 }
 
 function formatPlayerNumbers(nums?: number[]): string {
@@ -78,10 +85,45 @@ async function fetchRoom(roomId: string): Promise<Room> {
     return room;
 }
 
+async function joinRoom(roomId: string, username: string): Promise<JoinRoomResponse> {
+    const res = await fetch(`${API_URL}/rooms/${roomId}/join`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({username}),
+    });
+
+    if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as
+            | { message?: string; error?: string }
+            | null;
+
+        if (payload?.error === "ROOM_NOT_FOUND") {
+            throw new Error("Ce salon n'existe pas.");
+        }
+
+        if (payload?.error === "ROOM_FULL") {
+            throw new Error("Le salon est plein.");
+        }
+
+        if (payload?.error === "USERNAME_TAKEN") {
+            throw new Error("Ce pseudo est déjà utilisé dans ce salon.");
+        }
+
+        const message = payload?.message || payload?.error || "Impossible de rejoindre le salon.";
+        throw new Error(message);
+    }
+
+    return (await res.json()) as JoinRoomResponse;
+}
+
 export function GamesList({username}: GamesListProps) {
     const [creatingGameId, setCreatingGameId] = useState<string | null>(null);
     const [activeRoom, setActiveRoom] = useState<Room | null>(null);
     const [refreshingRoomId, setRefreshingRoomId] = useState<string | null>(null);
+    const [joinRoomId, setJoinRoomId] = useState("");
+    const [isJoiningRoom, setIsJoiningRoom] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleCreateRoom = async (game: GameDefinition) => {
@@ -110,6 +152,29 @@ export function GamesList({username}: GamesListProps) {
             setError((err as Error).message);
         } finally {
             setRefreshingRoomId(null);
+        }
+    };
+
+    const handleJoinRoom = async (event: FormEvent) => {
+        event.preventDefault();
+        const trimmedRoomId = joinRoomId.trim();
+
+        if (!trimmedRoomId) {
+            setError("Merci d'indiquer l'identifiant du salon.");
+            return;
+        }
+
+        setIsJoiningRoom(true);
+        setError(null);
+
+        try {
+            const {room} = await joinRoom(trimmedRoomId, username);
+            setActiveRoom(room);
+        } catch (err) {
+            setError((err as Error).message);
+            setActiveRoom(null);
+        } finally {
+            setIsJoiningRoom(false);
         }
     };
 
@@ -145,6 +210,30 @@ export function GamesList({username}: GamesListProps) {
                     Erreur : {error}
                 </div>
             )}
+            <div className="join-room-card">
+                <div>
+                    <h3 className="join-room-title">Rejoindre un salon existant</h3>
+                    <p className="join-room-description">Entre le code du salon pour t'y connecter et voir les autres joueurs.</p>
+                </div>
+                <form className="join-room-form" onSubmit={handleJoinRoom}>
+                    <label className="join-room-label" htmlFor="join-room-id">
+                        Identifiant du salon
+                    </label>
+                    <div className="join-room-row">
+                        <input
+                            id="join-room-id"
+                            className="join-room-input"
+                            value={joinRoomId}
+                            onChange={(event) => setJoinRoomId(event.target.value)}
+                            placeholder="Ex. a3f29b1c"
+                            maxLength={16}
+                        />
+                        <button className="join-room-button" type="submit" disabled={isJoiningRoom}>
+                            {isJoiningRoom ? "Connexion…" : "Rejoindre"}
+                        </button>
+                    </div>
+                </form>
+            </div>
             <div className="games-list">
                 {GAMES.map((game) => (
                     <button

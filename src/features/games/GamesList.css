@@ -106,3 +106,107 @@
         padding:         2rem 1rem;
         width:           100%;
 }
+
+.join-room-card {
+        align-items:     center;
+        background:      rgba(15, 23, 42, 0.6);
+        border:          1px solid rgba(59, 130, 246, 0.4);
+        border-radius:   1rem;
+        display:         flex;
+        gap:             1.5rem;
+        justify-content: space-between;
+        margin-bottom:   1.5rem;
+        padding:         1.25rem 1.5rem;
+}
+
+.join-room-title {
+        font-size:   1.1rem;
+        font-weight: 600;
+        margin:      0 0 0.25rem;
+}
+
+.join-room-description {
+        color:       #cbd5e1;
+        font-size:   0.9rem;
+        margin:      0;
+        max-width:   28rem;
+}
+
+.join-room-form {
+        align-items: flex-start;
+        display:     flex;
+        flex-direction: column;
+        gap:         0.35rem;
+        width:       100%;
+        max-width:   22rem;
+}
+
+.join-room-label {
+        color:     #cbd5e1;
+        font-size: 0.85rem;
+}
+
+.join-room-row {
+        display:         flex;
+        gap:             0.5rem;
+        width:           100%;
+        align-items:     center;
+        justify-content: flex-start;
+}
+
+.join-room-input {
+        background:    rgba(15, 23, 42, 0.4);
+        border:        1px solid rgba(148, 163, 184, 0.6);
+        border-radius: 0.5rem;
+        color:         #e2e8f0;
+        flex:          1;
+        font-size:     1rem;
+        padding:       0.55rem 0.75rem;
+        outline:       none;
+}
+
+.join-room-input:focus {
+        border-color: rgba(59, 130, 246, 0.9);
+        box-shadow:   0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.join-room-button {
+        background:    linear-gradient(135deg, #3b82f6, #2563eb);
+        border:        none;
+        border-radius: 0.55rem;
+        color:         #fff;
+        cursor:        pointer;
+        font-weight:   600;
+        padding:       0.6rem 1rem;
+        transition:    transform 0.1s ease, box-shadow 0.1s ease;
+        white-space:   nowrap;
+}
+
+.join-room-button:hover {
+        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.35);
+        transform: translateY(-1px);
+}
+
+.join-room-button:disabled,
+.join-room-button:disabled:hover {
+        background: rgba(59, 130, 246, 0.6);
+        box-shadow: none;
+        cursor: not-allowed;
+        transform: none;
+}
+
+@media (max-width: 768px) {
+        .join-room-card {
+                align-items: flex-start;
+                flex-direction: column;
+        }
+
+        .join-room-row {
+                flex-direction: column;
+                align-items: stretch;
+        }
+
+        .join-room-button {
+                width: 100%;
+        }
+}
