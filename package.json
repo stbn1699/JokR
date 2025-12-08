@@ -1,31 +1,30 @@
 {
   "name": "jokr",
   "private": true,
-  "version": "0.2.0-beta",
-  "description": "Jeux en ligne - JokR",
-  "author": "Elina",
-  "license": "AGPL-3.0+NonCommercial",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "update": "git fetch --all && git reset --hard origin/main && pnpm install",
-    "build:web": "pnpm --filter web build",
-    "build:api": "pnpm --filter api build",
-    "build": "pnpm -r build",
-    "deploy:web": "sudo mkdir -p /var/www/jokr.ebasson.fr && sudo rsync -a --delete apps/web/dist/ /var/www/jokr.ebasson.fr/",
-    "start:api:prod": "pm2 start ecosystem.config.cjs --only jokr-api --update-env || pm2 reload jokr-api",
-    "deploy:api": "pnpm build:api && pnpm start:api:prod",
-    "updateDeploy:web": "pnpm build:web && pnpm deploy:web",
-    "updateDeploy:api": "pnpm deploy:api",
-    "updateDeploy": "pnpm run update && pnpm build && pnpm deploy:web && pnpm start:api:prod && pm2 save",
-    "dev:web": "pnpm --filter web dev",
-    "dev:api": "pnpm --filter api dev",
-    "dev": "concurrently -k -n web,api \"pnpm dev:web\" \"pnpm dev:api\""
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
-  },
-  "packageManager": "pnpm@10.18.3"
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4"
+  }
 }
