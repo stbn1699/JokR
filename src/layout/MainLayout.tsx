@@ -9,7 +9,7 @@ export function MainLayout({username, children}: MainLayoutProps) {
     return (
         <div className="main-layout">
             <header className="app-header">
-                <h1 className="logo">JokR</h1>
+                <img className="logo" src="/logo.png" alt="JokR"/>
 
                 <div className="user-box">
                     <span className="user-label">Connecté en tant que</span>
