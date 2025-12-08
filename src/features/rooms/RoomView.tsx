@@ -18,7 +18,7 @@ export function RoomView({room, onClose, fullPage = false, currentPlayerId, onKi
 
     const morpionPlayers = useMemo(() => room.players.slice(0, 2), [room.players]);
     const canStartMorpion = isMorpion && room.players.length >= 2;
-    const showMorpionGame = isGameStarted && canStartMorpion;
+    const showMorpionGame = (isGameStarted || canStartMorpion) && isMorpion;
 
     const renderRoomHeader = () => (
         <div className="room-view__header">
