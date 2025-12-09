@@ -29,6 +29,7 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
     const currentSymbol: "X" | "O" | null = playersReady ? (state.currentPlayerIndex % 2 === 0 ? "X" : "O") : null;
     const activePlayer = playersReady ? activePlayers[state.currentPlayerIndex % 2] : undefined;
     const isCurrentUserTurn = activePlayer?.id === currentPlayerId;
+    const isGameMaster = currentPlayerId === room.masterId;
 
     const shouldStartWithState = useCallback(
         (latest: MorpionState) =>
@@ -104,8 +105,12 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
     }, [isStarted, state.result]);
 
     const startGame = async () => {
+        if (!isGameMaster || !currentPlayerId) {
+            setError("Seul le maître du jeu peut lancer ou réinitialiser la partie.");
+            return;
+        }
         try {
-            const nextState = await resetMorpion(room.id);
+            const nextState = await resetMorpion(room.id, currentPlayerId);
             setState(nextState);
             setIsStarted(shouldStartWithState(nextState));
             setError(null);
@@ -144,8 +149,12 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
     };
 
     const resetBoard = async () => {
+        if (!isGameMaster || !currentPlayerId) {
+            setError("Seul le maître du jeu peut lancer ou réinitialiser la partie.");
+            return;
+        }
         try {
-            const nextState = await resetMorpion(room.id);
+            const nextState = await resetMorpion(room.id, currentPlayerId);
             setState(nextState);
             setIsStarted(shouldStartWithState(nextState));
             setError(null);
@@ -198,9 +207,14 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
                             className="room-view__button"
                             type="button"
                             onClick={startGame}
-                            disabled={!playersReady}
+                            disabled={!playersReady || !isGameMaster}
                         >
-                            {playersReady ? "Lancer la partie" : "En attente d'un deuxième joueur"}
+                            {!playersReady
+                                ? "En attente d'un deuxième joueur"
+                                : isGameMaster
+                                    ? "Lancer la partie"
+                                    : "Seul le maître du jeu peut lancer"
+                            }
                         </button>
                         <p className="tictactoe__intro-helper">
                             Joueurs détectés : {players.length} / 2 (les deux premiers rejoindront la grille)
@@ -271,7 +285,12 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
                         </p>
                     </div>
                     <div className="tictactoe__actions">
-                        <button className="room-view__button room-view__button--ghost" type="button" onClick={resetBoard}>
+                        <button
+                            className="room-view__button room-view__button--ghost"
+                            type="button"
+                            onClick={resetBoard}
+                            disabled={!isGameMaster}
+                        >
                             Réinitialiser
                         </button>
                     </div>

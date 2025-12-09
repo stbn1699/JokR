@@ -30,8 +30,12 @@ export async function playMorpionMove(
     return body.state;
 }
 
-export async function resetMorpion(roomId: Room["id"]): Promise<MorpionState> {
-    const res = await fetch(`${API_URL}/rooms/${roomId}/morpion/reset`, {method: "POST"});
+export async function resetMorpion(roomId: Room["id"], masterId: string): Promise<MorpionState> {
+    const res = await fetch(`${API_URL}/rooms/${roomId}/morpion/reset`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({masterId}),
+    });
     if (!res.ok) {
         const {error} = (await res.json()) as {error?: string};
         throw new Error(error ?? "Impossible de réinitialiser la partie.");

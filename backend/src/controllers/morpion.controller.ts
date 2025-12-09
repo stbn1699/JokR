@@ -39,9 +39,18 @@ export class MorpionController {
 
     static reset(req: Request, res: Response) {
         const { roomId } = req.params;
+        const { masterId } = req.body as { masterId?: string };
         const room = roomsService.getRoom(roomId);
         if (!room) {
             return res.status(404).json({ error: "Salon introuvable." });
+        }
+
+        if (!masterId) {
+            return res.status(400).json({ error: "Champ requis : masterId." });
+        }
+
+        if (room.masterId !== masterId) {
+            return res.status(403).json({ error: "Seul le maître du jeu peut lancer ou réinitialiser la partie." });
         }
 
         const state = morpionService.reset(room);
