@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import type {Room, RoomPlayer} from "../rooms/types";
 import {fetchMorpionState, playMorpionMove, resetMorpion} from "./api";
 import type {MorpionState} from "./types";
@@ -30,8 +30,14 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
     const activePlayer = playersReady ? activePlayers[state.currentPlayerIndex % 2] : undefined;
     const isCurrentUserTurn = activePlayer?.id === currentPlayerId;
 
+    const shouldStartWithState = useCallback(
+        (latest: MorpionState) =>
+            playersReady && (latest.turnEndsAt !== null || latest.board.some((cell) => cell !== null) || latest.result !== null),
+        [playersReady],
+    );
+
     useEffect(() => {
-        if (!isStarted) {
+        if (!playersReady && !isStarted) {
             return undefined;
         }
 
@@ -42,6 +48,7 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
                 const latest = await fetchMorpionState(room.id);
                 if (!cancelled) {
                     setState(latest);
+                    setIsStarted((prev) => prev || shouldStartWithState(latest));
                     setError(null);
                 }
             } catch (err) {
@@ -60,7 +67,7 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
             cancelled = true;
             window.clearInterval(intervalId);
         };
-    }, [isStarted, room.id]);
+    }, [isStarted, playersReady, room.id, shouldStartWithState]);
 
     useEffect(() => {
         if (!isStarted) {
@@ -96,10 +103,15 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
         return () => window.clearTimeout(timeout);
     }, [isStarted, state.result]);
 
-    const startGame = () => {
-        setIsStarted(true);
-        setState(EMPTY_STATE);
-        setError(null);
+    const startGame = async () => {
+        try {
+            const nextState = await resetMorpion(room.id);
+            setState(nextState);
+            setIsStarted(shouldStartWithState(nextState));
+            setError(null);
+        } catch (err) {
+            setError((err as Error).message);
+        }
     };
 
     const exitGameSurface = () => {
@@ -123,6 +135,7 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
         try {
             const nextState = await playMorpionMove(room.id, currentPlayerId, index);
             setState(nextState);
+            setIsStarted(shouldStartWithState(nextState));
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -134,6 +147,7 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
         try {
             const nextState = await resetMorpion(room.id);
             setState(nextState);
+            setIsStarted(shouldStartWithState(nextState));
             setError(null);
         } catch (err) {
             setError((err as Error).message);
