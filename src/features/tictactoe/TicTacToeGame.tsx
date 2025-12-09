@@ -8,7 +8,6 @@ interface TicTacToeGameProps {
     room: Room;
     players: RoomPlayer[];
     currentPlayerId?: string;
-    onExit: () => void;
 }
 
 const EMPTY_STATE: MorpionState = {
@@ -18,18 +17,24 @@ const EMPTY_STATE: MorpionState = {
     result: null,
 };
 
-export function TicTacToeGame({room, players, currentPlayerId, onExit}: TicTacToeGameProps) {
+export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGameProps) {
     const [state, setState] = useState<MorpionState>(EMPTY_STATE);
     const [timer, setTimer] = useState(30);
     const [error, setError] = useState<string | null>(null);
     const [isPlayingMove, setIsPlayingMove] = useState(false);
+    const [isStarted, setIsStarted] = useState(false);
 
-    const playersReady = players.length >= 2;
+    const activePlayers = useMemo(() => players.slice(0, 2), [players]);
+    const playersReady = activePlayers.length >= 2;
     const currentSymbol: "X" | "O" | null = playersReady ? (state.currentPlayerIndex % 2 === 0 ? "X" : "O") : null;
-    const activePlayer = playersReady ? players[state.currentPlayerIndex % 2] : undefined;
+    const activePlayer = playersReady ? activePlayers[state.currentPlayerIndex % 2] : undefined;
     const isCurrentUserTurn = activePlayer?.id === currentPlayerId;
 
     useEffect(() => {
+        if (!isStarted) {
+            return undefined;
+        }
+
         let cancelled = false;
 
         const load = async () => {
@@ -55,9 +60,14 @@ export function TicTacToeGame({room, players, currentPlayerId, onExit}: TicTacTo
             cancelled = true;
             window.clearInterval(intervalId);
         };
-    }, [room.id]);
+    }, [isStarted, room.id]);
 
     useEffect(() => {
+        if (!isStarted) {
+            setTimer(30);
+            return undefined;
+        }
+
         const deadline = state.turnEndsAt ? new Date(state.turnEndsAt).getTime() : null;
         if (!deadline) {
             setTimer(30);
@@ -72,22 +82,34 @@ export function TicTacToeGame({room, players, currentPlayerId, onExit}: TicTacTo
         update();
         const intervalId = window.setInterval(update, 200);
         return () => window.clearInterval(intervalId);
-    }, [state.turnEndsAt]);
+    }, [isStarted, state.turnEndsAt]);
 
     useEffect(() => {
-        if (!state.result) {
+        if (!isStarted || !state.result) {
             return undefined;
         }
 
         const timeout = window.setTimeout(() => {
-            onExit();
+            setIsStarted(false);
         }, 2000);
 
         return () => window.clearTimeout(timeout);
-    }, [state.result, onExit]);
+    }, [isStarted, state.result]);
+
+    const startGame = () => {
+        setIsStarted(true);
+        setState(EMPTY_STATE);
+        setError(null);
+    };
+
+    const exitGameSurface = () => {
+        setIsStarted(false);
+        setState(EMPTY_STATE);
+        setError(null);
+    };
 
     const handleMove = async (index: number) => {
-        if (!playersReady || state.result || !isCurrentUserTurn || isPlayingMove) {
+        if (!isStarted || !playersReady || state.result || !isCurrentUserTurn || isPlayingMove) {
             return;
         }
 
@@ -126,16 +148,55 @@ export function TicTacToeGame({room, players, currentPlayerId, onExit}: TicTacTo
             return "Match nul";
         }
         if (state.result?.type === "win") {
-            const winner = players.find((player) => player.id === state.result?.playerId);
+            const winner = activePlayers.find((player) => player.id === state.result?.playerId);
             return winner ? `${winner.username} remporte la partie !` : "Victoire";
         }
         if (!activePlayer) {
             return "En attente des joueurs";
         }
         return `${activePlayer.username} joue (${currentSymbol ?? "?"})`;
-    }, [activePlayer, currentSymbol, players, playersReady, state.result]);
+    }, [activePlayer, activePlayers, currentSymbol, playersReady, state.result]);
 
     const timerWidth = Math.max(5, (timer / 30) * 100);
+
+    if (!isStarted) {
+        return (
+            <div className="tictactoe tictactoe--idle">
+                <div className="tictactoe__intro">
+                    <div>
+                        <p className="tictactoe__label">Morpion</p>
+                        <h3 className="tictactoe__intro-title">Lance une partie</h3>
+                        <p className="tictactoe__intro-text">
+                            Invite un deuxième joueur et démarre quand vous êtes prêts. La grille se mettra à jour en direct dès que
+                            la partie commence.
+                        </p>
+                    </div>
+                    <div className="tictactoe__rules">
+                        <p className="tictactoe__rules-title">Infos rapides</p>
+                        <ul>
+                            <li>Aligne 3 symboles pour gagner.</li>
+                            <li>30 secondes par tour avant placement automatique.</li>
+                            <li>Fin de partie : retour automatique à l'accueil de jeu.</li>
+                        </ul>
+                    </div>
+                    <div className="tictactoe__actions">
+                        <button
+                            className="room-view__button"
+                            type="button"
+                            onClick={startGame}
+                            disabled={!playersReady}
+                        >
+                            {playersReady ? "Lancer la partie" : "En attente d'un deuxième joueur"}
+                        </button>
+                        <p className="tictactoe__intro-helper">
+                            Joueurs détectés : {players.length} / 2 (les deux premiers rejoindront la grille)
+                        </p>
+                    </div>
+                    {error && <p className="tictactoe__result-text">{error}</p>}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="tictactoe">
@@ -145,7 +206,7 @@ export function TicTacToeGame({room, players, currentPlayerId, onExit}: TicTacTo
                     <p className="tictactoe__value">{room.id}</p>
                 </div>
                 <div className="tictactoe__status">{statusLabel}</div>
-                <button className="room-view__button room-view__button--ghost" type="button" onClick={onExit}>
+                <button className="room-view__button room-view__button--ghost" type="button" onClick={exitGameSurface}>
                     Quitter la grille
                 </button>
             </div>
@@ -191,7 +252,7 @@ export function TicTacToeGame({room, players, currentPlayerId, onExit}: TicTacTo
                         <p className="tictactoe__label">Joueurs</p>
                         <p className="tictactoe__value">
                             {playersReady
-                                ? `${players[0].username} (X) · ${players[1].username} (O)`
+                                ? `${activePlayers[0].username} (X) · ${activePlayers[1].username} (O)`
                                 : "En attente d'un deuxième joueur"}
                         </p>
                     </div>
@@ -208,13 +269,13 @@ export function TicTacToeGame({room, players, currentPlayerId, onExit}: TicTacTo
                     <div className="tictactoe__result">
                         <div className="tictactoe__result-title">
                             {state.result.type === "win"
-                                ? `${players.find((p) => p.id === state.result?.playerId)?.username ?? "Joueur"} gagne !`
+                                ? `${activePlayers.find((p) => p.id === state.result?.playerId)?.username ?? "Joueur"} gagne !`
                                 : "Match nul"}
                         </div>
                         <p className="tictactoe__result-text">
                             Retour au salon dans quelques instants…
                         </p>
-                        <button className="room-view__button" type="button" onClick={onExit}>
+                        <button className="room-view__button" type="button" onClick={exitGameSurface}>
                             Retour au salon maintenant
                         </button>
                     </div>

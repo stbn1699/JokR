@@ -201,6 +201,26 @@
         min-height: 500px;
 }
 
+.room-view__game-placeholder {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px dashed rgba(148, 163, 184, 0.4);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        max-width: 720px;
+        width: 100%;
+        text-align: center;
+        color: #cbd5e1;
+}
+
+.room-view__game-placeholder-title {
+        margin: 0 0 0.3rem;
+        font-weight: 800;
+}
+
+.room-view__game-placeholder-text {
+        margin: 0;
+}
+
 @media (max-width: 1100px) {
         .room-view__game-layout {
                 grid-template-columns: 1fr;
