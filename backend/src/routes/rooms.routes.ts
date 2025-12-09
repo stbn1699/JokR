@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { RoomsController } from "../controllers/rooms.controller";
+import { MorpionController } from "../controllers/morpion.controller";
 
 const router = Router();
 
@@ -23,5 +24,10 @@ router.get("/rooms/:roomId", RoomsController.getRoom);
 
 // lister les rooms (debug/admin)
 router.get("/rooms", RoomsController.listRooms);
+
+// Morpion state
+router.get("/rooms/:roomId/morpion", MorpionController.getState);
+router.post("/rooms/:roomId/morpion/move", MorpionController.playMove);
+router.post("/rooms/:roomId/morpion/reset", MorpionController.reset);
 
 export default router;

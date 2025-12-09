@@ -1,4 +1,5 @@
 import type {Room} from "./types";
+import {RoomGameSurface} from "./RoomGameSurface";
 import "./RoomView.css";
 
 interface RoomViewProps {
@@ -12,22 +13,25 @@ interface RoomViewProps {
 export function RoomView({room, onClose, fullPage = false, currentPlayerId, onKickPlayer}: RoomViewProps) {
     const isGameMaster = currentPlayerId === room.masterId;
 
-    return (
-        <div className={`room-view${fullPage ? " room-view--full" : ""}`}>
-            <div className="room-view__header">
-                <div>
-                    <p className="room-view__label">Salon</p>
-                    <div className="room-view__id">{room.id}</div>
-                </div>
-                <div className="room-view__actions">
-                    {onClose && (
-                        <button className="room-view__button room-view__button--ghost" type="button" onClick={onClose}>
-                            Retour au menu
-                        </button>
-                    )}
-                </div>
+    const renderRoomHeader = () => (
+        <div className="room-view__header">
+            <div>
+                <p className="room-view__label">Salon</p>
+                <div className="room-view__id">{room.id}</div>
+                <p className="room-view__game-label">Jeu : {room.gameId === "morpion" ? "Morpion" : room.gameId}</p>
             </div>
+            <div className="room-view__actions">
+                {onClose && (
+                    <button className="room-view__button room-view__button--ghost" type="button" onClick={onClose}>
+                        Retour au menu
+                    </button>
+                )}
+            </div>
+        </div>
+    );
 
+    const renderPlayersList = () => (
+        <div>
             <p className="room-view__subtitle">
                 Utilisateurs connectés ({room.players.length})
             </p>
@@ -52,6 +56,20 @@ export function RoomView({room, onClose, fullPage = false, currentPlayerId, onKi
                     </li>
                 ))}
             </ul>
+        </div>
+    );
+
+    return (
+        <div className={`room-view${fullPage ? " room-view--full" : ""}`}>
+            <div className="room-view__game-layout">
+                <aside className="room-view__sidebar">
+                    {renderRoomHeader()}
+                    {renderPlayersList()}
+                </aside>
+                <div className="room-view__game-surface">
+                    <RoomGameSurface room={room} players={room.players} currentPlayerId={currentPlayerId}/>
+                </div>
+            </div>
         </div>
     );
 }
