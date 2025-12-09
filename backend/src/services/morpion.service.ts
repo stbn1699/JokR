@@ -82,7 +82,7 @@ export class MorpionService {
         const initialState: MorpionState = {
             board: Array(9).fill(null),
             currentPlayerIndex: 0,
-            turnEndsAt: this.isReady(room) ? new Date(Date.now() + TURN_DURATION_MS) : null,
+            turnEndsAt: null,
             result: null,
         };
         this.states.set(room.id, initialState);
@@ -133,7 +133,9 @@ export class MorpionService {
             this.applyMove(state, room, randomIndex);
         }
 
-        if (!state.result && !state.turnEndsAt) {
+        const hasStarted = state.turnEndsAt !== null || state.board.some((cell) => cell !== null);
+
+        if (!state.result && !state.turnEndsAt && hasStarted) {
             state.turnEndsAt = new Date(Date.now() + TURN_DURATION_MS);
         }
 
