@@ -1,0 +1,59 @@
+.app-header {
+    align-items: center;
+    backdrop-filter: blur(8px);
+    background: radial-gradient(circle at top left, rgba(79, 70, 229, 0.6), rgba(15, 23, 42, 0.9));
+    border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+    display: flex;
+    padding: 1rem 2rem;
+    position: relative;
+}
+
+.logo {
+    display: block;
+    height: 4rem;
+    width: auto;
+}
+
+.user-icon {
+    align-items: center;
+    background: #64748b;
+    border: 2px solid #fff;
+    border-radius: 100%;
+    color: #000;
+    display: flex;
+    font-weight: 600;
+    height: 2.5rem;
+    justify-content: center;
+    text-transform: uppercase;
+    width: 2.5rem;
+}
+
+.user-box {
+    align-items: center;
+    background: #000;
+    border-radius: 5rem;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    font-size: 1.2rem;
+    padding: 0.5rem 0.5rem;
+    position: absolute;
+    right: 2rem;
+}
+
+.user-box::before {
+    background: conic-gradient(from 150deg, #f97316, #22c55e, #4f46e5, #f97316);
+    border-radius: inherit;
+    content: "";
+    inset: -3px;
+    position: absolute;
+    z-index: -1;
+}
+
+.user-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 1.5rem;
+}

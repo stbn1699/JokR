@@ -1,5 +1,6 @@
 import type {FormEvent} from "react";
 import {useEffect, useRef, useState} from "react";
+import "./UsernameGate.css";
 
 interface UsernameGateProps {
     onUsernameSet: (username: string) => void;

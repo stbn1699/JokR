@@ -4,14 +4,17 @@ import "./RoomView.css";
 
 interface RoomViewProps {
     room: Room;
-    onClose?: () => void;
     fullPage?: boolean;
     currentPlayerId?: string;
     onKickPlayer?: (playerId: string) => void;
 }
 
-export function RoomView({room, onClose, fullPage = false, currentPlayerId, onKickPlayer}: RoomViewProps) {
+export function RoomView({room, fullPage = false, currentPlayerId, onKickPlayer}: RoomViewProps) {
     const isGameMaster = currentPlayerId === room.masterId;
+
+    function returnToHome() {
+        window.location.href = "/";
+    }
 
     const renderRoomHeader = () => (
         <div className="room-view__header">
@@ -21,11 +24,9 @@ export function RoomView({room, onClose, fullPage = false, currentPlayerId, onKi
                 <p className="room-view__game-label">Jeu : {room.gameId === "morpion" ? "Morpion" : room.gameId}</p>
             </div>
             <div className="room-view__actions">
-                {onClose && (
-                    <button className="room-view__button room-view__button--ghost" type="button" onClick={onClose}>
-                        Retour au menu
-                    </button>
-                )}
+                <button className="room-view__button room-view__button--ghost" type="button" onClick={returnToHome}>
+                    Retour au menu
+                </button>
             </div>
         </div>
     );

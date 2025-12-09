@@ -194,14 +194,6 @@ export function TicTacToeGame({room, players, currentPlayerId}: TicTacToeGamePro
                             la partie commence.
                         </p>
                     </div>
-                    <div className="tictactoe__rules">
-                        <p className="tictactoe__rules-title">Infos rapides</p>
-                        <ul>
-                            <li>Aligne 3 symboles pour gagner.</li>
-                            <li>30 secondes par tour avant placement automatique.</li>
-                            <li>Fin de partie : retour automatique à l'accueil de jeu.</li>
-                        </ul>
-                    </div>
                     <div className="tictactoe__actions">
                         <button
                             className="room-view__button"
