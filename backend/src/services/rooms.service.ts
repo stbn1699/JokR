@@ -72,6 +72,7 @@ class RoomsService {
         }
 
         const before = room.players.length;
+        const wasMaster = room.masterId === playerId;
         room.players = room.players.filter((p) => p.id !== playerId);
 
         // si plus personne → on supprime la room de la mémoire
@@ -83,6 +84,15 @@ class RoomsService {
         // si rien n’a changé, playerId inconnu
         if (before === room.players.length) {
             throw new Error("PLAYER_NOT_IN_ROOM");
+        }
+
+        if (wasMaster) {
+            // on assigne le joueur le plus ancien comme nouveau maître du jeu
+            const earliestPlayer = room.players.reduce((oldest, current) =>
+                current.joinedAt < oldest.joinedAt ? current : oldest,
+            room.players[0]);
+
+            room.masterId = earliestPlayer.id;
         }
 
         return room;
