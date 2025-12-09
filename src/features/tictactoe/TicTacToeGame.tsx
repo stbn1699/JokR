@@ -1,113 +1,81 @@
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import type {Room, RoomPlayer} from "../rooms/types";
+import {fetchMorpionState, playMorpionMove, resetMorpion} from "./api";
+import type {MorpionState} from "./types";
 import "./TicTacToeGame.css";
-
-type CellSymbol = "X" | "O" | null;
-
-type GameResult =
-    | {type: "win"; player: RoomPlayer; symbol: Exclude<CellSymbol, null>; line: number[]}
-    | {type: "draw"};
 
 interface TicTacToeGameProps {
     room: Room;
     players: RoomPlayer[];
+    currentPlayerId?: string;
     onExit: () => void;
 }
 
-const WINNING_LINES = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-];
+const EMPTY_STATE: MorpionState = {
+    board: Array(9).fill(null),
+    currentPlayerIndex: 0,
+    turnEndsAt: null,
+    result: null,
+};
 
-function findWinningLine(board: CellSymbol[]): number[] | null {
-    for (const line of WINNING_LINES) {
-        const [a, b, c] = line;
-        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-            return line;
-        }
-    }
-    return null;
-}
-
-export function TicTacToeGame({room, players, onExit}: TicTacToeGameProps) {
-    const [board, setBoard] = useState<CellSymbol[]>(Array(9).fill(null));
-    const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+export function TicTacToeGame({room, players, currentPlayerId, onExit}: TicTacToeGameProps) {
+    const [state, setState] = useState<MorpionState>(EMPTY_STATE);
     const [timer, setTimer] = useState(30);
-    const [result, setResult] = useState<GameResult | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isPlayingMove, setIsPlayingMove] = useState(false);
 
-    const availableCells = useMemo(
-        () => board.map((cell, index) => (cell ? null : index)).filter((index): index is number => index !== null),
-        [board],
-    );
-
-    const activePlayer = players[currentPlayerIndex % players.length];
-    const currentSymbol: Exclude<CellSymbol, null> = currentPlayerIndex % 2 === 0 ? "X" : "O";
     const playersReady = players.length >= 2;
-
-    const handleMove = useCallback(
-        (index: number) => {
-            if (!playersReady || result) {
-                return;
-            }
-
-        let moveApplied = false;
-        setBoard((prevBoard) => {
-            if (prevBoard[index]) {
-                return prevBoard;
-            }
-
-            const updatedBoard = [...prevBoard];
-            updatedBoard[index] = currentSymbol;
-            moveApplied = true;
-
-            const winningLine = findWinningLine(updatedBoard);
-            if (winningLine) {
-                setResult({type: "win", player: activePlayer, symbol: currentSymbol, line: winningLine});
-            } else if (updatedBoard.every((cell) => cell !== null)) {
-                setResult({type: "draw"});
-            } else {
-                setCurrentPlayerIndex((prevIndex) => (prevIndex + 1) % players.length);
-            }
-
-            return updatedBoard;
-        });
-
-        if (moveApplied) {
-            setTimer(30);
-        }
-        },
-        [activePlayer, currentSymbol, players, playersReady, result],
-    );
+    const currentSymbol: "X" | "O" | null = playersReady ? (state.currentPlayerIndex % 2 === 0 ? "X" : "O") : null;
+    const activePlayer = playersReady ? players[state.currentPlayerIndex % 2] : undefined;
+    const isCurrentUserTurn = activePlayer?.id === currentPlayerId;
 
     useEffect(() => {
-        if (result || !playersReady) {
+        let cancelled = false;
+
+        const load = async () => {
+            try {
+                const latest = await fetchMorpionState(room.id);
+                if (!cancelled) {
+                    setState(latest);
+                    setError(null);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError((err as Error).message);
+                }
+            }
+        };
+
+        void load();
+        const intervalId = window.setInterval(() => {
+            void load();
+        }, 1500);
+
+        return () => {
+            cancelled = true;
+            window.clearInterval(intervalId);
+        };
+    }, [room.id]);
+
+    useEffect(() => {
+        const deadline = state.turnEndsAt ? new Date(state.turnEndsAt).getTime() : null;
+        if (!deadline) {
+            setTimer(30);
             return undefined;
         }
 
-        const intervalId = window.setInterval(() => {
-            setTimer((prev) => {
-                if (prev <= 1) {
-                    const randomIndex = availableCells[Math.floor(Math.random() * availableCells.length)] ?? null;
-                    if (randomIndex !== null) {
-                        handleMove(randomIndex);
-                    }
-                    return 30;
-                }
-                return prev - 1;
-            });
-        }, 1000);
+        const update = () => {
+            const remainingMs = Math.max(0, deadline - Date.now());
+            setTimer(Math.max(0, Math.ceil(remainingMs / 1000)));
+        };
 
+        update();
+        const intervalId = window.setInterval(update, 200);
         return () => window.clearInterval(intervalId);
-    }, [result, playersReady, availableCells, handleMove]);
+    }, [state.turnEndsAt]);
 
     useEffect(() => {
-        if (!result) {
+        if (!state.result) {
             return undefined;
         }
 
@@ -116,27 +84,56 @@ export function TicTacToeGame({room, players, onExit}: TicTacToeGameProps) {
         }, 2000);
 
         return () => window.clearTimeout(timeout);
-    }, [result, onExit]);
+    }, [state.result, onExit]);
 
-    const resetBoard = () => {
-        setBoard(Array(9).fill(null));
-        setCurrentPlayerIndex(0);
-        setTimer(30);
-        setResult(null);
+    const handleMove = async (index: number) => {
+        if (!playersReady || state.result || !isCurrentUserTurn || isPlayingMove) {
+            return;
+        }
+
+        if (!currentPlayerId) {
+            setError("Identifiant joueur manquant.");
+            return;
+        }
+
+        setIsPlayingMove(true);
+        setError(null);
+        try {
+            const nextState = await playMorpionMove(room.id, currentPlayerId, index);
+            setState(nextState);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setIsPlayingMove(false);
+        }
+    };
+
+    const resetBoard = async () => {
+        try {
+            const nextState = await resetMorpion(room.id);
+            setState(nextState);
+            setError(null);
+        } catch (err) {
+            setError((err as Error).message);
+        }
     };
 
     const statusLabel = useMemo(() => {
         if (!playersReady) {
             return "En attente de deux joueurs";
         }
-        if (result?.type === "draw") {
+        if (state.result?.type === "draw") {
             return "Match nul";
         }
-        if (result?.type === "win") {
-            return `${result.player.username} remporte la partie !`;
+        if (state.result?.type === "win") {
+            const winner = players.find((player) => player.id === state.result?.playerId);
+            return winner ? `${winner.username} remporte la partie !` : "Victoire";
         }
-        return `${activePlayer.username} joue (${currentSymbol})`;
-    }, [activePlayer?.username, currentSymbol, playersReady, result]);
+        if (!activePlayer) {
+            return "En attente des joueurs";
+        }
+        return `${activePlayer.username} joue (${currentSymbol ?? "?"})`;
+    }, [activePlayer, currentSymbol, players, playersReady, state.result]);
 
     const timerWidth = Math.max(5, (timer / 30) * 100);
 
@@ -162,17 +159,17 @@ export function TicTacToeGame({room, players, onExit}: TicTacToeGameProps) {
                     <div className="tictactoe__timer-bar">
                         <div className="tictactoe__timer-fill" style={{width: `${timerWidth}%`}} />
                     </div>
-                    {playersReady && !result && (
+                    {playersReady && !state.result && activePlayer && (
                         <p className="tictactoe__timer-hint">
-                            Tour de {activePlayer.username} ({currentSymbol}) — le coup sera joué automatiquement si le temps est
-                            écoulé.
+                            Tour de {activePlayer.username} ({currentSymbol}) — le coup sera joué automatiquement si le temps
+                            est écoulé.
                         </p>
                     )}
                 </div>
 
                 <div className="tictactoe__board">
-                    {board.map((cell, index) => {
-                        const isWinningCell = result?.type === "win" && result.line.includes(index);
+                    {state.board.map((cell, index) => {
+                        const isWinningCell = state.result?.type === "win" && state.result.line.includes(index);
                         return (
                             <button
                                 key={index}
@@ -181,7 +178,7 @@ export function TicTacToeGame({room, players, onExit}: TicTacToeGameProps) {
                                     isWinningCell ? " tictactoe__cell--win" : ""
                                 }`}
                                 onClick={() => handleMove(index)}
-                                disabled={!playersReady || !!result}
+                                disabled={!playersReady || !!state.result || !isCurrentUserTurn || isPlayingMove}
                             >
                                 {cell && <span className={`tictactoe__symbol tictactoe__symbol--${cell.toLowerCase()}`}>{cell}</span>}
                             </button>
@@ -205,10 +202,14 @@ export function TicTacToeGame({room, players, onExit}: TicTacToeGameProps) {
                     </div>
                 </div>
 
-                {result && (
+                {error && <p className="tictactoe__result-text">{error}</p>}
+
+                {state.result && (
                     <div className="tictactoe__result">
                         <div className="tictactoe__result-title">
-                            {result.type === "win" ? `${result.player.username} gagne !` : "Match nul"}
+                            {state.result.type === "win"
+                                ? `${players.find((p) => p.id === state.result?.playerId)?.username ?? "Joueur"} gagne !`
+                                : "Match nul"}
                         </div>
                         <p className="tictactoe__result-text">
                             Retour au salon dans quelques instants…

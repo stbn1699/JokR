@@ -96,6 +96,7 @@ export function RoomView({room, onClose, fullPage = false, currentPlayerId, onKi
                         <TicTacToeGame
                             room={room}
                             players={morpionPlayers}
+                            currentPlayerId={currentPlayerId}
                             onExit={() => setIsGameStarted(false)}
                         />
                     </div>
