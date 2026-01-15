@@ -1,3 +1,18 @@
+export interface ApiResponse<T> {
+    status: "ok" | "error" | string;
+    data: T;
+    message?: string;
+}
+
+function isStatusEnvelope<T>(v: any): v is ApiResponse<T> {
+    return (
+        v !== null &&
+        typeof v === "object" &&
+        typeof v.status === "string" &&
+        "data" in v
+    );
+}
+
 export async function api<T>(
     path: string,
     options: RequestInit = {},
@@ -19,5 +34,14 @@ export async function api<T>(
 
     if (res.status === 204) return undefined as T;
 
-    return (await res.json()) as T;
+    const json = await res.json();
+
+    if (isStatusEnvelope<T>(json)) {
+        if (json.status !== "ok") {
+            throw new Error(json.message || "API error");
+        }
+        return json.data;
+    }
+
+    return json as T;
 }
