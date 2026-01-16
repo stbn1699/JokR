@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import gamesRoutes from "./routes/games.routes.js";
 import "dotenv/config";
 
@@ -6,6 +7,8 @@ const app = express();
 const PORT = Number(process.env.PORT ?? 3000);
 
 app.use(express.json());
+
+app.use(cors({ origin: process.env.CORS_ORIGIN }));
 
 app.get("/ping", (_req, res) => {
 	res.status(200).json({status: "ok", message: "pong"});
