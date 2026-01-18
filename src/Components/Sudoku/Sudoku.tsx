@@ -19,7 +19,15 @@ export default function Sudoku() {
                 if (el) {
                     el.value = val === 0 ? "" : String(val);
                     // si case pré-remplie, désactiver l'édition
-                    el.readOnly = val !== 0;
+                    // set both readOnly and disabled for safety, and add a class
+                    const isPrefilled = val !== 0;
+                    el.readOnly = isPrefilled;
+                    el.disabled = isPrefilled;
+                    if (isPrefilled) {
+                        el.classList.add('prefilled');
+                    } else {
+                        el.classList.remove('prefilled');
+                    }
                 }
             }
         }

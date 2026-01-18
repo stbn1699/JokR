@@ -56,6 +56,13 @@
 				border        : 2px solid #ffffff !important;
 			}
 
+			/* Pré-remplies / disabled: fond vert et pas d'interaction */
+			&.prefilled,
+			&:disabled {
+				color   : #3bf644;
+				opacity : 1; /* garder couleur pleine malgré disabled */
+			}
+
 			/* Nouvelle règle: fond orange si case vide */
 			/* utilise :placeholder-shown — fonctionne parce qu'on met placeholder=" " */
 			&:placeholder-shown {
