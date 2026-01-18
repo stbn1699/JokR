@@ -1,0 +1,40 @@
+.game-list {
+	display         : flex;
+	flex-wrap       : wrap;
+	gap             : 1rem;
+	align-items     : center;
+	justify-content : center;
+	padding         : 1rem;
+
+	div {
+		width            : 15rem;
+		height           : 18rem;
+		border-radius    : 2rem;
+		cursor           : pointer;
+		align-items      : center;
+		background-color : #222222;
+		justify-content  : center;
+		transition       : all 0.2s ease-in-out;
+		color            : white;
+		border           : 1px solid #444444;
+
+		&:hover {
+			transform : scale(1.05);
+		}
+
+	}
+
+	img {
+		width  : 13rem;
+		height : 13rem;
+		margin : 1rem;
+	}
+
+	h1 {
+		align-self  : center;
+		margin      : 0;
+		padding     : 0;
+		text-align  : center;
+		width       : 100%;
+	}
+}
