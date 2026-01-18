@@ -2,6 +2,7 @@ import "./GameList.scss"
 import {useEffect, useState} from "react";
 import type {Game} from "../../Models/game.model.ts";
 import {gameService} from "../../Services/game.service.ts";
+import Header from "../Header/Header.tsx";
 
 export default function GameList() {
     const [games, setGames] = useState<Game[]>([])
@@ -27,14 +28,21 @@ export default function GameList() {
     if (loading) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;
 
+    const handleGameSelection = (gameCode: string) => () => {
+        window.location.href = `/playgame/${gameCode}`;
+    }
+
     return (
-        <div className="game-list">
-            {games.map((game) => (
-                <div key={game.id}>
-                    <img src={`/gameIcons/${game.code}.svg`} alt={game.code} />
-                    <h1>{game.code}</h1>
-                </div>
-            ))}
-        </div>
+        <>
+            <Header/>
+            <div className="game-list">
+                {games.map((game) => (
+                    <div key={game.id} onClick={handleGameSelection(game.code)}>
+                        <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
+                        <h1>{game.code}</h1>
+                    </div>
+                ))}
+            </div>
+        </>
     )
 }
