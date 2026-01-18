@@ -1,10 +1,28 @@
-import {useRef} from "react";
+import {useEffect, useRef} from "react";
 import "./Sudoku.scss";
 import {handleKeyDown} from "./keyboardNavigation";
 import {sanitizeInput} from "./sanitizeInput";
+import {generateSudoku} from "./sudokuGenerator";
 
 export default function Sudoku() {
     const inputs = useRef<HTMLInputElement[]>([]);
+
+    useEffect(() => {
+        // Génère une grille avec 10 chiffres placés par défaut
+        const grid = generateSudoku(10);
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const val = grid[r][c];
+                const idx = r * 9 + c;
+                const el = inputs.current[idx];
+                if (el) {
+                    el.value = val === 0 ? "" : String(val);
+                    // si case pré-remplie, désactiver l'édition
+                    el.readOnly = val !== 0;
+                }
+            }
+        }
+    }, []);
 
     return (
         <div className={"sudoku"}>
