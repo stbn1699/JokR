@@ -3,13 +3,14 @@ import "./Sudoku.scss";
 import {handleKeyDown} from "./keyboardNavigation";
 import {sanitizeInput} from "./sanitizeInput";
 import {generateSudoku} from "./sudokuGenerator";
+import validateSudoku from "./sudokuValidator";
 
 export default function Sudoku() {
     const inputs = useRef<HTMLInputElement[]>([]);
 
     useEffect(() => {
         // Génère une grille avec 10 chiffres placés par défaut
-        const grid = generateSudoku(10);
+        const grid = generateSudoku(80);
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
                 const val = grid[r][c];
@@ -45,6 +46,20 @@ export default function Sudoku() {
                         onInput={sanitizeInput}
                     />
                 ))}
+            </div>
+
+            {/* Bouton de validation */}
+            <div className="controls">
+                <button
+                    type="button"
+                    onClick={() => {
+                        const result = validateSudoku(inputs.current);
+                        console.log(result);
+                    }}
+                    className="validate-button"
+                >
+                    Valider
+                </button>
             </div>
         </div>
     );
