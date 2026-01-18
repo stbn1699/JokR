@@ -2,7 +2,8 @@
 	font-family: 'Josefin Slab';
 	font-style: normal;
 	font-weight: 500;
-	src: url('public/JosefinSlab.woff2') format('woff2');
+	/* Serve from Vite `public/` root: use an absolute path so dev server serves it as `/JosefinSlab.woff2` */
+	src: url('/JosefinSlab.woff2') format('woff2');
 }
 
 html{
@@ -18,6 +19,18 @@ html{
 	animation: ambientDrift 120s ease-in-out infinite;
 	color:#f9fafb;
 	font-family: 'Josefin Slab', serif;
+}
+
+body, #root, input, textarea, select, button {
+	font-family: 'Josefin Slab', serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+input::placeholder,
+textarea::placeholder {
+	font-family: inherit;
+	opacity: 0.7;
 }
 
 html::before{
