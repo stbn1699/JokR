@@ -3,7 +3,7 @@ import "./Header.scss"
 export default function Header() {
     return (
         <div className="header">
-            <img src="/JokR_Logo_Full.svg" alt="logo"/>
+            <img src="/JokR_Logo_Full.svg" alt="logo" onClick={() => window.location.href = "/"}/>
         </div>
     )
 }
