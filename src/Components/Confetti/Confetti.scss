@@ -1,0 +1,15 @@
+.confetti-canvas {
+	position       : fixed; /* couvrir toute la fenêtre */
+	inset          : 0;
+	width          : 100vw;
+	height         : 100vh;
+	pointer-events : none; /* allow clicks through by default */
+	overflow       : visible;
+	z-index        : 9999;
+	transform      : translateZ(0); /* GPU hint */
+}
+
+/* utility class to allow pointer events when needed */
+.confetti-canvas.pointer-events-auto {
+	pointer-events : auto;
+}
