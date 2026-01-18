@@ -9,8 +9,8 @@ export default function Sudoku() {
     const inputs = useRef<HTMLInputElement[]>([]);
 
     useEffect(() => {
-        // Génère une grille avec 10 chiffres placés par défaut
-        const grid = generateSudoku(80);
+        // Génère une grille avec x chiffres placés par défaut
+        const grid = generateSudoku(20);
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
                 const val = grid[r][c];
@@ -26,7 +26,7 @@ export default function Sudoku() {
     }, []);
 
     return (
-        <div className={"sudoku"}>
+        <div className="sudoku">
             <div className="grid">
                 {Array.from({length: 81}, (_, i) => (
                     <input
@@ -42,6 +42,7 @@ export default function Sudoku() {
                         max={9}
                         inputMode="numeric"
                         pattern="[0-9]*"
+                        placeholder=" "
                         onKeyDown={(e) => handleKeyDown(e, inputs)}
                         onInput={sanitizeInput}
                     />

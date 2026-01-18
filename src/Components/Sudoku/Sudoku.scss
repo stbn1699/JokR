@@ -40,9 +40,9 @@
 			cursor          : pointer;
 
 			&:hover {
-				background : #00000080;
-				transition : all 0.05s ease-in-out;
-				transform  : scale(1.1);
+				background    : #00000080;
+				transition    : all 0.05s ease-in-out;
+				transform     : scale(1.1);
 				border-radius : 5px;
 				border        : 2px solid #ffffff !important;
 			}
@@ -54,6 +54,13 @@
 				transition    : all 0.05s ease-in-out;
 				border-radius : 5px;
 				border        : 2px solid #ffffff !important;
+			}
+
+			/* Nouvelle règle: fond orange si case vide */
+			/* utilise :placeholder-shown — fonctionne parce qu'on met placeholder=" " */
+			&:placeholder-shown {
+				background : #02061760; /* orange */
+				color      : #111; /* contraste pour la lisibilité si placeholder affiché */
 			}
 
 			/* Colonnes 3x3 */
