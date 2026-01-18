@@ -1,5 +1,6 @@
 .sudoku {
-	--cell-size    : 5rem;
+	--cell-size    : 4.5rem;
+	position       : relative;
 	display        : flex;
 	flex-direction : column;
 	align-items    : center;
@@ -7,8 +8,9 @@
 	margin         : 1rem auto;
 	background     : #02061735;
 	border         : 3px solid #e5e7eb;
-	width          : 46rem;
+	width          : 41rem;
 	border-radius  : 10px;
+	height         : 45rem;
 
 	.grid {
 
@@ -59,6 +61,35 @@
 			&:nth-child(n + 19):nth-child(-n + 27),
 			&:nth-child(n + 46):nth-child(-n + 54) {
 				border-bottom : 3px solid rgba(229, 231, 235, 0.8);
+			}
+		}
+	}
+
+	.controls {
+		display         : flex;
+		justify-content : flex-end;
+		position        : absolute;
+		right           : 2.2rem;
+		bottom          : 1.5rem;
+		width           : auto;
+		gap             : 0.5rem;
+
+		.validate-button {
+			height           : 4rem;
+			background-color : #1c700e;
+			color            : white;
+			padding          : 0.75rem 3rem;
+			border-radius    : 2rem;
+			border           : none;
+			cursor           : pointer;
+			font-size        : 3rem;
+			font-weight      : 600;
+			transition       : all 0.2s ease-in-out;
+
+			&:hover {
+				background-color : #17560b;
+				transform        : scale(1.05);
+				box-shadow       : 0 0.5rem 1rem rgba(0, 0, 0, 0.60);
 			}
 		}
 	}

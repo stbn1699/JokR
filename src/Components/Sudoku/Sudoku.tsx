@@ -48,7 +48,6 @@ export default function Sudoku() {
                 ))}
             </div>
 
-            {/* Bouton de validation */}
             <div className="controls">
                 <button
                     type="button"
