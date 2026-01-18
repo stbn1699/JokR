@@ -7,19 +7,31 @@
 	padding         : 1rem;
 
 	div {
-		width            : 15rem;
+		--s              : 15rem; /* the size of the div */
+
+		width            : var(--s);
+		aspect-ratio     : 1;
+		outline          : calc(var(--s) / 2) solid rgba(0, 0, 0, 0);
+		outline-offset   : calc(var(--s) / -2);
+		cursor           : pointer;
+
 		height           : 18rem;
 		border-radius    : 2rem;
-		cursor           : pointer;
 		align-items      : center;
 		background-color : #222222;
 		justify-content  : center;
-		transition       : all 0.2s ease-in-out;
+		transition       : all 0.3s ease-in-out;
 		color            : white;
 		border           : 1px solid #444444;
 
 		&:hover {
-			transform : scale(1.05);
+			--b            : 2px; /* the border thickness*/
+			--g            : 2px; /* the gap */
+			--c            : #29a615; /* the color */
+
+			transform      : scale(1.05);
+			outline        : var(--b) solid var(--c);
+			outline-offset : var(--g);
 		}
 
 	}
@@ -31,10 +43,10 @@
 	}
 
 	h1 {
-		align-self  : center;
-		margin      : 0;
-		padding     : 0;
-		text-align  : center;
-		width       : 100%;
+		align-self : center;
+		margin     : 0;
+		padding    : 0;
+		text-align : center;
+		width      : 100%;
 	}
 }
