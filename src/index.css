@@ -1,3 +1,10 @@
+@font-face {
+	font-family: 'Josefin Slab';
+	font-style: normal;
+	font-weight: 500;
+	src: url('public/JosefinSlab.woff2') format('woff2');
+}
+
 html{
 	min-height:100vh;
 	background:
@@ -10,6 +17,7 @@ html{
 	background-size: 260% 260%;
 	animation: ambientDrift 120s ease-in-out infinite;
 	color:#f9fafb;
+	font-family: 'Josefin Slab', serif;
 }
 
 html::before{
