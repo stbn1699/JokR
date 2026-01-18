@@ -4,9 +4,11 @@
 	flex-direction : column;
 	align-items    : center;
 	padding        : 2rem;
-	margin         : 1rem;
-	background     : #020617;
+	margin         : 1rem auto;
+	background     : #02061710;
 	border         : 3px solid #e5e7eb;
+	width          : 46rem;
+	border-radius  : 10px;
 
 	.grid {
 
@@ -36,9 +38,12 @@
 			cursor          : pointer;
 
 			&:focus {
-				background   : rgba(59, 130, 246, 0.18);
-				border-color : #29a615;
-				z-index      : 1;
+				background    : #000000;
+				z-index       : 1;
+				transform     : scale(1.2);
+				transition    : all 0.05s ease-in-out;
+				border-radius : 5px;
+				border        : 2px solid #ffffff !important;
 			}
 
 			/* Colonnes 3x3 */
