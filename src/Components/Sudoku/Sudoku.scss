@@ -40,7 +40,7 @@
 			cursor          : pointer;
 
 			&:hover {
-				background    : #00000080;
+				background    : #000000cc !important;
 				transition    : all 0.05s ease-in-out;
 				transform     : scale(1.1);
 				border-radius : 5px;
@@ -48,7 +48,7 @@
 			}
 
 			&:focus {
-				background    : #000000;
+				background    : #000000 !important;
 				z-index       : 1;
 				transform     : scale(1.2);
 				transition    : all 0.05s ease-in-out;
@@ -56,18 +56,14 @@
 				border        : 2px solid #ffffff !important;
 			}
 
-			/* Pré-remplies / disabled: fond vert et pas d'interaction */
 			&.prefilled,
 			&:disabled {
 				color   : #3bf644;
-				opacity : 1; /* garder couleur pleine malgré disabled */
+				opacity : 1;
 			}
 
-			/* Nouvelle règle: fond orange si case vide */
-			/* utilise :placeholder-shown — fonctionne parce qu'on met placeholder=" " */
 			&:placeholder-shown {
-				background : #02061760; /* orange */
-				color      : #111; /* contraste pour la lisibilité si placeholder affiché */
+				background : #02061760;
 			}
 
 			/* Colonnes 3x3 */
