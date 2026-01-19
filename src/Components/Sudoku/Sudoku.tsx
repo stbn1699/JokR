@@ -68,7 +68,14 @@ export default function Sudoku() {
 
     return (
         <div className="sudoku">
+
+            <div className="options">
+                <h2 className="title">Options</h2>
+            </div>
+
             <div className="game">
+                <h1 className="title">Sudoku</h1>
+
                 <div className="grid">
                     {Array.from({length: 81}, (_, i) => (
                         <input
@@ -90,27 +97,29 @@ export default function Sudoku() {
                         />
                     ))}
                 </div>
+            </div>
 
-                <div className="controls">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            const result = validateSudoku(inputs.current);
-                            if (result === 'bien joué') {
-                                setShowSuccess(true);
-                                // confetti activation handled in useEffect when modal mounts
-                            } else if (result === 'pas fini') {
-                                alert("La grille n'est pas complète. Continuez !");
-                            } else {
-                                alert("La solution est incorrecte. Vérifiez vos entrées.");
-                            }
-                            console.log(result);
-                        }}
-                        className="validate-button"
-                    >
-                        Valider
-                    </button>
-                </div>
+            <div className="actions">
+
+                <h2 className="title">Actions</h2>
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        const result = validateSudoku(inputs.current);
+                        if (result === 'bien joué') {
+                            setShowSuccess(true);
+                            // confetti activation handled in useEffect when modal mounts
+                        } else if (result === 'pas fini') {
+                            alert("La grille n'est pas complète. Continuez !");
+                        } else {
+                            alert("La solution est incorrecte. Vérifiez vos entrées.");
+                        }
+                        console.log(result);
+                    }}
+                    className="validate-button">
+                    Valider
+                </button>
             </div>
 
             {showSuccess && (
