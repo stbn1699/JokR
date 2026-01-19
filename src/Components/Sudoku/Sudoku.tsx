@@ -1,3 +1,4 @@
+import type {FormEvent} from 'react';
 import {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import "./Sudoku.scss";
@@ -25,6 +26,9 @@ export default function Sudoku() {
     // Nombre de chiffres pré-remplis (modifiable via l'onglet Options)
     const [cluesCount, setCluesCount] = useState<number>(40);
 
+    // Nombre actuellement survolé / sélectionné (null = aucun)
+    const [highlightNumber, setHighlightNumber] = useState<number | null>(null);
+
     const resetOptions = () => {
         setCluesCount(40);
         generateGrid(cluesCount);
@@ -36,6 +40,7 @@ export default function Sudoku() {
         setShowSuccess(false);
         setConfettiActive(false);
         setConfettiEmitter(null);
+        setHighlightNumber(null);
 
         const grid = generateSudoku(count);
         for (let r = 0; r < 9; r++) {
@@ -45,6 +50,8 @@ export default function Sudoku() {
                 const el = inputs.current[idx];
                 if (el) {
                     el.value = val === 0 ? "" : String(val);
+                    // keep a data-value attribute in-sync for easier DOM checks (useful for highlighting)
+                    el.setAttribute('data-value', val === 0 ? '' : String(val));
                     const isPrefilled = val !== 0;
                     el.readOnly = isPrefilled;
                     el.disabled = isPrefilled;
@@ -60,7 +67,21 @@ export default function Sudoku() {
 
     useEffect(() => {
         generateGrid(cluesCount);
-    }, []);
+    }, [cluesCount]);
+
+    // Apply/remove highlight class to all cells when highlightNumber changes
+    useEffect(() => {
+        const numStr = highlightNumber === null ? null : String(highlightNumber);
+        inputs.current.forEach((el) => {
+            if (!el) return;
+            const val = el.value ?? el.getAttribute('data-value') ?? '';
+            if (numStr !== null && val === numStr) {
+                el.classList.add('same-number-highlight');
+            } else {
+                el.classList.remove('same-number-highlight');
+            }
+        });
+    }, [highlightNumber]);
 
     // When the modal is shown, compute modal rect and activate confetti around it
     useEffect(() => {
@@ -132,7 +153,27 @@ export default function Sudoku() {
                             pattern="[0-9]*"
                             placeholder=" "
                             onKeyDown={(e) => handleKeyDown(e, inputs)}
-                            onInput={sanitizeInput}
+                            onInput={(e: FormEvent<HTMLInputElement>) => {
+                                // run existing sanitizer and keep data-value updated
+                                sanitizeInput(e);
+                                const target = e.currentTarget as HTMLInputElement;
+                                target.setAttribute('data-value', target.value ?? '');
+                                // if this cell is focused, update the highlight to reflect typed value
+                                if (document.activeElement === target) {
+                                    const v = target.value;
+                                    setHighlightNumber(v ? Number(v) : null);
+                                }
+                            }}
+                            onMouseEnter={(e) => {
+                                const v = (e.currentTarget as HTMLInputElement).value;
+                                if (v !== '') setHighlightNumber(Number(v));
+                            }}
+                            onMouseLeave={() => setHighlightNumber(null)}
+                            onFocus={(e) => {
+                                const v = (e.currentTarget as HTMLInputElement).value;
+                                if (v !== '') setHighlightNumber(Number(v));
+                            }}
+                            onBlur={() => setHighlightNumber(null)}
                         />
                     ))}
                 </div>

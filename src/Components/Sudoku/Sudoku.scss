@@ -158,6 +158,16 @@
 					background : #02061760;
 				}
 
+				/* Highlight cells that have the same number as the hovered/selected one */
+				&.same-number-highlight {
+					box-shadow    : 0 0 0.8rem 0.15rem rgba(59, 246, 68, 0.18) inset;
+					background    : rgba(59, 246, 68, 0.06) !important;
+					transition    : all 0.08s ease-in-out;
+					transform     : scale(1.10);
+					border        : 2px solid rgba(59, 246, 68, 0.9) !important;
+					border-radius : 5px;
+				}
+
 				/* Colonnes 3x3 */
 				&:nth-child(3n) {
 					border-right : 3px solid rgba(229, 231, 235, 0.8);
