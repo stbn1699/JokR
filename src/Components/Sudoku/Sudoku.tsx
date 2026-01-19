@@ -22,9 +22,22 @@ export default function Sudoku() {
     const modalRef = useRef<HTMLDivElement | null>(null);
     const overlayRef = useRef<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        // Génère une grille avec x chiffres placés par défaut
-        const grid = generateSudoku(40);
+    // Nombre de chiffres pré-remplis (modifiable via l'onglet Options)
+    const [cluesCount, setCluesCount] = useState<number>(40);
+
+    const resetOptions = () => {
+        setCluesCount(40);
+        generateGrid(cluesCount);
+    }
+
+    // Fonction réutilisable pour générer/peupler la grille
+    const generateGrid = (count: number) => {
+        // close any success modal/confetti when generating a new puzzle
+        setShowSuccess(false);
+        setConfettiActive(false);
+        setConfettiEmitter(null);
+
+        const grid = generateSudoku(count);
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
                 const val = grid[r][c];
@@ -32,8 +45,6 @@ export default function Sudoku() {
                 const el = inputs.current[idx];
                 if (el) {
                     el.value = val === 0 ? "" : String(val);
-                    // si case pré-remplie, désactiver l'édition
-                    // set both readOnly and disabled for safety, and add a class
                     const isPrefilled = val !== 0;
                     el.readOnly = isPrefilled;
                     el.disabled = isPrefilled;
@@ -45,6 +56,10 @@ export default function Sudoku() {
                 }
             }
         }
+    };
+
+    useEffect(() => {
+        generateGrid(cluesCount);
     }, []);
 
     // When the modal is shown, compute modal rect and activate confetti around it
@@ -71,6 +86,30 @@ export default function Sudoku() {
 
             <div className="options">
                 <h2 className="title">Options</h2>
+
+                <div className="parameters-container">
+                    <div className="cluesRange">
+                        <label htmlFor="cluesRange">Difficulté&nbsp;:</label>
+                        <input
+                            id="cluesRange"
+                            type="range"
+                            min={10}
+                            max={60}
+                            step={1}
+                            value={80 - cluesCount}
+                            onChange={(e) => setCluesCount(80 - Number(e.target.value))}
+                        />
+                    </div>
+                </div>
+
+                <div className="buttons-container">
+                    <button type="button" className="reset-button" onClick={() => resetOptions()}>
+                        Réinitialiser
+                    </button>
+                    <button type="button" className="generate-button" onClick={() => generateGrid(cluesCount)}>
+                        Générer
+                    </button>
+                </div>
             </div>
 
             <div className="game">
