@@ -67,7 +67,7 @@ export default function Sudoku() {
 
     useEffect(() => {
         generateGrid(cluesCount);
-    }, [cluesCount]);
+    }, []);
 
     // Apply/remove highlight class to all cells when highlightNumber changes
     useEffect(() => {
