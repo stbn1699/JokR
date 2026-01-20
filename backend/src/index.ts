@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import gamesRoutes from "./routes/games.routes.js";
+import usersRoutes from "./routes/users.routes.js";
 import "dotenv/config";
 
 const app = express();
@@ -15,6 +16,7 @@ app.get("/ping", (_req, res) => {
 });
 
 app.use("/games", gamesRoutes);
+app.use("/users", usersRoutes);
 
 // error handler minimal
 app.use((err: unknown, _req: express.Request, res: express.Response) => {

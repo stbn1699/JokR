@@ -10,4 +10,13 @@
 		height : 80%;
 		margin : auto;
 	}
+
+	.usersection {
+		margin      : 1rem;
+		display     : flex;
+		gap         : 1rem;
+		align-items : center;
+		font-size   : 2rem;
+		color       : #374151;
+	}
 }
