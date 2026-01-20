@@ -3,6 +3,6 @@ import type {Game} from "../Models/game.model.ts";
 
 export const gameService = {
     list(signal?: AbortSignal) {
-        return api<Game[]>("games/list/", { method: "GET" }, signal);
+        return api<Game[]>("/games/list/", { method: "GET" }, signal);
     },
 };
