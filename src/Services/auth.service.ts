@@ -1,6 +1,5 @@
 import { api } from "../api/api";
-
-const TOKEN_KEY = "auth_token";
+import type {LoggedUser} from "../Models/loggedUser.model.ts";
 
 export const authService = {
     async register(username: string, email: string, password: string) {
@@ -11,7 +10,7 @@ export const authService = {
         });
     },
 
-    async login(identifier: string, password: string) {
+    async login(identifier: string, password: string) :Promise<LoggedUser> {
         return api("/users/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -20,15 +19,7 @@ export const authService = {
     },
 
     saveToken(token: string) {
-        localStorage.setItem(TOKEN_KEY, token);
+        localStorage.setItem("auth_token", token);
     },
-
-    getToken() {
-        return localStorage.getItem(TOKEN_KEY);
-    },
-
-    clearToken() {
-        localStorage.removeItem(TOKEN_KEY);
-    }
 };
 

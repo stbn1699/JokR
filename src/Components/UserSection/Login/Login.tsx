@@ -1,9 +1,10 @@
+import type {FormEvent} from "react";
 import {useState} from "react";
-import type { FormEvent } from "react";
 import Header from "../../Header/Header.tsx";
 import "./Login.scss";
-import { clientHash } from "../../../Services/hash";
-import { authService } from "../../../Services/auth.service";
+import {clientHash} from "../../../Services/hash";
+import {authService} from "../../../Services/auth.service";
+import type {LoggedUser} from "../../../Models/loggedUser.model.ts";
 
 export default function Login() {
     const [identifier, setIdentifier] = useState("");
@@ -17,16 +18,18 @@ export default function Login() {
         if (!identifier || !password) return setError("Tous les champs sont requis");
         try {
             setLoading(true);
-            const firstHash = await clientHash(password);
-            const res: unknown = await authService.login(identifier, firstHash);
-            if (res && typeof res === 'object') {
-                const maybe = res as Record<string, unknown>;
-                if (typeof maybe.token === 'string') {
-                    authService.saveToken(maybe.token);
-                    window.location.href = "/";
-                }
-            }
-        } catch (err: unknown) {
+            const Hash = await clientHash(password);
+
+            const loggedUser :LoggedUser = await authService.login(identifier, Hash)
+
+            const token = loggedUser.token;
+            const userId = loggedUser.userId;
+
+            authService.saveToken(token);
+            localStorage.setItem('userId', userId);
+            window.location.href = "/";
+        } catch
+            (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message || "Erreur lors de la connexion");
             } else {
@@ -61,7 +64,9 @@ export default function Login() {
                     />
 
                     <div className="buttons">
-                        <button type="button" className="secondary" onClick={() => window.location.href = "/register"} disabled={loading}>s'inscrire</button>
+                        <button type="button" className="secondary" onClick={() => window.location.href = "/register"}
+                                disabled={loading}>s'inscrire
+                        </button>
                         <button type="submit" disabled={loading}>Se connecter</button>
                     </div>
                     {error && <div className="error">{error}</div>}
