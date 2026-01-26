@@ -10,4 +10,3 @@ export type NewUser = {
 	email: string;
 	password: string; // already hashed (frontend hashed once)
 };
-

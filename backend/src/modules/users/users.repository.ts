@@ -10,8 +10,20 @@ export class UsersRepository {
 	}
 
 	async findByUsername(username: string): Promise<User | undefined> {
-		return this.db.selectFrom('users').selectAll().where('username', '=', username).executeTakeFirst();
+		return this.db
+            .selectFrom('users')
+            .selectAll()
+            .where('username', '=', username)
+            .executeTakeFirst();
 	}
+
+    async findByUuid(uuid: string): Promise<User | undefined> {
+        return this.db
+            .selectFrom('users')
+            .selectAll()
+            .where('id', '=', uuid)
+            .executeTakeFirst();
+    }
 
 	async create(user: NewUser): Promise<User> {
 		const [created] = await this.db.insertInto('users').values({

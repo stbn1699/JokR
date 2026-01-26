@@ -1,7 +1,4 @@
-export type ValidationResult = 'pas fini' | 'pas bon' | 'bien joué';
-
-// Valide un tableau d'inputs HTML (taille attendue 81) et retourne l'un des trois résultats
-export default function validateSudoku(inputs: (HTMLInputElement | undefined)[]): ValidationResult {
+export default function validateSudoku(inputs: (HTMLInputElement | undefined)[]) {
     const values: number[] = [];
     let filledCount = 0;
 
@@ -14,7 +11,7 @@ export default function validateSudoku(inputs: (HTMLInputElement | undefined)[])
     }
 
     if (filledCount < 81) {
-        return 'pas fini';
+        return null;
     }
 
     // Construire la grille 9x9
@@ -36,14 +33,14 @@ export default function validateSudoku(inputs: (HTMLInputElement | undefined)[])
 
     // Vérifier les lignes
     for (let r = 0; r < 9; r++) {
-        if (!isValidGroup(grid[r])) return 'pas bon';
+        if (!isValidGroup(grid[r])) return false;
     }
 
     // Vérifier les colonnes
     for (let c = 0; c < 9; c++) {
         const col: number[] = [];
         for (let r = 0; r < 9; r++) col.push(grid[r][c]);
-        if (!isValidGroup(col)) return 'pas bon';
+        if (!isValidGroup(col)) return false;
     }
 
     // Vérifier les blocs 3x3
@@ -55,10 +52,10 @@ export default function validateSudoku(inputs: (HTMLInputElement | undefined)[])
                     block.push(grid[br * 3 + r][bc * 3 + c]);
                 }
             }
-            if (!isValidGroup(block)) return 'pas bon';
+            if (!isValidGroup(block)) return false;
         }
     }
 
-    return 'bien joué';
+    return true;
 }
 

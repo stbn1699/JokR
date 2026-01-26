@@ -3,8 +3,13 @@ import {useEffect, useState} from "react";
 import type {Game} from "../../Models/game.model.ts";
 import {gameService} from "../../Services/game.service.ts";
 import Header from "../Header/Header.tsx";
+import type {GameStats} from "../../Models/gameStats.model.ts";
 
-export default function GameList() {
+interface GameListProps {
+    userStats?: GameStats[] | null
+}
+
+export default function GameList({userStats}: GameListProps) {
     const [games, setGames] = useState<Game[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null);
@@ -40,6 +45,9 @@ export default function GameList() {
                     <div key={game.id} onClick={handleGameSelection(game.code)}>
                         <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
                         <h1>{game.code}</h1>
+                        {userStats && (
+                            <p>Victoires: {userStats.find(stat => stat.game_id === game.id)?.games_won || 0}</p>
+                        )}
                     </div>
                 ))}
             </div>

@@ -13,7 +13,15 @@ export type UsersTable = {
 	password: string; // hashed password
 };
 
+export type GameStatsTable = {
+    user_id: string; // uuid
+    game_id: number;
+    games_won: number;
+}
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
+    game_stats: GameStatsTable;
 };
+

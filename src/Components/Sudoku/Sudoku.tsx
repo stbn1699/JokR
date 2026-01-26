@@ -7,6 +7,7 @@ import {sanitizeInput} from "./sanitizeInput";
 import {generateSudoku} from "./sudokuGenerator";
 import validateSudoku from "./sudokuValidator";
 import Confetti from "../Confetti/Confetti";
+import {gameStatsService} from "../../Services/gameStats.service.ts";
 
 // Emitter type compatible with Confetti.emitter prop
 type EmitterType =
@@ -67,7 +68,7 @@ export default function Sudoku() {
 
     useEffect(() => {
         generateGrid(cluesCount);
-    }, []);
+    }, [cluesCount]);
 
     // Apply/remove highlight class to all cells when highlightNumber changes
     useEffect(() => {
@@ -186,16 +187,21 @@ export default function Sudoku() {
                 <button
                     type="button"
                     onClick={() => {
-                        const result = validateSudoku(inputs.current);
-                        if (result === 'bien joué') {
-                            setShowSuccess(true);
-                            // confetti activation handled in useEffect when modal mounts
-                        } else if (result === 'pas fini') {
-                            alert("La grille n'est pas complète. Continuez !");
+                        const gameWon: boolean | null = validateSudoku(inputs.current);
+
+                        if (gameWon != null) {
+                            if (gameWon) {
+                                const userId: string | null = window.localStorage.getItem('userId')
+                                if (userId) {
+                                    gameStatsService.gameWin(userId, 1);
+                                }
+                                setShowSuccess(true);
+                            } else {
+                                alert("La solution est incorrecte. Vérifiez vos entrées.");
+                            }
                         } else {
-                            alert("La solution est incorrecte. Vérifiez vos entrées.");
+                            alert("La grille n'est pas complète. Continuez !");
                         }
-                        console.log(result);
                     }}
                     className="validate-button">
                     Valider
