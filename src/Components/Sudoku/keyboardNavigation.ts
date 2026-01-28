@@ -30,16 +30,20 @@ export function handleKeyDown(
 
         if (key === "ArrowLeft") {
             e.preventDefault();
-            if (col > 0) target = idx - 1;
+            // wrap: si on est tout à gauche, on va tout à droite de la même ligne
+            target = col > 0 ? idx - 1 : row * 9 + 8;
         } else if (key === "ArrowRight") {
             e.preventDefault();
-            if (col < 8) target = idx + 1;
+            // wrap: si on est tout à droite, on va tout à gauche de la même ligne
+            target = col < 8 ? idx + 1 : row * 9;
         } else if (key === "ArrowUp") {
             e.preventDefault();
-            if (row > 0) target = idx - 9;
+            // wrap: si on est tout en haut, on va tout en bas dans la même colonne
+            target = row > 0 ? idx - 9 : 8 * 9 + col;
         } else if (key === "ArrowDown") {
             e.preventDefault();
-            if (row < 8) target = idx + 9;
+            // wrap: si on est tout en bas, on va tout en haut dans la même colonne
+            target = row < 8 ? idx + 9 : col;
         }
 
         if (target >= 0) {
