@@ -9,6 +9,7 @@ const FALL_SPEED_VARIATION = 2 // variation aléatoire
 const ROTATION_SPEED = 5 // multiplicateur de rotation
 const BASE_ROTATION = 720 // degrés de base
 // =====================
+import "./Confetti.scss";
 
 export function confetti() {
     const container = document.createElement("div");

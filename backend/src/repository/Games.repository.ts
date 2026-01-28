@@ -8,7 +8,7 @@ export class GamesRepository {
     async list(): Promise<Game[]> {
         return this.db
             .selectFrom("games")
-            .select(["id", "code", "designation"])
+            .selectAll()
             .orderBy("designation", "asc")
             .execute();
     }

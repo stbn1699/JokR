@@ -4,16 +4,16 @@ import Header from "../Header/Header.tsx";
 import Sudoku from "../Sudoku/Sudoku.tsx";
 
 type RouteParams = {
-    game?: string
+    gameCode?: string
 }
 
 export default function PlayGame() {
-    const {game} = useParams<RouteParams>()
+    const {gameCode} = useParams<RouteParams>()
 
     const renderGame = () => {
-        switch (game) {
+        switch (gameCode) {
             case "SUDOKU":
-                return <Sudoku/>;
+                return <Sudoku gameCode={gameCode}/>;
             default:
                 return null;
         }

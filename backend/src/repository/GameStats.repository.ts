@@ -14,12 +14,12 @@ export class GameStatsRepository {
             .execute();
     }
 
-    async gameWin(userId: string, gameId: number): Promise<GameStats> {
-        return this.db
+    async gameWin(userId: string, gameCode: string) {
+        await this.db
             .insertInto("game_stats")
-            .values({user_id: userId, game_id: gameId, games_won: 1})
+            .values({user_id: userId, game_code: gameCode, games_won: 1})
             .onConflict((oc) =>
-                oc.columns(["user_id", "game_id"]).doUpdateSet((eb) => ({
+                oc.columns(["user_id", "game_code"]).doUpdateSet((eb) => ({
                     games_won: eb("game_stats.games_won", "+", 1),
                 })),
             )

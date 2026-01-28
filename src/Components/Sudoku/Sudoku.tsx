@@ -1,24 +1,21 @@
 import type {FormEvent} from 'react';
 import {useEffect, useRef, useState} from "react";
-import {useNavigate} from "react-router-dom";
 import "./Sudoku.scss";
 import {handleKeyDown} from "./keyboardNavigation";
 import {sanitizeInput} from "./sanitizeInput";
 import {generateSudoku} from "./sudokuGenerator";
-import validateSudoku from "./sudokuValidator";
-import {gameStatsService} from "../../Services/gameStats.service.ts";
-import {confetti} from "../Confetti/Confetti.tsx";
+import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 
-// Emitter type compatible with Confetti.emitter prop
-export default function Sudoku() {
+type SudokuProps = {
+    gameCode: string
+}
+
+export default function Sudoku({gameCode}: SudokuProps) {
     const inputs = useRef<HTMLInputElement[]>([]);
-    const navigate = useNavigate();
     const [showSuccess, setShowSuccess] = useState(false);
-    const modalRef = useRef<HTMLDivElement | null>(null);
-    const overlayRef = useRef<HTMLDivElement | null>(null);
 
     // Nombre de chiffres pré-remplis (modifiable via l'onglet Options)
-    const [cluesCount, setCluesCount] = useState<number>(40);
+    const [cluesCount, setCluesCount] = useState<number>(81);
 
     // Nombre actuellement survolé / sélectionné (null = aucun)
     const [highlightNumber, setHighlightNumber] = useState<number | null>(null);
@@ -74,6 +71,8 @@ export default function Sudoku() {
             }
         });
     }, [highlightNumber]);
+
+    const userId: string | null = window.localStorage.getItem('userId');
 
     return (
         <div className="sudoku">
@@ -159,53 +158,18 @@ export default function Sudoku() {
                 <button
                     type="button"
                     onClick={() => {
-                        const gameWon: boolean | null = validateSudoku(inputs.current);
-
-                        if (gameWon != null) {
-                            if (gameWon) {
-                                const userId: string | null = window.localStorage.getItem('userId')
-                                if (userId) {
-                                    gameStatsService.gameWin(userId, 1);
-                                }
-                                setShowSuccess(true);
-                                confetti();
-                            } else {
-                                alert("La solution est incorrecte. Vérifiez vos entrées.");
-                            }
-                        } else {
-                            alert("La grille n'est pas complète. Continuez !");
-                        }
+                        setShowSuccess(true)
                     }}
                     className="validate-button">
                     Valider
                 </button>
             </div>
 
-            {showSuccess && (
-                <div ref={overlayRef} className="modal-overlay" role="dialog" aria-modal="true">
-                    <div ref={modalRef} className="modal"
-                         style={{position: 'relative', overflow: 'hidden', zIndex: 1100}}>
-                        <h2>Sudoku terminé&nbsp;!</h2>
-                        <p>Félicitations, vous avez réussi le Sudoku.</p>
-                        <div className="modal-buttons">
-                            <button
-                                type="button"
-                                className="modal-button"
-                                onClick={() => window.location.reload()}
-                            >
-                                Nouveau puzzle
-                            </button>
-                            <button
-                                type="button"
-                                className="modal-button secondary"
-                                onClick={() => navigate('/')}
-                            >
-                                Retour à l'accueil
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <SuccessPopup
+                open={showSuccess}
+                gameCode={gameCode}
+                userId={userId}
+            />
         </div>
     );
 }

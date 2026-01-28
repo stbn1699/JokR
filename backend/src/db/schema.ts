@@ -1,7 +1,6 @@
 import type { Generated } from "kysely";
 
 export type GamesTable = {
-	id: Generated<number>;
 	code: string;
 	designation: string;
 };
@@ -15,7 +14,7 @@ export type UsersTable = {
 
 export type GameStatsTable = {
     user_id: string; // uuid
-    game_id: number;
+    game_code: string;
     games_won: number;
 }
 
