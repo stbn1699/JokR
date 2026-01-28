@@ -5,15 +5,13 @@ import {GameStatsRepository} from "../repository/GameStats.repository.js";
 import {GameStatsService} from "../services/GameStats.service.js";
 import {GameStatsController} from "../controllers/GameStats.controller.js";
 
-const gameStatsRoutes = Router();
-
-// wiring simple (tu pourras faire un vrai DI plus tard)
+const GameStatsRoutes = Router();
 const db = createDb(pool);
 const repo = new GameStatsRepository(db);
 const service = new GameStatsService(repo);
 const controller = GameStatsController(service);
 
-gameStatsRoutes.post("/gameWin", controller.gameWin);
-gameStatsRoutes.get("/user/:userId", controller.getStatsByUserId);
+GameStatsRoutes.post("/gameWin", controller.gameWin);
+GameStatsRoutes.get("/user/:userId", controller.getStatsByUserId);
 
-export default gameStatsRoutes;
+export default GameStatsRoutes;

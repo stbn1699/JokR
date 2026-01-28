@@ -4,7 +4,7 @@ export class GameStatsService {
     constructor(private repo: GameStatsRepository) {
     }
 
-    async gameWin(userId :string, gameId:number): Promise<any> {
+    async gameWin(userId: string, gameId: number): Promise<any> {
         return this.repo.gameWin(userId, gameId);
     }
 
