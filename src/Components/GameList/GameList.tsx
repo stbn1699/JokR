@@ -27,6 +27,7 @@ export default function GameList() {
             .then(([gamesResult, statsResult]) => {
                 setGames(gamesResult);
                 setUserStats(statsResult);
+                console.log(statsResult);
             })
             .catch((err) => {
                 if (err.name !== "AbortError") {
@@ -49,18 +50,33 @@ export default function GameList() {
         <>
             <Header/>
             <div className="game-list">
-                {games.map((game) => (
-                    <div key={game.id} onClick={handleGameSelection(game.code)}>
-                        <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
-                        <h1>{game.code}</h1>
-                        {userId && (
-                            <p>
-                                Victoires:{" "}
-                                {userStats?.find(stat => stat.game_id === game.id)?.games_won ?? 0}
-                            </p>
-                        )}
-                    </div>
-                ))}
+                {games.map((game) => {
+                    const stat = userStats?.find(s => s.game_id === game.id);
+
+                    return (
+                        <div className="game-card" key={game.id}>
+                            {userId && stat && (
+                                <div className="stats">
+                                    <div>
+                                        <p>Niveau {stat.game_level ?? 0}</p>
+                                        <p>
+                                            ({stat.game_xp ?? 0} / {Math.ceil(120 * Math.pow(stat.game_level, 1.4))} xp)
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p>Victoires:</p>
+                                        <p>{stat.games_won ?? 0}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="game" onClick={handleGameSelection(game.code)}>
+                                <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
+                                <h1>{game.code}</h1>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </>
     )

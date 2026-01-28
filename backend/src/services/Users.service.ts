@@ -6,7 +6,8 @@ import type {NewUser} from "../models/NewUser.model.js";
 export class UsersService {
     constructor(
         private repo: UsersRepository,
-    ) {}
+    ) {
+    }
 
     async register(user: NewUser): Promise<User> {
         const doubleHashed = await bcrypt.hash(user.password, process.env.SALTROUNDS || 10);
@@ -22,5 +23,24 @@ export class UsersService {
 
     async findByUuid(uuid: string): Promise<User | undefined> {
         return this.repo.findByUuid(uuid);
+    }
+
+    async updateUserXpAndLevel(userId: string, xpToAdd: number): Promise<void> {
+        const user: User | undefined = await this.findByUuid(userId);
+
+        if (!user) return;
+
+        let newXp: number = user.user_xp + xpToAdd;
+        let level: number = user.user_level;
+        const xpToNextLevel: number = Math.ceil(
+            120 * Math.pow(level, 1.4)
+        )
+
+        if (newXp >= xpToNextLevel) {
+            level++;
+            newXp = newXp - xpToNextLevel;
+        }
+
+        await this.repo.updateUserXpAndLevel(userId, newXp, level);
     }
 }

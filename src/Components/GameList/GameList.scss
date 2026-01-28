@@ -6,7 +6,19 @@
 	justify-content : center;
 	padding         : 1rem;
 
-	div {
+	.game-card {
+		position       : relative;
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		transition     : all 0.3s ease-in-out;
+
+		&:hover {
+			transform : scale(1.05);
+		}
+	}
+
+	.game {
 		--s              : 15rem; /* the size of the div */
 
 		width            : var(--s);
@@ -29,11 +41,9 @@
 			--g            : 2px; /* the gap */
 			--c            : #29a615; /* the color */
 
-			transform      : scale(1.05);
 			outline        : var(--b) solid var(--c);
 			outline-offset : var(--g);
 		}
-
 	}
 
 	img {
@@ -48,5 +58,45 @@
 		padding    : 0;
 		text-align : center;
 		width      : 100%;
+	}
+
+	.stats {
+		--s              : 15rem; /* the size of the div */
+
+		position         : absolute;
+		width            : var(--s);
+		aspect-ratio     : 1;
+		cursor           : pointer;
+		height           : 18rem;
+		border-radius    : 2rem;
+		align-items      : center;
+		background-color : #222222AA;
+		justify-content  : center;
+		transition       : all 0.3s ease-in-out;
+		color            : white;
+		border           : 1px solid #444444;
+		z-index          : 10;
+		opacity          : 0;
+		visibility       : hidden;
+		pointer-events   : none;
+		align-self       : center;
+		text-align       : center;
+		display          : flex;
+		flex-direction   : column;
+		font-weight      : bold;
+		font-size        : 2rem;
+
+		div {
+			Margin : auto;
+		}
+
+		p {
+			margin : 0.15rem 0;
+		}
+	}
+
+	.game-card:hover .stats {
+		opacity    : 1;
+		visibility : visible;
 	}
 }

@@ -34,8 +34,21 @@ export class UsersRepository {
                 username: user.username,
                 email: user.email,
                 password: user.password,
+                user_xp: 0,
+                user_level: 1
             })
             .returningAll()
             .executeTakeFirstOrThrow();
+    }
+
+    async updateUserXpAndLevel(userId: string, newXp: number, newLevel: number): Promise<void> {
+        await this.db
+            .updateTable("users")
+            .set({
+                user_xp: newXp,
+                user_level: newLevel
+            })
+            .where("id", "=", userId)
+            .execute();
     }
 }
