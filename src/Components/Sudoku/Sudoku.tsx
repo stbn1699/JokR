@@ -6,21 +6,14 @@ import {handleKeyDown} from "./keyboardNavigation";
 import {sanitizeInput} from "./sanitizeInput";
 import {generateSudoku} from "./sudokuGenerator";
 import validateSudoku from "./sudokuValidator";
-import Confetti from "../Confetti/Confetti";
 import {gameStatsService} from "../../Services/gameStats.service.ts";
+import {confetti} from "../Confetti/Confetti.tsx";
 
 // Emitter type compatible with Confetti.emitter prop
-type EmitterType =
-    { rect: { x: number; y: number; width: number; height: number } }
-    | { x?: number; y?: number }
-    | 'center';
-
 export default function Sudoku() {
     const inputs = useRef<HTMLInputElement[]>([]);
     const navigate = useNavigate();
     const [showSuccess, setShowSuccess] = useState(false);
-    const [confettiActive, setConfettiActive] = useState(false);
-    const [confettiEmitter, setConfettiEmitter] = useState<EmitterType | null>(null);
     const modalRef = useRef<HTMLDivElement | null>(null);
     const overlayRef = useRef<HTMLDivElement | null>(null);
 
@@ -39,8 +32,6 @@ export default function Sudoku() {
     const generateGrid = (count: number) => {
         // close any success modal/confetti when generating a new puzzle
         setShowSuccess(false);
-        setConfettiActive(false);
-        setConfettiEmitter(null);
         setHighlightNumber(null);
 
         const grid = generateSudoku(count);
@@ -83,25 +74,6 @@ export default function Sudoku() {
             }
         });
     }, [highlightNumber]);
-
-    // When the modal is shown, compute modal rect and activate confetti around it
-    useEffect(() => {
-        if (showSuccess && modalRef.current && overlayRef.current) {
-            const modalRect = modalRef.current.getBoundingClientRect();
-            const overlayRect = overlayRef.current.getBoundingClientRect();
-            // Compute modal rect relative to the overlay (canvas parent)
-            const relX = modalRect.left - overlayRect.left;
-            const relY = modalRect.top - overlayRect.top;
-            const emitterRect = {x: relX, y: relY, width: modalRect.width, height: modalRect.height};
-            setConfettiEmitter({rect: emitterRect});
-            setConfettiActive(true);
-            // Stop confetti after duration + buffer
-            setTimeout(() => setConfettiActive(false), 3000);
-        } else {
-            setConfettiEmitter(null);
-            setConfettiActive(false);
-        }
-    }, [showSuccess]);
 
     return (
         <div className="sudoku">
@@ -196,6 +168,7 @@ export default function Sudoku() {
                                     gameStatsService.gameWin(userId, 1);
                                 }
                                 setShowSuccess(true);
+                                confetti();
                             } else {
                                 alert("La solution est incorrecte. Vérifiez vos entrées.");
                             }
@@ -210,9 +183,6 @@ export default function Sudoku() {
 
             {showSuccess && (
                 <div ref={overlayRef} className="modal-overlay" role="dialog" aria-modal="true">
-                    {/* Confetti canvas placed in overlay (outside modal) so particles appear around the modal. zIndex lower than modal. */}
-                    <Confetti active={confettiActive} duration={2000} particleCount={160}
-                              emitter={confettiEmitter ?? undefined} zIndex={1000} pointerEvents="none"/>
                     <div ref={modalRef} className="modal"
                          style={{position: 'relative', overflow: 'hidden', zIndex: 1100}}>
                         <h2>Sudoku terminé&nbsp;!</h2>

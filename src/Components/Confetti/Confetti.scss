@@ -1,15 +1,37 @@
-.confetti-canvas {
-	position       : fixed; /* couvrir toute la fenêtre */
+.confetti-container {
+	position       : fixed;
 	inset          : 0;
-	width          : 100vw;
-	height         : 100vh;
-	pointer-events : none; /* allow clicks through by default */
-	overflow       : visible;
+	pointer-events : none;
+	overflow       : hidden;
 	z-index        : 9999;
-	transform      : translateZ(0); /* GPU hint */
 }
 
-/* utility class to allow pointer events when needed */
-.confetti-canvas.pointer-events-auto {
-	pointer-events : auto;
+.confetti {
+	position                  : absolute;
+	top                       : -20px;
+	width                     : 10px;
+	height                    : 14px;
+	opacity                   : 0.9;
+	animation-name            : fall;
+	animation-timing-function : linear;
+	animation-fill-mode       : forwards;
+}
+
+@keyframes fall {
+	0% {
+		transform : translateY(0) rotate(0deg);
+	}
+	100% {
+		transform : translateY(120vh) rotate(720deg);
+	}
+}
+
+.confetti-container.fade-out {
+	animation : fadeOut 1.2s ease forwards;
+}
+
+@keyframes fadeOut {
+	to {
+		opacity : 0;
+	}
 }
