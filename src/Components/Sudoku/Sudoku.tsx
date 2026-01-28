@@ -42,8 +42,13 @@ export default function Sudoku({gameCode}: SudokuProps) {
                     // keep a data-value attribute in-sync for easier DOM checks (useful for highlighting)
                     el.setAttribute('data-value', val === 0 ? '' : String(val));
                     const isPrefilled = val !== 0;
+
+                    // ✅ readOnly = focusable mais non éditable
                     el.readOnly = isPrefilled;
-                    el.disabled = isPrefilled;
+
+                    // ✅ NE PAS mettre disabled, sinon la navigation clavier saute la case
+                    el.disabled = false;
+
                     if (isPrefilled) {
                         el.classList.add('prefilled');
                     } else {
@@ -56,7 +61,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
 
     useEffect(() => {
         generateGrid(cluesCount);
-    }, [cluesCount]);
+    }, []);
 
     // Apply/remove highlight class to all cells when highlightNumber changes
     useEffect(() => {
@@ -124,7 +129,22 @@ export default function Sudoku({gameCode}: SudokuProps) {
                             inputMode="numeric"
                             pattern="[0-9]*"
                             placeholder=" "
-                            onKeyDown={(e) => handleKeyDown(e, inputs)}
+                            onKeyDown={(e) => {
+                                const el = e.currentTarget as HTMLInputElement;
+                                if (el.readOnly) {
+                                    const blocked = [
+                                        "Backspace",
+                                        "Delete",
+                                        "0","1","2","3","4","5","6","7","8","9",
+                                    ];
+                                    if (blocked.includes(e.key)) {
+                                        e.preventDefault();
+                                        return;
+                                    }
+                                }
+
+                                handleKeyDown(e, inputs);
+                            }}
                             onInput={(e: FormEvent<HTMLInputElement>) => {
                                 // run existing sanitizer and keep data-value updated
                                 sanitizeInput(e);
