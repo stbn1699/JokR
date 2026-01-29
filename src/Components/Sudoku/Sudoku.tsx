@@ -1,10 +1,11 @@
-import type {FormEvent} from 'react';
-import {useEffect, useRef, useState} from "react";
+import {type FormEvent, useEffect, useRef, useState} from 'react';
 import "./Sudoku.scss";
 import {handleKeyDown} from "./keyboardNavigation";
 import {sanitizeInput} from "./sanitizeInput";
 import {generateSudoku} from "./sudokuGenerator";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
+import {gameService} from "../../Services/game.service.ts";
+import {useNavigate} from "react-router-dom";
 
 type SudokuProps = {
     gameCode: string
@@ -12,24 +13,35 @@ type SudokuProps = {
 
 export default function Sudoku({gameCode}: SudokuProps) {
     const inputs = useRef<HTMLInputElement[]>([]);
+    const navigate = useNavigate();
     const [showSuccess, setShowSuccess] = useState(false);
-
-    // Nombre de chiffres pré-remplis (modifiable via l'onglet Options)
-    const [cluesCount, setCluesCount] = useState<number>(81);
-
-    // Nombre actuellement survolé / sélectionné (null = aucun)
+    const [cluesCount, setCluesCount] = useState<number>(40);
     const [highlightNumber, setHighlightNumber] = useState<number | null>(null);
+    const [baseXp, setBaseXp] = useState<number>(0);
+
+    const calculateXpWin = () => {
+        const referenceClues = 40; // valeur neutre
+        const exponent = 1.2;      // réglage de difficulté
+
+        const difficultyFactor = Math.pow(referenceClues / cluesCount, exponent);
+        let xp = Math.round(baseXp * difficultyFactor);
+
+        // Sécurité (anti-abus)
+        xp = Math.max(20, Math.min(xp, 300));
+
+        return xp;
+    };
 
     const resetOptions = () => {
         setCluesCount(40);
         generateGrid(cluesCount);
     }
 
-    // Fonction réutilisable pour générer/peupler la grille
     const generateGrid = (count: number) => {
-        // close any success modal/confetti when generating a new puzzle
         setShowSuccess(false);
         setHighlightNumber(null);
+
+        calculateXpWin();
 
         const grid = generateSudoku(count);
         for (let r = 0; r < 9; r++) {
@@ -39,14 +51,9 @@ export default function Sudoku({gameCode}: SudokuProps) {
                 const el = inputs.current[idx];
                 if (el) {
                     el.value = val === 0 ? "" : String(val);
-                    // keep a data-value attribute in-sync for easier DOM checks (useful for highlighting)
                     el.setAttribute('data-value', val === 0 ? '' : String(val));
                     const isPrefilled = val !== 0;
-
-                    // ✅ readOnly = focusable mais non éditable
                     el.readOnly = isPrefilled;
-
-                    // ✅ NE PAS mettre disabled, sinon la navigation clavier saute la case
                     el.disabled = false;
 
                     if (isPrefilled) {
@@ -60,10 +67,27 @@ export default function Sudoku({gameCode}: SudokuProps) {
     };
 
     useEffect(() => {
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const xp = await gameService.getBaseXp(gameCode);
+                if (!cancelled) setBaseXp(xp);
+            } catch (error) {
+                console.error("Failed to fetch base XP for Sudoku:", error);
+                navigate('/')
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
         generateGrid(cluesCount);
     }, []);
 
-    // Apply/remove highlight class to all cells when highlightNumber changes
     useEffect(() => {
         const numStr = highlightNumber === null ? null : String(highlightNumber);
         inputs.current.forEach((el) => {
@@ -91,7 +115,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
                         <input
                             id="cluesRange"
                             type="range"
-                            min={10}
+                            min={30}
                             max={60}
                             step={1}
                             value={80 - cluesCount}
@@ -105,7 +129,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
                         Réinitialiser
                     </button>
                     <button type="button" className="generate-button" onClick={() => generateGrid(cluesCount)}>
-                        Générer
+                        Générer ({calculateXpWin()}xp)
                     </button>
                 </div>
             </div>
@@ -135,7 +159,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
                                     const blocked = [
                                         "Backspace",
                                         "Delete",
-                                        "0","1","2","3","4","5","6","7","8","9",
+                                        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
                                     ];
                                     if (blocked.includes(e.key)) {
                                         e.preventDefault();
@@ -189,6 +213,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
                 open={showSuccess}
                 gameCode={gameCode}
                 userId={userId}
+                xpWin={calculateXpWin()}
             />
         </div>
     );

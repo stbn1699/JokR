@@ -12,5 +12,6 @@ const service = new GamesService(repo);
 const controller = createGamesController(service);
 
 GamesRoutes.get("/list", controller.list);
+GamesRoutes.get("/getBaseXp/:gameCode", controller.getBaseXp);
 
 export default GamesRoutes;

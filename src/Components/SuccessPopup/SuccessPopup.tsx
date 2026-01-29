@@ -8,16 +8,17 @@ type SuccessPopupProps = {
     open: boolean;
     gameCode: string;
     userId: string | null;
+    xpWin: number;
 };
 
-export function SuccessPopup({open, gameCode, userId,}: SuccessPopupProps) {
+export function SuccessPopup({open, gameCode, userId, xpWin}: SuccessPopupProps) {
     const modalRef = useRef<HTMLDivElement | null>(null);
     const overlayRef = useRef<HTMLDivElement | null>(null);
     const navigate = useNavigate();
 
     function registerGameWin() {
         if (userId) {
-            gameStatsService.gameWin(userId, gameCode)
+            gameStatsService.gameWin(userId, gameCode, xpWin)
         }
     }
 

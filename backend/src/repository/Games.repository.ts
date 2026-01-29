@@ -12,4 +12,14 @@ export class GamesRepository {
             .orderBy("designation", "asc")
             .execute();
     }
+
+    async getBaseXp(gameCode: string): Promise<number | undefined> {
+        const row = await this.db
+            .selectFrom("games")
+            .select("base_xp")
+            .where("code", "=", gameCode)
+            .executeTakeFirst();
+
+        return row?.base_xp;
+    }
 }

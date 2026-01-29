@@ -8,4 +8,8 @@ export class GamesService {
     async listGames(): Promise<Game[]> {
         return this.repo.list();
     }
+
+    async getBaseXp(gameCode: string): Promise<number | undefined> {
+        return this.repo.getBaseXp(gameCode);
+    }
 }

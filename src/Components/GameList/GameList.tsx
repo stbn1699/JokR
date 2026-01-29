@@ -27,7 +27,6 @@ export default function GameList() {
             .then(([gamesResult, statsResult]) => {
                 setGames(gamesResult);
                 setUserStats(statsResult);
-                console.log(statsResult);
             })
             .catch((err) => {
                 if (err.name !== "AbortError") {

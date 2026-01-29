@@ -8,6 +8,18 @@ export function createGamesController(service: GamesService) {
         list: asyncHandler(async (_req: Request, res: Response) => {
             const games :Game[] = await service.listGames();
             res.status(200).json({status: "ok", data: games});
+        }),
+
+        getBaseXp: asyncHandler(async (req: Request, res: Response) => {
+            const {gameCode} = req.params;
+
+            if (!gameCode) {
+                res.status(400).json({status: "error", message: "gameCode parameter is required"});
+                return;
+            }
+
+            const baseXp: number | undefined = await service.getBaseXp(gameCode);
+            res.status(200).json({status: "ok", data: baseXp});
         })
     };
 }
