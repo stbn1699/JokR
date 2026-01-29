@@ -15,9 +15,42 @@ export default function Sudoku({gameCode}: SudokuProps) {
     const inputs = useRef<HTMLInputElement[]>([]);
     const navigate = useNavigate();
     const [showSuccess, setShowSuccess] = useState(false);
+
+    // cluesCount = nombre de cases pré-remplies (clues)
     const [cluesCount, setCluesCount] = useState<number>(40);
+
     const [highlightNumber, setHighlightNumber] = useState<number | null>(null);
     const [baseXp, setBaseXp] = useState<number>(0);
+
+    // Paramètre utilisateur = nombre de cases vides (à remplir)
+    const MIN_EMPTY_CELLS = 25;
+    const MAX_EMPTY_CELLS = 75;
+
+    // UI state (string) pour permettre la saisie libre (ex: "3", "", "075")
+    const [emptyCellsInput, setEmptyCellsInput] = useState<string>(String(81 - 40));
+
+    const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+
+    const emptyCellsCount = 81 - cluesCount;
+
+    const commitEmptyCells = (raw: string) => {
+        // Ne modifie QUE cluesCount (demande)
+        const parsed = Number(raw);
+        if (!Number.isFinite(parsed)) {
+            // Revenir à la valeur réelle si saisie invalide
+            setEmptyCellsInput(String(emptyCellsCount));
+            return;
+        }
+
+        const empties = clamp(Math.round(parsed), MIN_EMPTY_CELLS, MAX_EMPTY_CELLS);
+        setCluesCount(81 - empties);
+        setEmptyCellsInput(String(empties));
+    };
+
+    // Si cluesCount change (reset / autre), on synchronise l'input affiché
+    useEffect(() => {
+        setEmptyCellsInput(String(emptyCellsCount));
+    }, [cluesCount]);
 
     const calculateXpWin = () => {
         const referenceClues = 40; // valeur neutre
@@ -33,15 +66,13 @@ export default function Sudoku({gameCode}: SudokuProps) {
     };
 
     const resetOptions = () => {
+        // Reset des paramètres uniquement (pas de génération tant que l'utilisateur ne clique pas sur "Générer")
         setCluesCount(40);
-        generateGrid(cluesCount);
     }
 
     const generateGrid = (count: number) => {
         setShowSuccess(false);
         setHighlightNumber(null);
-
-        calculateXpWin();
 
         const grid = generateSudoku(count);
         for (let r = 0; r < 9; r++) {
@@ -85,10 +116,6 @@ export default function Sudoku({gameCode}: SudokuProps) {
     }, []);
 
     useEffect(() => {
-        generateGrid(cluesCount);
-    }, []);
-
-    useEffect(() => {
         const numStr = highlightNumber === null ? null : String(highlightNumber);
         inputs.current.forEach((el) => {
             if (!el) return;
@@ -111,15 +138,28 @@ export default function Sudoku({gameCode}: SudokuProps) {
 
                 <div className="parameters-container">
                     <div className="cluesRange">
-                        <label htmlFor="cluesRange">Difficulté&nbsp;:</label>
+                        <label htmlFor="emptyCellsInput">
+                            Cases à remplir&nbsp;({MIN_EMPTY_CELLS}–{MAX_EMPTY_CELLS})&nbsp;:
+                        </label>
                         <input
-                            id="cluesRange"
-                            type="range"
-                            min={30}
-                            max={60}
+                            id="emptyCellsInput"
+                            type="number"
+                            min={MIN_EMPTY_CELLS}
+                            max={MAX_EMPTY_CELLS}
                             step={1}
-                            value={80 - cluesCount}
-                            onChange={(e) => setCluesCount(80 - Number(e.target.value))}
+                            inputMode="numeric"
+                            value={emptyCellsInput}
+                            onChange={(e) => {
+                                // On laisse l'utilisateur taper librement,
+                                // la validation/clamp se fait au blur / Enter / Générer
+                                setEmptyCellsInput(e.target.value);
+                            }}
+                            onBlur={() => commitEmptyCells(emptyCellsInput)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.currentTarget.blur(); // déclenche commit via onBlur
+                                }
+                            }}
                         />
                     </div>
                 </div>
@@ -128,7 +168,22 @@ export default function Sudoku({gameCode}: SudokuProps) {
                     <button type="button" className="reset-button" onClick={() => resetOptions()}>
                         Réinitialiser
                     </button>
-                    <button type="button" className="generate-button" onClick={() => generateGrid(cluesCount)}>
+                    <button
+                        type="button"
+                        className="generate-button"
+                        onClick={() => {
+                            // On fige la valeur saisie avant de générer
+                            commitEmptyCells(emptyCellsInput);
+
+                            // Utiliser la valeur "commitée" (clampée)
+                            const parsed = Number(emptyCellsInput);
+                            const safeEmpties = Number.isFinite(parsed)
+                                ? clamp(Math.round(parsed), MIN_EMPTY_CELLS, MAX_EMPTY_CELLS)
+                                : emptyCellsCount;
+
+                            generateGrid(81 - safeEmpties);
+                        }}
+                    >
                         Générer ({calculateXpWin()}xp)
                     </button>
                 </div>
