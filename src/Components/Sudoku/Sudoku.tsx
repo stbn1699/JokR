@@ -8,7 +8,7 @@ import {gameService} from "../../Services/game.service.ts";
 import {useNavigate} from "react-router-dom";
 
 type SudokuProps = {
-    gameCode: string
+    gameCode: string;
 }
 
 export default function Sudoku({gameCode}: SudokuProps) {
@@ -54,7 +54,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
 
     const calculateXpWin = () => {
         const referenceClues = 40; // valeur neutre
-        const exponent = 1.2;      // réglage de difficulté
+        const exponent = 1.1;      // réglage de difficulté
 
         const difficultyFactor = Math.pow(referenceClues / cluesCount, exponent);
         let xp = Math.round(baseXp * difficultyFactor);
