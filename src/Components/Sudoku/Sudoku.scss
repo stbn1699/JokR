@@ -130,6 +130,22 @@
 			grid-template-rows    : repeat(9, var(--cell-size));
 			border-radius         : 10px;
 
+			/* Keyframes pour l'effet de saut (up & down) */
+			@keyframes jump {
+				0% {
+					transform: translateY(0) scale(1);
+				}
+				30% {
+					transform: translateY(-12%) scale(1.08);
+				}
+				60% {
+					transform: translateY(4%) scale(0.98);
+				}
+				100% {
+					transform: translateY(0) scale(1);
+				}
+			}
+
 			.cell {
 				-moz-appearance : textfield; /* retire les flèches Firefox */
 
@@ -172,6 +188,13 @@
 				&:disabled {
 					color   : #3bf644;
 					opacity : 1;
+				}
+
+				/* Ajout de l'animation de saut pour les cases pré-remplies */
+				&.prefilled {
+					/* L'animation sera lancée à l'ajout de la classe prefilling */
+					animation: jump 360ms cubic-bezier(.2,.9,.3,1) both;
+					transform-origin: center bottom;
 				}
 
 				&:placeholder-shown {

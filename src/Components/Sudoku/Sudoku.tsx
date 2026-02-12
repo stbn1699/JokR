@@ -47,6 +47,9 @@ export default function Sudoku({gameCode}: SudokuProps) {
     // Référence vers tous les inputs de la grille (81 cellules = 9×9)
     const inputs = useRef<HTMLInputElement[]>([]);
 
+    // Référence pour identifier une génération en cours (permet d'annuler l'animation)
+    const generationRef = useRef(0);
+
     // Hook de navigation React Router
     const navigate = useNavigate();
 
@@ -180,30 +183,79 @@ export default function Sudoku({gameCode}: SudokuProps) {
         setShowSuccess(false);
         setHighlightNumber(null);
         setIsGenerating(true);
+
+        // Incrémente l'ID de génération pour pouvoir annuler une animation précédente
+        generationRef.current += 1;
+        const genId = generationRef.current;
+
+        // petite utilitaire de temporisation
+        const sleep = (ms: number) => new Promise<void>(res => setTimeout(res, ms));
+
+        // Durée totale souhaitée de l'animation (ms). Ajustable si besoin.
+        const TOTAL_ANIMATION_MS = 900;
+
         try {
             const grid = await gameService.generateSudoku(count);
 
+            // Prépare la liste des updates (index, value) - nous conserverons l'ordre ligne/col
+            const updates: { idx: number; val: number }[] = [];
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
-                    const val = grid[r][c];
-                    const idx = r * 9 + c;
-                    const el = inputs.current[idx];
-                    if (el) {
-                        el.value = val === 0 ? "" : String(val);
-                        el.setAttribute('data-value', val === 0 ? '' : String(val));
-                        const isPrefilled = val !== 0;
-                        el.readOnly = isPrefilled;
-                        el.disabled = false;
-                        if (isPrefilled) el.classList.add('prefilled'); else el.classList.remove('prefilled');
-                    }
+                    updates.push({ idx: r * 9 + c, val: grid[r][c] });
                 }
             }
+
+            // Désactive temporairement tous les inputs pendant l'animation
+            inputs.current.forEach((el) => {
+                if (!el) return;
+                el.value = "";
+                el.setAttribute('data-value', '');
+                el.readOnly = true; // évite les interactions pendant l'animation
+                el.disabled = true;
+                el.classList.remove('prefilled');
+                el.classList.remove('same-number-highlight');
+            });
+
+            // Calcul du délai par cellule
+            const delayPerCell = Math.max(4, Math.round(TOTAL_ANIMATION_MS / updates.length));
+
+            // Animation : remplit chaque cellule l'une après l'autre
+            for (let i = 0; i < updates.length; i++) {
+                // Si une nouvelle génération a démarré, on annule l'animation en cours
+                if (genId !== generationRef.current) return;
+
+                const { idx, val } = updates[i];
+                const el = inputs.current[idx];
+                if (!el) continue;
+
+                if (val === 0) {
+                    // reste vide
+                    el.value = '';
+                    el.setAttribute('data-value', '');
+                    el.readOnly = false;
+                    el.disabled = false;
+                    el.classList.remove('prefilled');
+                } else {
+                    // affiche la valeur (apparition animée)
+                    el.value = String(val);
+                    el.setAttribute('data-value', String(val));
+                    el.readOnly = true;
+                    el.disabled = false;
+                    el.classList.add('prefilled');
+                }
+
+                // petit délai pour l'effet séquentiel
+                await sleep(delayPerCell);
+            }
+
         } catch (err) {
             console.error('Failed to generate sudoku from server', err);
             // Feedback minimal à l'utilisateur
             alert('Erreur lors de la génération de la grille. Réessayez plus tard.');
         } finally {
-            setIsGenerating(false);
+            // Si l'animation a été annulée par une nouvelle génération, ne change pas l'état global ici
+            // mais si on est toujours sur la même génération, on remet le flag isGenerating à false
+            if (generationRef.current === genId) setIsGenerating(false);
         }
     };
 
