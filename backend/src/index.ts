@@ -4,6 +4,7 @@ import gamesRoutes from "./routes/Games.routes.js";
 import usersRoutes from "./routes/Users.routes.js";
 import "dotenv/config";
 import GameStatsRoutes from "./routes/GameStatsRoutes.js";
+import sudokuRoutes from "./routes/Sudoku.routes.js";
 
 /*
  * Point d'entrée de l'API backend
@@ -18,7 +19,9 @@ const PORT = Number(process.env.PORT ?? 3000);
 app.use(express.json()); // parse le JSON des requêtes
 
 // CORS configuré via la variable d'environnement CORS_ORIGIN (ex: http://localhost:5173)
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+// Si non définie, autorise toutes les origines en développement pour éviter les problèmes de preflight
+const corsOrigin = process.env.CORS_ORIGIN ?? true;
+app.use(cors({ origin: corsOrigin }));
 
 // Route de healthcheck
 app.get("/ping", (_req, res) => {
@@ -29,10 +32,13 @@ app.get("/ping", (_req, res) => {
 app.use("/games", gamesRoutes);
 app.use("/users", usersRoutes);
 app.use("/gameStats", GameStatsRoutes);
+app.use("/sudoku", sudokuRoutes);
 
 // error handler minimal — capture les erreurs qui remontent via next(err)
-app.use((err: unknown, _req: express.Request, res: express.Response) => {
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    void _next; // explicit mark as used to satisfy linters
 	console.error(err);
+	// renvoie une réponse standardisée
 	res.status(500).json({status: "error", message: "Internal server error"});
 });
 

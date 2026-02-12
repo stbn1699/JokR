@@ -8,5 +8,11 @@ export const gameService = {
 
     getBaseXp(gameCode: string) :Promise<number> {
         return api<number>(`/games/getBaseXp/${gameCode}`, { method: "GET" });
+    },
+
+    // nouvelle méthode : demande au backend une grille Sudoku
+    async generateSudoku(cluesCount: number) : Promise<number[][]> {
+        const res = await api<{ grid: number[][] }>(`/sudoku/generateSudoku`, { method: "POST", body: JSON.stringify({ cluesCount }), headers: { "Content-Type": "application/json" }});
+        return res.grid;
     }
 };

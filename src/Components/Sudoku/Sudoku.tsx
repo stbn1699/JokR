@@ -24,7 +24,6 @@ import {type FormEvent, useEffect, useRef, useState} from 'react';
 import "./Sudoku.scss";
 import {handleKeyDown} from "./keyboardNavigation";
 import {sanitizeInput} from "./sanitizeInput";
-import {generateSudoku} from "./sudokuGenerator";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import {gameService} from "../../Services/game.service.ts";
 import {useNavigate} from "react-router-dom";
@@ -43,6 +42,8 @@ type SudokuProps = {
  * @returns JSX du jeu Sudoku complet avec panneau d'options, grille et actions
  */
 export default function Sudoku({gameCode}: SudokuProps) {
+    const [isGenerating, setIsGenerating] = useState(false);
+
     // Référence vers tous les inputs de la grille (81 cellules = 9×9)
     const inputs = useRef<HTMLInputElement[]>([]);
 
@@ -121,8 +122,9 @@ export default function Sudoku({gameCode}: SudokuProps) {
      * Se déclenche quand cluesCount change (reset, etc.)
      */
     useEffect(() => {
-        setEmptyCellsInput(String(emptyCellsCount));
-    }, [cluesCount]);
+        const newVal = String(emptyCellsCount);
+        setEmptyCellsInput(prev => prev === newVal ? prev : newVal);
+    }, [emptyCellsCount]);
 
     /**
      * Calcule l'XP gagné en fonction de la difficulté de la grille
@@ -174,43 +176,34 @@ export default function Sudoku({gameCode}: SudokuProps) {
      *
      * @param count - Nombre de clues (cases pré-remplies) à générer
      */
-    const generateGrid = (count: number) => {
-        // Réinitialise l'état
-        setShowSuccess(false);   // Ferme la popup si ouverte
-        setHighlightNumber(null); // Retire tout highlight
+    const generateGrid = async (count: number) => {
+        setShowSuccess(false);
+        setHighlightNumber(null);
+        setIsGenerating(true);
+        try {
+            const grid = await gameService.generateSudoku(count);
 
-        // Génération de la grille via l'algorithme
-        const grid = generateSudoku(count);
-
-        // Parcours des 9 lignes et 9 colonnes (81 cellules)
-        for (let r = 0; r < 9; r++) {
-            for (let c = 0; c < 9; c++) {
-                const val = grid[r][c]; // Valeur de la cellule (0 = vide)
-                const idx = r * 9 + c;  // Index linéaire dans le tableau d'inputs
-                const el = inputs.current[idx]; // Référence vers l'input DOM
-
-                if (el) {
-                    // Affiche la valeur (vide si 0)
-                    el.value = val === 0 ? "" : String(val);
-
-                    // Stocke la valeur dans un attribut data pour la validation ultérieure
-                    el.setAttribute('data-value', val === 0 ? '' : String(val));
-
-                    // Détermine si la case est pré-remplie (clue)
-                    const isPrefilled = val !== 0;
-
-                    // Les cases pré-remplies sont en lecture seule
-                    el.readOnly = isPrefilled;
-                    el.disabled = false; // Active l'input (au cas où désactivé avant)
-
-                    // Ajoute/retire la classe CSS pour le style visuel des clues
-                    if (isPrefilled) {
-                        el.classList.add('prefilled');
-                    } else {
-                        el.classList.remove('prefilled');
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const val = grid[r][c];
+                    const idx = r * 9 + c;
+                    const el = inputs.current[idx];
+                    if (el) {
+                        el.value = val === 0 ? "" : String(val);
+                        el.setAttribute('data-value', val === 0 ? '' : String(val));
+                        const isPrefilled = val !== 0;
+                        el.readOnly = isPrefilled;
+                        el.disabled = false;
+                        if (isPrefilled) el.classList.add('prefilled'); else el.classList.remove('prefilled');
                     }
                 }
             }
+        } catch (err) {
+            console.error('Failed to generate sudoku from server', err);
+            // Feedback minimal à l'utilisateur
+            alert('Erreur lors de la génération de la grille. Réessayez plus tard.');
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -243,7 +236,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
         return () => {
             cancelled = true;
         };
-    }, []); // Dépendances vides = exécution unique au montage
+    }, [gameCode, navigate]); // Ajout gameCode & navigate pour respecter les règles de hooks
 
     /**
      * Effet : gère le highlight visuel des cellules contenant le même chiffre
@@ -325,22 +318,18 @@ export default function Sudoku({gameCode}: SudokuProps) {
                     <button
                         type="button"
                         className="generate-button"
-                        onClick={() => {
-                            // Fige la valeur saisie avant de générer
+                        onClick={async () => {
                             commitEmptyCells(emptyCellsInput);
-
-                            // Parse et valide la valeur saisie
                             const parsed = Number(emptyCellsInput);
                             const safeEmpties = Number.isFinite(parsed)
                                 ? clamp(Math.round(parsed), MIN_EMPTY_CELLS, MAX_EMPTY_CELLS)
-                                : emptyCellsCount; // Fallback sur la valeur actuelle si invalide
-
-                            // Génère la grille avec le nombre de clues (81 - cases vides)
-                            generateGrid(81 - safeEmpties);
+                                : emptyCellsCount;
+                            await generateGrid(81 - safeEmpties);
                         }}
+                        disabled={isGenerating}
                     >
                         {/* Affiche l'XP gagné dynamiquement */}
-                        Générer ({calculateXpWin()}xp)
+                        {isGenerating ? 'Génération...' : `Générer (${calculateXpWin()}xp)`}
                     </button>
                 </div>
             </div>
