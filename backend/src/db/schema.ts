@@ -1,5 +1,9 @@
 import type { Generated } from "kysely";
 
+/*
+ * Déclarations de type représentant le schéma de la base de données pour Kysely.
+ * Chaque Table type décrit les colonnes et leurs types.
+ */
 export type GamesTable = {
 	code: string;
 	designation: string;

@@ -1,10 +1,8 @@
-declare module 'bcrypt' {
-  export function hash(data: string, roundsOrSalt: number | string): Promise<string>;
-  export function compare(data: string, encrypted: string): Promise<boolean>;
-  const bcrypt: {
-    hash: typeof hash;
-    compare: typeof compare;
-  };
-  export default bcrypt;
-}
+/*
+ * Ce fichier de déclaration personnalisé pour `bcrypt` est désormais obsolète
+ * (le paquet `@types/bcrypt` est présent dans `node_modules`).
+ * Le fichier est laissé en tant que note documentaire ; il ne contient plus
+ * de déclarations pour éviter les conflits de types.
+ */
 
+// fichier intentionnellement vide pour éviter les doublons de déclarations de type

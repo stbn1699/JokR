@@ -7,6 +7,13 @@ import {GameStatsController} from "../controllers/GameStats.controller.js";
 import {UsersService} from "../services/Users.service.js";
 import {UsersRepository} from "../repository/Users.repository.js";
 
+/*
+ * Router pour les endpoints liés aux statistiques de jeux
+ * Construit les dépendances localement (DB -> repository -> service -> controller)
+ * Expose :
+ * - POST /gameWin : signaler une victoire et mettre à jour stats + utilisateur
+ * - GET /user/:userId : récupérer les stats d'un utilisateur
+ */
 const GameStatsRoutes = Router();
 const db = createDb(pool);
 const repo = new GameStatsRepository(db);
