@@ -3,8 +3,9 @@ import {SudokuService} from "../services/Sudoku.service.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import type {GameStatsService} from "../services/GameStats.service.js";
 import type {UsersService} from "../services/Users.service.js";
+import type {GamesService} from "../services/Games.service.js";
 
-export function createSudokuController(service: SudokuService, gameStatsService?: GameStatsService, usersService?: UsersService) {
+export function createSudokuController(service: SudokuService, gameStatsService?: GameStatsService, usersService?: UsersService, gamesService?: GamesService) {
     return {
         generate: asyncHandler(async (req: Request, res: Response) => {
 
@@ -38,9 +39,9 @@ export function createSudokuController(service: SudokuService, gameStatsService?
             res.status(200).json({status: "ok", data: {grid}});
         }),
 
-        // Validate a completed grid. Body expected: { grid: number[][], user_id?: string, game_code?: string, xp?: number }
+        // Validate a completed grid. Body expected: { grid: number[][], user_id?: string, game_code?: string, cluesCount?: number }
         validate: asyncHandler(async (req: Request, res: Response) => {
-            const {grid, user_id, game_code, xp} = req.body ?? {};
+            const {grid, user_id, game_code, cluesCount} = req.body ?? {};
 
             if (!grid) {
                 res.status(400).json({status: 'error', message: 'grid is required'});
@@ -53,33 +54,46 @@ export function createSudokuController(service: SudokuService, gameStatsService?
                 return;
             }
 
-            // If user info provided, record the win
+            // default game code
+            const gameCode = game_code ?? 'SUDOKU';
+
+            // compute xp server-side if user provided
+            let xpAwarded: number | undefined = undefined;
             if (user_id) {
-                // xp must be provided to update stats; otherwise we can't compute it server-side here
-                if (typeof xp !== 'number' || Number.isNaN(xp)) {
-                    res.status(400).json({
-                        status: 'error',
-                        message: 'xp (number) is required to record win for a user'
-                    });
+                // Need cluesCount to compute xp; accept if provided and valid
+                const clues = Number.isInteger(cluesCount) ? Number(cluesCount) : undefined;
+                if (clues === undefined || clues <= 0 || clues > 81) {
+                    res.status(400).json({status: 'error', message: 'cluesCount (integer 1..81) is required to compute XP'});
                     return;
                 }
 
-                if (!gameStatsService || !usersService) {
-                    console.warn('[Sudoku] services for recording game win not available');
-                    // still return success for validation but don't record
-                    res.status(200).json({
-                        status: 'ok',
-                        message: 'valid, but win not recorded (server not configured)'
-                    });
+                if (!gamesService) {
+                    console.warn('[Sudoku] gamesService not available to compute XP');
+                    res.status(200).json({status: 'ok', message: 'valid, but xp not computed (server not configured)'});
                     return;
                 }
 
-                // record win in game stats and update user XP
-                await gameStatsService.gameWin(user_id, game_code ?? 'SUDOKU', xp);
-                await usersService.updateUserXpAndLevel(user_id, xp);
+                // récupère base XP
+                const baseXp = await gamesService.getBaseXp(gameCode) ?? 0;
+
+                // Calcul de l'XP centralisé (même formule que client)
+                const referenceClues = 40;
+                const exponent = 1.1;
+                let xp = Math.round(baseXp * Math.pow(referenceClues / clues, exponent));
+                xp = Math.max(20, Math.min(xp, 300));
+
+                xpAwarded = xp;
+
+                // record win via services existants
+                if (gameStatsService && usersService) {
+                    await gameStatsService.gameWin(user_id, gameCode, xp);
+                    await usersService.updateUserXpAndLevel(user_id, xp);
+                } else {
+                    console.warn('[Sudoku] gameStatsService or usersService not available to record win');
+                }
             }
 
-            res.status(200).json({status: 'ok'});
+            res.status(200).json({status: 'ok', data: {xp: xpAwarded}});
         })
     };
 }

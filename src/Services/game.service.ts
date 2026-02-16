@@ -21,11 +21,13 @@ export const gameService = {
     },
 
     // valider une grille complète côté serveur (optionellement enregistrer la victoire)
-    async validateSudoku(grid: number[][], userId?: string | null, gameCode?: string, xp?: number): Promise<void> {
-        await api<void>(`/sudoku/validateSudoku`, {
+    // envoie cluesCount au serveur; la réponse contient { xp?: number }
+    async validateSudoku(grid: number[][], userId?: string | null, gameCode?: string, cluesCount?: number): Promise<number | undefined> {
+        const res = await api<{ xp?: number }>(`/sudoku/validateSudoku`, {
             method: "POST",
-            body: JSON.stringify({grid, user_id: userId, game_code: gameCode, xp}),
+            body: JSON.stringify({grid, user_id: userId, game_code: gameCode, cluesCount}),
             headers: {"Content-Type": "application/json"}
         });
+        return res.xp;
     }
 };

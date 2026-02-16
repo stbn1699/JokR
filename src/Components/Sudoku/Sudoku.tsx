@@ -55,6 +55,8 @@ export default function Sudoku({gameCode}: SudokuProps) {
 
     // État : affichage de la popup de succès après validation
     const [showSuccess, setShowSuccess] = useState(false);
+    // XP renvoyé par le serveur après validation
+    const [xpAwarded, setXpAwarded] = useState<number | null>(null);
 
     // État : nombre de cases pré-remplies (clues) dans la grille
     // Valeur par défaut : 40 clues (difficulté moyenne)
@@ -484,8 +486,9 @@ export default function Sudoku({gameCode}: SudokuProps) {
                         }
 
                         try {
-                            const xp = calculateXpWin();
-                            await gameService.validateSudoku(values, userId, gameCode, xp);
+                            const xp = await gameService.validateSudoku(values, userId, gameCode, cluesCount);
+                            // server returns xp (or undefined if not recorded)
+                            setXpAwarded(xp ?? null);
                             setShowSuccess(true);
                         } catch (err) {
                             console.error('Validation failed', err);
@@ -500,6 +503,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
             <SuccessPopup
                 open={showSuccess}
                 gameCode={gameCode}
+                xpAwarded={xpAwarded}
             />
         </div>
     );

@@ -6,9 +6,10 @@ import {confetti} from "../Confetti/Confetti.tsx";
 type SuccessPopupProps = {
     open: boolean;
     gameCode: string;
+    xpAwarded?: number | null;
 };
 
-export function SuccessPopup({open, gameCode}: SuccessPopupProps) {
+export function SuccessPopup({open, gameCode, xpAwarded}: SuccessPopupProps) {
     const modalRef = useRef<HTMLDivElement | null>(null);
     const overlayRef = useRef<HTMLDivElement | null>(null);
     const navigate = useNavigate();
@@ -33,6 +34,7 @@ export function SuccessPopup({open, gameCode}: SuccessPopupProps) {
                  style={{position: "relative", overflow: "hidden", zIndex: 1100}}>
                 <h2>{gameCode} terminé !</h2>
                 <p>Félicitations, vous avez réussi le {gameCode}.</p>
+                {typeof xpAwarded === 'number' ? <p className="xp-awarded">XP gagné : {xpAwarded}</p> : null}
 
                 <div className="modal-buttons">
                     <button type="button"
