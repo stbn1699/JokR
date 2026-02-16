@@ -453,8 +453,44 @@ export default function Sudoku({gameCode}: SudokuProps) {
 
                 <button
                     type="button"
-                    onClick={() => {
-                        setShowSuccess(true)
+                    onClick={async () => {
+                        // Collect grid values from inputs; ensure all cells are filled
+                        const values: number[][] = [];
+                        let allFilled = true;
+                        for (let r = 0; r < 9; r++) {
+                            const row: number[] = [];
+                            for (let c = 0; c < 9; c++) {
+                                const idx = r * 9 + c;
+                                const el = inputs.current[idx];
+                                const v = el?.value ?? el?.getAttribute('data-value') ?? '';
+                                if (v === '') {
+                                    allFilled = false;
+                                    break;
+                                }
+                                const n = Number(v);
+                                if (!Number.isInteger(n) || n < 1 || n > 9) {
+                                    allFilled = false;
+                                    break;
+                                }
+                                row.push(n);
+                            }
+                            if (!allFilled) break;
+                            values.push(row);
+                        }
+
+                        if (!allFilled) {
+                            alert('La grille doit être complètement remplie avec des chiffres 1-9 avant la validation.');
+                            return;
+                        }
+
+                        try {
+                            const xp = calculateXpWin();
+                            await gameService.validateSudoku(values, userId, gameCode, xp);
+                            setShowSuccess(true);
+                        } catch (err) {
+                            console.error('Validation failed', err);
+                            alert((err as Error).message || 'Validation failed');
+                        }
                     }}
                     className="validate-button">
                     Valider
@@ -464,9 +500,8 @@ export default function Sudoku({gameCode}: SudokuProps) {
             <SuccessPopup
                 open={showSuccess}
                 gameCode={gameCode}
-                userId={userId}
-                xpWin={calculateXpWin()}
             />
         </div>
     );
 }
+

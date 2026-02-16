@@ -1,30 +1,21 @@
 import {useEffect, useRef} from "react";
 import "./SuccessPopup.scss";
 import {useNavigate} from "react-router-dom";
-import {gameStatsService} from "../../Services/gameStats.service.ts";
 import {confetti} from "../Confetti/Confetti.tsx";
 
 type SuccessPopupProps = {
     open: boolean;
     gameCode: string;
-    userId: string | null;
-    xpWin: number;
 };
 
-export function SuccessPopup({open, gameCode, userId, xpWin}: SuccessPopupProps) {
+export function SuccessPopup({open, gameCode}: SuccessPopupProps) {
     const modalRef = useRef<HTMLDivElement | null>(null);
     const overlayRef = useRef<HTMLDivElement | null>(null);
     const navigate = useNavigate();
 
-    function registerGameWin() {
-        if (userId) {
-            gameStatsService.gameWin(userId, gameCode, xpWin)
-        }
-    }
-
     useEffect(() => {
         if (!open) return;
-        registerGameWin()
+        // confetti and focus only; the server should have recorded the win already
         confetti();
         modalRef.current?.focus();
     }, [open]);
