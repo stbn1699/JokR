@@ -100,3 +100,24 @@
 		visibility : visible;
 	}
 }
+
+/* overlay that appears when clicking a game */
+.click-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(0,0,0,0.25); /* slight grey overlay */
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 200ms ease, visibility 200ms ease;
+	z-index: 1000; /* above other content but below modals if any */
+	pointer-events: none; /* allow clicks to pass when not visible */
+}
+
+.click-overlay.visible {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto; /* block interactions when visible */
+}

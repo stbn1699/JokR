@@ -2,6 +2,7 @@ import {useEffect, useRef} from "react";
 import "./SuccessPopup.scss";
 import {useNavigate} from "react-router-dom";
 import {confetti} from "../Confetti/Confetti.tsx";
+import sounds from "../../Services/sounds.ts";
 
 type SuccessPopupProps = {
     open: boolean;
@@ -19,6 +20,8 @@ export function SuccessPopup({open, gameCode, xpAwarded}: SuccessPopupProps) {
         // confetti and focus only; the server should have recorded the win already
         confetti();
         modalRef.current?.focus();
+        sounds.winYay()
+        sounds.applause()
     }, [open]);
 
     if (!open) return null;

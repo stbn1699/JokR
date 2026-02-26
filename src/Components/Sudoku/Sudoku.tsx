@@ -27,6 +27,7 @@ import {sanitizeInput} from "./sanitizeInput";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import {gameService} from "../../Services/game.service.ts";
 import {useNavigate} from "react-router-dom";
+import sounds from "../../Services/sounds.ts";
 
 /**
  * Props du composant Sudoku
@@ -194,16 +195,20 @@ export default function Sudoku({gameCode}: SudokuProps) {
         const sleep = (ms: number) => new Promise<void>(res => setTimeout(res, ms));
 
         // Durée totale souhaitée de l'animation (ms). Ajustable si besoin.
-        const TOTAL_ANIMATION_MS = 900;
+        const TOTAL_ANIMATION_MS = 500;
 
         try {
             const grid = await gameService.generateSudoku(count);
+
+            if (grid) {
+                sounds.pop()
+            }
 
             // Prépare la liste des updates (index, value) - nous conserverons l'ordre ligne/col
             const updates: { idx: number; val: number }[] = [];
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
-                    updates.push({ idx: r * 9 + c, val: grid[r][c] });
+                    updates.push({idx: r * 9 + c, val: grid[r][c]});
                 }
             }
 
@@ -226,7 +231,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
                 // Si une nouvelle génération a démarré, on annule l'animation en cours
                 if (genId !== generationRef.current) return;
 
-                const { idx, val } = updates[i];
+                const {idx, val} = updates[i];
                 const el = inputs.current[idx];
                 if (!el) continue;
 
@@ -245,7 +250,6 @@ export default function Sudoku({gameCode}: SudokuProps) {
                     el.disabled = false;
                     el.classList.add('prefilled');
                 }
-
                 // petit délai pour l'effet séquentiel
                 await sleep(delayPerCell);
             }
@@ -364,7 +368,10 @@ export default function Sudoku({gameCode}: SudokuProps) {
                 {/* Boutons d'action pour les options */}
                 <div className="buttons-container">
                     {/* Bouton reset : remet les options par défaut */}
-                    <button type="button" className="reset-button" onClick={() => resetOptions()}>
+                    <button type="button" className="reset-button" onClick={() => {
+                        sounds.button()
+                        resetOptions()
+                    }}>
                         Réinitialiser
                     </button>
 
@@ -373,6 +380,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
                         type="button"
                         className="generate-button"
                         onClick={async () => {
+                            sounds.button()
                             commitEmptyCells(emptyCellsInput);
                             const parsed = Number(emptyCellsInput);
                             const safeEmpties = Number.isFinite(parsed)
@@ -457,6 +465,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
                     type="button"
                     onClick={async () => {
                         // Collect grid values from inputs; ensure all cells are filled
+                        sounds.button()
                         const values: number[][] = [];
                         let allFilled = true;
                         for (let r = 0; r < 9; r++) {
