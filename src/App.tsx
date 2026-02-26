@@ -15,6 +15,7 @@ import {Route, Routes} from "react-router-dom";
 import PlayGame from "./Components/PlayGame/PlayGame.tsx";
 import Login from "./Components/UserSection/Login/Login.tsx";
 import Register from "./Components/UserSection/Register/Register.tsx";
+import Header from "./Components/Header/Header.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -23,21 +24,12 @@ import Register from "./Components/UserSection/Register/Register.tsx";
 function App() {
     return (
         <div className="app-root">
-            {/* Configuration des routes React Router */}
+            <Header/>
             <Routes>
-                {/* Page d'accueil : liste des jeux */}
                 <Route path="/" element={<GameList/>}/>
-
-                {/* Page de jeu dynamique (ex: /playgame/SUDOKU) */}
                 <Route path="/playgame/:gameCode" element={<PlayGame/>}/>
-
-                {/* Page de connexion utilisateur */}
                 <Route path="/login" element={<Login/>}/>
-
-                {/* Page d'inscription utilisateur */}
                 <Route path="/register" element={<Register/>}/>
-
-                {/* Fallback 404 pour toutes les autres routes */}
                 <Route path="*" element={<div>404<br/>Page non trouvée</div>}/>
             </Routes>
         </div>

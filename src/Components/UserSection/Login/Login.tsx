@@ -14,11 +14,11 @@
 
 import type {FormEvent} from "react";
 import {useState} from "react";
-import Header from "../../Header/Header.tsx";
 import "./Login.scss";
 import {clientHash} from "../../../Services/hash";
 import {authService} from "../../../Services/auth.service";
 import type {LoggedUser} from "../../../Models/loggedUser.model.ts";
+import {useNavigate} from "react-router-dom";
 
 /**
  * Composant de la page de connexion
@@ -36,6 +36,8 @@ export default function Login() {
 
     // État : message d'erreur à afficher (null si pas d'erreur)
     const [error, setError] = useState<string | null>(null);
+
+    const navigate = useNavigate();
 
     /**
      * Gère la soumission du formulaire de connexion
@@ -76,7 +78,7 @@ export default function Login() {
             localStorage.setItem('userId', userId); // Stocke l'ID utilisateur
 
             // Étape 5 : Rediriger vers la page d'accueil
-            window.location.href = "/";
+            navigate("/");
         } catch (err: unknown) {
             // Gestion des erreurs : convertir en message lisible
             if (err instanceof Error) {
@@ -92,7 +94,6 @@ export default function Login() {
 
     return (
         <>
-            <Header/>
             <main className="login">
                 <form onSubmit={handleSubmit} className="form">
                     <h1>Connexion</h1>
@@ -122,7 +123,7 @@ export default function Login() {
                         <button
                             type="button"
                             className="secondary"
-                            onClick={() => window.location.href = "/register"}
+                            onClick={() => navigate("/register")}
                             disabled={loading}
                         >
                             s'inscrire

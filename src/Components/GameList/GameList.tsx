@@ -2,7 +2,6 @@ import "./GameList.scss"
 import {useEffect, useRef, useState} from "react";
 import type {Game} from "../../Models/game.model.ts";
 import {gameService} from "../../Services/game.service.ts";
-import Header from "../Header/Header.tsx";
 import type {GameStats} from "../../Models/gameStats.model.ts";
 import {gameStatsService} from "../../Services/gameStats.service.ts";
 import {useNavigate} from "react-router-dom";
@@ -76,9 +75,8 @@ export default function GameList() {
 
     return (
         <>
-            <Header/>
             {/* overlay covering the whole viewport when a game is selected */}
-            <div className={`click-overlay ${overlayVisible ? 'visible' : ''}`} />
+            <div className={`click-overlay ${overlayVisible ? 'visible' : ''}`}/>
 
             <div className="game-list">
                 {games.map((game) => {
@@ -104,7 +102,9 @@ export default function GameList() {
                             <div
                                 className="game"
                                 onClick={handleGameSelection(game.code)}
-                                onMouseEnter={() => { sounds.interface9(); }}
+                                onMouseEnter={() => {
+                                    sounds.interface9();
+                                }}
                             >
                                 <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
                                 <h1>{game.code}</h1>

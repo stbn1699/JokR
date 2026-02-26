@@ -9,7 +9,6 @@
 
 import "./PlayGame.scss"
 import {useParams} from "react-router-dom"
-import Header from "../Header/Header.tsx";
 import Sudoku from "../Sudoku/Sudoku.tsx";
 
 /**
@@ -45,10 +44,6 @@ export default function PlayGame() {
 
     return (
         <>
-            {/* Header présent sur toutes les pages de jeu */}
-            <Header/>
-
-            {/* Rendu dynamique du jeu sélectionné */}
             {renderGame()}
         </>
     )

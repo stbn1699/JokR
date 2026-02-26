@@ -1,9 +1,9 @@
+import type {FormEvent} from "react";
 import {useState} from "react";
-import type { FormEvent } from "react";
-import Header from "../../Header/Header.tsx";
 import "./Register.scss";
-import { clientHash } from "../../../Services/hash";
-import { authService } from "../../../Services/auth.service";
+import {clientHash} from "../../../Services/hash";
+import {authService} from "../../../Services/auth.service";
+import {useNavigate} from "react-router-dom";
 
 export default function Register() {
     const [email, setEmail] = useState("");
@@ -12,6 +12,7 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const validateEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
 
@@ -26,7 +27,7 @@ export default function Register() {
             const firstHash = await clientHash(password);
             await authService.register(username, email, firstHash);
             // redirect to login
-            window.location.href = "/login";
+            navigate("/login");
         } catch (err: unknown) {
             // Handle unknown error without using `any` to satisfy ESLint/TS rules
             if (err instanceof Error) {
@@ -41,7 +42,6 @@ export default function Register() {
 
     return (
         <>
-            <Header/>
             <main className="login">
                 <form onSubmit={handleSubmit} className="form">
                     <h1>Inscription</h1>
@@ -83,7 +83,8 @@ export default function Register() {
 
 
                     <div className="buttons">
-                        <button type="button" className="secondary" onClick={() => window.location.href = "/login"} disabled={loading}>Se Connecter
+                        <button type="button" className="secondary" onClick={() => navigate("/login")}
+                                disabled={loading}>Se Connecter
                         </button>
                         <button type="submit" disabled={loading}>S'inscrire</button>
                     </div>

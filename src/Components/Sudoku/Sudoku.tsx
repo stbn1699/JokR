@@ -330,7 +330,6 @@ export default function Sudoku({gameCode}: SudokuProps) {
     return (
         <div className="sudoku">
 
-            {/* ========== PANNEAU OPTIONS (gauche) ========== */}
             <div className="options">
                 <h2 className="title">Options</h2>
 
