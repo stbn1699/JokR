@@ -20,6 +20,7 @@ const controller = createUsersController(service);
 
 UsersRoutes.post('/register', controller.register);
 UsersRoutes.post('/login', controller.login);
+UsersRoutes.get('/:userId', controller.getByUserId)
 
 export default UsersRoutes;
 

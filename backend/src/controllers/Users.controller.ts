@@ -44,6 +44,8 @@ export function createUsersController(service: UsersService) {
             if (!user) return res.status(401).json({status: 'error', message: 'Invalid credentials'});
 
             const userId = user.id;
+            const userLevel = user.user_level;
+            const userXp = user.user_xp;
 
             // Création d'un JWT minimal : subject (sub) et username
             // Le secret est lu depuis l'environnement, sinon on utilise une valeur par défaut pour le développement
@@ -53,7 +55,15 @@ export function createUsersController(service: UsersService) {
             }, process.env.JWT_SECRET || 'dev-secret', {expiresIn: '7d'});
 
             // Retourne le token et l'identifiant utilisateur
-            res.status(200).json({status: 'ok', data: {token, userId}});
+            res.status(200).json({status: 'ok', data: {token, userId, userLevel, userXp}});
+        }),
+
+        getByUserId: asyncHandler(async (req: Request, res: Response) => {
+            const {userId} = req.params;
+            if (!userId) return res.status(400).json({status: 'error', message: 'Missing userId'});
+            const user = await service.getByUserId(userId);
+            if (!user) return res.status(404).json({status: 'error', message: 'User not found'});
+            res.status(200).json({status: 'ok', data: user});
         })
     };
 }

@@ -72,10 +72,14 @@ export default function Login() {
             // Étape 3 : Extraire les données de la réponse
             const token = loggedUser.token; // Token JWT pour authentifier les requêtes futures
             const userId = loggedUser.userId; // ID de l'utilisateur pour récupérer ses stats
+            const userLevel = loggedUser.userLevel.toString();
+            const userXp = loggedUser.userXp.toString();
 
             // Étape 4 : Sauvegarder les informations en localStorage
             authService.saveToken(token); // Stocke le token JWT
             localStorage.setItem('userId', userId); // Stocke l'ID utilisateur
+            localStorage.setItem('userLevel', userLevel);
+            localStorage.setItem('userXp', userXp);
 
             // Étape 5 : Rediriger vers la page d'accueil
             navigate("/");

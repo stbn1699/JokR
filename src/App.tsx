@@ -18,6 +18,7 @@ import Register from "./Components/UserSection/Register/Register.tsx";
 import Header from "./Components/Header/Header.tsx";
 import {useEffect} from "react";
 import sounds from "./Services/sounds";
+import {userService} from "./Services/user.service.ts";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -25,6 +26,7 @@ import sounds from "./Services/sounds";
  */
 function App() {
     const location = useLocation();
+    const userId: string | null = localStorage.getItem('userId');
 
     useEffect(() => {
         // Play a subtle woosh sound on every route change (initial load + navigations)
@@ -35,6 +37,14 @@ function App() {
             console.debug("sounds.woosh() failed:", e);
         }
     }, [location.pathname]);
+
+    useEffect(() => {
+        if (!userId) return;
+        userService.getByUserId(userId).then(r => {
+            localStorage.setItem('userLevel', r.user_level.toString());
+            localStorage.setItem('userXp', r.user_xp.toString());
+        })
+    }, []);
 
     return (
         <div className="app-root">

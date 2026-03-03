@@ -57,4 +57,8 @@ export class UsersService {
 
         await this.repo.updateUserXpAndLevel(userId, newXp, level);
     }
+
+    async getByUserId(userId: string): Promise<User | void> {
+        return this.findByUuid(userId);
+    }
 }
