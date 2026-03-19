@@ -24,7 +24,6 @@ export default function Header() {
 
     return (
         <div className="header">
-            {/* Logo cliquable qui redirige vers la page d'accueil */}
             <img
                 src="/JokR_Logo_Full.svg"
                 alt="logo"
@@ -32,15 +31,11 @@ export default function Header() {
                 onClick={() => navigate("/")} // Redirection vers l'accueil
             />
 
-            {/* Section utilisateur avec icône de profil */}
             <div className="usersection">
-                {/* Icône utilisateur qui redirige vers la page de login */}
                 {localStorage.getItem('userId') ? (
                     <div className="user-section">
-                        {/* Badge: image en fond et niveau superposé centré */}
                         <img src={`/Icons/level_${userLevel}.png`} alt="levelIcon" className="level-icon"/>
 
-                        {/* Barre d'XP: piste + remplissage via inline style */}
                         <div className="xp-bar" aria-hidden>
                             <div className="xp-bar-track" title={`${userXp} / ${xpNextLevel} xp`}>
                                 <div className="xp-bar-fill" style={{width: `${xpPercent}%`}}/>
