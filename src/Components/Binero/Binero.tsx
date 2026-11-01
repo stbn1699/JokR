@@ -23,6 +23,10 @@ import {bineroConflicts} from "./bineroRules.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {type SavedBinero, useBineroGame} from "./useBineroGame.ts";
 import {useResumableGame} from "../PuzzleUI/savedGame.ts";
+import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
+import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
+import {formatDailyDate} from "../../Services/daily.service.ts";
+import {useNavigate} from "react-router-dom";
 import {bineroService} from "../../Services/binero.service.ts";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
 import BineroGrid from "./BineroGrid.tsx";
@@ -30,10 +34,29 @@ import BineroSettingsPopup from "./BineroSettingsPopup.tsx";
 
 const DIGITS = [0, 1];
 
-export default function Binero() {
-    const game = useBineroGame();
+type BineroProps = {
+    // Défi du jour : grille imposée, pas de popup de paramètres
+    daily?: boolean;
+};
+
+export default function Binero({daily = false}: BineroProps) {
+    const navigate = useNavigate();
+    // Sauvegarde séparée pour le défi du jour (on peut avoir une partie libre en cours en parallèle)
+    const saveKey = daily ? "BINERO:daily" : "BINERO";
+    const game = useBineroGame(saveKey);
     const flow = useGameFlow();
-    const {resumable, dismissResumable} = useResumableGame<SavedBinero, BineroCell[][]>("BINERO", bineroService.getGame);
+    const {resumable, dismissResumable} = useResumableGame<SavedBinero, BineroCell[][]>(saveKey, bineroService.getGame, !daily);
+    const dailyGame = useDailyGame<SavedBinero, BineroCell[][]>({
+        enabled: daily,
+        gameCode: "BINERO",
+        saveKey,
+        fetchStatus: bineroService.getGame,
+        emptySave: gameId => ({gameId, size: 0, values: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            game.restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
     const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
@@ -77,6 +100,11 @@ export default function Binero() {
             />
 
             <div className="game">
+                {daily && (
+                    <p className="daily-label">
+                        Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
+                    </p>
+                )}
                 <h1 className="title">Binero</h1>
                 {game.size > 0 && (
                     <BineroGrid
@@ -104,7 +132,7 @@ export default function Binero() {
                 <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
                                 onUndo={game.undo} onRedo={game.redo}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
 
                 <div className="rules">
                     <h3>Règles</h3>
@@ -118,13 +146,17 @@ export default function Binero() {
                 </div>
             </div>
 
-            <BineroSettingsPopup open={flow.showSettings} onGenerate={handleGenerate}
+            <BineroSettingsPopup open={!daily && flow.showSettings} onGenerate={handleGenerate}
                                  resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
+
+            {dailyGame.done && <DailyDonePopup gameCode="BINERO" gameName="Binero" result={dailyGame.done}/>}
 
             {flow.victory && (
                 <SuccessPopup gameName="Binero" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
-                              onNewGame={flow.newGame}/>
+                              daily={flow.victory.daily}
+                              onNewGame={daily ? () => navigate(`/playgame/BINERO`) : flow.newGame}
+                              newGameLabel={daily ? "Partie libre" : undefined}/>
             )}
         </div>
     );

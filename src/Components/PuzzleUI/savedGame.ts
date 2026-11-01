@@ -52,10 +52,12 @@ export type Resumable<Saved, Grid> = {
 export function useResumableGame<Saved extends { gameId: string }, Grid>(
     gameCode: string,
     fetchStatus: (gameId: string) => Promise<{ grid: Grid; elapsedMs: number }>,
+    enabled = true,
 ) {
     const [resumable, setResumable] = useState<Resumable<Saved, Grid> | null>(null);
 
     useEffect(() => {
+        if (!enabled) return;
         const saved = loadGame<Saved>(gameCode);
         if (!saved) return;
         let cancelled = false;

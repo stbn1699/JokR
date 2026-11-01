@@ -10,7 +10,7 @@
  */
 
 import "./Header.scss"
-import {FaSignOutAlt, FaUser, FaUserCircle} from "react-icons/fa";
+import {FaSignOutAlt, FaTrophy, FaUser, FaUserCircle} from "react-icons/fa";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {levelIconSrc, xpToNextLevel} from "../../Services/leveling.ts";
@@ -37,6 +37,7 @@ export default function Header() {
             />
 
             <div className="usersection">
+                <FaTrophy title="Classements" className="trophy" onClick={() => navigate("/classements")}/>
                 {isLoggedIn ? (
                     <div className="user-section">
                         <img src={levelIconSrc(level)} alt={`Niveau ${level}`} className="level-icon"/>

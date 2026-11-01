@@ -12,6 +12,7 @@ export type Victory = {
     before: Progress | null;
     durationMs: number;
     personalBest: boolean;
+    daily: WinResult["daily"] | null;
 };
 
 // Chrono de la partie : démarré à la génération (ou à la reprise), arrêté à la victoire
@@ -73,6 +74,7 @@ export function useGameFlow() {
             before: result.xp !== undefined ? before : null,
             durationMs: result.durationMs,
             personalBest: result.personalBest === true,
+            daily: result.daily ?? null,
         });
     };
 

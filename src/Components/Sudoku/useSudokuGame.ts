@@ -62,7 +62,7 @@ function setSnapshot(snapshot: string[], index: number, value: string) {
  * - setSelectedCell(i) : case sélectionnée ; sa ligne, sa colonne et son bloc 3×3 sont surlignés
  * - fillSelected(n) : remplit (ou vide avec null) la case sélectionnée ; false si aucune case modifiable
  */
-export function useSudokuGame(showErrors: boolean) {
+export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) {
     // Les 81 inputs de la grille (index = ligne * 9 + colonne)
     const inputs = useRef<HTMLInputElement[]>([]);
 
@@ -108,7 +108,7 @@ export function useSudokuGame(showErrors: boolean) {
 
     // Sauvegarde la partie en cours dans le navigateur
     const save = (currentNotes: number[]) => {
-        if (gameIdRef.current) saveGame<SavedSudoku>(GAME_CODE, {gameId: gameIdRef.current, values: readValues(), notes: currentNotes});
+        if (gameIdRef.current) saveGame<SavedSudoku>(saveKey, {gameId: gameIdRef.current, values: readValues(), notes: currentNotes});
     };
 
     const onCellInput = (index: number) => {
@@ -275,7 +275,7 @@ export function useSudokuGame(showErrors: boolean) {
             const result = await gameService.validateSudoku(gameIdRef.current, grid);
             // Partie terminée : le serveur ne l'acceptera plus
             gameIdRef.current = null;
-            clearSavedGame(GAME_CODE);
+            clearSavedGame(saveKey);
             return {ok: true, result};
         } catch (err) {
             console.error('Validation failed', err);

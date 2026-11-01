@@ -1,0 +1,88 @@
+.daily-banner {
+	width         : min(40rem, calc(100vw - 2rem));
+	margin        : 1rem auto 0;
+	padding       : 1.25rem 1.5rem;
+	box-sizing    : border-box;
+	border        : 2px solid rgba(245, 158, 11, 0.7);
+	border-radius : 14px;
+	background    : linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(2, 6, 23, 0.4));
+
+	.daily-banner-header {
+		display         : flex;
+		justify-content : space-between;
+		align-items     : baseline;
+		gap             : 1rem;
+
+		h2 {
+			margin    : 0;
+			font-size : 2.2rem;
+			color     : #fbbf24;
+		}
+	}
+
+	.daily-banner-date {
+		font-size : 1.3rem;
+		opacity   : 0.8;
+	}
+
+	.daily-banner-text {
+		margin    : 0.4rem 0 1rem;
+		font-size : 1.2rem;
+		opacity   : 0.85;
+	}
+
+	.daily-banner-games {
+		display : flex;
+		gap     : 0.75rem;
+	}
+
+	.daily-banner-game {
+		flex            : 1;
+		display         : flex;
+		flex-direction  : column;
+		align-items     : center;
+		gap             : 0.25rem;
+		padding         : 0.75rem 0.5rem;
+		border-radius   : 10px;
+		border          : 2px solid rgba(249, 250, 251, 0.25);
+		background      : rgba(2, 6, 23, 0.45);
+		color           : #f9fafb;
+		text-decoration : none;
+		transition      : all 0.15s ease;
+
+		&:hover {
+			border-color : #fbbf24;
+			transform    : translateY(-2px);
+		}
+
+		&.done {
+			border-color : rgba(59, 246, 68, 0.6);
+
+			.daily-banner-game-info {
+				color : #3bf644;
+			}
+		}
+	}
+
+	.daily-banner-game-name {
+		font-size   : 1.7rem;
+		font-weight : 700;
+	}
+
+	.daily-banner-game-info {
+		font-size : 1.1rem;
+		opacity   : 0.85;
+	}
+
+	.daily-banner-link {
+		display         : inline-block;
+		margin-top      : 0.9rem;
+		color           : #fbbf24;
+		font-size       : 1.2rem;
+		text-decoration : none;
+
+		&:hover {
+			text-decoration : underline;
+		}
+	}
+}

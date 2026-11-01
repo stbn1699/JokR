@@ -29,6 +29,10 @@
 			cursor : pointer;
 		}
 
+		.trophy {
+			color : #d97706;
+		}
+
 		.user-section {
 			display     : flex;
 			align-items : center;
@@ -64,5 +68,42 @@
 			width      : 0;
 			transition : width 300ms ease-in-out;
 		}
+	}
+}
+// Téléphone : tout doit tenir sur une ligne (logo, trophée, niveau, barre d'XP, profil, déconnexion)
+@media (max-width: 600px) {
+	.header {
+		margin  : 0.5rem;
+		padding : 0 0.75rem;
+		height  : 3.5rem;
+
+		.logo {
+			height : 60%;
+		}
+
+		.usersection {
+			gap       : 0.6rem;
+			font-size : 1.3rem;
+
+			.user-section {
+				gap : 0.5rem;
+			}
+
+			.level-icon {
+				width  : 2.2rem;
+				height : 2.2rem;
+			}
+
+			.xp-bar {
+				width : 4.5rem;
+			}
+		}
+	}
+}
+
+// Très petit écran : la barre d'XP laisse la place (le niveau reste affiché, l'XP est sur le profil)
+@media (max-width: 420px) {
+	.header .usersection .xp-bar {
+		display : none;
 	}
 }

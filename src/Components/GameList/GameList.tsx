@@ -7,6 +7,7 @@ import {gameStatsService} from "../../Services/gameStats.service.ts";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
+import DailyBanner from "./DailyBanner.tsx";
 
 export default function GameList() {
     const [games, setGames] = useState<Game[]>([])
@@ -75,6 +76,8 @@ export default function GameList() {
         <>
             {/* overlay covering the whole viewport when a game is selected */}
             <div className={`click-overlay ${overlayVisible ? 'visible' : ''}`}/>
+
+            <DailyBanner/>
 
             <div className="game-list">
                 {games.map((game) => {

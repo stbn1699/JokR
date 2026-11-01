@@ -6,6 +6,8 @@ export interface WinResult {
     durationMs: number;
     // Meilleur temps du joueur sur cette configuration (jeu, taille, cases à remplir)
     personalBest?: boolean;
+    // Défi du jour : place du joueur ; counted = false si le défi était déjà réussi aujourd'hui
+    daily?: { counted: boolean; rank: number; total: number };
 }
 
 // Une partie gagnée, dans l'historique du joueur (GET /users/me/results)

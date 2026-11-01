@@ -24,7 +24,7 @@ type RouteParams = {
  * Composant qui affiche le jeu correspondant au code passé dans l'URL
  * @returns JSX du jeu sélectionné avec le header
  */
-export default function PlayGame() {
+export default function PlayGame({daily = false}: { daily?: boolean }) {
     // Extraction du code du jeu depuis l'URL (ex: /playgame/SUDOKU → gameCode = "SUDOKU")
     const {gameCode} = useParams<RouteParams>()
 
@@ -36,9 +36,9 @@ export default function PlayGame() {
         switch (gameCode) {
             case "SUDOKU":
                 // Affiche le jeu Sudoku avec son code
-                return <Sudoku/>;
+                return <Sudoku daily={daily}/>;
             case "BINERO":
-                return <Binero/>;
+                return <Binero daily={daily}/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

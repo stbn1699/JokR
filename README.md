@@ -20,6 +20,14 @@ En jeu :
 - **Reprise** d'une partie après un rafraîchissement de la page (tant que le serveur la garde en mémoire).
 - Jouable à la souris et au doigt (panneau des chiffres), mise en page adaptée aux téléphones.
 
+Autour des jeux :
+
+- **Défi du jour** : une grille Sudoku (9×9, 45 cases) et une Binero (10×10, 50 cases) par jour, les mêmes pour
+  tout le monde, avec un classement au temps. Une seule réussite comptée par jour (XP et classement).
+  Le jour change à minuit, heure de Paris.
+- **Classements** : XP globale, niveau par jeu, et défi du jour (page `/classements`).
+- **Profil** : stats par jeu, historique des parties, changement de mot de passe, suppression du compte.
+
 ## Stack
 
 | Partie   | Techno                                              | Dossier      |
@@ -110,7 +118,9 @@ et sur chaque pull request.
 | POST    | `/users/register`          | –         | inscription (limitée à 5/h par IP)        |
 | POST    | `/users/login`             | –         | connexion (limitée à 10/15 min par IP)    |
 | GET     | `/users/me`                | requise   | profil du joueur connecté                 |
-| GET     | `/users/me/results`        | requise   | ses 10 dernières parties gagnées          |
+| GET     | `/users/me/results`        | requise   | ses parties gagnées (`?limit=&offset=`)   |
+| PUT     | `/users/me/password`       | requise   | change son mot de passe                   |
+| DELETE  | `/users/me`                | requise   | supprime son compte (mot de passe requis) |
 | GET     | `/users/:userId`           | –         | profil public (sans email)                |
 | GET     | `/gameStats/user/:userId`  | –         | stats par jeu d'un joueur                 |
 | GET     | `/sudoku/settings`         | –         | plage de cases à remplir et XP proposées  |
@@ -121,3 +131,8 @@ et sur chaque pull request.
 | POST    | `/binero/generate`         | –         | `{ size, emptyCells }` → `{ gameId, grid }` |
 | GET     | `/binero/games/:gameId`    | –         | partie en cours (pour la reprendre)       |
 | POST    | `/binero/validate`         | optionnel | valide `{ gameId, grid }`, XP si connecté |
+| GET     | `/daily`                   | optionnel | défis du jour (et résultats du joueur)    |
+| POST    | `/daily/:game/start`       | optionnel | commence le défi du jour                  |
+| GET     | `/daily/:game/leaderboard` | optionnel | meilleurs temps du jour                   |
+| GET     | `/leaderboard/xp`          | optionnel | classement par XP globale                 |
+| GET     | `/leaderboard/games/:game` | optionnel | classement d'un jeu                       |

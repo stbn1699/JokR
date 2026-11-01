@@ -95,6 +95,19 @@
 		}
 	}
 
+	.daily-rank {
+		margin    : -0.5rem 0 1.25rem;
+		font-size : 1.3rem;
+
+		strong {
+			color : #F59E0B;
+		}
+
+		a {
+			color : #10b981;
+		}
+	}
+
 	.xp-progress {
 		margin     : 0 0 1.5rem;
 		text-align : left;

@@ -23,7 +23,11 @@ type SuccessPopupProps = {
     durationMs: number;
     // Meilleur temps du joueur sur cette configuration
     personalBest: boolean;
+    // Défi du jour : place du joueur (absent hors défi)
+    daily?: { counted: boolean; rank: number; total: number } | null;
     onNewGame: () => void;
+    // Libellé du bouton "Nouvelle partie" (ex. "Partie libre" après un défi)
+    newGameLabel?: string;
 };
 
 type Phase = "start" | "fill" | "levelUp";
@@ -35,7 +39,8 @@ type Phase = "start" | "fill" | "levelUp";
  * Si le gain fait monter de niveau, la barre se remplit, "Niveau N atteint !" s'affiche,
  * puis elle repart sur le niveau suivant.
  */
-export function SuccessPopup({gameName, xpAwarded, before, durationMs, personalBest, onNewGame}: SuccessPopupProps) {
+export function SuccessPopup(props: SuccessPopupProps) {
+    const {gameName, xpAwarded, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie"} = props;
     const modalRef = useRef<HTMLDivElement | null>(null);
     const navigate = useNavigate();
 
@@ -86,6 +91,15 @@ export function SuccessPopup({gameName, xpAwarded, before, durationMs, personalB
                     {personalBest && <span className="personal-best">Nouveau record !</span>}
                 </div>
 
+                {daily && (
+                    <p className="daily-rank">
+                        {daily.counted
+                            ? <>Défi du jour : <strong>{daily.rank}<sup>{daily.rank === 1 ? "er" : "e"}</sup></strong> sur {daily.total}</>
+                            : <>Défi déjà réussi aujourd'hui : cette partie ne compte pas.</>}
+                        {" · "}<Link to="/classements?onglet=defi">Voir le classement</Link>
+                    </p>
+                )}
+
                 {step && xpAwarded !== null ? (
                     <div className="xp-progress">
                         <div className="xp-progress-header">
@@ -126,7 +140,7 @@ export function SuccessPopup({gameName, xpAwarded, before, durationMs, personalB
 
                 <div className="modal-buttons">
                     <button type="button" className="modal-button" onClick={onNewGame}>
-                        Nouvelle partie
+                        {newGameLabel}
                     </button>
                     <button type="button" className="modal-button secondary" onClick={() => navigate('/')}>
                         Retour à l'accueil

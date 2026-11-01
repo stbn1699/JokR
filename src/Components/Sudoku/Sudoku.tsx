@@ -25,6 +25,10 @@ import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {type SavedSudoku, useSudokuGame} from "./useSudokuGame.ts";
 import {useResumableGame} from "../PuzzleUI/savedGame.ts";
+import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
+import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
+import {formatDailyDate} from "../../Services/daily.service.ts";
+import {useNavigate} from "react-router-dom";
 import {gameService} from "../../Services/game.service.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
 import SudokuGrid from "./SudokuGrid.tsx";
@@ -32,16 +36,35 @@ import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-export default function Sudoku() {
+type SudokuProps = {
+    // Défi du jour : grille imposée, pas de popup de paramètres
+    daily?: boolean;
+};
+
+export default function Sudoku({daily = false}: SudokuProps) {
+    const navigate = useNavigate();
+    // Sauvegarde séparée pour le défi du jour (on peut avoir une partie libre en cours en parallèle)
+    const saveKey = daily ? "SUDOKU:daily" : "SUDOKU";
     const [showErrors, setShowErrors] = useShowErrors();
     const {
         inputs, isGenerating, generate, validate,
         digitCounts, selectedDigit, toggleDigit, fillSelected, pressDigit, setHoverDigit, setSelectedCell,
         onCellInput, undo, redo, canUndo, canRedo, conflicts, notes, notesMode, setNotesMode, toggleNoteAt,
         restore,
-    } = useSudokuGame(showErrors);
-    const {resumable, dismissResumable} = useResumableGame<SavedSudoku, number[][]>("SUDOKU", gameService.getSudokuGame);
+    } = useSudokuGame(showErrors, saveKey);
     const flow = useGameFlow();
+    const {resumable, dismissResumable} = useResumableGame<SavedSudoku, number[][]>(saveKey, gameService.getSudokuGame, !daily);
+    const dailyGame = useDailyGame<SavedSudoku, number[][]>({
+        enabled: daily,
+        gameCode: "SUDOKU",
+        saveKey,
+        fetchStatus: gameService.getSudokuGame,
+        emptySave: gameId => ({gameId, values: [], notes: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
     const playing = !flow.showSettings && !flow.victory && !isGenerating;
     useUndoShortcuts(undo, redo, playing);
 
@@ -79,6 +102,11 @@ export default function Sudoku() {
                         notes={{active: notesMode, onToggle: () => setNotesMode(m => !m)}}/>
 
             <div className="game">
+                {daily && (
+                    <p className="daily-label">
+                        Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
+                    </p>
+                )}
                 <h1 className="title">Sudoku</h1>
                 <SudokuGrid inputs={inputs} onHover={setHoverDigit} onCellInput={onCellInput}
                             onSelectCell={setSelectedCell} notes={notes} notesMode={notesMode}
@@ -94,16 +122,20 @@ export default function Sudoku() {
                 </button>
                 <HistoryButtons canUndo={playing && canUndo} canRedo={playing && canRedo} onUndo={undo} onRedo={redo}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
             </div>
 
-            <SudokuSettingsPopup open={flow.showSettings} onGenerate={handleGenerate}
+            <SudokuSettingsPopup open={!daily && flow.showSettings} onGenerate={handleGenerate}
                                  resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
+
+            {dailyGame.done && <DailyDonePopup gameCode="SUDOKU" gameName="Sudoku" result={dailyGame.done}/>}
 
             {flow.victory && (
                 <SuccessPopup gameName="Sudoku" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
-                              onNewGame={flow.newGame}/>
+                              daily={flow.victory.daily}
+                              onNewGame={daily ? () => navigate(`/playgame/SUDOKU`) : flow.newGame}
+                              newGameLabel={daily ? "Partie libre" : undefined}/>
             )}
         </div>
     );

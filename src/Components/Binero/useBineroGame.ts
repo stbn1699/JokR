@@ -24,7 +24,7 @@ const TOTAL_ANIMATION_MS = 500;
 export type SavedBinero = { gameId: string; size: number; values: BineroCell[] };
 const GAME_CODE = "BINERO";
 
-export function useBineroGame() {
+export function useBineroGame(saveKey: string = GAME_CODE) {
     const [size, setSize] = useState(0);
     // Chiffres donnés au départ (null = case à remplir)
     const [clues, setClues] = useState<BineroCell[]>([]);
@@ -47,9 +47,9 @@ export function useBineroGame() {
     // Sauvegarde la partie en cours dans le navigateur à chaque coup
     useEffect(() => {
         if (gameIdRef.current && size > 0 && !isGenerating) {
-            saveGame<SavedBinero>(GAME_CODE, {gameId: gameIdRef.current, size, values});
+            saveGame<SavedBinero>(saveKey, {gameId: gameIdRef.current, size, values});
         }
-    }, [values, size, isGenerating]);
+    }, [values, size, isGenerating, saveKey]);
 
     const counts = useMemo(() => ({
         0: values.filter(v => v === 0).length,
@@ -135,7 +135,7 @@ export function useBineroGame() {
             const result = await bineroService.validate(gameIdRef.current, grid);
             // Partie terminée : le serveur ne l'acceptera plus
             gameIdRef.current = null;
-            clearSavedGame(GAME_CODE);
+            clearSavedGame(saveKey);
             return {ok: true, result};
         } catch (err) {
             console.error("Validation failed", err);

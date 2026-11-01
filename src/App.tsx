@@ -19,6 +19,7 @@ import Register from "./Components/UserSection/Register/Register.tsx";
 import Header from "./Components/Header/Header.tsx";
 import Profile from "./Components/UserSection/Profile/Profile.tsx";
 import NotFound from "./Components/NotFound/NotFound.tsx";
+import Leaderboard from "./Components/Leaderboard/Leaderboard.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -31,9 +32,12 @@ function App() {
             <Routes>
                 <Route path="/" element={<GameList/>}/>
                 <Route path="/playgame/:gameCode" element={<PlayGame/>}/>
+                {/* key : changer de défi (Sudoku → Binero) remonte une page neuve */}
+                <Route path="/defi/:gameCode" element={<PlayGame daily key="defi"/>}/>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/register" element={<Register/>}/>
                 <Route path="/profile" element={<Profile/>}/>
+                <Route path="/classements" element={<Leaderboard/>}/>
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
         </div>

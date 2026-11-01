@@ -1,0 +1,131 @@
+.leaderboard {
+	display         : flex;
+	justify-content : center;
+	padding         : 2rem 1rem;
+
+	.leaderboard-card {
+		width         : min(42rem, 100%);
+		padding       : 2rem;
+		box-sizing    : border-box;
+		border        : 3px solid #f9fafb;
+		border-radius : 12px;
+		background    : #02061735;
+		text-align    : center;
+	}
+
+	h1 {
+		margin    : 0 0 1.25rem;
+		font-size : 3.2rem;
+	}
+
+	.leaderboard-tabs,
+	.leaderboard-subtabs {
+		display         : flex;
+		flex-wrap       : wrap;
+		justify-content : center;
+		gap             : 0.5rem;
+		margin-bottom   : 1rem;
+
+		button {
+			padding       : 0.5rem 1rem;
+			border-radius : 999px;
+			border        : 2px solid rgba(229, 231, 235, 0.35);
+			background    : transparent;
+			color         : #f9fafb;
+			font-family   : inherit;
+			font-size     : 1.25rem;
+			cursor        : pointer;
+			transition    : all 0.15s ease;
+
+			&:hover {
+				border-color : #10b981;
+			}
+
+			&.selected {
+				border-color : #10b981;
+				background   : rgba(16, 185, 129, 0.2);
+				font-weight  : 700;
+			}
+		}
+	}
+
+	.leaderboard-subtabs {
+		align-items : center;
+
+		button {
+			font-size : 1.1rem;
+			padding   : 0.35rem 0.9rem;
+		}
+	}
+
+	.leaderboard-date {
+		font-size : 1.1rem;
+		opacity   : 0.75;
+	}
+
+	.leaderboard-table {
+		width           : 100%;
+		border-collapse : collapse;
+		font-size       : 1.35rem;
+
+		th, td {
+			padding       : 0.55rem 0.5rem;
+			border-bottom : 1px solid rgba(249, 250, 251, 0.15);
+		}
+
+		th {
+			opacity     : 0.75;
+			font-weight : 600;
+		}
+
+		td:nth-child(2) {
+			text-align  : left;
+			word-break  : break-word;
+		}
+
+		// Le joueur connecté
+		tr.me td {
+			background  : rgba(245, 158, 11, 0.15);
+			color       : #fbbf24;
+			font-weight : 700;
+		}
+	}
+
+	.leaderboard-me {
+		margin    : 1.25rem 0 0;
+		font-size : 1.4rem;
+		color     : #fbbf24;
+	}
+
+	.leaderboard-status {
+		margin    : 1.5rem 0;
+		font-size : 1.4rem;
+		opacity   : 0.8;
+	}
+
+	.leaderboard-error {
+		color : #fca5a5;
+	}
+}
+
+@media (max-width: 600px) {
+	.leaderboard {
+		padding : 1rem;
+
+		.leaderboard-card {
+			padding : 1.25rem 0.75rem;
+		}
+
+		h1 {
+			font-size : 2.4rem;
+		}
+
+		.leaderboard-table {
+			font-size : 1.1rem;
+
+			th, td {
+				padding : 0.45rem 0.25rem;
+			}
+		}
+	}
+}
