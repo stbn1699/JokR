@@ -5,6 +5,7 @@ import gamesRoutes from "./routes/Games.routes.js";
 import usersRoutes from "./routes/Users.routes.js";
 import GameStatsRoutes from "./routes/GameStatsRoutes.js";
 import sudokuRoutes from "./routes/Sudoku.routes.js";
+import bineroRoutes from "./routes/Binero.routes.js";
 
 /*
  * Point d'entrée de l'API backend
@@ -32,6 +33,7 @@ app.use("/games", gamesRoutes);
 app.use("/users", usersRoutes);
 app.use("/gameStats", GameStatsRoutes);
 app.use("/sudoku", sudokuRoutes);
+app.use("/binero", bineroRoutes);
 
 // error handler minimal — capture les erreurs qui remontent via next(err)
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
