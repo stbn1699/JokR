@@ -14,10 +14,17 @@ Jeu disponible : **Sudoku**.
 ## Prérequis
 
 - Node 20 ou plus
+- [pnpm](https://pnpm.io/installation) 10 : le front et l'API forment un workspace pnpm, avec un seul lockfile
 - PostgreSQL
 - [Flyway CLI](https://documentation.red-gate.com/fd/command-line-184127404.html) pour les migrations
 
 ## Installation
+
+À la racine, une seule commande installe les dépendances du front et de l'API :
+
+```bash
+pnpm install
+```
 
 ### 1. Base de données
 
@@ -25,7 +32,7 @@ Créer une base `jokr`, puis appliquer les migrations. Le mot de passe Postgres 
 (il ne doit pas être écrit dans `database/flyway.conf`, qui est versionné) :
 
 ```bash
-FLYWAY_PASSWORD=<mot de passe postgres> npm run migrate
+FLYWAY_PASSWORD=<mot de passe postgres> pnpm migrate
 ```
 
 ### 2. API
@@ -33,8 +40,7 @@ FLYWAY_PASSWORD=<mot de passe postgres> npm run migrate
 ```bash
 cd backend
 cp .env.example .env   # puis remplir les valeurs (voir le fichier)
-npm install
-npm run dev            # http://localhost:3000
+pnpm dev               # http://localhost:3000
 ```
 
 Le serveur refuse de démarrer si `JWT_SECRET` manque ou fait moins de 32 caractères.
@@ -44,21 +50,27 @@ La commande pour en générer un est dans `backend/.env.example`.
 
 ```bash
 cp .env.example .env   # VITE_API_URL=http://localhost:3000
-npm install
-npm run dev            # http://localhost:5173
+pnpm dev               # http://localhost:5173
 ```
 
 ## Scripts
 
-| Où         | Commande          | Effet                                   |
-|------------|-------------------|-----------------------------------------|
-| racine     | `npm run dev`     | front en mode dev                       |
-| racine     | `npm run build`   | typecheck + build du front dans `dist/` |
-| racine     | `npm run lint`    | ESLint sur tout le projet               |
-| racine     | `npm run migrate` | migrations Flyway                       |
-| `backend/` | `npm run dev`     | API avec rechargement automatique       |
-| `backend/` | `npm run build`   | compile l'API dans `backend/dist/`      |
-| `backend/` | `npm start`       | lance l'API compilée                    |
+| Où         | Commande         | Effet                                   |
+|------------|------------------|-----------------------------------------|
+| racine     | `pnpm dev`       | front en mode dev                       |
+| racine     | `pnpm build`     | typecheck + build du front dans `dist/` |
+| racine     | `pnpm lint`      | ESLint sur tout le projet               |
+| racine     | `pnpm test`      | tests du front (Vitest)                 |
+| racine     | `pnpm test:all`  | tests du front et de l'API              |
+| racine     | `pnpm migrate`   | migrations Flyway                       |
+| `backend/` | `pnpm dev`       | API avec rechargement automatique       |
+| `backend/` | `pnpm typecheck` | vérification des types de l'API         |
+| `backend/` | `pnpm test`      | tests de l'API (Vitest)                 |
+| `backend/` | `pnpm build`     | compile l'API dans `backend/dist/`      |
+| `backend/` | `pnpm start`     | lance l'API compilée                    |
+
+La CI GitHub Actions (`.github/workflows/ci.yml`) lance lint, typecheck, tests et builds à chaque push sur `main`
+et sur chaque pull request.
 
 ## Fonctionnement
 
