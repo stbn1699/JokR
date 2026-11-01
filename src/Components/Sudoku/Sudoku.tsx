@@ -51,6 +51,9 @@ export default function Sudoku({gameCode}: SudokuProps) {
     // Référence pour identifier une génération en cours (permet d'annuler l'animation)
     const generationRef = useRef(0);
 
+    // Identifiant de la partie en cours, donné par le serveur à la génération (requis pour valider)
+    const gameIdRef = useRef<string | null>(null);
+
     // Hook de navigation React Router
     const navigate = useNavigate();
 
@@ -198,7 +201,8 @@ export default function Sudoku({gameCode}: SudokuProps) {
         const TOTAL_ANIMATION_MS = 500;
 
         try {
-            const grid = await gameService.generateSudoku(count);
+            const {gameId, grid} = await gameService.generateSudoku(count);
+            gameIdRef.current = gameId;
 
             if (grid) {
                 sounds.pop()
@@ -323,9 +327,6 @@ export default function Sudoku({gameCode}: SudokuProps) {
             }
         });
     }, [highlightNumber]); // Se déclenche quand highlightNumber change
-
-    // Récupération de l'ID utilisateur depuis localStorage (pour les stats)
-    const userId: string | null = window.localStorage.getItem('userId');
 
     return (
         <div className="sudoku">
@@ -505,8 +506,15 @@ export default function Sudoku({gameCode}: SudokuProps) {
                             return;
                         }
 
+                        if (!gameIdRef.current) {
+                            alert('Génère une grille avant de valider.');
+                            return;
+                        }
+
                         try {
-                            const xp = await gameService.validateSudoku(values, userId, gameCode, cluesCount);
+                            const xp = await gameService.validateSudoku(gameIdRef.current, values);
+                            // partie terminée : le serveur ne l'acceptera plus
+                            gameIdRef.current = null;
                             // server returns xp (or undefined if not recorded)
                             setXpAwarded(xp ?? null);
                             setShowSuccess(true);

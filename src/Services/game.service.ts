@@ -10,22 +10,21 @@ export const gameService = {
         return api<number>(`/games/getBaseXp/${gameCode}`, {method: "GET"});
     },
 
-    // nouvelle méthode : demande au backend une grille Sudoku
-    async generateSudoku(cluesCount: number): Promise<number[][]> {
-        const res = await api<{ grid: number[][] }>(`/sudoku/generateSudoku`, {
+    // demande au backend une grille Sudoku ; gameId identifie la partie pour la validation
+    generateSudoku(cluesCount: number): Promise<{ gameId: string; grid: number[][] }> {
+        return api<{ gameId: string; grid: number[][] }>(`/sudoku/generateSudoku`, {
             method: "POST",
             body: JSON.stringify({cluesCount}),
             headers: {"Content-Type": "application/json"}
         });
-        return res.grid;
     },
 
-    // valider une grille complète côté serveur (optionellement enregistrer la victoire)
-    // envoie cluesCount au serveur; la réponse contient { xp?: number }
-    async validateSudoku(grid: number[][], userId?: string | null, gameCode?: string, cluesCount?: number): Promise<number | undefined> {
+    // valide la grille côté serveur ; si l'utilisateur est connecté, le serveur calcule
+    // et enregistre l'XP (renvoyée dans la réponse)
+    async validateSudoku(gameId: string, grid: number[][]): Promise<number | undefined> {
         const res = await api<{ xp?: number }>(`/sudoku/validateSudoku`, {
             method: "POST",
-            body: JSON.stringify({grid, user_id: userId, game_code: gameCode, cluesCount}),
+            body: JSON.stringify({gameId, grid}),
             headers: {"Content-Type": "application/json"}
         });
         return res.xp;

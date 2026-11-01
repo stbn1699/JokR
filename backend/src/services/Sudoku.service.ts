@@ -6,15 +6,34 @@ export class SudokuService {
         return generateSudoku(numPlaced);
     }
 
+    // XP gagnée selon la difficulté : xp = baseXp × (40 / cluesCount)^1.1, bornée entre 20 et 300
+    computeXp(baseXp: number, cluesCount: number): number {
+        const referenceClues = 40;
+        const exponent = 1.1;
+        const xp = Math.round(baseXp * Math.pow(referenceClues / Math.max(1, cluesCount), exponent));
+        return Math.max(20, Math.min(xp, 300));
+    }
+
+    // true si chaque chiffre donné au départ (case non nulle du puzzle) est toujours à sa place
+    respectsClues(puzzle: number[][], grid: number[][]): boolean {
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const clue = puzzle[r]![c]!;
+                if (clue !== 0 && grid[r]![c] !== clue) return false;
+            }
+        }
+        return true;
+    }
+
     // validate checks a completed 9x9 sudoku grid and returns true if it's a valid solution
-    validate(grid: unknown): boolean {
+    validate(grid: unknown): grid is number[][] {
         // basic shape check: must be array of 9 arrays of 9 numbers
         if (!Array.isArray(grid) || grid.length !== 9) return false;
         for (const row of grid) {
             if (!Array.isArray(row) || row.length !== 9) return false;
-            for (const v of row) {
-                // v may be any; ensure it's an integer between 1 and 9
-                if (!Number.isInteger(v as any) || (v as any) < 1 || (v as any) > 9) return false;
+            for (const v of row as unknown[]) {
+                // ensure it's an integer between 1 and 9
+                if (typeof v !== "number" || !Number.isInteger(v) || v < 1 || v > 9) return false;
             }
         }
 

@@ -4,96 +4,99 @@ import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import type {GameStatsService} from "../services/GameStats.service.js";
 import type {UsersService} from "../services/Users.service.js";
 import type {GamesService} from "../services/Games.service.js";
+import type {SudokuGameStore} from "../services/SudokuGameStore.js";
+import type {AuthLocals} from "../middleware/auth.js";
 
-export function createSudokuController(service: SudokuService, gameStatsService?: GameStatsService, usersService?: UsersService, gamesService?: GamesService) {
+const GAME_CODE = "SUDOKU";
+
+/*
+ * Contrôleur Sudoku
+ * - generate : génère une grille, la mémorise côté serveur et renvoie { gameId, grid }
+ * - validate : vérifie la solution d'une grille générée ; si l'utilisateur est connecté (JWT),
+ *   l'XP est calculée et enregistrée côté serveur. Chaque partie ne peut être validée qu'une fois.
+ */
+export function createSudokuController(
+    service: SudokuService,
+    store: SudokuGameStore,
+    gameStatsService: GameStatsService,
+    usersService: UsersService,
+    gamesService: GamesService,
+) {
     return {
         generate: asyncHandler(async (req: Request, res: Response) => {
-
             const {cluesCount} = req.body ?? {};
-            const numPlaced = Number.isInteger(cluesCount) ? Number(cluesCount) : undefined;
 
-            // validation
-            if (numPlaced === undefined || isNaN(numPlaced)) {
+            if (!Number.isInteger(cluesCount)) {
                 res.status(400).json({status: "error", message: "cluesCount must be an integer"});
                 return;
             }
-            if (numPlaced < 0 || numPlaced > 81) {
+            // Valeur visée : le générateur peut laisser plus d'indices s'il ne peut pas en retirer davantage
+            // (l'XP est calculée sur le nombre réel d'indices, voir validate)
+            if (cluesCount < 0 || cluesCount > 81) {
                 res.status(400).json({status: "error", message: "cluesCount must be between 0 and 81"});
                 return;
             }
 
             // call service with timeout
-            const genPromise = service.generate(numPlaced);
             const timeoutMs = 15000; // 15s
-            const timeoutPromise = new Promise<never>((_res, rej) => setTimeout(() => rej(new Error('generation timeout')), timeoutMs));
+            let timer: NodeJS.Timeout | undefined;
+            const timeoutPromise = new Promise<never>((_res, rej) => {
+                timer = setTimeout(() => rej(new Error('generation timeout')), timeoutMs);
+            });
 
             let grid: number[][];
             try {
-                grid = await Promise.race([genPromise, timeoutPromise]);
+                grid = await Promise.race([service.generate(cluesCount), timeoutPromise]);
             } catch (err) {
                 console.error('[Sudoku] generation error or timeout', err);
                 res.status(503).json({status: 'error', message: 'Generation timed out or failed'});
                 return;
+            } finally {
+                clearTimeout(timer);
             }
 
-            res.status(200).json({status: "ok", data: {grid}});
+            const gameId = store.create(grid);
+            res.status(200).json({status: "ok", data: {gameId, grid}});
         }),
 
-        // Validate a completed grid. Body expected: { grid: number[][], user_id?: string, game_code?: string, cluesCount?: number }
-        validate: asyncHandler(async (req: Request, res: Response) => {
-            const {grid, user_id, game_code, cluesCount} = req.body ?? {};
+        // Body attendu : { gameId: string, grid: number[][] }
+        validate: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const {gameId, grid} = req.body ?? {};
 
-            if (!grid) {
-                res.status(400).json({status: 'error', message: 'grid is required'});
+            if (typeof gameId !== "string" || !grid) {
+                res.status(400).json({status: 'error', message: 'gameId and grid are required'});
                 return;
             }
 
-            const valid = service.validate(grid);
-            if (!valid) {
+            const game = store.get(gameId);
+            if (!game) {
+                res.status(404).json({status: 'error', message: 'Partie introuvable ou expirée, génère une nouvelle grille'});
+                return;
+            }
+
+            if (!service.validate(grid) || !service.respectsClues(game.puzzle, grid)) {
                 res.status(400).json({status: 'error', message: 'Invalid Sudoku grid'});
                 return;
             }
 
-            // default game code
-            const gameCode = game_code ?? 'SUDOKU';
+            // Partie terminée : on la retire tout de suite pour empêcher une double validation
+            store.delete(gameId);
 
-            // compute xp server-side if user provided
-            let xpAwarded: number | undefined = undefined;
-            if (user_id) {
-                // Need cluesCount to compute xp; accept if provided and valid
-                const clues = Number.isInteger(cluesCount) ? Number(cluesCount) : undefined;
-                if (clues === undefined || clues <= 0 || clues > 81) {
-                    res.status(400).json({status: 'error', message: 'cluesCount (integer 1..81) is required to compute XP'});
-                    return;
-                }
-
-                if (!gamesService) {
-                    console.warn('[Sudoku] gamesService not available to compute XP');
-                    res.status(200).json({status: 'ok', message: 'valid, but xp not computed (server not configured)'});
-                    return;
-                }
-
-                // récupère base XP
-                const baseXp = await gamesService.getBaseXp(gameCode) ?? 0;
-
-                // Calcul de l'XP centralisé (même formule que client)
-                const referenceClues = 40;
-                const exponent = 1.1;
-                let xp = Math.round(baseXp * Math.pow(referenceClues / clues, exponent));
-                xp = Math.max(20, Math.min(xp, 300));
-
-                xpAwarded = xp;
-
-                // record win via services existants
-                if (gameStatsService && usersService) {
-                    await gameStatsService.gameWin(user_id, gameCode, xp);
-                    await usersService.updateUserXpAndLevel(user_id, xp);
-                } else {
-                    console.warn('[Sudoku] gameStatsService or usersService not available to record win');
-                }
+            // Invité : grille valide mais pas d'XP
+            const userId = res.locals.userId;
+            if (!userId) {
+                res.status(200).json({status: 'ok', data: {xp: undefined}});
+                return;
             }
 
-            res.status(200).json({status: 'ok', data: {xp: xpAwarded}});
+            // XP calculée uniquement côté serveur, à partir du nombre réel d'indices de la grille
+            const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
+            const xp = service.computeXp(baseXp, game.cluesCount);
+
+            await gameStatsService.gameWin(userId, GAME_CODE, xp);
+            await usersService.updateUserXpAndLevel(userId, xp);
+
+            res.status(200).json({status: 'ok', data: {xp}});
         })
     };
 }
