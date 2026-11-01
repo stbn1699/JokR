@@ -3,6 +3,7 @@ import {bineroService} from "../../Services/binero.service.ts";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
 import type {ValidationResult} from "../PuzzleUI/useGameFlow.ts";
 import {useMoveHistory} from "../PuzzleUI/useMoveHistory.ts";
+import {clearSavedGame, saveGame} from "../PuzzleUI/savedGame.ts";
 
 // Durée totale de l'apparition des chiffres donnés (ms)
 const TOTAL_ANIMATION_MS = 500;
@@ -17,7 +18,12 @@ const TOTAL_ANIMATION_MS = 500;
  * - validate() : envoie la grille au serveur (qui calcule l'XP si le joueur est connecté)
  * - counts : nombre de 0 et de 1 posés
  * - undo() / redo() : annule / rétablit le dernier coup (canUndo / canRedo pour les boutons)
+ * - restore(grid, saved) : reprend une partie sauvegardée (grille de départ renvoyée par le serveur)
  */
+// Partie sauvegardée dans le navigateur (pour la reprendre après un rafraîchissement)
+export type SavedBinero = { gameId: string; size: number; values: BineroCell[] };
+const GAME_CODE = "BINERO";
+
 export function useBineroGame() {
     const [size, setSize] = useState(0);
     // Chiffres donnés au départ (null = case à remplir)
@@ -37,6 +43,13 @@ export function useBineroGame() {
         timerRef.current = null;
     };
     useEffect(() => stopAnimation, []);
+
+    // Sauvegarde la partie en cours dans le navigateur à chaque coup
+    useEffect(() => {
+        if (gameIdRef.current && size > 0 && !isGenerating) {
+            saveGame<SavedBinero>(GAME_CODE, {gameId: gameIdRef.current, size, values});
+        }
+    }, [values, size, isGenerating]);
 
     const counts = useMemo(() => ({
         0: values.filter(v => v === 0).length,
@@ -98,6 +111,19 @@ export function useBineroGame() {
         return move?.index ?? null;
     };
 
+    // Reprend une partie sauvegardée : chiffres donnés (serveur) + saisies du joueur (navigateur)
+    const restore = (grid: BineroCell[][], saved: SavedBinero) => {
+        stopAnimation();
+        const flat = grid.flat();
+        gameIdRef.current = saved.gameId;
+        setSize(grid.length);
+        setClues(flat);
+        setValues(flat.map((clue, i) => clue ?? saved.values[i] ?? null));
+        setRevealed(flat.length);
+        setIsGenerating(false);
+        history.clear();
+    };
+
     const validate = async (): Promise<ValidationResult> => {
         if (!gameIdRef.current) return {ok: false, message: "Génère une grille avant de valider."};
         if (values.some(v => v === null)) {
@@ -109,6 +135,7 @@ export function useBineroGame() {
             const result = await bineroService.validate(gameIdRef.current, grid);
             // Partie terminée : le serveur ne l'acceptera plus
             gameIdRef.current = null;
+            clearSavedGame(GAME_CODE);
             return {ok: true, result};
         } catch (err) {
             console.error("Validation failed", err);
@@ -118,6 +145,6 @@ export function useBineroGame() {
 
     return {
         size, clues, values, revealed, isGenerating, counts, isClue, generate, setCell, validate,
-        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo,
+        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
     };
 }

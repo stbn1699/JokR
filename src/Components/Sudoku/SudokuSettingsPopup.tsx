@@ -7,13 +7,15 @@ type SudokuSettingsPopupProps = {
     open: boolean;
     // Appelé avec le nombre de cases pré-remplies (indices) à demander au serveur
     onGenerate: (cluesCount: number) => void;
+    // Partie en cours à reprendre, s'il y en a une
+    resume?: { elapsedMs: number; onResume: () => void };
 };
 
 /**
  * Paramètres d'une partie de Sudoku (grille toujours 9×9) : nombre de cases à remplir.
  * Les limites et l'XP viennent du serveur (GET /sudoku/settings).
  */
-export default function SudokuSettingsPopup({open, onGenerate}: SudokuSettingsPopupProps) {
+export default function SudokuSettingsPopup({open, onGenerate, resume}: SudokuSettingsPopupProps) {
     const [settings, setSettings] = useState<SudokuSettings | null>(null);
     const [emptyCells, setEmptyCells] = useState(0);
     const [error, setError] = useState<string | null>(null);
@@ -42,6 +44,7 @@ export default function SudokuSettingsPopup({open, onGenerate}: SudokuSettingsPo
             onEmptyCellsChange={setEmptyCells}
             xp={settings?.xpByEmptyCells[emptyCells]}
             onGenerate={() => onGenerate(81 - emptyCells)}
+            resume={resume}
         />
     );
 }

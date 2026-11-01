@@ -3,6 +3,7 @@ import {useNavigate} from "react-router-dom";
 import "./GameSettingsPopup.scss";
 import "../SuccessPopup/SuccessPopup.scss";
 import {useAuth} from "../../Context/authContext.ts";
+import {formatDuration} from "../../Services/format.ts";
 
 type GameSettingsPopupProps = {
     open: boolean;
@@ -20,6 +21,8 @@ type GameSettingsPopupProps = {
     // XP gagnée à la résolution avec ces paramètres
     xp: number | undefined;
     onGenerate: () => void;
+    // Partie en cours qu'on peut reprendre (après un rafraîchissement de la page)
+    resume?: { elapsedMs: number; onResume: () => void };
 };
 
 /**
@@ -45,6 +48,15 @@ export default function GameSettingsPopup(props: GameSettingsPopupProps) {
         <div className="modal-overlay game-settings-overlay" role="dialog" aria-modal="true"
              aria-labelledby="game-settings-title">
             <form className="modal game-settings" onSubmit={handleSubmit}>
+                {props.resume && (
+                    <div className="game-settings-resume">
+                        <p>Une partie est en cours depuis {formatDuration(props.resume.elapsedMs)}.</p>
+                        <button type="button" className="modal-button" onClick={props.resume.onResume}>
+                            Reprendre la partie
+                        </button>
+                    </div>
+                )}
+
                 <h2 id="game-settings-title">Nouvelle partie</h2>
 
                 {error && <p className="game-settings-error">{error}</p>}

@@ -23,7 +23,9 @@ import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
 import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
 import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
-import {useSudokuGame} from "./useSudokuGame.ts";
+import {type SavedSudoku, useSudokuGame} from "./useSudokuGame.ts";
+import {useResumableGame} from "../PuzzleUI/savedGame.ts";
+import {gameService} from "../../Services/game.service.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
 import SudokuGrid from "./SudokuGrid.tsx";
 import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
@@ -36,7 +38,9 @@ export default function Sudoku() {
         inputs, isGenerating, generate, validate,
         digitCounts, selectedDigit, toggleDigit, fillSelected, pressDigit, setHoverDigit, setSelectedCell,
         onCellInput, undo, redo, canUndo, canRedo, conflicts, notes, notesMode, setNotesMode, toggleNoteAt,
+        restore,
     } = useSudokuGame(showErrors);
+    const {resumable, dismissResumable} = useResumableGame<SavedSudoku, number[][]>("SUDOKU", gameService.getSudokuGame);
     const flow = useGameFlow();
     const playing = !flow.showSettings && !flow.victory && !isGenerating;
     useUndoShortcuts(undo, redo, playing);
@@ -56,7 +60,15 @@ export default function Sudoku() {
     }, [playing, setNotesMode]);
 
     const handleGenerate = (cluesCount: number) => {
+        dismissResumable();
         void flow.generate(() => generate(cluesCount));
+    };
+
+    const handleResume = () => {
+        if (!resumable) return;
+        restore(resumable.grid, resumable.saved);
+        flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
+        dismissResumable();
     };
 
     return (
@@ -85,7 +97,8 @@ export default function Sudoku() {
                 <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
             </div>
 
-            <SudokuSettingsPopup open={flow.showSettings} onGenerate={handleGenerate}/>
+            <SudokuSettingsPopup open={flow.showSettings} onGenerate={handleGenerate}
+                                 resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
 
             {flow.victory && (
                 <SuccessPopup gameName="Sudoku" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}

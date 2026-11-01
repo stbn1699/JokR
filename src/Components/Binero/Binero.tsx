@@ -21,7 +21,10 @@ import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
 import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import {bineroConflicts} from "./bineroRules.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
-import {useBineroGame} from "./useBineroGame.ts";
+import {type SavedBinero, useBineroGame} from "./useBineroGame.ts";
+import {useResumableGame} from "../PuzzleUI/savedGame.ts";
+import {bineroService} from "../../Services/binero.service.ts";
+import type {BineroCell} from "../../Models/bineroSettings.model.ts";
 import BineroGrid from "./BineroGrid.tsx";
 import BineroSettingsPopup from "./BineroSettingsPopup.tsx";
 
@@ -30,6 +33,7 @@ const DIGITS = [0, 1];
 export default function Binero() {
     const game = useBineroGame();
     const flow = useGameFlow();
+    const {resumable, dismissResumable} = useResumableGame<SavedBinero, BineroCell[][]>("BINERO", bineroService.getGame);
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
     const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
@@ -46,7 +50,16 @@ export default function Binero() {
         else setSelectedDigit(current => (current === n ? null : n));
     };
 
+    const handleResume = () => {
+        if (!resumable) return;
+        setSelectedDigit(null);
+        game.restore(resumable.grid, resumable.saved);
+        flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
+        dismissResumable();
+    };
+
     const handleGenerate = (size: number, emptyCells: number) => {
+        dismissResumable();
         setSelectedDigit(null);
         void flow.generate(() => game.generate(size, emptyCells));
     };
@@ -105,7 +118,8 @@ export default function Binero() {
                 </div>
             </div>
 
-            <BineroSettingsPopup open={flow.showSettings} onGenerate={handleGenerate}/>
+            <BineroSettingsPopup open={flow.showSettings} onGenerate={handleGenerate}
+                                 resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
 
             {flow.victory && (
                 <SuccessPopup gameName="Binero" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}

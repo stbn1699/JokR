@@ -6,13 +6,15 @@ import GameSettingsPopup from "../PuzzleUI/GameSettingsPopup.tsx";
 type BineroSettingsPopupProps = {
     open: boolean;
     onGenerate: (size: number, emptyCells: number) => void;
+    // Partie en cours à reprendre, s'il y en a une
+    resume?: { elapsedMs: number; onResume: () => void };
 };
 
 /**
  * Paramètres d'une partie de Binero : taille de la grille et nombre de cases à remplir.
  * La plage de cases à remplir dépend de la taille ; limites et XP viennent du serveur.
  */
-export default function BineroSettingsPopup({open, onGenerate}: BineroSettingsPopupProps) {
+export default function BineroSettingsPopup({open, onGenerate, resume}: BineroSettingsPopupProps) {
     const [settings, setSettings] = useState<BineroSettings | null>(null);
     const [size, setSize] = useState(0);
     const [emptyCells, setEmptyCells] = useState(0);
@@ -59,6 +61,7 @@ export default function BineroSettingsPopup({open, onGenerate}: BineroSettingsPo
             onEmptyCellsChange={setEmptyCells}
             xp={current?.xpByEmptyCells[emptyCells]}
             onGenerate={() => onGenerate(size, emptyCells)}
+            resume={resume}
         />
     );
 }

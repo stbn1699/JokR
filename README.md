@@ -10,6 +10,16 @@ Jeux disponibles :
 Avant chaque partie, une popup permet de choisir les paramètres (taille, nombre de cases à remplir)
 et affiche l'XP gagnée à la résolution.
 
+En jeu :
+
+- **Chrono** pendant la partie ; le temps officiel est mesuré par le serveur. Badge « Nouveau record »
+  quand c'est le meilleur temps du joueur sur la même configuration.
+- **Annuler / Rétablir** (boutons ou Ctrl+Z / Ctrl+Y).
+- **Montrer les erreurs** (option) : les cases qui contredisent déjà les règles passent en rouge.
+- **Notes au crayon** au Sudoku (bouton ✏ ou touche N).
+- **Reprise** d'une partie après un rafraîchissement de la page (tant que le serveur la garde en mémoire).
+- Jouable à la souris et au doigt (panneau des chiffres), mise en page adaptée aux téléphones.
+
 ## Stack
 
 | Partie   | Techno                                              | Dossier      |
@@ -100,11 +110,14 @@ et sur chaque pull request.
 | POST    | `/users/register`          | –         | inscription (limitée à 5/h par IP)        |
 | POST    | `/users/login`             | –         | connexion (limitée à 10/15 min par IP)    |
 | GET     | `/users/me`                | requise   | profil du joueur connecté                 |
+| GET     | `/users/me/results`        | requise   | ses 10 dernières parties gagnées          |
 | GET     | `/users/:userId`           | –         | profil public (sans email)                |
 | GET     | `/gameStats/user/:userId`  | –         | stats par jeu d'un joueur                 |
 | GET     | `/sudoku/settings`         | –         | plage de cases à remplir et XP proposées  |
 | POST    | `/sudoku/generateSudoku`   | –         | nouvelle grille → `{ gameId, grid }`      |
+| GET     | `/sudoku/games/:gameId`    | –         | partie en cours (pour la reprendre)       |
 | POST    | `/sudoku/validateSudoku`   | optionnel | valide `{ gameId, grid }`, XP si connecté |
 | GET     | `/binero/settings`         | –         | tailles, plages et XP proposées           |
 | POST    | `/binero/generate`         | –         | `{ size, emptyCells }` → `{ gameId, grid }` |
+| GET     | `/binero/games/:gameId`    | –         | partie en cours (pour la reprendre)       |
 | POST    | `/binero/validate`         | optionnel | valide `{ gameId, grid }`, XP si connecté |
