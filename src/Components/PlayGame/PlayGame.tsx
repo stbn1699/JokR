@@ -18,6 +18,8 @@ import Binero from "../Binero/Binero.tsx";
  */
 type RouteParams = {
     gameCode?: string
+    // Défi d'un jour passé (AAAA-MM-JJ), sur /defi/:gameCode/:date
+    date?: string
 }
 
 /**
@@ -26,7 +28,7 @@ type RouteParams = {
  */
 export default function PlayGame({daily = false}: { daily?: boolean }) {
     // Extraction du code du jeu depuis l'URL (ex: /playgame/SUDOKU → gameCode = "SUDOKU")
-    const {gameCode} = useParams<RouteParams>()
+    const {gameCode, date} = useParams<RouteParams>()
 
     /**
      * Fonction qui retourne le composant du jeu correspondant au code
@@ -36,9 +38,9 @@ export default function PlayGame({daily = false}: { daily?: boolean }) {
         switch (gameCode) {
             case "SUDOKU":
                 // Affiche le jeu Sudoku avec son code
-                return <Sudoku daily={daily}/>;
+                return <Sudoku daily={daily && !date} replayDate={date}/>;
             case "BINERO":
-                return <Binero daily={daily}/>;
+                return <Binero daily={daily && !date} replayDate={date}/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

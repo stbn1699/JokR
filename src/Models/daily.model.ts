@@ -32,3 +32,17 @@ export interface DailyLeaderboard {
     entries: { rank: number; username: string; durationMs: number }[];
     me: DailyResult | null;
 }
+
+// GET /daily/history : défis des jours précédents
+export interface DailyHistoryDay {
+    date: string;
+    games: {
+        code: string;
+        size: number;
+        emptyCells: number;
+        // Nombre de joueurs classés ce jour-là
+        players: number;
+        // Réussite du joueur connecté ce jour-là (null si pas joué ou invité)
+        result: DailyResult | null;
+    }[];
+}

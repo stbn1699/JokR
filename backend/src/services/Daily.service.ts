@@ -61,6 +61,37 @@ export class DailyService {
         return {counted, ...await this.repo.rankOf(date, gameCode, durationMs)};
     }
 
+    // Défi déjà enregistré pour un jour passé (null s'il n'y en a pas eu ce jour-là)
+    async pastChallenge(gameCode: DailyGameCode, date: string) {
+        return (await this.repo.findChallenge(date, gameCode)) ?? null;
+    }
+
+    /**
+     * Historique des défis avant `today` (sur `days` jours), avec le nombre de joueurs classés
+     * et, si `userId` est donné, la réussite du joueur ce jour-là (temps et place).
+     */
+    async history(today: string, days: number, userId?: string) {
+        const rows = await this.repo.listPast(today, days);
+        const dates = [...new Set(rows.map(r => r.date))];
+        const mine = userId ? await this.repo.resultsOf(userId, dates) : [];
+
+        return Promise.all(dates.map(async date => ({
+            date,
+            games: await Promise.all(rows.filter(r => r.date === date).map(async r => {
+                const result = mine.find(m => m.date === date && m.game_code === r.game_code);
+                return {
+                    code: r.game_code,
+                    size: r.grid_size,
+                    emptyCells: r.empty_cells,
+                    players: Number(r.players),
+                    result: result
+                        ? {durationMs: result.duration_ms, ...await this.repo.rankOf(date, r.game_code, result.duration_ms)}
+                        : null,
+                };
+            })),
+        })));
+    }
+
     async leaderboard(gameCode: DailyGameCode, date: string, limit = 20) {
         const rows = await this.repo.leaderboard(date, gameCode, limit);
         return rows.map((row, i) => ({rank: i + 1, username: row.username, durationMs: row.duration_ms}));

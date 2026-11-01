@@ -24,7 +24,8 @@ Autour des jeux :
 
 - **Défi du jour** : une grille Sudoku (9×9, 45 cases) et une Binero (10×10, 50 cases) par jour, les mêmes pour
   tout le monde, avec un classement au temps. Une seule réussite comptée par jour (XP et classement).
-  Le jour change à minuit, heure de Paris.
+  Le jour change à minuit, heure de Paris. Les défis des jours précédents se rejouent depuis `/defi` :
+  ils comptent alors comme une partie normale (XP habituelle) et n'entrent pas dans le classement de leur jour.
 - **Classements** : XP globale, niveau par jeu, et défi du jour (page `/classements`).
 - **Profil** : stats par jeu, historique des parties, changement de mot de passe, suppression du compte.
 
@@ -133,6 +134,8 @@ et sur chaque pull request.
 | POST    | `/binero/validate`         | optionnel | valide `{ gameId, grid }`, XP si connecté |
 | GET     | `/daily`                   | optionnel | défis du jour (et résultats du joueur)    |
 | POST    | `/daily/:game/start`       | optionnel | commence le défi du jour                  |
-| GET     | `/daily/:game/leaderboard` | optionnel | meilleurs temps du jour                   |
+| GET     | `/daily/history`           | optionnel | défis des 30 jours précédents             |
+| POST    | `/daily/:game/replay/:date`| –         | rejoue un défi passé (partie normale)     |
+| GET     | `/daily/:game/leaderboard` | optionnel | meilleurs temps du jour (`?date=` passée) |
 | GET     | `/leaderboard/xp`          | optionnel | classement par XP globale                 |
 | GET     | `/leaderboard/games/:game` | optionnel | classement d'un jeu                       |

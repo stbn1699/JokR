@@ -1,6 +1,7 @@
 /**
  * Page Classements : XP globale, par jeu, et défi du jour.
- * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|defi&jeu=sudoku|binero) pour pouvoir y renvoyer.
+ * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|defi&jeu=sudoku|binero[&date=AAAA-MM-JJ])
+ * pour pouvoir y renvoyer (date = classement d'un défi passé).
  */
 
 import "./Leaderboard.scss";
@@ -29,6 +30,7 @@ export default function Leaderboard() {
     const [params, setParams] = useSearchParams();
     const tab: Tab = TABS.some(t => t.id === params.get("onglet")) ? params.get("onglet") as Tab : "xp";
     const dailyGame = params.get("jeu") === "binero" ? "binero" : "sudoku";
+    const dailyDateParam = params.get("date") ?? undefined;
 
     const [board, setBoard] = useState<Board | null>(null);
     const [daily, setDaily] = useState<DailyLeaderboard | null>(null);
@@ -38,7 +40,7 @@ export default function Leaderboard() {
     useEffect(() => {
         const controller = new AbortController();
         const request = tab === "defi"
-            ? dailyService.leaderboard(dailyGame, controller.signal).then(d => {
+            ? dailyService.leaderboard(dailyGame, controller.signal, dailyDateParam).then(d => {
                 setDaily(d);
                 setBoard(null);
             })
@@ -54,7 +56,7 @@ export default function Leaderboard() {
             })
             .finally(() => setLoading(false));
         return () => controller.abort();
-    }, [tab, dailyGame]);
+    }, [tab, dailyGame, dailyDateParam]);
 
     const select = (next: Record<string, string>) => {
         setLoading(true);
@@ -81,11 +83,16 @@ export default function Leaderboard() {
                     <div className="leaderboard-subtabs">
                         {DAILY_GAMES.map(g => (
                             <button key={g.id} type="button" className={dailyGame === g.id ? "selected" : ""}
-                                    onClick={() => select({onglet: "defi", jeu: g.id})}>
+                                    onClick={() => select({onglet: "defi", jeu: g.id, ...(dailyDateParam ? {date: dailyDateParam} : {})})}>
                                 {g.label}
                             </button>
                         ))}
                         {daily && <span className="leaderboard-date">{formatDailyDate(daily.date)}</span>}
+                        {dailyDateParam && (
+                            <button type="button" onClick={() => select({onglet: "defi", jeu: dailyGame})}>
+                                Aujourd'hui
+                            </button>
+                        )}
                     </div>
                 )}
 

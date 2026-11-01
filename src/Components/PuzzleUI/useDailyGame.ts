@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {dailyService} from "../../Services/daily.service.ts";
-import type {DailyResult} from "../../Models/daily.model.ts";
+import type {DailyResult, DailyStart} from "../../Models/daily.model.ts";
 import {loadGame, clearSavedGame} from "./savedGame.ts";
 
 /**
@@ -9,6 +9,7 @@ import {loadGame, clearSavedGame} from "./savedGame.ts";
  * - sinon commence le défi du jour,
  * - ou signale qu'il est déjà réussi aujourd'hui (`done`).
  * `onLoad` reçoit la grille de départ, la sauvegarde (saisies) et le temps déjà écoulé.
+ * `start` permet de charger autre chose que le défi du jour (ex. rejouer un jour passé).
  */
 export function useDailyGame<Saved extends { gameId: string }, Grid>(options: {
     enabled: boolean;
@@ -17,6 +18,7 @@ export function useDailyGame<Saved extends { gameId: string }, Grid>(options: {
     fetchStatus: (gameId: string) => Promise<{ grid: Grid; elapsedMs: number }>;
     emptySave: (gameId: string) => Saved;
     onLoad: (grid: Grid, saved: Saved, elapsedMs: number) => void;
+    start?: () => Promise<DailyStart<Grid>>;
 }) {
     const [date, setDate] = useState<string | null>(null);
     const [done, setDone] = useState<DailyResult | null>(null);
@@ -39,7 +41,7 @@ export function useDailyGame<Saved extends { gameId: string }, Grid>(options: {
                 }
             }
 
-            const started = await dailyService.start<Grid>(options.gameCode);
+            const started = options.start ? await options.start() : await dailyService.start<Grid>(options.gameCode);
             if (cancelled) return;
             setDate(started.date);
             if (started.alreadyDone) setDone(started.result);

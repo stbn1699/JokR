@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {isUuid, routeParam} from "./validation.js";
+import {isDateKey, isUuid, routeParam} from "./validation.js";
 
 describe("isUuid", () => {
     it("accepte un UUID", () => {
@@ -19,5 +19,19 @@ describe("routeParam", () => {
         expect(routeParam({id: "42"}, "id")).toBe("42");
         expect(routeParam({id: ["1", "2"]}, "id")).toBeUndefined();
         expect(routeParam({}, "id")).toBeUndefined();
+    });
+});
+
+describe("isDateKey", () => {
+    it("accepte une date AAAA-MM-JJ qui existe", () => {
+        expect(isDateKey("2026-10-31")).toBe(true);
+        expect(isDateKey("2024-02-29")).toBe(true);
+    });
+
+    it("refuse un autre format ou une date impossible", () => {
+        expect(isDateKey("31/10/2026")).toBe(false);
+        expect(isDateKey("2026-02-30")).toBe(false);
+        expect(isDateKey("2026-13-01")).toBe(false);
+        expect(isDateKey("2026-10-31; drop table")).toBe(false);
     });
 });

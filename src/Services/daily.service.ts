@@ -1,5 +1,5 @@
 import {api} from "../api/api.ts";
-import type {DailyLeaderboard, DailyOverview, DailyStart} from "../Models/daily.model.ts";
+import type {DailyHistoryDay, DailyLeaderboard, DailyOverview, DailyStart} from "../Models/daily.model.ts";
 
 const code = (gameCode: string) => encodeURIComponent(gameCode.toLowerCase());
 
@@ -14,8 +14,22 @@ export const dailyService = {
         return api<DailyStart<Grid>>(`/daily/${code(gameCode)}/start`, {method: "POST"});
     },
 
-    leaderboard(gameCode: string, signal?: AbortSignal): Promise<DailyLeaderboard> {
-        return api<DailyLeaderboard>(`/daily/${code(gameCode)}/leaderboard`, {method: "GET"}, signal);
+    // Classement du jour, ou d'un jour passé si `date` est donnée (AAAA-MM-JJ)
+    leaderboard(gameCode: string, signal?: AbortSignal, date?: string): Promise<DailyLeaderboard> {
+        const query = date ? `?date=${encodeURIComponent(date)}` : "";
+        return api<DailyLeaderboard>(`/daily/${code(gameCode)}/leaderboard${query}`, {method: "GET"}, signal);
+    },
+
+    // Défis des jours précédents (et résultats du joueur connecté)
+    history(signal?: AbortSignal): Promise<DailyHistoryDay[]> {
+        return api<DailyHistoryDay[]>("/daily/history", {method: "GET"}, signal);
+    },
+
+    // Rejoue le défi d'un jour passé : partie normale (XP normale, hors classement du jour)
+    async replay<Grid>(gameCode: string, date: string): Promise<DailyStart<Grid>> {
+        const game = await api<{ date: string; gameId: string; grid: Grid; size: number; emptyCells: number }>(
+            `/daily/${code(gameCode)}/replay/${encodeURIComponent(date)}`, {method: "POST"});
+        return {...game, alreadyDone: false};
     },
 };
 

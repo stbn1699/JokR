@@ -74,6 +74,13 @@
 		opacity   : 0.85;
 	}
 
+	.daily-banner-links {
+		display         : flex;
+		justify-content : space-between;
+		flex-wrap       : wrap;
+		gap             : 0.5rem;
+	}
+
 	.daily-banner-link {
 		display         : inline-block;
 		margin-top      : 0.9rem;

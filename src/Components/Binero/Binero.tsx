@@ -25,7 +25,7 @@ import {type SavedBinero, useBineroGame} from "./useBineroGame.ts";
 import {useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
-import {formatDailyDate} from "../../Services/daily.service.ts";
+import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {useNavigate} from "react-router-dom";
 import {bineroService} from "../../Services/binero.service.ts";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
@@ -37,21 +37,26 @@ const DIGITS = [0, 1];
 type BineroProps = {
     // Défi du jour : grille imposée, pas de popup de paramètres
     daily?: boolean;
+    // Défi d'un jour passé, rejoué en partie normale (hors classement) : AAAA-MM-JJ
+    replayDate?: string;
 };
 
-export default function Binero({daily = false}: BineroProps) {
+export default function Binero({daily = false, replayDate}: BineroProps) {
     const navigate = useNavigate();
-    // Sauvegarde séparée pour le défi du jour (on peut avoir une partie libre en cours en parallèle)
-    const saveKey = daily ? "BINERO:daily" : "BINERO";
+    // Grille imposée : défi du jour, ou défi d'un jour passé rejoué
+    const challenge = daily || replayDate !== undefined;
+    // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
+    const saveKey = replayDate ? `BINERO:replay:${replayDate}` : daily ? "BINERO:daily" : "BINERO";
     const game = useBineroGame(saveKey);
     const flow = useGameFlow();
-    const {resumable, dismissResumable} = useResumableGame<SavedBinero, BineroCell[][]>(saveKey, bineroService.getGame, !daily);
+    const {resumable, dismissResumable} = useResumableGame<SavedBinero, BineroCell[][]>(saveKey, bineroService.getGame, !challenge);
     const dailyGame = useDailyGame<SavedBinero, BineroCell[][]>({
-        enabled: daily,
+        enabled: challenge,
         gameCode: "BINERO",
         saveKey,
         fetchStatus: bineroService.getGame,
         emptySave: gameId => ({gameId, size: 0, values: []}),
+        start: replayDate ? () => dailyService.replay("BINERO", replayDate) : undefined,
         onLoad: (grid, saved, elapsedMs) => {
             game.restore(grid, saved);
             flow.resume(elapsedMs);
@@ -105,6 +110,9 @@ export default function Binero({daily = false}: BineroProps) {
                         Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
                     </p>
                 )}
+                {replayDate && (
+                    <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
+                )}
                 <h1 className="title">Binero</h1>
                 {game.size > 0 && (
                     <BineroGrid
@@ -146,7 +154,7 @@ export default function Binero({daily = false}: BineroProps) {
                 </div>
             </div>
 
-            <BineroSettingsPopup open={!daily && flow.showSettings} onGenerate={handleGenerate}
+            <BineroSettingsPopup open={!challenge && flow.showSettings} onGenerate={handleGenerate}
                                  resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
 
             {dailyGame.done && <DailyDonePopup gameCode="BINERO" gameName="Binero" result={dailyGame.done}/>}
@@ -155,8 +163,9 @@ export default function Binero({daily = false}: BineroProps) {
                 <SuccessPopup gameName="Binero" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
-                              onNewGame={daily ? () => navigate(`/playgame/BINERO`) : flow.newGame}
-                              newGameLabel={daily ? "Partie libre" : undefined}/>
+                              onNewGame={replayDate ? () => navigate("/defi")
+                                  : daily ? () => navigate(`/playgame/BINERO`) : flow.newGame}
+                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}/>
             )}
         </div>
     );

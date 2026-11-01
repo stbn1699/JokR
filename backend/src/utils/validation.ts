@@ -10,3 +10,10 @@ export function routeParam(params: Record<string, string | string[] | undefined>
     const value = params[name];
     return typeof value === "string" ? value : undefined;
 }
+
+// Date au format AAAA-MM-JJ (et qui existe vraiment)
+export function isDateKey(value: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
+}

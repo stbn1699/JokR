@@ -1,4 +1,4 @@
-import type {Kysely} from "kysely";
+import {type Kysely, sql} from "kysely";
 import type {DB} from "../db/schema.js";
 
 export type DailyChallenge = {
@@ -73,6 +73,51 @@ export class DailyRepository {
             .where("game_code", "=", gameCode)
             .executeTakeFirstOrThrow();
         return {rank: Number(row.faster) + 1, total: Number(row.total)};
+    }
+
+    /**
+     * Défis des jours précédents (avant `beforeDate`), les plus récents d'abord, sur `days` jours au plus,
+     * avec le nombre de joueurs classés. Les dates sont renvoyées en texte (AAAA-MM-JJ).
+     */
+    async listPast(beforeDate: string, days: number) {
+        const dates = await this.db
+            .selectFrom("daily_challenges")
+            .select(sql<string>`challenge_date::text`.as("date"))
+            .where("challenge_date", "<", beforeDate)
+            .groupBy("challenge_date")
+            .orderBy("challenge_date", "desc")
+            .limit(days)
+            .execute();
+        if (dates.length === 0) return [];
+
+        return this.db
+            .selectFrom("daily_challenges as c")
+            .leftJoin("daily_results as r", join => join
+                .onRef("r.challenge_date", "=", "c.challenge_date")
+                .onRef("r.game_code", "=", "c.game_code"))
+            .select(eb => [
+                sql<string>`c.challenge_date::text`.as("date"),
+                "c.game_code",
+                "c.grid_size",
+                "c.empty_cells",
+                eb.fn.count<string>("r.user_id").as("players"),
+            ])
+            .where(sql<string>`c.challenge_date::text`, "in", dates.map(d => d.date))
+            .groupBy(["c.challenge_date", "c.game_code", "c.grid_size", "c.empty_cells"])
+            .orderBy("c.challenge_date", "desc")
+            .orderBy("c.game_code", "desc")
+            .execute();
+    }
+
+    // Réussites d'un joueur sur une liste de jours
+    async resultsOf(userId: string, dates: string[]) {
+        if (dates.length === 0) return [];
+        return this.db
+            .selectFrom("daily_results")
+            .select([sql<string>`challenge_date::text`.as("date"), "game_code", "duration_ms"])
+            .where("user_id", "=", userId)
+            .where(sql<string>`challenge_date::text`, "in", dates)
+            .execute();
     }
 
     // Meilleurs temps du jour

@@ -1,0 +1,146 @@
+.daily-history {
+	display         : flex;
+	justify-content : center;
+	padding         : 2rem 1rem;
+
+	.daily-history-card {
+		width         : min(42rem, 100%);
+		padding       : 2rem;
+		box-sizing    : border-box;
+		border        : 3px solid #f9fafb;
+		border-radius : 12px;
+		background    : #02061735;
+	}
+
+	h1 {
+		margin     : 0 0 0.5rem;
+		font-size  : 3rem;
+		text-align : center;
+	}
+
+	.daily-history-intro {
+		margin     : 0 0 0.75rem;
+		font-size  : 1.25rem;
+		opacity    : 0.8;
+		text-align : center;
+	}
+
+	.daily-history-today {
+		display         : block;
+		margin-bottom   : 1rem;
+		color           : #fbbf24;
+		font-size       : 1.2rem;
+		text-align      : center;
+		text-decoration : none;
+
+		&:hover {
+			text-decoration : underline;
+		}
+	}
+
+	.daily-history-day {
+		padding    : 1rem 0;
+		border-top : 1px solid rgba(249, 250, 251, 0.15);
+
+		h2 {
+			margin    : 0 0 0.75rem;
+			font-size : 1.8rem;
+			color     : #fbbf24;
+		}
+	}
+
+	.daily-history-games {
+		display : flex;
+		gap     : 0.75rem;
+	}
+
+	.daily-history-game {
+		flex           : 1;
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.4rem;
+		padding        : 0.75rem 1rem;
+		border-radius  : 10px;
+		border         : 2px solid rgba(249, 250, 251, 0.2);
+		background     : rgba(2, 6, 23, 0.45);
+	}
+
+	.daily-history-game-head {
+		display         : flex;
+		justify-content : space-between;
+		align-items     : baseline;
+		gap             : 0.5rem;
+		flex-wrap       : wrap;
+
+		strong {
+			font-size : 1.5rem;
+		}
+
+		span {
+			font-size : 1.05rem;
+			opacity   : 0.75;
+		}
+	}
+
+	.daily-history-result {
+		margin    : 0;
+		font-size : 1.15rem;
+		opacity   : 0.9;
+	}
+
+	.daily-history-actions {
+		display : flex;
+		gap     : 0.5rem;
+
+		a {
+			flex            : 1;
+			padding         : 0.4rem 0;
+			border-radius   : 999px;
+			border          : 2px solid rgba(249, 250, 251, 0.35);
+			color           : #f9fafb;
+			font-size       : 1.1rem;
+			text-align      : center;
+			text-decoration : none;
+
+			&:hover {
+				border-color : #10b981;
+			}
+
+			&.replay {
+				border-color : #10b981;
+				background   : rgba(16, 185, 129, 0.2);
+				font-weight  : 700;
+			}
+		}
+	}
+
+	.daily-history-status {
+		margin     : 1.5rem 0;
+		font-size  : 1.4rem;
+		opacity    : 0.8;
+		text-align : center;
+	}
+
+	.daily-history-error {
+		color      : #fca5a5;
+		text-align : center;
+	}
+}
+
+@media (max-width: 600px) {
+	.daily-history {
+		padding : 1rem;
+
+		.daily-history-card {
+			padding : 1.25rem 0.75rem;
+		}
+
+		h1 {
+			font-size : 2.4rem;
+		}
+
+		.daily-history-games {
+			flex-direction : column;
+		}
+	}
+}

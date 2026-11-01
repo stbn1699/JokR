@@ -51,7 +51,10 @@ export default function DailyBanner() {
                 ))}
             </div>
 
-            <Link to="/classements?onglet=defi" className="daily-banner-link">Voir le classement du jour →</Link>
+            <div className="daily-banner-links">
+                <Link to="/classements?onglet=defi" className="daily-banner-link">Classement du jour →</Link>
+                <Link to="/defi" className="daily-banner-link">Défis précédents →</Link>
+            </div>
         </section>
     );
 }
