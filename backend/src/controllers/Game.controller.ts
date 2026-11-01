@@ -1,6 +1,7 @@
 import type {Request, Response} from "express";
 import {GamesService} from "../services/Games.service.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
+import {routeParam} from "../utils/validation.js";
 import type {Game} from "../models/Game.model.js";
 
 /*
@@ -22,7 +23,7 @@ export function createGamesController(service: GamesService) {
 
         // Retourne le "baseXp" d'un jeu identifié par son code
         getBaseXp: asyncHandler(async (req: Request, res: Response) => {
-            const {gameCode} = req.params;
+            const gameCode = routeParam(req.params, "gameCode");
 
             // Validation simple du paramètre
             if (!gameCode) {

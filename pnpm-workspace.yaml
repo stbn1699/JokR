@@ -1,3 +1,9 @@
+# Workspace pnpm : le front (racine) et l'API (backend/) partagent un seul lockfile
+packages:
+  - backend
+
+# Paquets dont les scripts d'installation ne sont pas exécutés
+# (bcrypt fournit des binaires précompilés, esbuild n'en a pas besoin)
 ignoredBuiltDependencies:
   - bcrypt
   - esbuild

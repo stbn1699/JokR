@@ -3,7 +3,7 @@ import {UserAlreadyExistsError, UsersService} from '../services/Users.service.js
 import jwt from 'jsonwebtoken';
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import {config} from "../config.js";
-import {isUuid} from "../utils/validation.js";
+import {isUuid, routeParam} from "../utils/validation.js";
 import type {AuthLocals} from "../middleware/auth.js";
 
 /*
@@ -88,7 +88,7 @@ export function createUsersController(service: UsersService) {
 
         // Profil public (id, username, niveau, xp)
         getByUserId: asyncHandler(async (req: Request, res: Response) => {
-            const {userId} = req.params;
+            const userId = routeParam(req.params, "userId");
             if (!userId || !isUuid(userId)) return res.status(400).json({status: 'error', message: 'Invalid userId'});
             const user = await service.getByUserId(userId);
             if (!user) return res.status(404).json({status: 'error', message: 'User not found'});
