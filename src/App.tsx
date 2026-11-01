@@ -7,6 +7,7 @@
  * - /login : Page de connexion
  * - /register : Page d'inscription
  * - /profile : Profil du joueur connecté
+ * - /nouveautes : Nouveautés (CHANGELOG.md) ; le numéro de version est en bas à droite
  * - * : Page 404 pour les routes inexistantes
  */
 
@@ -21,6 +22,8 @@ import Profile from "./Components/UserSection/Profile/Profile.tsx";
 import NotFound from "./Components/NotFound/NotFound.tsx";
 import Leaderboard from "./Components/Leaderboard/Leaderboard.tsx";
 import DailyHistory from "./Components/DailyHistory/DailyHistory.tsx";
+import Changelog from "./Components/Changelog/Changelog.tsx";
+import AppFooter from "./Components/AppFooter/AppFooter.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -42,8 +45,10 @@ function App() {
                 <Route path="/register" element={<Register/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/classements" element={<Leaderboard/>}/>
+                <Route path="/nouveautes" element={<Changelog/>}/>
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
+            <AppFooter/>
         </div>
     );
 }

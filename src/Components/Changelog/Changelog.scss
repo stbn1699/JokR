@@ -1,0 +1,77 @@
+.changelog {
+	display         : flex;
+	justify-content : center;
+	padding         : 2rem 1rem;
+
+	.changelog-card {
+		width         : min(42rem, 100%);
+		padding       : 2rem;
+		box-sizing    : border-box;
+		border        : 3px solid #f9fafb;
+		border-radius : 12px;
+		background    : #02061735;
+	}
+
+	h1 {
+		margin     : 0 0 0.25rem;
+		font-size  : 3rem;
+		text-align : center;
+	}
+
+	.changelog-current {
+		margin     : 0 0 1rem;
+		font-size  : 1.2rem;
+		opacity    : 0.75;
+		text-align : center;
+	}
+
+	.changelog-version {
+		padding    : 1rem 0;
+		border-top : 1px solid rgba(249, 250, 251, 0.15);
+
+		h2 {
+			display     : flex;
+			align-items : baseline;
+			flex-wrap   : wrap;
+			gap         : 0.5rem 1rem;
+			margin      : 0 0 0.5rem;
+			font-size   : 2rem;
+			color       : #fbbf24;
+		}
+	}
+
+	.changelog-date {
+		font-size : 1.2rem;
+		color     : #f9fafb;
+		opacity   : 0.7;
+	}
+
+	.changelog-intro {
+		margin    : 0 0 0.75rem;
+		font-size : 1.3rem;
+	}
+
+	.changelog-section {
+		h3 {
+			margin    : 0.75rem 0 0.25rem;
+			font-size : 1.5rem;
+		}
+
+		ul {
+			margin       : 0;
+			padding-left : 1.4rem;
+		}
+
+		li {
+			margin-bottom : 0.3rem;
+			font-size     : 1.2rem;
+			line-height   : 1.4;
+		}
+	}
+}
+
+@media (max-width: 600px) {
+	.changelog .changelog-card {
+		padding : 1.25rem 1rem;
+	}
+}

@@ -1,0 +1,30 @@
+// Version et lien vers les nouveautés, discret
+.app-footer {
+	position : fixed;
+	right    : 1rem;
+	bottom   : 0.75rem;
+	z-index  : 50;
+
+	a {
+		padding         : 0.35rem 0.9rem;
+		border-radius   : 999px;
+		background      : rgba(2, 6, 23, 0.55);
+		color           : rgba(249, 250, 251, 0.6);
+		font-size       : 1.2rem;
+		text-decoration : none;
+		transition      : color 0.15s ease;
+
+		&:hover {
+			color : #fbbf24;
+		}
+	}
+}
+
+// Téléphone : en bas de la page plutôt que par-dessus le contenu
+@media (max-width: 700px) {
+	.app-footer {
+		position   : static;
+		margin     : 2rem 0 1rem;
+		text-align : center;
+	}
+}
