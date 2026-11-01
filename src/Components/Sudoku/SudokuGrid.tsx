@@ -52,7 +52,8 @@ export default function SudokuGrid({inputs, onHover, onCellInput, onSelectCell}:
                     type="number"
                     min={1}
                     max={9}
-                    inputMode="numeric"
+                    // Pas de clavier virtuel sur téléphone (il cacherait la grille) : on joue avec le panneau
+                    inputMode="none"
                     pattern="[0-9]*"
                     placeholder=" "
                     onMouseDown={(e) => {

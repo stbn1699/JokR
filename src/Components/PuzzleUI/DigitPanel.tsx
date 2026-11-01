@@ -1,4 +1,4 @@
-import type {CSSProperties} from "react";
+import type {CSSProperties, MouseEvent} from "react";
 
 type DigitPanelProps = {
     // Chiffres proposés (1 à 9 pour le Sudoku, 0 et 1 pour le Binero)
@@ -7,26 +7,37 @@ type DigitPanelProps = {
     perDigit: number;
     // counts[n] = nombre de n présents dans la grille
     counts: Record<number, number>;
+    // Chiffre surligné dans la grille
     selected: number | null;
+    // Clic sur un chiffre : le jeu décide (remplir la case sélectionnée ou surligner le chiffre)
     onSelect: (n: number) => void;
-    // Nombre de colonnes du pavé
+    // Vide la case sélectionnée (bouton "Effacer")
+    onErase: () => void;
+    // Nombre de colonnes du pavé (sur grand écran)
     columns?: number;
 };
 
+// Les boutons du panneau ne prennent pas le focus : la case sélectionnée dans la grille le garde
+// (annuler "mousedown" empêche le changement de focus, à la souris comme au doigt)
+const keepGridFocus = (e: MouseEvent<HTMLButtonElement>) => e.preventDefault();
+
 /**
- * Panneau de gauche : les chiffres du jeu.
- * - Sous chaque chiffre : combien il en reste à placer
- * - Grisé quand tous sont posés, en rouge s'il y en a trop (erreur dans la grille)
- * - Un clic surligne ce chiffre dans toute la grille (re-clic pour enlever)
+ * Panneau des chiffres du jeu.
+ * - Sous chaque chiffre : combien il en reste à placer (grisé quand tout est posé, rouge s'il y en a trop)
+ * - Avec une case sélectionnée, un chiffre la remplit ; sans case sélectionnée, il est surligné dans la grille
+ * - "Effacer" vide la case sélectionnée
+ * Indispensable sur téléphone (pas de clavier physique).
  */
-export default function DigitPanel({digits, perDigit, counts, selected, onSelect, columns = 3}: DigitPanelProps) {
+export default function DigitPanel({digits, perDigit, counts, selected, onSelect, onErase, columns = 3}: DigitPanelProps) {
+    const hasGrid = perDigit > 0;
+
     return (
         <div className="options">
             <h2 className="title">Chiffres</h2>
 
-            <div className="digit-pad" style={{"--digit-columns": columns} as CSSProperties}>
+            <div className="digit-pad"
+                 style={{"--digit-columns": columns, "--digit-count": digits.length + 1} as CSSProperties}>
                 {digits.map((n) => {
-                    const hasGrid = perDigit > 0;
                     const remaining = perDigit - (counts[n] ?? 0);
                     const state = !hasGrid ? "" : remaining === 0 ? "complete" : remaining < 0 ? "overflow" : "";
 
@@ -37,9 +48,8 @@ export default function DigitPanel({digits, perDigit, counts, selected, onSelect
                             className={`digit ${state} ${selected === n ? "selected" : ""}`}
                             aria-pressed={selected === n}
                             title={!hasGrid ? undefined : remaining < 0 ? `${-remaining} de trop` : `${remaining} à placer`}
-                            onClick={() => {
-                                onSelect(n);
-                            }}
+                            onMouseDown={keepGridFocus}
+                            onClick={() => onSelect(n)}
                         >
                             <span className="digit-value">{n}</span>
                             {hasGrid && (
@@ -50,7 +60,23 @@ export default function DigitPanel({digits, perDigit, counts, selected, onSelect
                         </button>
                     );
                 })}
+
+                <button
+                    type="button"
+                    className="digit erase"
+                    title="Vider la case sélectionnée"
+                    aria-label="Effacer la case sélectionnée"
+                    onMouseDown={keepGridFocus}
+                    onClick={onErase}
+                >
+                    <span className="digit-value">⌫</span>
+                    <span className="digit-remaining">effacer</span>
+                </button>
             </div>
+
+            <p className="digit-hint">
+                Case sélectionnée : un chiffre la remplit. Sinon, il est surligné dans la grille.
+            </p>
         </div>
     );
 }

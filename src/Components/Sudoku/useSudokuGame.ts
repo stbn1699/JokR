@@ -11,6 +11,13 @@ const sleep = (ms: number) => new Promise<void>(res => setTimeout(res, ms));
 
 const EMPTY_COUNTS = Array<number>(10).fill(0);
 
+// Écrit un chiffre (ou vide la case) comme une saisie au clavier :
+// l'évènement "input" met à jour compteur et surbrillance
+function writeCell(el: HTMLInputElement, n: number | null) {
+    el.value = n === null ? "" : String(n);
+    el.dispatchEvent(new Event("input", {bubbles: true}));
+}
+
 
 /**
  * Logique d'une partie de Sudoku.
@@ -27,6 +34,7 @@ const EMPTY_COUNTS = Array<number>(10).fill(0);
  *   prioritaire sur le chiffre sélectionné tant qu'elle est active
  * - onCellInput() : à appeler quand le joueur modifie une case
  * - setSelectedCell(i) : case sélectionnée ; sa ligne, sa colonne et son bloc 3×3 sont surlignés
+ * - fillSelected(n) : remplit (ou vide avec null) la case sélectionnée ; false si aucune case modifiable
  */
 export function useSudokuGame() {
     // Les 81 inputs de la grille (index = ligne * 9 + colonne)
@@ -69,6 +77,13 @@ export function useSudokuGame() {
     }, [selectedCell]);
 
     const toggleDigit = (n: number) => setSelectedDigit(current => (current === n ? null : n));
+
+    const fillSelected = (n: number | null): boolean => {
+        const el = selectedCell === null ? undefined : inputs.current[selectedCell];
+        if (!el || el.readOnly || el.disabled) return false;
+        writeCell(el, n);
+        return true;
+    };
 
     const generate = async (cluesCount: number): Promise<string | null> => {
         setHoverDigit(null);
@@ -155,6 +170,7 @@ export function useSudokuGame() {
         digitCounts,
         selectedDigit,
         toggleDigit,
+        fillSelected,
         setHoverDigit,
         setSelectedCell,
         onCellInput: recount,

@@ -27,6 +27,15 @@ export default function Binero() {
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
 
+    // Case sélectionnée modifiable (pas un chiffre donné)
+    const editableSelection = selectedCell !== null && !game.isClue(selectedCell) ? selectedCell : null;
+
+    // Panneau : remplit la case sélectionnée, sinon surligne le chiffre dans la grille
+    const handleDigit = (n: number) => {
+        if (editableSelection !== null) game.setCell(editableSelection, n as 0 | 1);
+        else setSelectedDigit(current => (current === n ? null : n));
+    };
+
     const handleGenerate = (size: number, emptyCells: number) => {
         setSelectedDigit(null);
         void flow.generate(() => game.generate(size, emptyCells));
@@ -39,7 +48,8 @@ export default function Binero() {
                 perDigit={(game.size * game.size) / 2}
                 counts={game.counts}
                 selected={selectedDigit}
-                onSelect={n => setSelectedDigit(current => (current === n ? null : n))}
+                onSelect={handleDigit}
+                onErase={() => editableSelection !== null && game.setCell(editableSelection, null)}
                 columns={2}
             />
 

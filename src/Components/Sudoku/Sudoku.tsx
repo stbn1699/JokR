@@ -26,7 +26,7 @@ const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 export default function Sudoku() {
     const {
         inputs, isGenerating, generate, validate,
-        digitCounts, selectedDigit, toggleDigit, setHoverDigit, setSelectedCell, onCellInput,
+        digitCounts, selectedDigit, toggleDigit, fillSelected, setHoverDigit, setSelectedCell, onCellInput,
     } = useSudokuGame();
     const flow = useGameFlow();
 
@@ -36,8 +36,9 @@ export default function Sudoku() {
 
     return (
         <div className="puzzle-layout sudoku">
-            <DigitPanel digits={DIGITS} perDigit={9} counts={digitCounts}
-                        selected={selectedDigit} onSelect={toggleDigit}/>
+            <DigitPanel digits={DIGITS} perDigit={9} counts={digitCounts} selected={selectedDigit}
+                        onSelect={n => fillSelected(n) || toggleDigit(n)}
+                        onErase={() => fillSelected(null)}/>
 
             <div className="game">
                 <h1 className="title">Sudoku</h1>
