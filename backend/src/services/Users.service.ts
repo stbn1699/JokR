@@ -9,7 +9,6 @@ import {config} from "../config.js";
  * Service métier pour les utilisateurs
  * - register : hash le mot de passe puis crée l'utilisateur via le repository
  * - authenticate : vérifie les identifiants (email/username + password)
- * - updateUserXpAndLevel : applique la logique de montée en niveau et persiste
  *
  * Remarques :
  * - `bcrypt.hash` utilise config.saltRounds (variable SALTROUNDS, 10 par défaut)
@@ -47,26 +46,6 @@ export class UsersService {
     // Lecture par UUID
     async findByUuid(uuid: string): Promise<User | undefined> {
         return this.repo.findByUuid(uuid);
-    }
-
-    // Ajoute de l'XP et gère la montée en niveau si le seuil est dépassé
-    async updateUserXpAndLevel(userId: string, xpToAdd: number): Promise<void> {
-        const user: User | undefined = await this.findByUuid(userId);
-
-        if (!user) return;
-
-        let newXp: number = user.user_xp + xpToAdd;
-        let level: number = user.user_level;
-        const xpToNextLevel: number = Math.ceil(
-            120 * Math.pow(level, 1.4)
-        )
-
-        if (newXp >= xpToNextLevel) {
-            level++;
-            newXp = newXp - xpToNextLevel;
-        }
-
-        await this.repo.updateUserXpAndLevel(userId, newXp, level);
     }
 
     async getByUserId(userId: string): Promise<PublicUser | undefined> {

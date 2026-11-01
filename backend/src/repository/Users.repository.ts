@@ -49,16 +49,4 @@ export class UsersRepository {
             .returningAll()
             .executeTakeFirstOrThrow();
     }
-
-    // Met à jour l'XP et le niveau d'un utilisateur
-    async updateUserXpAndLevel(userId: string, newXp: number, newLevel: number): Promise<void> {
-        await this.db
-            .updateTable("users")
-            .set({
-                user_xp: newXp,
-                user_level: newLevel
-            })
-            .where("id", "=", userId)
-            .execute();
-    }
 }

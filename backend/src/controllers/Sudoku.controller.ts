@@ -1,8 +1,7 @@
 import type {Request, Response} from "express";
 import {SudokuService} from "../services/Sudoku.service.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
-import type {GameStatsService} from "../services/GameStats.service.js";
-import type {UsersService} from "../services/Users.service.js";
+import type {ProgressionService} from "../services/Progression.service.js";
 import type {GamesService} from "../services/Games.service.js";
 import type {SudokuGameStore} from "../services/SudokuGameStore.js";
 import type {AuthLocals} from "../middleware/auth.js";
@@ -18,8 +17,7 @@ const GAME_CODE = "SUDOKU";
 export function createSudokuController(
     service: SudokuService,
     store: SudokuGameStore,
-    gameStatsService: GameStatsService,
-    usersService: UsersService,
+    progressionService: ProgressionService,
     gamesService: GamesService,
 ) {
     return {
@@ -93,8 +91,7 @@ export function createSudokuController(
             const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
             const xp = service.computeXp(baseXp, game.cluesCount);
 
-            await gameStatsService.gameWin(userId, GAME_CODE, xp);
-            await usersService.updateUserXpAndLevel(userId, xp);
+            await progressionService.recordWin(userId, GAME_CODE, xp);
 
             res.status(200).json({status: 'ok', data: {xp}});
         })
