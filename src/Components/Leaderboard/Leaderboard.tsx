@@ -1,6 +1,6 @@
 /**
  * Page Classements : XP globale, par jeu, et défi du jour.
- * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|defi&jeu=sudoku|binero[&date=AAAA-MM-JJ])
+ * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|rikudo|defi&jeu=sudoku|binero[&date=AAAA-MM-JJ])
  * pour pouvoir y renvoyer (date = classement d'un défi passé).
  */
 
@@ -17,6 +17,7 @@ const TABS = [
     {id: "xp", label: "XP globale"},
     {id: "sudoku", label: "Sudoku"},
     {id: "binero", label: "Binero"},
+    {id: "rikudo", label: "Rikudo"},
     {id: "defi", label: "Défi du jour"},
 ] as const;
 type Tab = typeof TABS[number]["id"];

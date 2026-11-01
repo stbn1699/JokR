@@ -13,6 +13,9 @@ type GameSettingsPopupProps = {
     sizes?: number[];
     size?: number;
     onSizeChange?: (size: number) => void;
+    // Titre et libellé des tailles (par défaut "Taille de la grille" et "8×8")
+    sizeLegend?: string;
+    sizeLabel?: (size: number) => string;
     // Nombre de cases à remplir et ses limites
     emptyCells: number;
     minEmptyCells: number;
@@ -66,7 +69,7 @@ export default function GameSettingsPopup(props: GameSettingsPopupProps) {
                     <>
                         {sizes && size !== undefined && onSizeChange && (
                             <fieldset className="game-settings-sizes">
-                                <legend>Taille de la grille</legend>
+                                <legend>{props.sizeLegend ?? "Taille de la grille"}</legend>
                                 <div className="game-settings-size-list">
                                     {sizes.map(s => (
                                         <button
@@ -76,7 +79,7 @@ export default function GameSettingsPopup(props: GameSettingsPopupProps) {
                                             aria-pressed={s === size}
                                             onClick={() => onSizeChange(s)}
                                         >
-                                            {s}×{s}
+                                            {props.sizeLabel ? props.sizeLabel(s) : `${s}×${s}`}
                                         </button>
                                     ))}
                                 </div>

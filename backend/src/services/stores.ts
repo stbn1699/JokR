@@ -1,5 +1,6 @@
 import {PuzzleStore} from "./PuzzleStore.js";
 import type {BineroGrid} from "../utils/binero.js";
+import type {RikudoPuzzle} from "../utils/rikudo.js";
 
 /*
  * Parties en cours, une mémoire par jeu, partagées entre les routes du jeu
@@ -7,3 +8,4 @@ import type {BineroGrid} from "../utils/binero.js";
  */
 export const sudokuStore = new PuzzleStore<number[][]>();
 export const bineroStore = new PuzzleStore<BineroGrid>();
+export const rikudoStore = new PuzzleStore<RikudoPuzzle>();

@@ -33,7 +33,9 @@ describe("loadMigrations", () => {
     const migrations = loadMigrations(MIGRATIONS_DIR);
 
     it("trie les migrations par version", () => {
-        expect(migrations.map(m => m.version).slice(-2)).toEqual(["1.0.9", "1.0.10"]);
+        const versions = migrations.map(m => m.version);
+        expect(versions.indexOf("1.0.10")).toBe(versions.indexOf("1.0.9") + 1);
+        expect(versions[0]).toBe("1.0.1");
     });
 
     it("calcule les mêmes checksums que Flyway", () => {

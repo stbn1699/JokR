@@ -6,6 +6,9 @@ Jeux disponibles :
 - **Sudoku** : grille 9×9, de 20 à 55 cases à remplir.
 - **Binero** (Takuzu) : grille de 0 et de 1, en 6×6, 8×8, 10×10 ou 12×12. Jamais trois chiffres identiques
   côte à côte, autant de 0 que de 1 par ligne et par colonne, pas deux lignes (ou colonnes) identiques.
+- **Rikudo** : plateau en nid d'abeille de 36, 60 ou 90 cases autour d'une case centrale vide. Placer les nombres
+  de 1 à N pour que deux nombres consécutifs soient voisins ; un point entre deux cases impose que leurs nombres
+  se suivent. 1 et N sont toujours donnés.
 
 Avant chaque partie, une popup permet de choisir les paramètres (taille, nombre de cases à remplir)
 et affiche l'XP gagnée à la résolution.
@@ -195,6 +198,10 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
 | POST    | `/binero/generate`         | –         | `{ size, emptyCells }` → `{ gameId, grid }` |
 | GET     | `/binero/games/:gameId`    | –         | partie en cours (pour la reprendre)       |
 | POST    | `/binero/validate`         | optionnel | valide `{ gameId, grid }`, XP si connecté |
+| GET     | `/rikudo/settings`         | –         | tailles, plages et XP proposées           |
+| POST    | `/rikudo/generate`         | –         | `{ size, emptyCells }` → `{ gameId, puzzle: { radius, cells, links } }` |
+| GET     | `/rikudo/games/:gameId`    | –         | partie en cours (pour la reprendre)       |
+| POST    | `/rikudo/validate`         | optionnel | valide `{ gameId, values }`, XP si connecté |
 | GET     | `/daily`                   | optionnel | défis du jour (et résultats du joueur)    |
 | POST    | `/daily/:game/start`       | optionnel | commence le défi du jour                  |
 | GET     | `/daily/history`           | optionnel | défis des 30 jours précédents             |

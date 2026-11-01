@@ -7,6 +7,7 @@ import usersRoutes from "./routes/Users.routes.js";
 import GameStatsRoutes from "./routes/GameStatsRoutes.js";
 import sudokuRoutes from "./routes/Sudoku.routes.js";
 import bineroRoutes from "./routes/Binero.routes.js";
+import rikudoRoutes from "./routes/Rikudo.routes.js";
 import dailyRoutes from "./routes/Daily.routes.js";
 import leaderboardRoutes from "./routes/Leaderboard.routes.js";
 import {pool} from "./db/pool.js";
@@ -41,6 +42,7 @@ api.use("/users", usersRoutes);
 api.use("/gameStats", GameStatsRoutes);
 api.use("/sudoku", sudokuRoutes);
 api.use("/binero", bineroRoutes);
+api.use("/rikudo", rikudoRoutes);
 api.use("/daily", dailyRoutes);
 api.use("/leaderboard", leaderboardRoutes);
 

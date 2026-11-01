@@ -136,7 +136,7 @@ export default function Profile() {
                                 <tr key={i}>
                                     <td>{r.designation}</td>
                                     <td title={`${r.empty_cells} cases à remplir`}>
-                                        {r.grid_size}×{r.grid_size} · {r.empty_cells}
+                                        {r.game_code === "RIKUDO" ? `${r.grid_size} cases` : `${r.grid_size}×${r.grid_size}`} · {r.empty_cells}
                                     </td>
                                     <td>{formatDuration(r.duration_ms)}</td>
                                     <td>+{r.xp}</td>

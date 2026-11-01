@@ -11,6 +11,7 @@ import "./PlayGame.scss"
 import {useParams} from "react-router-dom"
 import Sudoku from "../Sudoku/Sudoku.tsx";
 import Binero from "../Binero/Binero.tsx";
+import Rikudo from "../Rikudo/Rikudo.tsx";
 
 /**
  * Type définissant les paramètres de route attendus
@@ -41,6 +42,9 @@ export default function PlayGame({daily = false}: { daily?: boolean }) {
                 return <Sudoku daily={daily && !date} replayDate={date}/>;
             case "BINERO":
                 return <Binero daily={daily && !date} replayDate={date}/>;
+            case "RIKUDO":
+                // Pas de défi du jour pour le Rikudo (pour l'instant) : toujours une partie libre
+                return daily ? null : <Rikudo/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;
