@@ -43,8 +43,7 @@ export default function PlayGame({daily = false}: { daily?: boolean }) {
             case "BINERO":
                 return <Binero daily={daily && !date} replayDate={date}/>;
             case "RIKUDO":
-                // Pas de défi du jour pour le Rikudo (pour l'instant) : toujours une partie libre
-                return daily ? null : <Rikudo/>;
+                return <Rikudo daily={daily && !date} replayDate={date}/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

@@ -5,25 +5,27 @@ import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {formatDuration} from "../../Services/format.ts";
 import type {DailyOverview} from "../../Models/daily.model.ts";
 import {useAuth} from "../../Context/authContext.ts";
-
-const GAME_NAMES: Record<string, string> = {SUDOKU: "Sudoku", BINERO: "Binero"};
+import {useDailyRefresh} from "../PuzzleUI/useDailyRefresh.ts";
+import {DAILY_GAME_NAMES, dailyGridLabel} from "../../Services/dailyGames.ts";
 
 /**
  * Bandeau "Défi du jour" de l'accueil : une grille par jeu, la même pour tout le monde.
  * Une fois réussi, le bouton affiche le temps et la place du joueur.
+ * À minuit, le bandeau se recharge tout seul avec les défis du nouveau jour.
  */
 export default function DailyBanner() {
     const {userId} = useAuth();
     const [overview, setOverview] = useState<DailyOverview | null>(null);
+    const dayTick = useDailyRefresh(overview?.nextInMs, overview ? !overview.ready : false);
 
-    // Rechargé à la connexion / déconnexion (les résultats dépendent du joueur)
+    // Rechargé à la connexion / déconnexion (les résultats dépendent du joueur) et au changement de jour
     useEffect(() => {
         const controller = new AbortController();
         dailyService.overview(controller.signal)
             .then(setOverview)
             .catch(() => setOverview(null));
         return () => controller.abort();
-    }, [userId]);
+    }, [userId, dayTick]);
 
     if (!overview) return null;
 
@@ -41,11 +43,11 @@ export default function DailyBanner() {
                 {overview.games.map(game => (
                     <Link key={game.code} to={`/defi/${game.code}`}
                           className={`daily-banner-game ${game.result ? "done" : ""}`}>
-                        <span className="daily-banner-game-name">{GAME_NAMES[game.code] ?? game.code}</span>
+                        <span className="daily-banner-game-name">{DAILY_GAME_NAMES[game.code] ?? game.code}</span>
                         <span className="daily-banner-game-info">
                             {game.result
                                 ? <>✓ {formatDuration(game.result.durationMs)} · {game.result.rank}<sup>{game.result.rank === 1 ? "er" : "e"}</sup> / {game.result.total}</>
-                                : <>{game.size}×{game.size} · {game.emptyCells} cases</>}
+                                : dailyGridLabel(game.code, game.size, game.emptyCells)}
                         </span>
                     </Link>
                 ))}

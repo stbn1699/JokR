@@ -6,6 +6,7 @@
  * - Plateau : saisie au clavier, voisines de la case sélectionnée éclairées
  * - Panneau de droite : validation côté serveur, messages d'erreur et rappel des règles
  * - Victoire : popup avec la barre d'XP ; "Nouvelle partie" rouvre les paramètres sans recharger
+ * - Défi du jour (ou d'un jour passé, rejoué hors classement) : grille imposée, pas de paramètres
  */
 
 import {useMemo, useState} from "react";
@@ -21,6 +22,10 @@ import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {rikudoService} from "../../Services/rikudo.service.ts";
+import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
+import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
+import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
+import {useNavigate} from "react-router-dom";
 import type {RikudoPuzzle} from "../../Models/rikudo.model.ts";
 import {type SavedRikudo, useRikudoGame} from "./useRikudoGame.ts";
 import {rikudoConflicts} from "./rikudoRules.ts";
@@ -28,12 +33,33 @@ import RikudoBoard from "./RikudoBoard.tsx";
 import RikudoNumberPanel from "./RikudoNumberPanel.tsx";
 import RikudoSettingsPopup from "./RikudoSettingsPopup.tsx";
 
-const SAVE_KEY = "RIKUDO";
+type RikudoProps = {
+    // Défi du jour : grille imposée, pas de popup de paramètres
+    daily?: boolean;
+    // Défi d'un jour passé, rejoué en partie normale (hors classement) : AAAA-MM-JJ
+    replayDate?: string;
+};
 
-export default function Rikudo() {
-    const game = useRikudoGame(SAVE_KEY);
+export default function Rikudo({daily = false, replayDate}: RikudoProps) {
+    const navigate = useNavigate();
+    const challenge = daily || replayDate !== undefined;
+    // Sauvegardes séparées (une partie libre et un défi peuvent être en cours en parallèle)
+    const saveKey = replayDate ? `RIKUDO:replay:${replayDate}` : daily ? "RIKUDO:daily" : "RIKUDO";
+    const game = useRikudoGame(saveKey);
     const flow = useGameFlow();
-    const {resumable, dismissResumable} = useResumableGame<SavedRikudo, RikudoPuzzle>(SAVE_KEY, rikudoService.getGame);
+    const {resumable, dismissResumable} = useResumableGame<SavedRikudo, RikudoPuzzle>(saveKey, rikudoService.getGame, !challenge);
+    const dailyGame = useDailyGame<SavedRikudo, RikudoPuzzle>({
+        enabled: challenge,
+        gameCode: "RIKUDO",
+        saveKey,
+        fetchStatus: rikudoService.getGame,
+        emptySave: gameId => ({gameId, values: []}),
+        start: replayDate ? () => dailyService.replay("RIKUDO", replayDate) : undefined,
+        onLoad: (puzzle, saved, elapsedMs) => {
+            game.restore(puzzle, saved);
+            flow.resume(elapsedMs);
+        },
+    });
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
     // Case en cours de saisie (un 2e chiffre peut suivre) : comptée vide pour les erreurs et le panneau
@@ -89,6 +115,14 @@ export default function Rikudo() {
             />
 
             <div className="game">
+                {daily && (
+                    <p className="daily-label">
+                        Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
+                    </p>
+                )}
+                {replayDate && (
+                    <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
+                )}
                 <h1 className="title">Rikudo</h1>
                 {game.board && game.puzzle && (
                     <RikudoBoard
@@ -119,7 +153,7 @@ export default function Rikudo() {
                 <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
                                 onUndo={game.undo} onRedo={game.redo}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
 
                 <div className="rules">
                     <h3>Règles</h3>
@@ -133,13 +167,18 @@ export default function Rikudo() {
                 </div>
             </div>
 
-            <RikudoSettingsPopup open={flow.showSettings} onGenerate={handleGenerate}
+            <RikudoSettingsPopup open={!challenge && flow.showSettings} onGenerate={handleGenerate}
                                  resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
+
+            {dailyGame.done && <DailyDonePopup gameCode="RIKUDO" gameName="Rikudo" result={dailyGame.done}/>}
 
             {flow.victory && (
                 <SuccessPopup gameName="Rikudo" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
-                              daily={flow.victory.daily} onNewGame={flow.newGame}/>
+                              daily={flow.victory.daily}
+                              onNewGame={replayDate ? () => navigate("/defi")
+                                  : daily ? () => navigate(`/playgame/RIKUDO`) : flow.newGame}
+                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}/>
             )}
         </div>
     );

@@ -5,6 +5,7 @@ import type {PuzzleStore} from "../services/PuzzleStore.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import type {GamesService} from "../services/Games.service.js";
 import type {AuthLocals} from "../middleware/auth.js";
+import type {DailyService} from "../services/Daily.service.js";
 import type {RikudoPuzzle} from "../utils/rikudo.js";
 import {routeParam} from "../utils/validation.js";
 
@@ -23,6 +24,7 @@ export function createRikudoController(
     store: PuzzleStore<RikudoPuzzle>,
     progressionService: ProgressionService,
     gamesService: GamesService,
+    dailyService: DailyService,
 ) {
     return {
         settings: asyncHandler(async (_req: Request, res: Response) => {
@@ -94,6 +96,13 @@ export function createRikudoController(
                 return;
             }
 
+            // Défi du jour : une seule réussite compte par jour (pas d'XP pour les suivantes)
+            const daily = game.daily ? await dailyService.recordResult(GAME_CODE, game.daily, userId, durationMs) : undefined;
+            if (daily && !daily.counted) {
+                res.status(200).json({status: "ok", data: {xp: undefined, durationMs, daily}});
+                return;
+            }
+
             const size = game.puzzle.cells.length;
             const emptyCells = size - game.cluesCount;
             const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
@@ -104,7 +113,7 @@ export function createRikudoController(
                 durationMs,
             });
 
-            res.status(200).json({status: "ok", data: {xp, durationMs, personalBest}});
+            res.status(200).json({status: "ok", data: {xp, durationMs, personalBest, daily}});
         }),
     };
 }

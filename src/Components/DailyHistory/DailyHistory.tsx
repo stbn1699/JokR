@@ -11,23 +11,29 @@ import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {formatDuration} from "../../Services/format.ts";
 import type {DailyHistoryDay} from "../../Models/daily.model.ts";
 import {useAuth} from "../../Context/authContext.ts";
-
-const GAME_NAMES: Record<string, string> = {SUDOKU: "Sudoku", BINERO: "Binero"};
+import {useDailyRefresh} from "../PuzzleUI/useDailyRefresh.ts";
+import {DAILY_GAME_NAMES, dailyGridLabel} from "../../Services/dailyGames.ts";
 
 export default function DailyHistory() {
     const {userId} = useAuth();
     const [days, setDays] = useState<DailyHistoryDay[] | null>(null);
     const [error, setError] = useState<string | null>(null);
+    // À minuit, le défi de la veille rejoint l'historique : la page se recharge
+    const [nextInMs, setNextInMs] = useState<number | undefined>(undefined);
+    const dayTick = useDailyRefresh(nextInMs);
 
     useEffect(() => {
         const controller = new AbortController();
+        dailyService.overview(controller.signal)
+            .then(o => setNextInMs(o.nextInMs))
+            .catch(() => undefined);
         dailyService.history(controller.signal)
             .then(setDays)
             .catch((err: Error) => {
                 if (err.name !== "AbortError") setError(err.message || "Impossible de charger les défis précédents.");
             });
         return () => controller.abort();
-    }, [userId]);
+    }, [userId, dayTick]);
 
     return (
         <main className="daily-history">
@@ -50,8 +56,8 @@ export default function DailyHistory() {
                             {day.games.map(game => (
                                 <div key={game.code} className="daily-history-game">
                                     <div className="daily-history-game-head">
-                                        <strong>{GAME_NAMES[game.code] ?? game.code}</strong>
-                                        <span>{game.size}×{game.size} · {game.emptyCells} cases</span>
+                                        <strong>{DAILY_GAME_NAMES[game.code] ?? game.code}</strong>
+                                        <span>{dailyGridLabel(game.code, game.size, game.emptyCells)}</span>
                                     </div>
                                     <p className="daily-history-result">
                                         {game.result

@@ -12,6 +12,9 @@ import dailyRoutes from "./routes/Daily.routes.js";
 import leaderboardRoutes from "./routes/Leaderboard.routes.js";
 import {pool} from "./db/pool.js";
 import {migrate} from "./db/migrate.js";
+import {createDb} from "./db/kysely.js";
+import {createDailyService} from "./services/daily.js";
+import {startDailyScheduler} from "./services/dailyScheduler.js";
 
 /*
  * Point d'entrée de l'API backend
@@ -87,6 +90,9 @@ if (config.migrationsDir) {
 const server = app.listen(config.port, () => {
 	console.log(`🚀 Server running on http://localhost:${config.port}`);
 });
+
+// Défis du jour : générés au démarrage s'ils manquent, puis chaque nuit à minuit (heure de Paris)
+startDailyScheduler(createDailyService(createDb(pool)));
 
 // Arrêt propre (docker stop envoie SIGTERM)
 for (const signal of ["SIGTERM", "SIGINT"] as const) {

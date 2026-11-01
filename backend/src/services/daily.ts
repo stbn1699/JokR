@@ -4,8 +4,9 @@ import {DailyRepository} from "../repository/Daily.repository.js";
 import {DailyService} from "./Daily.service.js";
 import {SudokuService} from "./Sudoku.service.js";
 import {BineroService} from "./Binero.service.js";
+import {RikudoService} from "./Rikudo.service.js";
 
-// Construit le service du défi du jour (utilisé par les routes /daily, /sudoku et /binero)
+// Construit le service du défi du jour (utilisé par les routes /daily et celles des jeux)
 export function createDailyService(db: Kysely<DB>): DailyService {
-    return new DailyService(new DailyRepository(db), new SudokuService(), new BineroService());
+    return new DailyService(new DailyRepository(db), new SudokuService(), new BineroService(), new RikudoService());
 }

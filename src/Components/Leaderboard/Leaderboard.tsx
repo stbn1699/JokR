@@ -1,6 +1,6 @@
 /**
  * Page Classements : XP globale, par jeu, et défi du jour.
- * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|rikudo|defi&jeu=sudoku|binero[&date=AAAA-MM-JJ])
+ * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|rikudo|defi&jeu=sudoku|binero|rikudo[&date=AAAA-MM-JJ])
  * pour pouvoir y renvoyer (date = classement d'un défi passé).
  */
 
@@ -12,6 +12,7 @@ import {type Leaderboard as Board, leaderboardService} from "../../Services/lead
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {formatDuration} from "../../Services/format.ts";
 import type {DailyLeaderboard} from "../../Models/daily.model.ts";
+import {useDailyRefresh} from "../PuzzleUI/useDailyRefresh.ts";
 
 const TABS = [
     {id: "xp", label: "XP globale"},
@@ -22,7 +23,7 @@ const TABS = [
 ] as const;
 type Tab = typeof TABS[number]["id"];
 
-const DAILY_GAMES = [{id: "sudoku", label: "Sudoku"}, {id: "binero", label: "Binero"}] as const;
+const DAILY_GAMES = [{id: "sudoku", label: "Sudoku"}, {id: "binero", label: "Binero"}, {id: "rikudo", label: "Rikudo"}] as const;
 
 const ordinal = (rank: number) => <>{rank}<sup>{rank === 1 ? "er" : "e"}</sup></>;
 
@@ -30,13 +31,15 @@ export default function Leaderboard() {
     const {username} = useAuth();
     const [params, setParams] = useSearchParams();
     const tab: Tab = TABS.some(t => t.id === params.get("onglet")) ? params.get("onglet") as Tab : "xp";
-    const dailyGame = params.get("jeu") === "binero" ? "binero" : "sudoku";
+    const dailyGame = DAILY_GAMES.find(g => g.id === params.get("jeu"))?.id ?? "sudoku";
     const dailyDateParam = params.get("date") ?? undefined;
 
     const [board, setBoard] = useState<Board | null>(null);
     const [daily, setDaily] = useState<DailyLeaderboard | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    // Classement du jour (sans date) : il passe au nouveau jour à minuit
+    const dayTick = useDailyRefresh(tab === "defi" && !dailyDateParam ? daily?.nextInMs : undefined);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -57,7 +60,7 @@ export default function Leaderboard() {
             })
             .finally(() => setLoading(false));
         return () => controller.abort();
-    }, [tab, dailyGame, dailyDateParam]);
+    }, [tab, dailyGame, dailyDateParam, dayTick]);
 
     const select = (next: Record<string, string>) => {
         setLoading(true);

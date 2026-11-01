@@ -12,6 +12,10 @@ export interface DailyResult extends DailyRanking {
 // GET /daily
 export interface DailyOverview {
     date: string;
+    // Temps avant le prochain changement de jour (minuit à Paris), en ms
+    nextInMs: number;
+    // Défis du jour déjà générés
+    ready: boolean;
     games: {
         code: string;
         size: number;
@@ -29,6 +33,7 @@ export type DailyStart<Grid> =
 // GET /daily/:game/leaderboard
 export interface DailyLeaderboard {
     date: string;
+    nextInMs: number;
     entries: { rank: number; username: string; durationMs: number }[];
     me: DailyResult | null;
 }

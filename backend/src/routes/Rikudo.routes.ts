@@ -4,6 +4,7 @@ import {createDb} from "../db/kysely.js";
 import {RikudoService} from "../services/Rikudo.service.js";
 import {createRikudoController} from "../controllers/Rikudo.controller.js";
 import {rikudoStore} from "../services/stores.js";
+import {createDailyService} from "../services/daily.js";
 import {ProgressionService} from "../services/Progression.service.js";
 import {GamesService} from "../services/Games.service.js";
 import {GamesRepository} from "../repository/Games.repository.js";
@@ -17,6 +18,7 @@ const controller = createRikudoController(
     rikudoStore,
     new ProgressionService(db),
     new GamesService(new GamesRepository(db)),
+    createDailyService(db),
 );
 
 // GET /rikudo/settings (tailles, plages de cases à remplir et XP associée)

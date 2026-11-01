@@ -5,8 +5,9 @@ import {DAILY_GAMES, type DailyGameCode, type DailyService, isDailyGame} from ".
 import {countClues} from "../services/Sudoku.service.js";
 import {toApiGrid} from "../services/Binero.service.js";
 import {type BineroGrid, countBineroClues} from "../utils/binero.js";
-import {sudokuStore, bineroStore} from "../services/stores.js";
-import {dailyDate} from "../utils/dailyDate.js";
+import {sudokuStore, bineroStore, rikudoStore} from "../services/stores.js";
+import {countRikudoClues, type RikudoPuzzle} from "../utils/rikudo.js";
+import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
 import {isDateKey, routeParam} from "../utils/validation.js";
 
 // Nombre de jours affichés dans l'historique des défis
@@ -14,7 +15,8 @@ const HISTORY_DAYS = 30;
 
 /*
  * Défi du jour
- * - overview : défis du jour et, si le joueur est connecté, ses résultats
+ * - overview : défis du jour et, si le joueur est connecté, ses résultats ;
+ *   nextInMs = temps avant le prochain changement de jour (le front se rafraîchit à ce moment-là), ready = défis déjà générés
  * - start : commence le défi (grille du jour) ; la partie se valide ensuite comme une partie normale
  * - leaderboard : meilleurs temps du jour (ou d'un jour passé, ?date=AAAA-MM-JJ) et place du joueur connecté
  * - history : défis des jours précédents (et résultats du joueur connecté)
@@ -33,8 +35,12 @@ export function createDailyController(service: DailyService) {
             const options = daily ? {daily} : {};
             return {gameId: sudokuStore.create(grid, countClues(grid), options), grid};
         }
-        const grid = puzzle as BineroGrid;
         const options = daily ? {daily} : {};
+        if (code === "RIKUDO") {
+            const rikudo = puzzle as RikudoPuzzle;
+            return {gameId: rikudoStore.create(rikudo, countRikudoClues(rikudo), options), grid: rikudo};
+        }
+        const grid = puzzle as BineroGrid;
         return {gameId: bineroStore.create(grid, countBineroClues(grid), options), grid: toApiGrid(grid)};
     };
 
@@ -47,7 +53,8 @@ export function createDailyController(service: DailyService) {
                 ...DAILY_GAMES[code],
                 result: userId ? await service.resultOf(code, date, userId) : null,
             })));
-            res.status(200).json({status: "ok", data: {date, games}});
+            const ready = await service.ready(date);
+            res.status(200).json({status: "ok", data: {date, nextInMs: nextDailyChange().getTime() - Date.now(), ready, games}});
         }),
 
         start: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
@@ -121,7 +128,7 @@ export function createDailyController(service: DailyService) {
                 service.leaderboard(code, date),
                 userId ? service.resultOf(code, date, userId) : Promise.resolve(null),
             ]);
-            res.status(200).json({status: "ok", data: {date, entries, me}});
+            res.status(200).json({status: "ok", data: {date, nextInMs: nextDailyChange().getTime() - Date.now(), entries, me}});
         }),
     };
 }

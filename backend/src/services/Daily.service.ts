@@ -1,16 +1,21 @@
 import type {DailyRanking, DailyRepository} from "../repository/Daily.repository.js";
 import type {SudokuService} from "./Sudoku.service.js";
 import type {BineroService} from "./Binero.service.js";
+import type {RikudoService} from "./Rikudo.service.js";
 
 /*
  * Défi du jour : une grille par jeu et par jour, la même pour tout le monde.
- * Elle est générée à la première demande du jour puis conservée en base.
+ * Les grilles sont générées à minuit (heure de Paris) par dailyScheduler.ts et conservées en base.
+ * Filet de sécurité : si une grille manque encore à la demande d'un joueur, elle est générée à ce moment-là
+ * (l'insertion "on conflict do nothing" garantit une seule grille même si plusieurs demandes arrivent ensemble).
  */
 
 // Difficulté du défi pour chaque jeu
 export const DAILY_GAMES = {
     SUDOKU: {size: 9, emptyCells: 45},
     BINERO: {size: 10, emptyCells: 50},
+    // Rikudo : size = nombre de cases du plateau
+    RIKUDO: {size: 60, emptyCells: 40},
 } as const;
 
 export type DailyGameCode = keyof typeof DAILY_GAMES;
@@ -22,6 +27,7 @@ export class DailyService {
         private repo: DailyRepository,
         private sudoku: SudokuService,
         private binero: BineroService,
+        private rikudo: RikudoService,
     ) {
     }
 
@@ -31,13 +37,40 @@ export class DailyService {
         if (existing) return existing;
 
         const {size, emptyCells} = DAILY_GAMES[gameCode];
-        const puzzle = gameCode === "SUDOKU"
-            ? await this.sudoku.generate(81 - emptyCells)
-            : this.binero.generate(size, size * size - emptyCells);
+        const puzzle = await this.generate(gameCode, size, emptyCells);
 
         await this.repo.insertChallenge(date, gameCode, puzzle, size, emptyCells);
         // Relecture : si deux joueurs ont lancé la génération en même temps, tous deux ont la même grille
         return (await this.repo.findChallenge(date, gameCode))!;
+    }
+
+    private async generate(gameCode: DailyGameCode, size: number, emptyCells: number): Promise<unknown> {
+        switch (gameCode) {
+            case "SUDOKU":
+                return this.sudoku.generate(81 - emptyCells);
+            case "BINERO":
+                return this.binero.generate(size, size * size - emptyCells);
+            case "RIKUDO":
+                return this.rikudo.generate(size, size - emptyCells);
+        }
+    }
+
+    /** Génère les défis manquants du jour pour tous les jeux ; renvoie les jeux générés */
+    async generateAll(date: string): Promise<DailyGameCode[]> {
+        const created: DailyGameCode[] = [];
+        for (const code of Object.keys(DAILY_GAMES) as DailyGameCode[]) {
+            if (await this.repo.findChallenge(date, code)) continue;
+            await this.challenge(code, date);
+            created.push(code);
+        }
+        return created;
+    }
+
+    /** true si les défis de tous les jeux existent pour ce jour */
+    async ready(date: string): Promise<boolean> {
+        const found = await Promise.all((Object.keys(DAILY_GAMES) as DailyGameCode[])
+            .map(code => this.repo.findChallenge(date, code)));
+        return found.every(Boolean);
     }
 
     // Réussite déjà enregistrée pour ce joueur aujourd'hui (avec sa place), ou null
