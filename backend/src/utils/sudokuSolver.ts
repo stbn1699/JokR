@@ -70,12 +70,12 @@ function getCandidates(grid: number[][]): Set<number>[][] {
             if (grid[r]![c] !== 0) continue;
             const seen = new Set<number>();
             for (let x = 0; x < 9; x++) {
-                if (grid[r]![x] !== 0) seen.add(grid[r]![x]);
-                if (grid[x]![c] !== 0) seen.add(grid[x]![c]);
+                if (grid[r]![x] !== 0) seen.add(grid[r]![x]!);
+                if (grid[x]![c] !== 0) seen.add(grid[x]![c]!);
             }
             const startRow = r - (r % 3);
             const startCol = c - (c % 3);
-            for (let rr = 0; rr < 3; rr++) for (let cc = 0; cc < 3; cc++) if (grid[startRow + rr]![startCol + cc] !== 0) seen.add(grid[startRow + rr]![startCol + cc]);
+            for (let rr = 0; rr < 3; rr++) for (let cc = 0; cc < 3; cc++) if (grid[startRow + rr]![startCol + cc] !== 0) seen.add(grid[startRow + rr]![startCol + cc]!);
             for (let n = 1; n <= 9; n++) if (!seen.has(n)) candidates[r]![c]!.add(n);
         }
     }
@@ -87,7 +87,7 @@ function applyNakedSingles(grid: number[][], candidates: Set<number>[][]): boole
     for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
             if (grid[r]![c] === 0 && candidates[r]![c]!.size === 1) {
-                grid[r]![c] = Array.from(candidates[r]![c]!)[0];
+                grid[r]![c] = Array.from(candidates[r]![c]!)[0]!;
                 // after placing, we need to clear candidates
                 candidates[r]![c]!.clear();
                 changed = true;
@@ -111,7 +111,7 @@ function applyHiddenSingles(grid: number[][], candidates: Set<number>[][]): bool
         }
         for (const [n, arr] of counts) {
             if (arr.length === 1) {
-                const c = arr[0];
+                const c = arr[0]!;
                 grid[r]![c] = n;
                 candidates[r]![c]!.clear();
                 changed = true;
@@ -130,7 +130,7 @@ function applyHiddenSingles(grid: number[][], candidates: Set<number>[][]): bool
         }
         for (const [n, arr] of counts) {
             if (arr.length === 1) {
-                const r = arr[0];
+                const r = arr[0]!;
                 grid[r]![c] = n;
                 candidates[r]![c]!.clear();
                 changed = true;
@@ -154,7 +154,7 @@ function applyHiddenSingles(grid: number[][], candidates: Set<number>[][]): bool
             }
             for (const [n, arr] of counts) {
                 if (arr.length === 1) {
-                    const [rr, cc] = arr[0];
+                    const [rr, cc] = arr[0]!;
                     grid[rr]![cc] = n;
                     candidates[rr]![cc]!.clear();
                     changed = true;
