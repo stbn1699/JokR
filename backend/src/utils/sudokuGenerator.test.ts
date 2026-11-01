@@ -55,6 +55,22 @@ describe("generateSudoku", () => {
         expect(service.respectsClues(grid, solution)).toBe(true);
     });
 
+    // La difficulté maximale (26 indices) est testée via SudokuService.generate, qui réessaie
+    it("tombe pile sur la cible", () => {
+        for (const target of [61, 41, 31]) {
+            expect(clues(generateSudoku(target))).toBe(target);
+        }
+    });
+
+    it("reste rapide sur une cible impossible (pas de boucle infinie dans le solveur)", () => {
+        // 17 indices n'est quasiment jamais atteignable par résolution logique :
+        // le générateur doit abandonner vite au lieu de bloquer le serveur
+        const start = Date.now();
+        const grid = generateSudoku(17);
+        expect(Date.now() - start).toBeLessThan(3000);
+        expect(countSolutions(grid, 2)).toBe(1);
+    });
+
     it("renvoie la grille complète si on demande 81 indices", () => {
         expect(clues(generateSudoku(81))).toBe(81);
     });

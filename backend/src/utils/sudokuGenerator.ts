@@ -58,6 +58,12 @@ export function generateSudoku(numPlaced: number): number[][] {
     const indices = shuffle(Array.from({length: 81}, (_, i) => i));
     let placed = 81;
 
+    // Une case peut être retirée si la grille reste résolvable par logique pure
+    // (et donc à solution unique). La résolution logique est rapide : elle passe en premier,
+    // le comptage de solutions (lent sur les grilles difficiles) ne sert que de vérification.
+    const canRemove = () => logicalSolve(result).solved && countSolutions(result, 2) === 1;
+
+    // 1er passage : retrait par paires symétriques (grilles plus jolies)
     for (const idx of indices) {
         if (placed <= numPlaced) break;
         const idx2 = symIndex(idx);
@@ -73,21 +79,32 @@ export function generateSudoku(numPlaced: number): number[][] {
         const b1 = result[r1]![c1]!;
         const b2 = result[r2]![c2]!;
 
-        // Les cases sont retirées par paires symétriques : on ne descend pas sous le nombre demandé
+        // On ne descend pas sous le nombre demandé
         const removed = (b1 === 0 ? 0 : 1) + (idx2 !== idx && b2 !== 0 ? 1 : 0);
         if (placed - removed < numPlaced) continue;
 
         result[r1]![c1] = 0;
         if (idx2 !== idx) result[r2]![c2] = 0;
 
-        const sols = countSolutions(result, 2);
-        const logical = logicalSolve(result);
-        if (sols === 1 && logical.solved) {
+        if (canRemove()) {
             placed -= removed;
         } else {
             result[r1]![c1] = b1;
             result[r2]![c2] = b2;
         }
+    }
+
+    // 2e passage : retrait case par case pour tomber pile sur le nombre demandé
+    for (const idx of shuffle(Array.from({length: 81}, (_, i) => i))) {
+        if (placed <= numPlaced) break;
+        const r = Math.floor(idx / 9);
+        const c = idx % 9;
+        const value = result[r]![c]!;
+        if (value === 0) continue;
+
+        result[r]![c] = 0;
+        if (canRemove()) placed--;
+        else result[r]![c] = value;
     }
 
     return result;

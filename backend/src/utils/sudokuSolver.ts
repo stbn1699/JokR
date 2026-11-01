@@ -97,8 +97,9 @@ function applyNakedSingles(grid: number[][], candidates: Set<number>[][]): boole
     return changed;
 }
 
+// Place UN chiffre qui n'a qu'une case possible dans sa ligne, colonne ou bloc.
+// Un seul à la fois : après un placement, les candidats calculés ne sont plus à jour.
 function applyHiddenSingles(grid: number[][], candidates: Set<number>[][]): boolean {
-    let changed = false;
     // rows
     for (let r = 0; r < 9; r++) {
         const counts: Map<number, number[]> = new Map();
@@ -113,8 +114,7 @@ function applyHiddenSingles(grid: number[][], candidates: Set<number>[][]): bool
             if (arr.length === 1) {
                 const c = arr[0]!;
                 grid[r]![c] = n;
-                candidates[r]![c]!.clear();
-                changed = true;
+                return true;
             }
         }
     }
@@ -132,8 +132,7 @@ function applyHiddenSingles(grid: number[][], candidates: Set<number>[][]): bool
             if (arr.length === 1) {
                 const r = arr[0]!;
                 grid[r]![c] = n;
-                candidates[r]![c]!.clear();
-                changed = true;
+                return true;
             }
         }
     }
@@ -156,13 +155,12 @@ function applyHiddenSingles(grid: number[][], candidates: Set<number>[][]): bool
                 if (arr.length === 1) {
                     const [rr, cc] = arr[0]!;
                     grid[rr]![cc] = n;
-                    candidates[rr]![cc]!.clear();
-                    changed = true;
+                    return true;
                 }
             }
         }
     }
-    return changed;
+    return false;
 }
 
 function applyNakedPairs(grid: number[][], candidates: Set<number>[][]): boolean {
@@ -255,22 +253,31 @@ function applyNakedPairs(grid: number[][], candidates: Set<number>[][]): boolean
 
 export function logicalSolve(inputGrid: number[][]): LogicalResult {
     const grid = cloneGrid(inputGrid);
-    // keep iterating applying logical techniques until no change
+    let candidates: Set<number>[][] = [];
+    const stuck = () => {
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+            if (grid[r]![c] === 0 && candidates[r]![c]!.size === 0) return true;
+        }
+        return false;
+    };
+
+    // À chaque tour : candidats recalculés depuis la grille, éliminations par paires,
+    // puis placement de chiffres. On s'arrête quand plus aucun chiffre ne peut être placé.
+    // (Avant, les paires signalaient un changement sans rien placer : boucle infinie.)
     while (true) {
-        const candidates = getCandidates(grid);
-        // If any cell has no candidates and is empty, fail early
-        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) if (grid[r]![c] === 0 && candidates[r]![c]!.size === 0) return { solved: false, grid };
+        candidates = getCandidates(grid);
+        if (stuck()) return {solved: false, grid};
 
-        let changed = false;
-        // naked singles
-        if (applyNakedSingles(grid, candidates)) changed = true;
-        // if changed, loop to recompute candidates next iteration
-        if (applyHiddenSingles(grid, candidates)) changed = true;
-        if (applyNakedPairs(grid, candidates)) changed = true;
+        // Élimine des candidats tant que possible (termine : chaque passage en retire au moins un)
+        while (applyNakedPairs(grid, candidates)) { /* continue */ }
+        if (stuck()) return {solved: false, grid};
 
-        if (!changed) break;
+        // Tous les "naked singles" d'un même état sont des déductions valides en même temps
+        if (applyNakedSingles(grid, candidates)) continue;
+        if (applyHiddenSingles(grid, candidates)) continue;
+        break;
     }
 
     const empty = findEmpty(grid);
-    return { solved: !empty, grid };
+    return {solved: !empty, grid};
 }
