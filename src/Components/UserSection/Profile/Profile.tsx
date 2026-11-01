@@ -2,13 +2,13 @@
  * Page Profil - joueur connecté
  *
  * Affiche le pseudo, le niveau global (icône + barre d'XP), les stats par jeu
- * et les dernières parties gagnées (temps, XP).
+ * l'historique des parties gagnées (temps, XP) et la gestion du compte.
  * Redirige vers /login si personne n'est connecté.
  */
 
 import "./Profile.scss";
 import {useEffect, useState} from "react";
-import {Navigate, useNavigate} from "react-router-dom";
+import {Navigate} from "react-router-dom";
 import {useAuth} from "../../../Context/authContext.ts";
 import {gameStatsService} from "../../../Services/gameStats.service.ts";
 import {gameService} from "../../../Services/game.service.ts";
@@ -18,13 +18,20 @@ import type {Game} from "../../../Models/game.model.ts";
 import type {RecentResult} from "../../../Models/gameResult.model.ts";
 import {userService} from "../../../Services/user.service.ts";
 import {formatDuration} from "../../../Services/format.ts";
+import AccountSettings from "./AccountSettings.tsx";
+
+const PAGE_SIZE = 10;
 
 export default function Profile() {
     const {isLoggedIn, userId, username, level, xp, logout} = useAuth();
-    const navigate = useNavigate();
+    // Vrai quand le joueur quitte volontairement (déconnexion, compte supprimé) : retour à l'accueil
+    const [leaving, setLeaving] = useState(false);
     const [stats, setStats] = useState<GameStats[] | null>(null);
     const [games, setGames] = useState<Game[]>([]);
     const [results, setResults] = useState<RecentResult[]>([]);
+    // Il reste peut-être des parties plus anciennes à charger
+    const [hasMore, setHasMore] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -33,12 +40,13 @@ export default function Profile() {
         Promise.all([
             gameStatsService.getStatsByUserId(userId),
             gameService.list(controller.signal),
-            userService.getMyResults(controller.signal),
+            userService.getMyResults(PAGE_SIZE, 0, controller.signal),
         ])
             .then(([s, g, r]) => {
                 setStats(s);
                 setGames(g);
                 setResults(r);
+                setHasMore(r.length === PAGE_SIZE);
             })
             .catch((err: Error) => {
                 if (err.name !== "AbortError") setError(err.message || "Erreur lors du chargement du profil");
@@ -46,15 +54,29 @@ export default function Profile() {
         return () => controller.abort();
     }, [userId]);
 
-    if (!isLoggedIn) return <Navigate to="/login" replace/>;
+    // Sans session : vers la connexion, sauf si le joueur vient de se déconnecter (alors l'accueil)
+    if (!isLoggedIn) return <Navigate to={leaving ? "/" : "/login"} replace/>;
+
+    const loadMore = async () => {
+        setLoadingMore(true);
+        try {
+            const page = await userService.getMyResults(PAGE_SIZE, results.length);
+            setResults(current => [...current, ...page]);
+            setHasMore(page.length === PAGE_SIZE);
+        } catch (err) {
+            setError((err as Error).message);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
     const xpNextLevel = xpToNextLevel(level);
     const xpPercent = Math.min(100, (xp / xpNextLevel) * 100);
     const gameName = (code: string) => games.find(g => g.code === code)?.designation ?? code;
 
     const handleLogout = () => {
+        setLeaving(true);
         logout();
-        navigate("/");
     };
 
     return (
@@ -98,7 +120,7 @@ export default function Profile() {
 
                 {results.length > 0 && (
                     <>
-                        <h2>Dernières parties</h2>
+                        <h2>Historique</h2>
                         <table className="profile-stats profile-results">
                             <thead>
                             <tr>
@@ -123,8 +145,15 @@ export default function Profile() {
                             ))}
                             </tbody>
                         </table>
+                        {hasMore && (
+                            <button type="button" className="profile-more" onClick={loadMore} disabled={loadingMore}>
+                                {loadingMore ? "Chargement…" : "Voir plus"}
+                            </button>
+                        )}
                     </>
                 )}
+
+                <AccountSettings onDeleted={handleLogout}/>
 
                 <button type="button" className="profile-logout" onClick={handleLogout}>
                     Se déconnecter

@@ -98,6 +98,114 @@
 	}
 }
 
+// "Voir plus" sous l'historique
+.profile .profile-more {
+	margin        : 1rem 0 0;
+	padding       : 0.5rem 1.4rem;
+	border-radius : 999px;
+	border        : 2px solid rgba(229, 231, 235, 0.5);
+	background    : transparent;
+	color         : #f9fafb;
+	font-family   : inherit;
+	font-size     : 1.2rem;
+	cursor        : pointer;
+
+	&:hover:not(:disabled) {
+		border-color : #10b981;
+	}
+}
+
+// Section "Mon compte"
+.profile .account-settings {
+	width      : 100%;
+	margin-top : 1rem;
+	text-align : left;
+
+	h2 {
+		text-align : center;
+	}
+
+	h3 {
+		margin    : 1.25rem 0 0.75rem;
+		font-size : 1.5rem;
+	}
+
+	.account-form {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.6rem;
+
+		input {
+			padding       : 0.6rem 0.8rem;
+			border-radius : 10px;
+			border        : 1px solid rgba(249, 250, 251, 0.5);
+			background    : transparent;
+			color         : #f9fafb;
+			font-family   : inherit;
+			font-size     : 1.2rem;
+		}
+	}
+
+	button {
+		align-self    : flex-start;
+		padding       : 0.55rem 1.3rem;
+		border-radius : 999px;
+		border        : none;
+		background    : #10b981;
+		color         : white;
+		font-family   : inherit;
+		font-size     : 1.2rem;
+		font-weight   : 600;
+		cursor        : pointer;
+
+		&:disabled {
+			opacity : 0.5;
+			cursor  : default;
+		}
+
+		&.secondary {
+			background : transparent;
+			border     : 2px solid rgba(249, 250, 251, 0.4);
+		}
+
+		&.danger {
+			background : #dc2626;
+		}
+	}
+
+	.account-danger {
+		margin-top    : 1.5rem;
+		padding       : 0.25rem 1rem 1rem;
+		border        : 2px solid rgba(248, 113, 113, 0.6);
+		border-radius : 10px;
+
+		h3 {
+			color : #fca5a5;
+		}
+	}
+
+	.account-warning {
+		margin    : 0;
+		font-size : 1.2rem;
+		color     : #fecaca;
+	}
+
+	.account-buttons {
+		display : flex;
+		gap     : 0.75rem;
+	}
+
+	.account-success {
+		margin : 0;
+		color  : #3bf644;
+	}
+
+	.account-error {
+		margin : 0;
+		color  : #fca5a5;
+	}
+}
+
 // Sur téléphone, les tableaux restent lisibles
 @media (max-width: 600px) {
 	.profile {
