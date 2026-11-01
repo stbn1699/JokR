@@ -7,6 +7,7 @@
  * - /login : Page de connexion
  * - /register : Page d'inscription
  * - /profile : Profil du joueur connecté
+ * - /hasard : Onglet des jeux de hasard (à venir)
  * - /nouveautes : Nouveautés (CHANGELOG.md) ; le numéro de version est en bas à droite
  * - * : Page 404 pour les routes inexistantes
  */
@@ -23,6 +24,7 @@ import NotFound from "./Components/NotFound/NotFound.tsx";
 import Leaderboard from "./Components/Leaderboard/Leaderboard.tsx";
 import DailyHistory from "./Components/DailyHistory/DailyHistory.tsx";
 import Changelog from "./Components/Changelog/Changelog.tsx";
+import Hasard from "./Components/Hasard/Hasard.tsx";
 import AppFooter from "./Components/AppFooter/AppFooter.tsx";
 
 /**
@@ -46,6 +48,7 @@ function App() {
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/classements" element={<Leaderboard/>}/>
                 <Route path="/nouveautes" element={<Changelog/>}/>
+                <Route path="/hasard" element={<Hasard/>}/>
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
             <AppFooter/>

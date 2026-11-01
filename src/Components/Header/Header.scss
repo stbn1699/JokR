@@ -17,6 +17,35 @@
 		display: block;
 	}
 
+	// Onglets Puzzle / Hasard, au centre du header
+	.header-tabs {
+		position  : absolute;
+		left      : 50%;
+		top       : 50%;
+		transform : translate(-50%, -50%);
+		display   : flex;
+		gap       : 0.4rem;
+	}
+
+	.header-tab {
+		padding         : 0.3rem 1.4rem;
+		border-radius   : 999px;
+		color           : #374151;
+		font-size       : 1.7rem;
+		font-weight     : 600;
+		text-decoration : none;
+		transition      : background 0.15s ease, color 0.15s ease;
+
+		&:hover {
+			background : rgba(217, 119, 6, 0.12);
+		}
+
+		&.active {
+			background : #d97706;
+			color      : #fff7ed;
+		}
+	}
+
 	.usersection {
 		display     : flex;
 		gap         : 1rem;
@@ -70,15 +99,43 @@
 		}
 	}
 }
+// Écran moyen : les onglets passent sur une 2e ligne du header (plus de place au centre)
+@media (max-width: 1000px) {
+	.header {
+		flex-wrap  : wrap;
+		height     : auto;
+		min-height : 4rem;
+		row-gap    : 0.4rem;
+		padding    : 0.5rem 1rem;
+
+		.logo {
+			height : 2.8rem;
+		}
+
+		.header-tabs {
+			position        : static;
+			transform       : none;
+			order           : 3;
+			width           : 100%;
+			justify-content : center;
+		}
+	}
+}
+
 // Téléphone : tout doit tenir sur une ligne (logo, trophée, niveau, barre d'XP, profil, déconnexion)
 @media (max-width: 600px) {
 	.header {
-		margin  : 0.5rem;
-		padding : 0 0.75rem;
-		height  : 3.5rem;
+		margin     : 0.5rem;
+		padding    : 0.4rem 0.75rem;
+		min-height : 3.5rem;
 
 		.logo {
-			height : 60%;
+			height : 2.2rem;
+		}
+
+		.header-tab {
+			padding   : 0.25rem 1rem;
+			font-size : 1.15rem;
 		}
 
 		.usersection {

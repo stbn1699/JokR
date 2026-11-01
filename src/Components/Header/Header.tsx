@@ -3,6 +3,7 @@
  *
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
+ * - Les onglets Puzzle (accueil : Sudoku, Binero, Rikudo…) et Hasard (jeux de hasard, à venir)
  * - Connecté : icône de niveau, barre d'XP, accès au profil et déconnexion
  * - Invité : icône pour aller à la page de connexion
  *
@@ -11,12 +12,19 @@
 
 import "./Header.scss"
 import {FaSignOutAlt, FaTrophy, FaUser, FaUserCircle} from "react-icons/fa";
-import {useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {levelIconSrc, xpToNextLevel} from "../../Services/leveling.ts";
 
+// Onglets du header ; `match` dit si une adresse appartient à l'onglet
+const TABS = [
+    {label: "Puzzle", to: "/", match: (path: string) => path === "/" || path.startsWith("/playgame") || path.startsWith("/defi")},
+    {label: "Hasard", to: "/hasard", match: (path: string) => path.startsWith("/hasard")},
+];
+
 export default function Header() {
     const navigate = useNavigate();
+    const {pathname} = useLocation();
     const {isLoggedIn, level, xp, logout} = useAuth();
 
     const xpNextLevel = xpToNextLevel(level);
@@ -35,6 +43,18 @@ export default function Header() {
                 className="logo"
                 onClick={() => navigate("/")} // Redirection vers l'accueil
             />
+
+            <nav className="header-tabs" aria-label="Catégories de jeux">
+                {TABS.map(tab => {
+                    const active = tab.match(pathname);
+                    return (
+                        <Link key={tab.to} to={tab.to} className={`header-tab ${active ? "active" : ""}`}
+                              aria-current={active ? "page" : undefined}>
+                            {tab.label}
+                        </Link>
+                    );
+                })}
+            </nav>
 
             <div className="usersection">
                 <FaTrophy title="Classements" className="trophy" onClick={() => navigate("/classements")}/>
