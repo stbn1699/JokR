@@ -4,7 +4,8 @@
  * - À l'ouverture : popup de paramètres (taille de grille, cases à remplir, XP gagnée)
  * - Panneau de gauche : 0 et 1 restants à placer, clic pour les surligner dans la grille
  * - Grille : saisie au clavier, ligne et colonne de la case sélectionnée éclaircies
- * - Panneau de droite : validation côté serveur et rappel des règles
+ * - Panneau de droite : validation côté serveur, messages d'erreur et rappel des règles
+ * - Victoire : popup avec la barre d'XP ; "Nouvelle partie" rouvre les paramètres sans recharger
  */
 
 import {useState} from "react";
@@ -12,47 +13,23 @@ import "../PuzzleUI/PuzzleLayout.scss";
 import "./Binero.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
-import sounds from "../../Services/sounds.ts";
-import {useAuth} from "../../Context/authContext.ts";
+import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useBineroGame} from "./useBineroGame.ts";
 import BineroGrid from "./BineroGrid.tsx";
 import BineroSettingsPopup from "./BineroSettingsPopup.tsx";
 
 const DIGITS = [0, 1];
 
-type BineroProps = {
-    gameCode: string;
-};
-
-export default function Binero({gameCode}: BineroProps) {
+export default function Binero() {
     const game = useBineroGame();
-    const {refresh: refreshUser} = useAuth();
-
-    // La popup de paramètres s'ouvre avec la page ("Nouveau puzzle" recharge la page)
-    const [showSettings, setShowSettings] = useState(true);
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [xpAwarded, setXpAwarded] = useState<number | null>(null);
+    const flow = useGameFlow();
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
 
     const handleGenerate = (size: number, emptyCells: number) => {
-        setShowSettings(false);
-        setShowSuccess(false);
         setSelectedDigit(null);
-        void game.generate(size, emptyCells);
-    };
-
-    const handleValidate = async () => {
-        sounds.button();
-        const result = await game.validate();
-        if (!result.ok) {
-            alert(result.message);
-            return;
-        }
-        setXpAwarded(result.xp ?? null);
-        // Met à jour niveau / XP dans le header
-        if (result.xp !== undefined) void refreshUser();
-        setShowSuccess(true);
+        void flow.generate(() => game.generate(size, emptyCells));
     };
 
     return (
@@ -85,10 +62,11 @@ export default function Binero({gameCode}: BineroProps) {
 
             <div className="actions">
                 <h2 className="title">Actions</h2>
-                <button type="button" onClick={handleValidate} className="validate-button"
-                        disabled={game.isGenerating || showSettings}>
+                <button type="button" onClick={() => flow.submit(game.validate)} className="validate-button"
+                        disabled={game.isGenerating || flow.showSettings}>
                     Valider
                 </button>
+                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
 
                 <div className="rules">
                     <h3>Règles</h3>
@@ -102,9 +80,12 @@ export default function Binero({gameCode}: BineroProps) {
                 </div>
             </div>
 
-            <BineroSettingsPopup open={showSettings} onGenerate={handleGenerate}/>
+            <BineroSettingsPopup open={flow.showSettings} onGenerate={handleGenerate}/>
 
-            <SuccessPopup open={showSuccess} gameCode={gameCode} xpAwarded={xpAwarded}/>
+            {flow.victory && (
+                <SuccessPopup gameName="Binero" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}
+                              onNewGame={flow.newGame}/>
+            )}
         </div>
     );
 }

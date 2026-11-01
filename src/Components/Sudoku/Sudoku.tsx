@@ -2,6 +2,7 @@
  * Composant Sudoku - Jeu de Sudoku 9x9 interactif
  *
  * - À l'ouverture : popup de paramètres (cases à remplir, XP gagnée), puis génération côté serveur
+ * - Victoire : popup avec la barre d'XP ; "Nouvelle partie" rouvre les paramètres sans recharger
  * - Grille : navigation clavier, surbrillance des chiffres identiques
  * - Actions : validation côté serveur, qui calcule et enregistre l'XP si le joueur est connecté
  *
@@ -10,12 +11,11 @@
  * La logique est dans useSudokuGame, l'affichage dans SudokuSettingsPopup, DigitPanel et SudokuGrid.
  */
 
-import {useState} from 'react';
 import "../PuzzleUI/PuzzleLayout.scss";
 import "./Sudoku.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
-import sounds from "../../Services/sounds.ts";
-import {useAuth} from "../../Context/authContext.ts";
+import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useSudokuGame} from "./useSudokuGame.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
 import SudokuGrid from "./SudokuGrid.tsx";
@@ -23,41 +23,15 @@ import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-type SudokuProps = {
-    gameCode: string;
-}
-
-export default function Sudoku({gameCode}: SudokuProps) {
+export default function Sudoku() {
     const {
         inputs, isGenerating, generate, validate,
         digitCounts, selectedDigit, toggleDigit, setHoverDigit, setSelectedCell, onCellInput,
     } = useSudokuGame();
-    const {refresh: refreshUser} = useAuth();
-
-    // La popup de paramètres s'ouvre avec la page ("Nouveau puzzle" recharge la page)
-    const [showSettings, setShowSettings] = useState(true);
-    const [showSuccess, setShowSuccess] = useState(false);
-    // XP renvoyée par le serveur (null si le joueur n'est pas connecté)
-    const [xpAwarded, setXpAwarded] = useState<number | null>(null);
+    const flow = useGameFlow();
 
     const handleGenerate = (cluesCount: number) => {
-        setShowSettings(false);
-        setShowSuccess(false);
-        void generate(cluesCount);
-    };
-
-    const handleValidate = async () => {
-        sounds.button();
-        const result = await validate();
-        if (!result.ok) {
-            alert(result.message);
-            return;
-        }
-
-        setXpAwarded(result.xp ?? null);
-        // Met à jour niveau / XP dans le header
-        if (result.xp !== undefined) void refreshUser();
-        setShowSuccess(true);
+        void flow.generate(() => generate(cluesCount));
     };
 
     return (
@@ -73,19 +47,19 @@ export default function Sudoku({gameCode}: SudokuProps) {
 
             <div className="actions">
                 <h2 className="title">Actions</h2>
-                <button type="button" onClick={handleValidate} className="validate-button"
-                        disabled={isGenerating || showSettings}>
+                <button type="button" onClick={() => flow.submit(validate)} className="validate-button"
+                        disabled={isGenerating || flow.showSettings}>
                     Valider
                 </button>
+                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
             </div>
 
-            <SudokuSettingsPopup open={showSettings} onGenerate={handleGenerate}/>
+            <SudokuSettingsPopup open={flow.showSettings} onGenerate={handleGenerate}/>
 
-            <SuccessPopup
-                open={showSuccess}
-                gameCode={gameCode}
-                xpAwarded={xpAwarded}
-            />
+            {flow.victory && (
+                <SuccessPopup gameName="Sudoku" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}
+                              onNewGame={flow.newGame}/>
+            )}
         </div>
     );
 }

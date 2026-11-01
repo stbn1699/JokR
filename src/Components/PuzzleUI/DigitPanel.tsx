@@ -1,5 +1,4 @@
 import type {CSSProperties} from "react";
-import sounds from "../../Services/sounds.ts";
 
 type DigitPanelProps = {
     // Chiffres proposés (1 à 9 pour le Sudoku, 0 et 1 pour le Binero)
@@ -39,7 +38,6 @@ export default function DigitPanel({digits, perDigit, counts, selected, onSelect
                             aria-pressed={selected === n}
                             title={!hasGrid ? undefined : remaining < 0 ? `${-remaining} de trop` : `${remaining} à placer`}
                             onClick={() => {
-                                sounds.button();
                                 onSelect(n);
                             }}
                         >

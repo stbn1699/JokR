@@ -5,7 +5,6 @@ import {gameService} from "../../Services/game.service.ts";
 import type {GameStats} from "../../Models/gameStats.model.ts";
 import {gameStatsService} from "../../Services/gameStats.service.ts";
 import {useNavigate} from "react-router-dom";
-import sounds from "../../Services/sounds";
 import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
 
@@ -50,19 +49,16 @@ export default function GameList() {
         };
     }, [userId]);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>{error}</div>;
+    if (loading) return <p className="game-list-status">Chargement des jeux…</p>;
+    if (error) return <p className="game-list-status error" role="alert">{error}</p>;
 
-    // jouer le son de sélection puis naviguer
+    // petit effet visuel puis navigation vers le jeu
     const handleGameSelection = (gameCode: string) => () => {
         // prevent double clicks by clearing any existing timeout
         if (timeoutRef.current) {
             window.clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
         }
-
-        // play select SFX from module-scoped audio so it isn't stopped by navigation
-        sounds.interface12();
 
         // show overlay immediately
         setOverlayVisible(true);
@@ -104,9 +100,6 @@ export default function GameList() {
                             <div
                                 className="game"
                                 onClick={handleGameSelection(game.code)}
-                                onMouseEnter={() => {
-                                    sounds.interface9();
-                                }}
                             >
                                 <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
                                 <h1>{game.code}</h1>

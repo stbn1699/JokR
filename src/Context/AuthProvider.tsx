@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {AuthContext, type AuthContextValue, type AuthState} from "./authContext.ts";
 import {authService} from "../Services/auth.service.ts";
 import {userService} from "../Services/user.service.ts";
-import {AUTH_EXPIRED_EVENT} from "../api/api.ts";
+import {ApiError, AUTH_EXPIRED_EVENT} from "../api/api.ts";
 import type {LoggedUser} from "../Models/loggedUser.model.ts";
 
 const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0};
@@ -33,10 +33,10 @@ export function AuthProvider({children}: { children: ReactNode }) {
             const user = await userService.getMe();
             setState({userId: user.id, username: user.username, level: user.user_level, xp: user.user_xp});
         } catch (err) {
-            const message = err instanceof Error ? err.message : "";
-            if (message.startsWith("HTTP 404")) logout();
+            const status = err instanceof ApiError ? err.status : undefined;
+            if (status === 404) logout();
             // 401 : déjà géré par l'événement AUTH_EXPIRED_EVENT
-            else if (!message.startsWith("HTTP 401")) console.error("Impossible de recharger le profil", err);
+            else if (status !== 401) console.error("Impossible de recharger le profil", err);
         }
     }, [logout]);
 

@@ -3,7 +3,6 @@ import {useNavigate} from "react-router-dom";
 import "./GameSettingsPopup.scss";
 import "../SuccessPopup/SuccessPopup.scss";
 import {useAuth} from "../../Context/authContext.ts";
-import sounds from "../../Services/sounds.ts";
 
 type GameSettingsPopupProps = {
     open: boolean;
@@ -39,7 +38,6 @@ export default function GameSettingsPopup(props: GameSettingsPopupProps) {
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         if (!ready) return;
-        sounds.button();
         props.onGenerate();
     };
 

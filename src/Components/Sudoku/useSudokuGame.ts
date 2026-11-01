@@ -1,8 +1,8 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import {gameService} from "../../Services/game.service.ts";
-import sounds from "../../Services/sounds.ts";
 import {countDigits, parseGridValues} from "./gridValues.ts";
 import {isPeer} from "../PuzzleUI/gridGeometry.ts";
+import type {ValidationResult} from "../PuzzleUI/useGameFlow.ts";
 
 // Durée totale de l'animation de remplissage de la grille (ms)
 const TOTAL_ANIMATION_MS = 500;
@@ -11,9 +11,6 @@ const sleep = (ms: number) => new Promise<void>(res => setTimeout(res, ms));
 
 const EMPTY_COUNTS = Array<number>(10).fill(0);
 
-export type ValidationResult =
-    | { ok: true; xp: number | undefined }
-    | { ok: false; message: string };
 
 /**
  * Logique d'une partie de Sudoku.
@@ -22,6 +19,7 @@ export type ValidationResult =
  * (plus simple pour l'animation case par case et la saisie au clavier).
  *
  * - generate(clues) : demande une grille au serveur et l'affiche case par case
+ *   (renvoie un message d'erreur à afficher, ou null si tout s'est bien passé)
  * - validate() : envoie la grille remplie au serveur (qui calcule l'XP si connecté)
  * - digitCounts[n] : nombre de n présents dans la grille (indices + saisies)
  * - selectedDigit / toggleDigit(n) : chiffre surligné en continu (choisi dans le panneau)
@@ -72,7 +70,7 @@ export function useSudokuGame() {
 
     const toggleDigit = (n: number) => setSelectedDigit(current => (current === n ? null : n));
 
-    const generate = async (cluesCount: number) => {
+    const generate = async (cluesCount: number): Promise<string | null> => {
         setHoverDigit(null);
         setSelectedDigit(null);
         setDigitCounts(EMPTY_COUNTS);
@@ -84,7 +82,6 @@ export function useSudokuGame() {
         try {
             const {gameId, grid} = await gameService.generateSudoku(cluesCount);
             gameIdRef.current = gameId;
-            sounds.pop();
 
             // Vide et bloque toutes les cases pendant l'animation
             inputs.current.forEach((el) => {
@@ -102,7 +99,7 @@ export function useSudokuGame() {
 
             for (let idx = 0; idx < values.length; idx++) {
                 // Une nouvelle génération a démarré : on abandonne celle-ci
-                if (genId !== generationRef.current) return;
+                if (genId !== generationRef.current) return null;
 
                 const el = inputs.current[idx];
                 if (!el) continue;
@@ -120,9 +117,10 @@ export function useSudokuGame() {
             }
 
             recount();
+            return null;
         } catch (err) {
             console.error('Failed to generate sudoku from server', err);
-            alert('Erreur lors de la génération de la grille. Réessayez plus tard.');
+            return (err as Error).message || 'Erreur lors de la génération de la grille. Réessaie plus tard.';
         } finally {
             if (generationRef.current === genId) setIsGenerating(false);
         }
@@ -145,7 +143,7 @@ export function useSudokuGame() {
             return {ok: true, xp};
         } catch (err) {
             console.error('Validation failed', err);
-            return {ok: false, message: (err as Error).message || 'Validation failed'};
+            return {ok: false, message: (err as Error).message || 'La validation a échoué, réessaie.'};
         }
     };
 

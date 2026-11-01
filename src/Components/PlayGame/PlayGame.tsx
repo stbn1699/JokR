@@ -36,9 +36,9 @@ export default function PlayGame() {
         switch (gameCode) {
             case "SUDOKU":
                 // Affiche le jeu Sudoku avec son code
-                return <Sudoku gameCode={gameCode}/>;
+                return <Sudoku/>;
             case "BINERO":
-                return <Binero gameCode={gameCode}/>;
+                return <Binero/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

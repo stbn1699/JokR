@@ -1,19 +1,17 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import {bineroService} from "../../Services/binero.service.ts";
-import sounds from "../../Services/sounds.ts";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
+import type {ValidationResult} from "../PuzzleUI/useGameFlow.ts";
 
 // Durée totale de l'apparition des chiffres donnés (ms)
 const TOTAL_ANIMATION_MS = 500;
 
-export type ValidationResult =
-    | { ok: true; xp: number | undefined }
-    | { ok: false; message: string };
 
 /**
  * Logique d'une partie de Binero. La grille est gardée à plat (index = ligne * size + colonne).
  *
  * - generate(size, emptyCells) : demande une grille au serveur et fait apparaître les chiffres donnés
+ *   (renvoie un message d'erreur à afficher, ou null si tout s'est bien passé)
  * - setCell(i, v) : le joueur pose 0, 1 ou vide une case (sans effet sur un chiffre donné)
  * - validate() : envoie la grille au serveur (qui calcule l'XP si le joueur est connecté)
  * - counts : nombre de 0 et de 1 posés
@@ -44,7 +42,7 @@ export function useBineroGame() {
 
     const isClue = (i: number) => clues[i] !== null && clues[i] !== undefined;
 
-    const generate = async (newSize: number, emptyCells: number) => {
+    const generate = async (newSize: number, emptyCells: number): Promise<string | null> => {
         stopAnimation();
         setIsGenerating(true);
         try {
@@ -55,7 +53,6 @@ export function useBineroGame() {
             setClues(flat);
             setValues(flat);
             setRevealed(0);
-            sounds.pop();
 
             // Les cases apparaissent une par une (ligne par ligne)
             const step = Math.max(1, Math.round(flat.length / (TOTAL_ANIMATION_MS / 16)));
@@ -68,10 +65,11 @@ export function useBineroGame() {
                     setIsGenerating(false);
                 }
             }, 16);
+            return null;
         } catch (err) {
             console.error("Failed to generate binero from server", err);
-            alert("Erreur lors de la génération de la grille. Réessayez plus tard.");
             setIsGenerating(false);
+            return (err as Error).message || "Erreur lors de la génération de la grille. Réessaie plus tard.";
         }
     };
 
@@ -94,7 +92,7 @@ export function useBineroGame() {
             return {ok: true, xp};
         } catch (err) {
             console.error("Validation failed", err);
-            return {ok: false, message: (err as Error).message || "Validation failed"};
+            return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
         }
     };
 

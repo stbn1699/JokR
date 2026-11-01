@@ -61,3 +61,96 @@
 		color      : #e6eef3;
 	}
 }
+
+// Popup de victoire : couvre toute la page
+.modal-overlay.success-overlay {
+	position : fixed;
+	z-index  : 100;
+}
+
+.modal.success-modal {
+	position : relative;
+	overflow : hidden;
+	outline  : none;
+
+	.xp-progress {
+		margin     : 0 0 1.5rem;
+		text-align : left;
+	}
+
+	.xp-progress-header {
+		display         : flex;
+		justify-content : space-between;
+		align-items     : baseline;
+		margin-bottom   : 0.5rem;
+		font-size       : 1.4rem;
+	}
+
+	.xp-progress-level {
+		font-weight : 700;
+	}
+
+	.xp-progress-gain-label {
+		color       : #60a5fa;
+		font-weight : 700;
+	}
+
+	.xp-progress-track {
+		position      : relative;
+		height        : 1.1rem;
+		border-radius : 999px;
+		overflow      : hidden;
+		background    : rgba(255, 255, 255, 0.12);
+	}
+
+	// XP déjà acquise
+	.xp-progress-current {
+		position   : absolute;
+		top        : 0;
+		bottom     : 0;
+		left       : 0;
+		background : #22c55e;
+	}
+
+	// XP gagnée, qui se remplit
+	.xp-progress-gain {
+		position                   : absolute;
+		top                        : 0;
+		bottom                     : 0;
+		background                 : linear-gradient(90deg, #3b82f6, #60a5fa);
+		box-shadow                 : 0 0 0.6rem rgba(96, 165, 250, 0.7);
+		transition-property        : width;
+		transition-timing-function : cubic-bezier(.25, .8, .3, 1);
+	}
+
+	.xp-progress-numbers {
+		margin-top : 0.4rem;
+		font-size  : 1.1rem;
+		opacity    : 0.75;
+		text-align : right;
+	}
+
+	.level-up {
+		margin      : 0.75rem 0 0;
+		text-align  : center;
+		font-size   : 1.8rem;
+		font-weight : 700;
+		color       : #F59E0B;
+		animation   : level-up-pop 450ms cubic-bezier(.2, .9, .3, 1.3) both;
+	}
+
+	.xp-guest a {
+		color : #10b981;
+	}
+}
+
+@keyframes level-up-pop {
+	0% {
+		opacity   : 0;
+		transform : scale(0.6);
+	}
+	100% {
+		opacity   : 1;
+		transform : scale(1);
+	}
+}
