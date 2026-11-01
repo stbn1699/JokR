@@ -147,7 +147,8 @@
 				caret-color     : transparent;
 				cursor          : pointer;
 
-				&:hover {
+				// Seules les cases à remplir réagissent au survol (les indices ne sont pas cliquables)
+				&:not(.prefilled):not(:disabled):hover {
 					background    : #000000cc !important;
 					transition    : all 0.05s ease-in-out;
 					transform     : scale(1.1);
@@ -168,6 +169,7 @@
 				&:disabled {
 					color   : #3bf644;
 					opacity : 1;
+					cursor  : default;
 				}
 
 				/* Ajout de l'animation de saut pour les cases pré-remplies */
@@ -179,6 +181,11 @@
 
 				&:placeholder-shown {
 					background : #02061760;
+				}
+
+				/* Ligne, colonne et bloc 3×3 de la case sélectionnée */
+				&.peer-highlight {
+					background : rgba(255, 255, 255, 0.09);
 				}
 
 				/* Highlight cells that have the same number as the hovered/selected one */

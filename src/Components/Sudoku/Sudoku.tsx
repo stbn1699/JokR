@@ -27,7 +27,7 @@ type SudokuProps = {
 export default function Sudoku({gameCode}: SudokuProps) {
     const {
         inputs, isGenerating, generate, validate,
-        digitCounts, selectedDigit, toggleDigit, setHoverDigit, onCellInput,
+        digitCounts, selectedDigit, toggleDigit, setHoverDigit, setSelectedCell, onCellInput,
     } = useSudokuGame();
     const {refresh: refreshUser} = useAuth();
 
@@ -63,7 +63,8 @@ export default function Sudoku({gameCode}: SudokuProps) {
 
             <div className="game">
                 <h1 className="title">Sudoku</h1>
-                <SudokuGrid inputs={inputs} onHover={setHoverDigit} onCellInput={onCellInput}/>
+                <SudokuGrid inputs={inputs} onHover={setHoverDigit} onCellInput={onCellInput}
+                            onSelectCell={setSelectedCell}/>
             </div>
 
             <div className="actions">

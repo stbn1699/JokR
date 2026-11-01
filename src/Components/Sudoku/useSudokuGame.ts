@@ -2,6 +2,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import {gameService} from "../../Services/game.service.ts";
 import sounds from "../../Services/sounds.ts";
 import {countDigits, parseGridValues} from "./gridValues.ts";
+import {isPeer} from "./gridGeometry.ts";
 
 // Durée totale de l'animation de remplissage de la grille (ms)
 const TOTAL_ANIMATION_MS = 500;
@@ -27,6 +28,7 @@ export type ValidationResult =
  * - setHoverDigit(n) : surbrillance temporaire (case survolée / en cours d'édition),
  *   prioritaire sur le chiffre sélectionné tant qu'elle est active
  * - onCellInput() : à appeler quand le joueur modifie une case
+ * - setSelectedCell(i) : case sélectionnée ; sa ligne, sa colonne et son bloc 3×3 sont surlignés
  */
 export function useSudokuGame() {
     // Les 81 inputs de la grille (index = ligne * 9 + colonne)
@@ -42,6 +44,7 @@ export function useSudokuGame() {
     const [digitCounts, setDigitCounts] = useState<number[]>(EMPTY_COUNTS);
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
     const [hoverDigit, setHoverDigit] = useState<number | null>(null);
+    const [selectedCell, setSelectedCell] = useState<number | null>(null);
 
     const highlight = hoverDigit ?? selectedDigit;
 
@@ -58,6 +61,14 @@ export function useSudokuGame() {
             el.classList.toggle('same-number-highlight', target !== null && el.value === target);
         });
     }, [highlight, digitCounts]);
+
+    // Surligne la ligne, la colonne et le bloc 3×3 de la case sélectionnée
+    useEffect(() => {
+        inputs.current.forEach((el, i) => {
+            if (!el) return;
+            el.classList.toggle('peer-highlight', selectedCell !== null && isPeer(selectedCell, i));
+        });
+    }, [selectedCell]);
 
     const toggleDigit = (n: number) => setSelectedDigit(current => (current === n ? null : n));
 
@@ -81,6 +92,7 @@ export function useSudokuGame() {
                 el.value = "";
                 el.readOnly = true;
                 el.disabled = true;
+                el.tabIndex = -1;
                 el.classList.remove('prefilled', 'same-number-highlight');
             });
 
@@ -100,6 +112,8 @@ export function useSudokuGame() {
                 el.value = isClue ? String(val) : "";
                 el.readOnly = isClue;
                 el.disabled = false;
+                // Les indices ne sont pas sélectionnables (ni au clic, ni avec Tab)
+                el.tabIndex = isClue ? -1 : 0;
                 el.classList.toggle('prefilled', isClue);
 
                 await sleep(delayPerCell);
@@ -144,6 +158,7 @@ export function useSudokuGame() {
         selectedDigit,
         toggleDigit,
         setHoverDigit,
+        setSelectedCell,
         onCellInput: recount,
     };
 }

@@ -1,11 +1,20 @@
 import React from "react";
 import { focusCell } from "./focusCell";
+import {type Direction, nextEditableIndex} from "./gridGeometry";
+
+const ARROWS: Record<string, Direction> = {
+    ArrowLeft: "left",
+    ArrowRight: "right",
+    ArrowUp: "up",
+    ArrowDown: "down",
+};
 
 const forbiddenKeys = new Set(["e", "E", "+", "-"]);
 
 /**
  * Gère la navigation au clavier dans la grille Sudoku.
- * Flèches directionnelles pour naviguer entre les cellules.
+ * Flèches : passe à la case modifiable suivante dans la direction (les indices sont sautés,
+ * on revient au début de la ligne / colonne au bord).
  * Chiffres 1-9 pour remplir une cellule, 0 pour la vider.
  * Empêche les touches interdites (e, +, -).
  *
@@ -23,30 +32,16 @@ export function handleKeyDown(
     const idxAttr = el.dataset.index;
     const idx = idxAttr ? parseInt(idxAttr, 10) : -1;
 
-    if (idx >= 0) {
-        const row = Math.floor(idx / 9);
-        const col = idx % 9;
-        let target = -1;
-
-        if (key === "ArrowLeft") {
-            e.preventDefault();
-            // wrap: si on est tout à gauche, on va tout à droite de la même ligne
-            target = col > 0 ? idx - 1 : row * 9 + 8;
-        } else if (key === "ArrowRight") {
-            e.preventDefault();
-            // wrap: si on est tout à droite, on va tout à gauche de la même ligne
-            target = col < 8 ? idx + 1 : row * 9;
-        } else if (key === "ArrowUp") {
-            e.preventDefault();
-            // wrap: si on est tout en haut, on va tout en bas dans la même colonne
-            target = row > 0 ? idx - 9 : 8 * 9 + col;
-        } else if (key === "ArrowDown") {
-            e.preventDefault();
-            // wrap: si on est tout en bas, on va tout en haut dans la même colonne
-            target = row < 8 ? idx + 9 : col;
-        }
-
-        if (target >= 0) {
+    const direction = ARROWS[key];
+    if (idx >= 0 && direction) {
+        e.preventDefault();
+        // On saute les indices : seules les cases modifiables peuvent être sélectionnées
+        const isEditable = (i: number) => {
+            const cell = inputsRef.current?.[i];
+            return !!cell && !cell.readOnly && !cell.disabled;
+        };
+        const target = nextEditableIndex(idx, direction, isEditable);
+        if (target !== null) {
             focusCell(inputsRef, target);
             return;
         }

@@ -11,15 +11,18 @@ type SudokuGridProps = {
     onHover: (n: number | null) => void;
     // Une case vient d'être modifiée par le joueur
     onCellInput: () => void;
+    // Case sélectionnée (null quand plus aucune case n'a le focus)
+    onSelectCell: (index: number | null) => void;
 };
 
 const valueOf = (el: HTMLInputElement) => (el.value === '' ? null : Number(el.value));
 
 /**
  * Grille 9×9 : 81 inputs non contrôlés (leur contenu est géré par useSudokuGame).
+ * Seules les cases vides au départ sont sélectionnables : un clic sur un indice ne fait rien.
  * Navigation aux flèches, saisie d'un chiffre 1-9, surbrillance du chiffre survolé.
  */
-export default function SudokuGrid({inputs, onHover, onCellInput}: SudokuGridProps) {
+export default function SudokuGrid({inputs, onHover, onCellInput, onSelectCell}: SudokuGridProps) {
     const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.currentTarget.readOnly && BLOCKED_ON_CLUES.has(e.key)) {
             e.preventDefault();
@@ -52,6 +55,10 @@ export default function SudokuGrid({inputs, onHover, onCellInput}: SudokuGridPro
                     inputMode="numeric"
                     pattern="[0-9]*"
                     placeholder=" "
+                    onMouseDown={(e) => {
+                        // Un indice ne prend pas le focus au clic
+                        if (e.currentTarget.readOnly) e.preventDefault();
+                    }}
                     onKeyDown={onKeyDown}
                     onInput={onInput}
                     onMouseEnter={(e) => {
@@ -60,10 +67,14 @@ export default function SudokuGrid({inputs, onHover, onCellInput}: SudokuGridPro
                     }}
                     onMouseLeave={() => onHover(null)}
                     onFocus={(e) => {
+                        onSelectCell(i);
                         const v = valueOf(e.currentTarget);
                         if (v !== null) onHover(v);
                     }}
-                    onBlur={() => onHover(null)}
+                    onBlur={() => {
+                        onSelectCell(null);
+                        onHover(null);
+                    }}
                 />
             ))}
         </div>
