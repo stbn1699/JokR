@@ -15,6 +15,8 @@ type DigitPanelProps = {
     onErase: () => void;
     // Nombre de colonnes du pavé (sur grand écran)
     columns?: number;
+    // Mode notes au crayon (Sudoku) : bouton qui bascule le mode
+    notes?: { active: boolean; onToggle: () => void };
 };
 
 // Les boutons du panneau ne prennent pas le focus : la case sélectionnée dans la grille le garde
@@ -28,7 +30,7 @@ const keepGridFocus = (e: MouseEvent<HTMLButtonElement>) => e.preventDefault();
  * - "Effacer" vide la case sélectionnée
  * Indispensable sur téléphone (pas de clavier physique).
  */
-export default function DigitPanel({digits, perDigit, counts, selected, onSelect, onErase, columns = 3}: DigitPanelProps) {
+export default function DigitPanel({digits, perDigit, counts, selected, onSelect, onErase, columns = 3, notes}: DigitPanelProps) {
     const hasGrid = perDigit > 0;
 
     return (
@@ -36,7 +38,7 @@ export default function DigitPanel({digits, perDigit, counts, selected, onSelect
             <h2 className="title">Chiffres</h2>
 
             <div className="digit-pad"
-                 style={{"--digit-columns": columns, "--digit-count": digits.length + 1} as CSSProperties}>
+                 style={{"--digit-columns": columns, "--digit-count": digits.length + (notes ? 2 : 1)} as CSSProperties}>
                 {digits.map((n) => {
                     const remaining = perDigit - (counts[n] ?? 0);
                     const state = !hasGrid ? "" : remaining === 0 ? "complete" : remaining < 0 ? "overflow" : "";
@@ -72,10 +74,26 @@ export default function DigitPanel({digits, perDigit, counts, selected, onSelect
                     <span className="digit-value">⌫</span>
                     <span className="digit-remaining">effacer</span>
                 </button>
+
+                {notes && (
+                    <button
+                        type="button"
+                        className={`digit notes-toggle ${notes.active ? "selected" : ""}`}
+                        aria-pressed={notes.active}
+                        title="Mode notes au crayon (touche N)"
+                        onMouseDown={keepGridFocus}
+                        onClick={notes.onToggle}
+                    >
+                        <span className="digit-value">✏</span>
+                        <span className="digit-remaining">notes</span>
+                    </button>
+                )}
             </div>
 
             <p className="digit-hint">
-                Case sélectionnée : un chiffre la remplit. Sinon, il est surligné dans la grille.
+                {notes?.active
+                    ? "Mode notes : un chiffre s'ajoute (ou se retire) en petit dans la case sélectionnée."
+                    : "Case sélectionnée : un chiffre la remplit. Sinon, il est surligné dans la grille."}
             </p>
         </div>
     );

@@ -1,3 +1,5 @@
+import {isPeer} from "../PuzzleUI/gridGeometry.ts";
+
 /**
  * Convertit les 81 valeurs saisies (ligne par ligne) en grille 9×9.
  * Retourne null si une case est vide ou ne contient pas un chiffre de 1 à 9.
@@ -56,4 +58,22 @@ export function sudokuConflicts(values: string[]): Set<number> {
         }
     }
     return conflicts;
+}
+
+/*
+ * Notes au crayon : pour chaque case, un masque de bits (bit n = le chiffre n est noté).
+ */
+export const hasNote = (mask: number, digit: number) => (mask & (1 << digit)) !== 0;
+export const toggleNote = (mask: number, digit: number) => mask ^ (1 << digit);
+
+/**
+ * Un chiffre vient d'être posé (ou effacé, digit = null) dans la case `index` :
+ * ses notes disparaissent, et ce chiffre est retiré des notes de sa ligne, sa colonne et son bloc.
+ */
+export function notesAfterPlacing(notes: number[], index: number, digit: number | null): number[] {
+    return notes.map((mask, i) => {
+        if (i === index) return 0;
+        if (digit !== null && isPeer(index, i, 9, 3)) return mask & ~(1 << digit);
+        return mask;
+    });
 }

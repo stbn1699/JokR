@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {countDigits, parseGridValues, sudokuConflicts} from "./gridValues.ts";
+import {countDigits, hasNote, notesAfterPlacing, parseGridValues, sudokuConflicts, toggleNote} from "./gridValues.ts";
 
 const full = Array.from({length: 81}, (_, i) => String((i % 9) + 1));
 
@@ -71,5 +71,37 @@ describe("sudokuConflicts", () => {
         v[0] = "2";
         v[20] = "2"; // même bloc (ligne 2, colonne 2)
         expect([...sudokuConflicts(v)].sort((a, b) => a - b)).toEqual([0, 4, 20, 76]);
+    });
+});
+
+describe("notes au crayon", () => {
+    it("ajoute et retire une note", () => {
+        let mask = 0;
+        mask = toggleNote(mask, 4);
+        mask = toggleNote(mask, 7);
+        expect(hasNote(mask, 4)).toBe(true);
+        expect(hasNote(mask, 7)).toBe(true);
+        mask = toggleNote(mask, 4);
+        expect(hasNote(mask, 4)).toBe(false);
+    });
+
+    it("poser un chiffre vide les notes de la case et retire ce chiffre des voisines", () => {
+        const withFive = toggleNote(toggleNote(0, 5), 2);
+        const notes = Array<number>(81).fill(withFive);
+        const after = notesAfterPlacing(notes, 40, 5); // case centrale
+
+        expect(after[40]).toBe(0);
+        expect(hasNote(after[36]!, 5)).toBe(false); // même ligne
+        expect(hasNote(after[4]!, 5)).toBe(false); // même colonne
+        expect(hasNote(after[30]!, 5)).toBe(false); // même bloc
+        expect(hasNote(after[36]!, 2)).toBe(true); // les autres notes restent
+        expect(hasNote(after[0]!, 5)).toBe(true); // case sans rapport
+    });
+
+    it("effacer un chiffre ne touche qu'à la case", () => {
+        const notes = Array<number>(81).fill(toggleNote(0, 3));
+        const after = notesAfterPlacing(notes, 10, null);
+        expect(after[10]).toBe(0);
+        expect(after[11]).toBe(notes[11]);
     });
 });

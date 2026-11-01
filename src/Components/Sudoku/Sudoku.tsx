@@ -6,7 +6,8 @@
  * - Grille : navigation clavier, surbrillance des chiffres identiques
  * - Actions : validation côté serveur, qui calcule et enregistre l'XP si le joueur est connecté
  *
- * - Panneau de gauche : chiffres restants à placer, clic pour les surligner dans la grille
+ * - Panneau de gauche : chiffres restants à placer ; avec une case sélectionnée, un chiffre la remplit
+ *   (ou y ajoute une note au crayon en mode notes, touche N) ; sinon il est surligné dans la grille
  *
  * La logique est dans useSudokuGame, l'affichage dans SudokuSettingsPopup, DigitPanel et SudokuGrid.
  */
@@ -17,6 +18,7 @@ import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
+import {useEffect} from "react";
 import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
 import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
 import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
@@ -32,12 +34,26 @@ export default function Sudoku() {
     const [showErrors, setShowErrors] = useShowErrors();
     const {
         inputs, isGenerating, generate, validate,
-        digitCounts, selectedDigit, toggleDigit, fillSelected, setHoverDigit, setSelectedCell, onCellInput,
-        undo, redo, canUndo, canRedo, conflicts,
+        digitCounts, selectedDigit, toggleDigit, fillSelected, pressDigit, setHoverDigit, setSelectedCell,
+        onCellInput, undo, redo, canUndo, canRedo, conflicts, notes, notesMode, setNotesMode, toggleNoteAt,
     } = useSudokuGame(showErrors);
     const flow = useGameFlow();
     const playing = !flow.showSettings && !flow.victory && !isGenerating;
     useUndoShortcuts(undo, redo, playing);
+
+    // Touche N : bascule le mode notes
+    useEffect(() => {
+        if (!playing) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.key === "n" || e.key === "N") {
+                e.preventDefault();
+                setNotesMode(m => !m);
+            }
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [playing, setNotesMode]);
 
     const handleGenerate = (cluesCount: number) => {
         void flow.generate(() => generate(cluesCount));
@@ -46,13 +62,15 @@ export default function Sudoku() {
     return (
         <div className="puzzle-layout sudoku">
             <DigitPanel digits={DIGITS} perDigit={9} counts={digitCounts} selected={selectedDigit}
-                        onSelect={n => fillSelected(n) || toggleDigit(n)}
-                        onErase={() => fillSelected(null)}/>
+                        onSelect={n => pressDigit(n) || toggleDigit(n)}
+                        onErase={() => fillSelected(null)}
+                        notes={{active: notesMode, onToggle: () => setNotesMode(m => !m)}}/>
 
             <div className="game">
                 <h1 className="title">Sudoku</h1>
                 <SudokuGrid inputs={inputs} onHover={setHoverDigit} onCellInput={onCellInput}
-                            onSelectCell={setSelectedCell}/>
+                            onSelectCell={setSelectedCell} notes={notes} notesMode={notesMode}
+                            onToggleNote={toggleNoteAt}/>
             </div>
 
             <div className="actions">

@@ -388,3 +388,16 @@
 	color      : #f87171 !important;
 	background : rgba(248, 113, 113, 0.14) !important;
 }
+
+// Bouton du mode notes (Sudoku) : bleu quand il est actif
+.puzzle-layout .options .digit.notes-toggle {
+	.digit-value {
+		font-size : 2.2rem;
+	}
+
+	&.selected {
+		border-color : #93c5fd;
+		background   : rgba(147, 197, 253, 0.15);
+		box-shadow   : 0 0 0.8rem 0.15rem rgba(147, 197, 253, 0.3);
+	}
+}

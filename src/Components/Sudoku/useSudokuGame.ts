@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import {gameService} from "../../Services/game.service.ts";
-import {countDigits, parseGridValues, sudokuConflicts} from "./gridValues.ts";
+import {countDigits, notesAfterPlacing, parseGridValues, sudokuConflicts, toggleNote} from "./gridValues.ts";
 import {isPeer} from "../PuzzleUI/gridGeometry.ts";
 import {useMoveHistory} from "../PuzzleUI/useMoveHistory.ts";
 import type {ValidationResult} from "../PuzzleUI/useGameFlow.ts";
@@ -41,6 +41,8 @@ function setSnapshot(snapshot: string[], index: number, value: string) {
  * - onCellInput(i) : à appeler quand le joueur modifie la case i
  * - undo() / redo() : annule / rétablit le dernier coup (canUndo / canRedo pour les boutons)
  * - conflicts : cases qui contredisent les règles, affichées en rouge si `showErrors`
+ * - notes / notesMode : notes au crayon ; pressDigit(n) remplit la case sélectionnée,
+ *   ou y ajoute / retire une note en mode notes
  * - setSelectedCell(i) : case sélectionnée ; sa ligne, sa colonne et son bloc 3×3 sont surlignés
  * - fillSelected(n) : remplit (ou vide avec null) la case sélectionnée ; false si aucune case modifiable
  */
@@ -60,6 +62,9 @@ export function useSudokuGame(showErrors: boolean) {
     const [hoverDigit, setHoverDigit] = useState<number | null>(null);
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [conflicts, setConflicts] = useState<Set<number>>(() => new Set());
+    // Notes au crayon : un masque de bits par case (bit n = chiffre n noté)
+    const [notes, setNotes] = useState<number[]>(() => Array<number>(81).fill(0));
+    const [notesMode, setNotesMode] = useState(false);
 
     const highlight = hoverDigit ?? selectedDigit;
 
@@ -90,7 +95,16 @@ export function useSudokuGame(showErrors: boolean) {
         const before = snapshotRef.current[index] ?? "";
         if (!applyingHistoryRef.current) history.record({index, before, after});
         setSnapshot(snapshotRef.current, index, after);
+        // Un chiffre posé efface les notes de la case et retire ce chiffre des notes voisines
+        if (after !== before) setNotes(current => notesAfterPlacing(current, index, after === "" ? null : Number(after)));
         recount();
+    };
+
+    const toggleNoteAt = (index: number, digit: number) => {
+        const el = inputs.current[index];
+        // Pas de note sur un indice ni sur une case déjà remplie
+        if (!el || el.readOnly || el.disabled || el.value !== "") return;
+        setNotes(current => current.map((mask, i) => (i === index ? toggleNote(mask, digit) : mask)));
     };
 
     const applyMove = (index: number, value: string) => {
@@ -136,6 +150,15 @@ export function useSudokuGame(showErrors: boolean) {
         const el = selectedCell === null ? undefined : inputs.current[selectedCell];
         if (!el || el.readOnly || el.disabled) return false;
         writeCell(el, n);
+        return true;
+    };
+
+    // Chiffre choisi dans le panneau : remplit la case sélectionnée (ou y note le chiffre en mode notes)
+    const pressDigit = (n: number): boolean => {
+        const el = selectedCell === null ? undefined : inputs.current[selectedCell];
+        if (!el || el.readOnly || el.disabled) return false;
+        if (notesMode) toggleNoteAt(selectedCell!, n);
+        else writeCell(el, n);
         return true;
     };
 
@@ -186,9 +209,10 @@ export function useSudokuGame(showErrors: boolean) {
             }
 
             recount();
-            // Nouvelle partie : historique vide, copie des valeurs à jour
+            // Nouvelle partie : historique et notes vides, copie des valeurs à jour
             snapshotRef.current = readValues();
             history.clear();
+            setNotes(Array<number>(81).fill(0));
             return null;
         } catch (err) {
             console.error('Failed to generate sudoku from server', err);
@@ -228,6 +252,11 @@ export function useSudokuGame(showErrors: boolean) {
         selectedDigit,
         toggleDigit,
         fillSelected,
+        pressDigit,
+        notes,
+        notesMode,
+        setNotesMode,
+        toggleNoteAt,
         setHoverDigit,
         setSelectedCell,
         onCellInput,
