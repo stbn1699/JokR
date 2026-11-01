@@ -325,3 +325,66 @@
 		color : #3bf644;
 	}
 }
+
+// Boutons Annuler / Rétablir (panneau Actions)
+.puzzle-layout .actions .history-buttons {
+	display         : flex;
+	justify-content : center;
+	gap             : 0.75rem;
+
+	button {
+		padding       : 0.5rem 1rem;
+		border-radius : 999px;
+		border        : 2px solid rgba(229, 231, 235, 0.5);
+		background    : transparent;
+		color         : #f9fafb;
+		font-family   : inherit;
+		font-size     : 1.2rem;
+		cursor        : pointer;
+		transition    : all 0.15s ease;
+
+		&:hover:not(:disabled) {
+			border-color : #10b981;
+		}
+
+		&:disabled {
+			opacity : 0.35;
+			cursor  : default;
+		}
+	}
+}
+
+// Option "Montrer les erreurs" (panneau Actions)
+.puzzle-layout .actions .errors-toggle {
+	display         : flex;
+	align-items     : center;
+	justify-content : center;
+	gap             : 0.6rem;
+	font-size       : 1.3rem;
+	cursor          : pointer;
+	user-select     : none;
+
+	input {
+		width        : 1.2rem;
+		height       : 1.2rem;
+		accent-color : #f87171;
+		cursor       : pointer;
+	}
+
+	.errors-count {
+		min-width     : 1.6rem;
+		padding       : 0 0.4rem;
+		border-radius : 999px;
+		background    : #f87171;
+		color         : #1f0a0a;
+		font-size     : 1rem;
+		font-weight   : 700;
+		text-align    : center;
+	}
+}
+
+// Case qui contredit les règles (commun aux grilles)
+.puzzle-layout .grid .cell.conflict {
+	color      : #f87171 !important;
+	background : rgba(248, 113, 113, 0.14) !important;
+}

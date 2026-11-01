@@ -8,13 +8,18 @@
  * - Victoire : popup avec la barre d'XP ; "Nouvelle partie" rouvre les paramètres sans recharger
  */
 
-import {useState} from "react";
+import {useMemo, useState} from "react";
 import "../PuzzleUI/PuzzleLayout.scss";
 import "./Binero.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
+import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
+import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
+import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
+import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
+import {bineroConflicts} from "./bineroRules.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useBineroGame} from "./useBineroGame.ts";
 import BineroGrid from "./BineroGrid.tsx";
@@ -27,6 +32,10 @@ export default function Binero() {
     const flow = useGameFlow();
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
+    const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
+    const [showErrors, setShowErrors] = useShowErrors();
+    const conflicts = useMemo(() => bineroConflicts(game.values, game.size), [game.values, game.size]);
+    useUndoShortcuts(game.undo, game.redo, playing);
 
     // Case sélectionnée modifiable (pas un chiffre donné)
     const editableSelection = selectedCell !== null && !game.isClue(selectedCell) ? selectedCell : null;
@@ -67,6 +76,7 @@ export default function Binero() {
                         onSelectCell={setSelectedCell}
                         highlightDigit={selectedDigit}
                         onSetCell={game.setCell}
+                        errors={showErrors ? conflicts : null}
                     />
                 )}
             </div>
@@ -78,6 +88,9 @@ export default function Binero() {
                         disabled={game.isGenerating || flow.showSettings}>
                     Valider
                 </button>
+                <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
+                                onUndo={game.undo} onRedo={game.redo}/>
+                <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
                 <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
 
                 <div className="rules">

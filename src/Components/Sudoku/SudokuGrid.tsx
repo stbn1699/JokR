@@ -9,8 +9,8 @@ type SudokuGridProps = {
     inputs: RefObject<HTMLInputElement[]>;
     // Chiffre à surligner temporairement (case survolée ou en cours d'édition, null = aucun)
     onHover: (n: number | null) => void;
-    // Une case vient d'être modifiée par le joueur
-    onCellInput: () => void;
+    // La case i vient d'être modifiée par le joueur
+    onCellInput: (index: number) => void;
     // Case sélectionnée (null quand plus aucune case n'a le focus)
     onSelectCell: (index: number | null) => void;
 };
@@ -35,7 +35,7 @@ export default function SudokuGrid({inputs, onHover, onCellInput, onSelectCell}:
         sanitizeInput(e);
         // La case est en cours d'édition : on surligne le chiffre qu'on vient de taper
         if (document.activeElement === e.currentTarget) onHover(valueOf(e.currentTarget));
-        onCellInput();
+        onCellInput(Number(e.currentTarget.dataset.index));
     };
 
     return (

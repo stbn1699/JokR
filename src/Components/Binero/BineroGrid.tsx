@@ -21,6 +21,8 @@ type BineroGridProps = {
     // Chiffre surligné depuis le panneau de gauche
     highlightDigit: number | null;
     onSetCell: (i: number, v: BineroCell) => void;
+    // Cases à afficher en rouge (option "Montrer les erreurs"), null si désactivé
+    errors: Set<number> | null;
 };
 
 /**
@@ -74,6 +76,7 @@ export default function BineroGrid(props: BineroGridProps) {
                     "cell",
                     selectedCell !== null && isPeer(selectedCell, i, size) ? "peer-highlight" : "",
                     shown && highlightDigit !== null && value === highlightDigit ? "same-number-highlight" : "",
+                    shown && props.errors?.has(i) ? "conflict" : "",
                 ];
 
                 if (isClue(i)) {

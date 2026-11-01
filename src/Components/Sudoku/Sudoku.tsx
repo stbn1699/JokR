@@ -16,6 +16,10 @@ import "./Sudoku.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
+import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
+import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
+import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
+import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useSudokuGame} from "./useSudokuGame.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
@@ -25,11 +29,15 @@ import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export default function Sudoku() {
+    const [showErrors, setShowErrors] = useShowErrors();
     const {
         inputs, isGenerating, generate, validate,
         digitCounts, selectedDigit, toggleDigit, fillSelected, setHoverDigit, setSelectedCell, onCellInput,
-    } = useSudokuGame();
+        undo, redo, canUndo, canRedo, conflicts,
+    } = useSudokuGame(showErrors);
     const flow = useGameFlow();
+    const playing = !flow.showSettings && !flow.victory && !isGenerating;
+    useUndoShortcuts(undo, redo, playing);
 
     const handleGenerate = (cluesCount: number) => {
         void flow.generate(() => generate(cluesCount));
@@ -54,6 +62,8 @@ export default function Sudoku() {
                         disabled={isGenerating || flow.showSettings}>
                     Valider
                 </button>
+                <HistoryButtons canUndo={playing && canUndo} canRedo={playing && canRedo} onUndo={undo} onRedo={redo}/>
+                <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
                 <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
             </div>
 

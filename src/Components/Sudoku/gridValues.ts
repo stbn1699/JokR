@@ -30,3 +30,30 @@ export function countDigits(values: string[]): number[] {
     }
     return counts;
 }
+
+/**
+ * Cases en conflit : un chiffre présent plusieurs fois dans la même ligne, colonne ou bloc 3×3.
+ * Ne dit rien de la solution : seulement ce qui contredit déjà les règles.
+ */
+export function sudokuConflicts(values: string[]): Set<number> {
+    const conflicts = new Set<number>();
+    const groups: number[][] = [];
+    for (let k = 0; k < 9; k++) {
+        groups.push(Array.from({length: 9}, (_, i) => k * 9 + i)); // ligne
+        groups.push(Array.from({length: 9}, (_, i) => i * 9 + k)); // colonne
+        const r0 = Math.floor(k / 3) * 3, c0 = (k % 3) * 3;
+        groups.push(Array.from({length: 9}, (_, i) => (r0 + Math.floor(i / 3)) * 9 + c0 + (i % 3))); // bloc
+    }
+    for (const group of groups) {
+        const byDigit = new Map<string, number[]>();
+        for (const idx of group) {
+            const v = values[idx];
+            if (!v) continue;
+            byDigit.set(v, [...(byDigit.get(v) ?? []), idx]);
+        }
+        for (const cells of byDigit.values()) {
+            if (cells.length > 1) cells.forEach(c => conflicts.add(c));
+        }
+    }
+    return conflicts;
+}

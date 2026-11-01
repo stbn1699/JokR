@@ -2,6 +2,7 @@ import {useEffect, useMemo, useRef, useState} from "react";
 import {bineroService} from "../../Services/binero.service.ts";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
 import type {ValidationResult} from "../PuzzleUI/useGameFlow.ts";
+import {useMoveHistory} from "../PuzzleUI/useMoveHistory.ts";
 
 // Durée totale de l'apparition des chiffres donnés (ms)
 const TOTAL_ANIMATION_MS = 500;
@@ -15,6 +16,7 @@ const TOTAL_ANIMATION_MS = 500;
  * - setCell(i, v) : le joueur pose 0, 1 ou vide une case (sans effet sur un chiffre donné)
  * - validate() : envoie la grille au serveur (qui calcule l'XP si le joueur est connecté)
  * - counts : nombre de 0 et de 1 posés
+ * - undo() / redo() : annule / rétablit le dernier coup (canUndo / canRedo pour les boutons)
  */
 export function useBineroGame() {
     const [size, setSize] = useState(0);
@@ -27,6 +29,7 @@ export function useBineroGame() {
     const [isGenerating, setIsGenerating] = useState(false);
 
     const gameIdRef = useRef<string | null>(null);
+    const history = useMoveHistory<BineroCell>();
     const timerRef = useRef<number | null>(null);
 
     const stopAnimation = () => {
@@ -52,6 +55,7 @@ export function useBineroGame() {
             setSize(newSize);
             setClues(flat);
             setValues(flat);
+            history.clear();
             setRevealed(0);
 
             // Les cases apparaissent une par une (ligne par ligne)
@@ -73,9 +77,25 @@ export function useBineroGame() {
         }
     };
 
+    const writeCell = (i: number, v: BineroCell) =>
+        setValues(current => current.map((old, k) => (k === i ? v : old)));
+
     const setCell = (i: number, v: BineroCell) => {
         if (isClue(i) || isGenerating) return;
-        setValues(current => current.map((old, k) => (k === i ? v : old)));
+        history.record({index: i, before: values[i] ?? null, after: v});
+        writeCell(i, v);
+    };
+
+    const undo = () => {
+        const move = history.undo();
+        if (move) writeCell(move.index, move.before);
+        return move?.index ?? null;
+    };
+
+    const redo = () => {
+        const move = history.redo();
+        if (move) writeCell(move.index, move.after);
+        return move?.index ?? null;
     };
 
     const validate = async (): Promise<ValidationResult> => {
@@ -96,5 +116,8 @@ export function useBineroGame() {
         }
     };
 
-    return {size, clues, values, revealed, isGenerating, counts, isClue, generate, setCell, validate};
+    return {
+        size, clues, values, revealed, isGenerating, counts, isClue, generate, setCell, validate,
+        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo,
+    };
 }

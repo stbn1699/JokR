@@ -1,7 +1,8 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import {gameService} from "../../Services/game.service.ts";
-import {countDigits, parseGridValues} from "./gridValues.ts";
+import {countDigits, parseGridValues, sudokuConflicts} from "./gridValues.ts";
 import {isPeer} from "../PuzzleUI/gridGeometry.ts";
+import {useMoveHistory} from "../PuzzleUI/useMoveHistory.ts";
 import type {ValidationResult} from "../PuzzleUI/useGameFlow.ts";
 
 // Durée totale de l'animation de remplissage de la grille (ms)
@@ -12,10 +13,15 @@ const sleep = (ms: number) => new Promise<void>(res => setTimeout(res, ms));
 const EMPTY_COUNTS = Array<number>(10).fill(0);
 
 // Écrit un chiffre (ou vide la case) comme une saisie au clavier :
-// l'évènement "input" met à jour compteur et surbrillance
-function writeCell(el: HTMLInputElement, n: number | null) {
-    el.value = n === null ? "" : String(n);
+// l'évènement "input" met à jour compteur, surbrillance et historique
+function writeCell(el: HTMLInputElement, value: number | string | null) {
+    el.value = value === null ? "" : String(value);
     el.dispatchEvent(new Event("input", {bubbles: true}));
+}
+
+// Copie des valeurs de la grille, pour connaître la valeur "avant" d'une saisie
+function setSnapshot(snapshot: string[], index: number, value: string) {
+    snapshot[index] = value;
 }
 
 
@@ -32,11 +38,13 @@ function writeCell(el: HTMLInputElement, n: number | null) {
  * - selectedDigit / toggleDigit(n) : chiffre surligné en continu (choisi dans le panneau)
  * - setHoverDigit(n) : surbrillance temporaire (case survolée / en cours d'édition),
  *   prioritaire sur le chiffre sélectionné tant qu'elle est active
- * - onCellInput() : à appeler quand le joueur modifie une case
+ * - onCellInput(i) : à appeler quand le joueur modifie la case i
+ * - undo() / redo() : annule / rétablit le dernier coup (canUndo / canRedo pour les boutons)
+ * - conflicts : cases qui contredisent les règles, affichées en rouge si `showErrors`
  * - setSelectedCell(i) : case sélectionnée ; sa ligne, sa colonne et son bloc 3×3 sont surlignés
  * - fillSelected(n) : remplit (ou vide avec null) la case sélectionnée ; false si aucune case modifiable
  */
-export function useSudokuGame() {
+export function useSudokuGame(showErrors: boolean) {
     // Les 81 inputs de la grille (index = ligne * 9 + colonne)
     const inputs = useRef<HTMLInputElement[]>([]);
 
@@ -51,12 +59,58 @@ export function useSudokuGame() {
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
     const [hoverDigit, setHoverDigit] = useState<number | null>(null);
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
+    const [conflicts, setConflicts] = useState<Set<number>>(() => new Set());
 
     const highlight = hoverDigit ?? selectedDigit;
 
+    const history = useMoveHistory<string>();
+    // Dernières valeurs connues des cases (pour l'historique)
+    const snapshotRef = useRef<string[]>(Array<string>(81).fill(""));
+    // Vrai pendant qu'on applique un annuler / rétablir (ce coup-là ne doit pas être enregistré)
+    const applyingHistoryRef = useRef(false);
+
     const readValues = () => Array.from({length: 81}, (_, i) => inputs.current[i]?.value ?? '');
 
-    const recount = useCallback(() => setDigitCounts(countDigits(readValues())), []);
+    const recount = useCallback(() => {
+        const values = readValues();
+        setDigitCounts(countDigits(values));
+        setConflicts(sudokuConflicts(values));
+    }, []);
+
+    // Cases en conflit en rouge (si l'option est active)
+    useEffect(() => {
+        inputs.current.forEach((el, i) => {
+            if (!el) return;
+            el.classList.toggle('conflict', showErrors && conflicts.has(i));
+        });
+    }, [conflicts, showErrors]);
+
+    const onCellInput = (index: number) => {
+        const after = inputs.current[index]?.value ?? "";
+        const before = snapshotRef.current[index] ?? "";
+        if (!applyingHistoryRef.current) history.record({index, before, after});
+        setSnapshot(snapshotRef.current, index, after);
+        recount();
+    };
+
+    const applyMove = (index: number, value: string) => {
+        const el = inputs.current[index];
+        if (!el) return;
+        applyingHistoryRef.current = true;
+        writeCell(el, value);
+        applyingHistoryRef.current = false;
+        el.focus();
+    };
+
+    const undo = () => {
+        const move = history.undo();
+        if (move) applyMove(move.index, move.before);
+    };
+
+    const redo = () => {
+        const move = history.redo();
+        if (move) applyMove(move.index, move.after);
+    };
 
     // Surligne les cases contenant le chiffre actif.
     // Relancé aussi quand les chiffres changent, pour suivre les nouvelles saisies.
@@ -132,6 +186,9 @@ export function useSudokuGame() {
             }
 
             recount();
+            // Nouvelle partie : historique vide, copie des valeurs à jour
+            snapshotRef.current = readValues();
+            history.clear();
             return null;
         } catch (err) {
             console.error('Failed to generate sudoku from server', err);
@@ -173,6 +230,11 @@ export function useSudokuGame() {
         fillSelected,
         setHoverDigit,
         setSelectedCell,
-        onCellInput: recount,
+        onCellInput,
+        undo,
+        redo,
+        canUndo: history.canUndo,
+        canRedo: history.canRedo,
+        conflicts,
     };
 }
