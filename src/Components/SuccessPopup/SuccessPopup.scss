@@ -74,6 +74,27 @@
 	overflow : hidden;
 	outline  : none;
 
+	.success-time {
+		display         : flex;
+		justify-content : center;
+		align-items     : center;
+		flex-wrap       : wrap;
+		gap             : 0.75rem;
+		margin          : -0.5rem 0 1.25rem;
+		font-size       : 1.4rem;
+
+		.personal-best {
+			padding       : 0.2rem 0.7rem;
+			border-radius : 999px;
+			background    : rgba(245, 158, 11, 0.18);
+			border        : 1px solid #F59E0B;
+			color         : #fbbf24;
+			font-size     : 1.1rem;
+			font-weight   : 700;
+			animation     : level-up-pop 450ms cubic-bezier(.2, .9, .3, 1.3) both;
+		}
+	}
+
 	.xp-progress {
 		margin     : 0 0 1.5rem;
 		text-align : left;

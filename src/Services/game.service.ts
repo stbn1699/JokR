@@ -1,6 +1,7 @@
 import {api} from "../api/api.ts";
 import type {Game} from "../Models/game.model.ts";
 import type {SudokuSettings} from "../Models/sudokuSettings.model.ts";
+import type {GameStatus, WinResult} from "../Models/gameResult.model.ts";
 
 export const gameService = {
     list(signal?: AbortSignal) {
@@ -21,14 +22,17 @@ export const gameService = {
         });
     },
 
-    // valide la grille côté serveur ; si l'utilisateur est connecté, le serveur calcule
-    // et enregistre l'XP (renvoyée dans la réponse)
-    async validateSudoku(gameId: string, grid: number[][]): Promise<number | undefined> {
-        const res = await api<{ xp?: number }>(`/sudoku/validateSudoku`, {
+    // partie en cours côté serveur (grille de départ, temps écoulé) ; 404 si elle n'existe plus
+    getSudokuGame(gameId: string): Promise<GameStatus<number[][]>> {
+        return api<GameStatus<number[][]>>(`/sudoku/games/${encodeURIComponent(gameId)}`, {method: "GET"});
+    },
+
+    // valide la grille côté serveur : temps de la partie, et XP / record si l'utilisateur est connecté
+    validateSudoku(gameId: string, grid: number[][]): Promise<WinResult> {
+        return api<WinResult>(`/sudoku/validateSudoku`, {
             method: "POST",
             body: JSON.stringify({gameId, grid}),
             headers: {"Content-Type": "application/json"}
         });
-        return res.xp;
     }
 };

@@ -1,7 +1,8 @@
 /**
  * Page Profil - joueur connecté
  *
- * Affiche le pseudo, le niveau global (icône + barre d'XP) et les stats par jeu.
+ * Affiche le pseudo, le niveau global (icône + barre d'XP), les stats par jeu
+ * et les dernières parties gagnées (temps, XP).
  * Redirige vers /login si personne n'est connecté.
  */
 
@@ -14,21 +15,30 @@ import {gameService} from "../../../Services/game.service.ts";
 import {levelIconSrc, xpToNextLevel} from "../../../Services/leveling.ts";
 import type {GameStats} from "../../../Models/gameStats.model.ts";
 import type {Game} from "../../../Models/game.model.ts";
+import type {RecentResult} from "../../../Models/gameResult.model.ts";
+import {userService} from "../../../Services/user.service.ts";
+import {formatDuration} from "../../../Services/format.ts";
 
 export default function Profile() {
     const {isLoggedIn, userId, username, level, xp, logout} = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState<GameStats[] | null>(null);
     const [games, setGames] = useState<Game[]>([]);
+    const [results, setResults] = useState<RecentResult[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!userId) return;
         const controller = new AbortController();
-        Promise.all([gameStatsService.getStatsByUserId(userId), gameService.list(controller.signal)])
-            .then(([s, g]) => {
+        Promise.all([
+            gameStatsService.getStatsByUserId(userId),
+            gameService.list(controller.signal),
+            userService.getMyResults(controller.signal),
+        ])
+            .then(([s, g, r]) => {
                 setStats(s);
                 setGames(g);
+                setResults(r);
             })
             .catch((err: Error) => {
                 if (err.name !== "AbortError") setError(err.message || "Erreur lors du chargement du profil");
@@ -84,6 +94,36 @@ export default function Profile() {
                         ))}
                         </tbody>
                     </table>
+                )}
+
+                {results.length > 0 && (
+                    <>
+                        <h2>Dernières parties</h2>
+                        <table className="profile-stats profile-results">
+                            <thead>
+                            <tr>
+                                <th>Jeu</th>
+                                <th>Grille</th>
+                                <th>Temps</th>
+                                <th>XP</th>
+                                <th>Date</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {results.map((r, i) => (
+                                <tr key={i}>
+                                    <td>{r.designation}</td>
+                                    <td title={`${r.empty_cells} cases à remplir`}>
+                                        {r.grid_size}×{r.grid_size} · {r.empty_cells}
+                                    </td>
+                                    <td>{formatDuration(r.duration_ms)}</td>
+                                    <td>+{r.xp}</td>
+                                    <td>{new Date(r.finished_at).toLocaleDateString("fr-FR")}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </>
                 )}
 
                 <button type="button" className="profile-logout" onClick={handleLogout}>

@@ -14,6 +14,7 @@ import "./Binero.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useBineroGame} from "./useBineroGame.ts";
 import BineroGrid from "./BineroGrid.tsx";
@@ -72,6 +73,7 @@ export default function Binero() {
 
             <div className="actions">
                 <h2 className="title">Actions</h2>
+                <GameTimer clock={flow.clock}/>
                 <button type="button" onClick={() => flow.submit(game.validate)} className="validate-button"
                         disabled={game.isGenerating || flow.showSettings}>
                     Valider
@@ -94,6 +96,7 @@ export default function Binero() {
 
             {flow.victory && (
                 <SuccessPopup gameName="Binero" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}
+                              durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               onNewGame={flow.newGame}/>
             )}
         </div>

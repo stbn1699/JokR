@@ -5,6 +5,7 @@ import type {ProgressionService} from "../services/Progression.service.js";
 import type {GamesService} from "../services/Games.service.js";
 import type {PuzzleStore} from "../services/PuzzleStore.js";
 import type {AuthLocals} from "../middleware/auth.js";
+import {routeParam} from "../utils/validation.js";
 
 const GAME_CODE = "SUDOKU";
 
@@ -12,6 +13,7 @@ const GAME_CODE = "SUDOKU";
  * Contrôleur Sudoku
  * - settings : plage de cases vides proposée et XP gagnée pour chaque valeur
  * - generate : génère une grille, la mémorise côté serveur et renvoie { gameId, grid }
+ * - status : grille de départ et temps écoulé d'une partie en cours (pour la reprendre)
  * - validate : vérifie la solution d'une grille générée ; si l'utilisateur est connecté (JWT),
  *   l'XP est calculée et enregistrée côté serveur. Chaque partie ne peut être validée qu'une fois.
  */
@@ -64,6 +66,16 @@ export function createSudokuController(
             res.status(200).json({status: "ok", data: {gameId, grid}});
         }),
 
+        // Partie en cours : grille de départ et temps écoulé (404 si terminée, expirée ou serveur redémarré)
+        status: asyncHandler(async (req: Request, res: Response) => {
+            const game = store.get(routeParam(req.params, "gameId") ?? "");
+            if (!game) {
+                res.status(404).json({status: 'error', message: 'Partie introuvable ou expirée'});
+                return;
+            }
+            res.status(200).json({status: 'ok', data: {grid: game.puzzle, elapsedMs: Date.now() - game.createdAt}});
+        }),
+
         // Body attendu : { gameId: string, grid: number[][] }
         validate: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
             const {gameId, grid} = req.body ?? {};
@@ -87,10 +99,13 @@ export function createSudokuController(
             // Partie terminée : on la retire tout de suite pour empêcher une double validation
             store.delete(gameId);
 
+            // Temps mesuré par le serveur (de la génération à la validation)
+            const durationMs = Date.now() - game.createdAt;
+
             // Invité : grille valide mais pas d'XP
             const userId = res.locals.userId;
             if (!userId) {
-                res.status(200).json({status: 'ok', data: {xp: undefined}});
+                res.status(200).json({status: 'ok', data: {xp: undefined, durationMs}});
                 return;
             }
 
@@ -98,9 +113,13 @@ export function createSudokuController(
             const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
             const xp = service.computeXp(baseXp, game.cluesCount);
 
-            await progressionService.recordWin(userId, GAME_CODE, xp);
+            const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
+                gridSize: 9,
+                emptyCells: 81 - game.cluesCount,
+                durationMs,
+            });
 
-            res.status(200).json({status: 'ok', data: {xp}});
+            res.status(200).json({status: 'ok', data: {xp, durationMs, personalBest}});
         })
     };
 }

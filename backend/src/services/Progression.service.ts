@@ -2,8 +2,16 @@ import type {Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
 import {addXp} from "../utils/leveling.js";
 
+// Configuration et durée d'une partie gagnée
+export type GameResult = {
+    gridSize: number;
+    emptyCells: number;
+    durationMs: number;
+};
+
 /*
- * Enregistre une victoire : +1 victoire et XP sur le jeu, XP sur le joueur.
+ * Enregistre une victoire : +1 victoire et XP sur le jeu, XP sur le joueur,
+ * et une ligne d'historique (temps de la partie).
  *
  * Tout se fait dans une transaction avec les lignes verrouillées (SELECT ... FOR UPDATE) :
  * deux victoires simultanées sont appliquées l'une après l'autre au lieu de s'écraser.
@@ -12,8 +20,12 @@ export class ProgressionService {
     constructor(private db: Kysely<DB>) {
     }
 
-    async recordWin(userId: string, gameCode: string, xpGained: number): Promise<void> {
-        await this.db.transaction().execute(async (trx) => {
+    /**
+     * Retourne `personalBest` : true si c'est le meilleur temps du joueur sur cette configuration
+     * (même jeu, même taille, même nombre de cases à remplir).
+     */
+    async recordWin(userId: string, gameCode: string, xpGained: number, result: GameResult): Promise<{ personalBest: boolean }> {
+        return this.db.transaction().execute(async (trx) => {
             // Crée la ligne de stats si c'est la première victoire sur ce jeu
             await trx
                 .insertInto("game_stats")
@@ -55,6 +67,30 @@ export class ProgressionService {
                 .where("user_id", "=", userId)
                 .where("game_code", "=", gameCode)
                 .execute();
+
+            const best = await trx
+                .selectFrom("game_results")
+                .select(eb => eb.fn.min("duration_ms").as("best"))
+                .where("user_id", "=", userId)
+                .where("game_code", "=", gameCode)
+                .where("grid_size", "=", result.gridSize)
+                .where("empty_cells", "=", result.emptyCells)
+                .executeTakeFirst();
+
+            await trx
+                .insertInto("game_results")
+                .values({
+                    user_id: userId,
+                    game_code: gameCode,
+                    grid_size: result.gridSize,
+                    empty_cells: result.emptyCells,
+                    duration_ms: result.durationMs,
+                    xp: xpGained,
+                })
+                .execute();
+
+            const previousBest = best?.best ?? null;
+            return {personalBest: previousBest === null || result.durationMs < previousBest};
         });
     }
 }

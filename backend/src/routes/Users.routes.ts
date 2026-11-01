@@ -6,12 +6,14 @@ import {UsersService} from '../services/Users.service.js';
 import {createUsersController} from '../controllers/Users.controller.js';
 import {rateLimit} from 'express-rate-limit';
 import {requireAuth} from '../middleware/auth.js';
+import {GameResultsRepository} from '../repository/GameResults.repository.js';
 
 /*
  * Router pour les endpoints utilisateurs
  * - POST /register : création d'un nouvel utilisateur
  * - POST /login : authentification et obtention d'un JWT
  * - GET /me : profil du joueur connecté (JWT requis)
+ * - GET /me/results : ses 10 dernières parties gagnées (JWT requis)
  * - GET /:userId : profil public (sans email ni mot de passe)
  *
  * /register et /login sont limités pour freiner le brute-force.
@@ -22,7 +24,7 @@ const UsersRoutes = Router();
 const db = createDb(pool);
 const repo = new UsersRepository(db);
 const service = new UsersService(repo);
-const controller = createUsersController(service);
+const controller = createUsersController(service, new GameResultsRepository(db));
 
 // 10 tentatives de connexion / 15 min par IP, 5 inscriptions / heure par IP
 const loginLimiter = rateLimit({windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: 'draft-7', legacyHeaders: false,
@@ -34,6 +36,7 @@ UsersRoutes.post('/register', registerLimiter, controller.register);
 UsersRoutes.post('/login', loginLimiter, controller.login);
 // /me doit être déclarée avant /:userId
 UsersRoutes.get('/me', requireAuth, controller.me);
+UsersRoutes.get('/me/results', requireAuth, controller.myResults);
 UsersRoutes.get('/:userId', controller.getByUserId);
 
 export default UsersRoutes;

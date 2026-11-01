@@ -27,9 +27,22 @@ export type GameStatsTable = {
     game_xp: number;
 }
 
+// Une ligne par partie gagnée (historique, temps, records)
+export type GameResultsTable = {
+    id: Generated<string>;
+    user_id: string;
+    game_code: string;
+    grid_size: number;
+    empty_cells: number;
+    duration_ms: number;
+    xp: number;
+    finished_at: Generated<Date>;
+};
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
     game_stats: GameStatsTable;
+    game_results: GameResultsTable;
 };
 

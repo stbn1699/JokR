@@ -26,6 +26,8 @@ const controller = createSudokuController(service, store, progressionService, ga
 router.get("/settings", controller.settings);
 // POST /sudoku/generateSudoku
 router.post("/generateSudoku", controller.generate);
+// GET /sudoku/games/:gameId (reprendre une partie en cours)
+router.get("/games/:gameId", controller.status);
 // POST /sudoku/validateSudoku (connecté = XP enregistrée, invité = simple vérification)
 router.post("/validateSudoku", optionalAuth, controller.validate);
 

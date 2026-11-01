@@ -15,6 +15,7 @@ import "../PuzzleUI/PuzzleLayout.scss";
 import "./Sudoku.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useSudokuGame} from "./useSudokuGame.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
@@ -48,6 +49,7 @@ export default function Sudoku() {
 
             <div className="actions">
                 <h2 className="title">Actions</h2>
+                <GameTimer clock={flow.clock}/>
                 <button type="button" onClick={() => flow.submit(validate)} className="validate-button"
                         disabled={isGenerating || flow.showSettings}>
                     Valider
@@ -59,6 +61,7 @@ export default function Sudoku() {
 
             {flow.victory && (
                 <SuccessPopup gameName="Sudoku" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}
+                              durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               onNewGame={flow.newGame}/>
             )}
         </div>

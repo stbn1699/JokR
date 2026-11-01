@@ -5,6 +5,7 @@ import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import {config} from "../config.js";
 import {isUuid, routeParam} from "../utils/validation.js";
 import type {AuthLocals} from "../middleware/auth.js";
+import type {GameResultsRepository} from "../repository/GameResults.repository.js";
 
 /*
  * Contrôleur des utilisateurs
@@ -23,7 +24,7 @@ function isNonEmptyString(v: unknown, maxLength: number): v is string {
     return typeof v === 'string' && v.length > 0 && v.length <= maxLength;
 }
 
-export function createUsersController(service: UsersService) {
+export function createUsersController(service: UsersService, results: GameResultsRepository) {
     return {
         // Handler pour l'inscription d'un nouvel utilisateur
         register: asyncHandler(async (req: Request, res: Response) => {
@@ -84,6 +85,12 @@ export function createUsersController(service: UsersService) {
             const user = await service.getByUserId(res.locals.userId!);
             if (!user) return res.status(404).json({status: 'error', message: 'Utilisateur introuvable'});
             res.status(200).json({status: 'ok', data: user});
+        }),
+
+        // 10 dernières parties gagnées par le joueur connecté (route protégée par requireAuth)
+        myResults: asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
+            const data = await results.listRecent(res.locals.userId!, 10);
+            res.status(200).json({status: 'ok', data});
         }),
 
         // Profil public (id, username, niveau, xp)

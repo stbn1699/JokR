@@ -3,6 +3,7 @@ import "./SuccessPopup.scss";
 import {Link, useNavigate} from "react-router-dom";
 import {confetti} from "../Confetti/Confetti.tsx";
 import {xpSteps} from "../../Services/leveling.ts";
+import {formatDuration} from "../../Services/format.ts";
 
 // Durées de l'animation de la barre d'XP (ms)
 const START_DELAY_MS = 450;
@@ -18,6 +19,10 @@ type SuccessPopupProps = {
     xpAwarded: number | null;
     // Niveau et XP du joueur avant la victoire (null si pas connecté)
     before: Progress | null;
+    // Temps de la partie (mesuré par le serveur)
+    durationMs: number;
+    // Meilleur temps du joueur sur cette configuration
+    personalBest: boolean;
     onNewGame: () => void;
 };
 
@@ -30,7 +35,7 @@ type Phase = "start" | "fill" | "levelUp";
  * Si le gain fait monter de niveau, la barre se remplit, "Niveau N atteint !" s'affiche,
  * puis elle repart sur le niveau suivant.
  */
-export function SuccessPopup({gameName, xpAwarded, before, onNewGame}: SuccessPopupProps) {
+export function SuccessPopup({gameName, xpAwarded, before, durationMs, personalBest, onNewGame}: SuccessPopupProps) {
     const modalRef = useRef<HTMLDivElement | null>(null);
     const navigate = useNavigate();
 
@@ -75,6 +80,11 @@ export function SuccessPopup({gameName, xpAwarded, before, onNewGame}: SuccessPo
             <div ref={modalRef} className="modal success-modal" tabIndex={-1}>
                 <h2 id="success-title">{gameName} terminé !</h2>
                 <p>Bravo, tu as résolu la grille.</p>
+
+                <div className="success-time">
+                    <span>Temps : <strong>{formatDuration(durationMs)}</strong></span>
+                    {personalBest && <span className="personal-best">Nouveau record !</span>}
+                </div>
 
                 {step && xpAwarded !== null ? (
                     <div className="xp-progress">

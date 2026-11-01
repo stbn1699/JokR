@@ -24,6 +24,8 @@ const controller = createBineroController(
 router.get("/settings", controller.settings);
 // POST /binero/generate { size, emptyCells }
 router.post("/generate", controller.generate);
+// GET /binero/games/:gameId (reprendre une partie en cours)
+router.get("/games/:gameId", controller.status);
 // POST /binero/validate { gameId, grid } (connecté = XP enregistrée, invité = simple vérification)
 router.post("/validate", optionalAuth, controller.validate);
 

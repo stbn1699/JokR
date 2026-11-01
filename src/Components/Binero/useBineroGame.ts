@@ -86,10 +86,10 @@ export function useBineroGame() {
 
         const grid = Array.from({length: size}, (_, r) => values.slice(r * size, (r + 1) * size) as number[]);
         try {
-            const xp = await bineroService.validate(gameIdRef.current, grid);
+            const result = await bineroService.validate(gameIdRef.current, grid);
             // Partie terminée : le serveur ne l'acceptera plus
             gameIdRef.current = null;
-            return {ok: true, xp};
+            return {ok: true, result};
         } catch (err) {
             console.error("Validation failed", err);
             return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};

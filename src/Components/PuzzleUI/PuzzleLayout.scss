@@ -306,3 +306,22 @@
 		}
 	}
 }
+
+// Chrono de la partie (panneau Actions)
+.puzzle-layout .actions .game-timer {
+	display         : flex;
+	justify-content : center;
+	align-items     : center;
+	gap             : 0.6rem;
+	font-size       : 2.4rem;
+	font-variant-numeric : tabular-nums;
+
+	.game-timer-icon {
+		font-size : 1.8rem;
+		opacity   : 0.7;
+	}
+
+	&.stopped .game-timer-value {
+		color : #3bf644;
+	}
+}

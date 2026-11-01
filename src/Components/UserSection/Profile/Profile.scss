@@ -97,3 +97,22 @@
 		}
 	}
 }
+
+// Sur téléphone, les tableaux restent lisibles
+@media (max-width: 600px) {
+	.profile {
+		padding : 1rem;
+
+		.profile-card {
+			padding : 1.25rem 0.75rem;
+		}
+
+		.profile-stats {
+			font-size : 1.05rem;
+
+			th, td {
+				padding : 0.4rem 0.25rem;
+			}
+		}
+	}
+}

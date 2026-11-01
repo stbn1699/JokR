@@ -152,10 +152,10 @@ export function useSudokuGame() {
         }
 
         try {
-            const xp = await gameService.validateSudoku(gameIdRef.current, grid);
+            const result = await gameService.validateSudoku(gameIdRef.current, grid);
             // Partie terminée : le serveur ne l'acceptera plus
             gameIdRef.current = null;
-            return {ok: true, xp};
+            return {ok: true, result};
         } catch (err) {
             console.error('Validation failed', err);
             return {ok: false, message: (err as Error).message || 'La validation a échoué, réessaie.'};
