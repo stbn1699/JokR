@@ -1,0 +1,40 @@
+# Projet JokR pour Synology Container Manager (ou docker compose).
+# À placer dans un dossier du NAS (ex: /volume1/docker/jokr) avec le fichier .env rempli
+# (copie de .env.example). Les données Postgres sont dans le sous-dossier data/postgres.
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jokr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?à définir dans .env}
+      POSTGRES_DB: jokr
+    volumes:
+      - ./data/postgres:/var/lib/postgresql
+    healthcheck:
+      # Par le réseau (127.0.0.1) : pendant l'initialisation, Postgres n'écoute que sur son socket local
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U jokr -d jokr"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    # Image importée à la main dans Container Manager (fichier jokr-image.tar)
+    image: jokr:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${JOKR_PORT:-8080}:3000"
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: jokr
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: jokr
+      JWT_SECRET: ${JWT_SECRET:?à définir dans .env}
+      SALTROUNDS: ${SALTROUNDS:-12}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      TZ: Europe/Paris

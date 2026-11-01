@@ -1,6 +1,7 @@
 import {config} from "./config.js"; // en premier : charge le .env et vérifie les secrets
 import express from "express";
 import cors from "cors";
+import {join} from "node:path";
 import gamesRoutes from "./routes/Games.routes.js";
 import usersRoutes from "./routes/Users.routes.js";
 import GameStatsRoutes from "./routes/GameStatsRoutes.js";
@@ -8,45 +9,88 @@ import sudokuRoutes from "./routes/Sudoku.routes.js";
 import bineroRoutes from "./routes/Binero.routes.js";
 import dailyRoutes from "./routes/Daily.routes.js";
 import leaderboardRoutes from "./routes/Leaderboard.routes.js";
+import {pool} from "./db/pool.js";
+import {migrate} from "./db/migrate.js";
 
 /*
  * Point d'entrée de l'API backend
  * - Configure express, CORS et parsing JSON
- * - Monte les routers pour /games, /users, /gameStats
- * - Fournit une route /ping pour la vérification de santé
+ * - Monte les routers sous API_PREFIX (vide en dev, /api dans l'image Docker)
+ * - Dans l'image Docker : applique les migrations puis sert aussi le front compilé (STATIC_DIR)
  * - Un handler d'erreur global minimal capture et logge les erreurs
  */
 const app = express();
-const PORT = config.port;
 
+app.set("trust proxy", config.trustProxy);
+app.disable("x-powered-by");
 app.use(express.json()); // parse le JSON des requêtes
 
 // CORS configuré via la variable d'environnement CORS_ORIGIN (ex: http://localhost:5173)
-// Si non définie, autorise toutes les origines (pratique en dev, à éviter en prod)
 app.use(cors({ origin: config.corsOrigin }));
 
+const api = express.Router();
+
 // Route de healthcheck
-app.get("/ping", (_req, res) => {
+api.get("/ping", (_req, res) => {
 	res.status(200).json({status: "ok", message: "pong"});
 });
 
 // Montage des routes (les routers gèrent leurs propres chemins relatifs)
-app.use("/games", gamesRoutes);
-app.use("/users", usersRoutes);
-app.use("/gameStats", GameStatsRoutes);
-app.use("/sudoku", sudokuRoutes);
-app.use("/binero", bineroRoutes);
-app.use("/daily", dailyRoutes);
-app.use("/leaderboard", leaderboardRoutes);
+api.use("/games", gamesRoutes);
+api.use("/users", usersRoutes);
+api.use("/gameStats", GameStatsRoutes);
+api.use("/sudoku", sudokuRoutes);
+api.use("/binero", bineroRoutes);
+api.use("/daily", dailyRoutes);
+api.use("/leaderboard", leaderboardRoutes);
+
+if (config.apiPrefix) {
+	// Route d'API inconnue : réponse JSON plutôt que la page du front
+	api.use((_req, res) => {
+		res.status(404).json({status: "error", message: "Route introuvable"});
+	});
+}
+
+app.use(config.apiPrefix || "/", api);
+
+if (config.staticDir) {
+	const staticDir = config.staticDir;
+	// Fichiers de assets/ : leur nom change à chaque build, ils peuvent être gardés en cache longtemps
+	app.use("/assets", express.static(join(staticDir, "assets"), {immutable: true, maxAge: "1y", fallthrough: false}));
+	app.use(express.static(staticDir, {index: false, maxAge: "1h"}));
+	// Toutes les autres pages : l'application React (React Router gère l'adresse)
+	app.get("/{*page}", (_req, res) => {
+		res.setHeader("Cache-Control", "no-cache");
+		res.sendFile(join(staticDir, "index.html"));
+	});
+}
 
 // error handler minimal — capture les erreurs qui remontent via next(err)
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     void _next; // explicit mark as used to satisfy linters
+	// Fichier statique introuvable (ex: ancien /assets après une mise à jour)
+	if (typeof err === "object" && err !== null && "status" in err && err.status === 404) {
+		res.status(404).end();
+		return;
+	}
 	console.error(err);
 	// renvoie une réponse standardisée
 	res.status(500).json({status: "error", message: "Erreur interne du serveur, réessaie plus tard"});
 });
 
-app.listen(PORT, () => {
-	console.log(`🚀 Server running on http://localhost:${PORT}`);
+if (config.migrationsDir) {
+	await migrate(pool, config.migrationsDir);
+}
+
+const server = app.listen(config.port, () => {
+	console.log(`🚀 Server running on http://localhost:${config.port}`);
 });
+
+// Arrêt propre (docker stop envoie SIGTERM)
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+	process.on(signal, () => {
+		console.log(`${signal} reçu, arrêt du serveur`);
+		server.close(() => void pool.end().finally(() => process.exit(0)));
+		setTimeout(() => process.exit(0), 5000).unref();
+	});
+}

@@ -89,6 +89,7 @@ pnpm dev               # http://localhost:5173
 | racine     | `pnpm test`      | tests du front (Vitest)                 |
 | racine     | `pnpm test:all`  | tests du front et de l'API              |
 | racine     | `pnpm migrate`   | migrations Flyway                       |
+| racine     | `pnpm docker:image` | image Docker exportée dans `jokr-image.tar` |
 | `backend/` | `pnpm dev`       | API avec rechargement automatique       |
 | `backend/` | `pnpm typecheck` | vérification des types de l'API         |
 | `backend/` | `pnpm test`      | tests de l'API (Vitest)                 |
@@ -97,6 +98,68 @@ pnpm dev               # http://localhost:5173
 
 La CI GitHub Actions (`.github/workflows/ci.yml`) lance lint, typecheck, tests et builds à chaque push sur `main`
 et sur chaque pull request.
+
+## Déploiement (Docker sur un NAS Synology)
+
+L'image `jokr` contient le front compilé et l'API : un seul conteneur, un seul port, l'API sous `/api`.
+Au démarrage, elle applique d'elle-même les migrations manquantes de `database/migrations`
+(compatible Flyway : même table `flyway_schema_history`, mêmes checksums), puis lance le site.
+Le dossier [`deploy/`](deploy) contient le projet à installer sur le NAS : l'application et sa base Postgres.
+
+### Construire l'image (sur le PC)
+
+Docker Desktop doit être lancé.
+
+```bash
+pnpm docker:image
+```
+
+Cela produit `jokr-image.tar` (~135 Mo) à la racine du projet. L'image est construite pour les NAS Intel/AMD
+(`linux/amd64`, la grande majorité des Synology). Pour un modèle ARM, remplacer par `linux/arm64` dans le script.
+
+### Première installation
+
+1. **Dossier** : dans File Station, créer un dossier (ex : `docker/jokr`) et y déposer
+   `deploy/docker-compose.yml` ainsi qu'un fichier `.env` copié depuis `deploy/.env.example`
+   et rempli (mot de passe Postgres, `JWT_SECRET`, port).
+2. **Image** : Container Manager → Image → Ajouter → Ajouter à partir d'un fichier → `jokr-image.tar`.
+3. **Projet** : Container Manager → Projet → Créer, nom `jokr`, chemin = le dossier de l'étape 1,
+   source « Utiliser le docker-compose.yml existant ». Valider : la base et le site démarrent.
+   Le site répond sur `http://ip-du-nas:8080`.
+4. **HTTPS (recommandé)** : Panneau de configuration → Portail de connexion → Avancé → Proxy inversé.
+   Source `https://jokr.ton-domaine:443`, destination `http://localhost:8080`.
+   Garder `TRUST_PROXY=1` dans `.env` dans ce cas (sinon `0`).
+
+Les données de la base sont dans le sous-dossier `data/postgres` du projet.
+
+### Mettre à jour
+
+1. Sur le PC : `pnpm docker:image`.
+2. Container Manager → Image → Ajouter → Ajouter à partir d'un fichier → le nouveau `jokr-image.tar`
+   (il remplace `jokr:latest`).
+3. Container Manager → Projet → `jokr` → Arrêter, puis Créer (Build) : le conteneur est recréé avec la
+   nouvelle image et les nouvelles migrations sont appliquées au démarrage. Les comptes et l'XP sont conservés ;
+   seules les parties en cours (gardées en mémoire) sont perdues.
+4. Optionnel : Image → supprimer l'ancienne image devenue inutilisée.
+
+### Sauvegarde
+
+Le plus sûr est un export SQL de la base, par exemple en SSH depuis le dossier du projet :
+
+```bash
+docker compose exec db pg_dump -U jokr jokr > jokr-backup.sql
+```
+
+### Variables de l'image
+
+Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'image :
+
+| Variable         | Valeur dans l'image | Rôle                                                   |
+|------------------|---------------------|--------------------------------------------------------|
+| `API_PREFIX`     | `/api`              | préfixe des routes de l'API (vide en dev)              |
+| `STATIC_DIR`     | `/app/public`       | front compilé servi par le serveur                     |
+| `MIGRATIONS_DIR` | `/app/migrations`   | migrations appliquées au démarrage                     |
+| `TRUST_PROXY`    | (compose : `1`)     | nombre de proxys devant le serveur, pour la vraie IP    |
 
 ## Fonctionnement
 

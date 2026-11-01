@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "migrate": "cd database && flyway migrate",
     "test": "vitest run --dir src",
-    "test:all": "pnpm test && pnpm --filter backend test"
+    "test:all": "pnpm test && pnpm --filter backend test",
+    "docker:image": "docker build --platform linux/amd64 -t jokr:latest . && docker save jokr:latest -o jokr-image.tar"
   },
   "dependencies": {
     "react": "^19.3.1",

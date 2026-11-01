@@ -25,3 +25,8 @@ dist-ssr
 .env
 # Le projet utilise pnpm (pnpm-lock.yaml) : pas de lockfile npm
 package-lock.json
+
+# Déploiement : image exportée et fichiers locaux du NAS
+jokr-image.tar
+deploy/.env
+deploy/data
