@@ -1,4 +1,5 @@
 import {randomUUID} from "node:crypto";
+import {countClues} from "./Sudoku.service.js";
 
 /*
  * Mémorise en mémoire les grilles générées par le serveur.
@@ -30,7 +31,7 @@ export class SudokuGameStore {
         }
 
         const gameId = randomUUID();
-        const cluesCount = puzzle.flat().filter(v => v !== 0).length;
+        const cluesCount = countClues(puzzle);
         this.games.set(gameId, {puzzle, cluesCount, createdAt: Date.now()});
         return gameId;
     }

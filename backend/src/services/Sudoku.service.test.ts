@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {SudokuService} from "./Sudoku.service.js";
+import {countClues, SUDOKU_LIMITS, SudokuService} from "./Sudoku.service.js";
 
 // Grille résolue valide
 const SOLVED = [
@@ -78,5 +78,30 @@ describe("SudokuService.computeXp", () => {
         expect(service.computeXp(10, 81)).toBe(20);
         expect(service.computeXp(1000, 17)).toBe(300);
         expect(service.computeXp(50, 0)).toBe(300);
+    });
+});
+
+describe("SudokuService.xpTable", () => {
+    it("donne l'XP pour chaque nombre de cases vides proposé", () => {
+        const table = service.xpTable(50);
+        const keys = Object.keys(table).map(Number);
+        expect(Math.min(...keys)).toBe(SUDOKU_LIMITS.minEmptyCells);
+        expect(Math.max(...keys)).toBe(SUDOKU_LIMITS.maxEmptyCells);
+        // même calcul que celui de la validation
+        expect(table[41]).toBe(service.computeXp(50, 40));
+    });
+
+    it("donne plus d'XP quand il y a plus de cases à remplir", () => {
+        const table = service.xpTable(50);
+        expect(table[SUDOKU_LIMITS.maxEmptyCells]!).toBeGreaterThan(table[SUDOKU_LIMITS.minEmptyCells]!);
+    });
+});
+
+describe("SudokuService.generate", () => {
+    it("renvoie le nombre d'indices demandé sur toute la plage proposée", async () => {
+        for (const empty of [SUDOKU_LIMITS.minEmptyCells, SUDOKU_LIMITS.defaultEmptyCells, SUDOKU_LIMITS.maxEmptyCells]) {
+            const grid = await service.generate(81 - empty);
+            expect(countClues(grid)).toBe(81 - empty);
+        }
     });
 });

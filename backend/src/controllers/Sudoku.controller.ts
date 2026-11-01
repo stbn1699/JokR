@@ -1,5 +1,5 @@
 import type {Request, Response} from "express";
-import {SudokuService} from "../services/Sudoku.service.js";
+import {SUDOKU_LIMITS, SudokuService} from "../services/Sudoku.service.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import type {GamesService} from "../services/Games.service.js";
@@ -10,6 +10,7 @@ const GAME_CODE = "SUDOKU";
 
 /*
  * Contrôleur Sudoku
+ * - settings : plage de cases vides proposée et XP gagnée pour chaque valeur
  * - generate : génère une grille, la mémorise côté serveur et renvoie { gameId, grid }
  * - validate : vérifie la solution d'une grille générée ; si l'utilisateur est connecté (JWT),
  *   l'XP est calculée et enregistrée côté serveur. Chaque partie ne peut être validée qu'une fois.
@@ -20,18 +21,24 @@ export function createSudokuController(
     progressionService: ProgressionService,
     gamesService: GamesService,
 ) {
+    const minClues = 81 - SUDOKU_LIMITS.maxEmptyCells;
+    const maxClues = 81 - SUDOKU_LIMITS.minEmptyCells;
+
     return {
+        settings: asyncHandler(async (_req: Request, res: Response) => {
+            const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
+            res.status(200).json({
+                status: "ok",
+                data: {...SUDOKU_LIMITS, xpByEmptyCells: service.xpTable(baseXp)},
+            });
+        }),
+
         generate: asyncHandler(async (req: Request, res: Response) => {
             const {cluesCount} = req.body ?? {};
 
-            if (!Number.isInteger(cluesCount)) {
-                res.status(400).json({status: "error", message: "cluesCount must be an integer"});
-                return;
-            }
-            // Valeur visée : le générateur peut laisser plus d'indices s'il ne peut pas en retirer davantage
-            // (l'XP est calculée sur le nombre réel d'indices, voir validate)
-            if (cluesCount < 0 || cluesCount > 81) {
-                res.status(400).json({status: "error", message: "cluesCount must be between 0 and 81"});
+            // Plage limitée à ce que le générateur atteint vite et de façon fiable (voir SUDOKU_LIMITS)
+            if (!Number.isInteger(cluesCount) || cluesCount < minClues || cluesCount > maxClues) {
+                res.status(400).json({status: "error", message: `cluesCount must be an integer between ${minClues} and ${maxClues}`});
                 return;
             }
 

@@ -1,9 +1,37 @@
 import {generateSudoku} from "../utils/sudokuGenerator.js";
 
+/*
+ * Plage de cases vides proposée au joueur.
+ * Mesuré : jusqu'à 55 cases vides, le générateur tombe pile sur la cible en moins de 100 ms.
+ * Au-delà, il n'y arrive plus de façon fiable (grilles trop difficiles pour la résolution logique).
+ */
+export const SUDOKU_LIMITS = {
+    minEmptyCells: 20,
+    maxEmptyCells: 55,
+    defaultEmptyCells: 40,
+} as const;
+
+const MAX_GENERATION_ATTEMPTS = 5;
+
 export class SudokuService {
-    // generate returns a grid with approximately numPlaced clues (could be more if target can't be reached)
-    async generate(numPlaced: number): Promise<number[][]> {
-        return generateSudoku(numPlaced);
+    // Génère une grille avec exactement `cluesCount` indices si possible (quelques essais),
+    // sinon la plus proche obtenue (toujours au moins `cluesCount` indices)
+    async generate(cluesCount: number): Promise<number[][]> {
+        let best = generateSudoku(cluesCount);
+        for (let attempt = 1; attempt < MAX_GENERATION_ATTEMPTS && countClues(best) !== cluesCount; attempt++) {
+            const grid = generateSudoku(cluesCount);
+            if (countClues(grid) < countClues(best)) best = grid;
+        }
+        return best;
+    }
+
+    // XP gagnée pour chaque nombre de cases vides proposé (affichée avant de générer)
+    xpTable(baseXp: number): Record<number, number> {
+        const table: Record<number, number> = {};
+        for (let empty = SUDOKU_LIMITS.minEmptyCells; empty <= SUDOKU_LIMITS.maxEmptyCells; empty++) {
+            table[empty] = this.computeXp(baseXp, 81 - empty);
+        }
+        return table;
     }
 
     // XP gagnée selon la difficulté : xp = baseXp × (40 / cluesCount)^1.1, bornée entre 20 et 300
@@ -75,4 +103,8 @@ export class SudokuService {
 
         return true;
     }
+}
+
+export function countClues(grid: number[][]): number {
+    return grid.flat().filter(v => v !== 0).length;
 }

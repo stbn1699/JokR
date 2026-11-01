@@ -1,9 +1,15 @@
 import {api} from "../api/api.ts";
 import type {Game} from "../Models/game.model.ts";
+import type {SudokuSettings} from "../Models/sudokuSettings.model.ts";
 
 export const gameService = {
     list(signal?: AbortSignal) {
         return api<Game[]>("/games/list", {method: "GET"}, signal);
+    },
+
+    // plage de cases vides proposée et XP gagnée pour chaque valeur
+    getSudokuSettings(signal?: AbortSignal): Promise<SudokuSettings> {
+        return api<SudokuSettings>(`/sudoku/settings`, {method: "GET"}, signal);
     },
 
     // demande au backend une grille Sudoku ; gameId identifie la partie pour la validation

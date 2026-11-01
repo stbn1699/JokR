@@ -22,6 +22,8 @@ const gamesService = new GamesService(new GamesRepository(db));
 
 const controller = createSudokuController(service, store, progressionService, gamesService);
 
+// GET /sudoku/settings (plage de cases vides et XP associée)
+router.get("/settings", controller.settings);
 // POST /sudoku/generateSudoku
 router.post("/generateSudoku", controller.generate);
 // POST /sudoku/validateSudoku (connecté = XP enregistrée, invité = simple vérification)
