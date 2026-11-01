@@ -4,7 +4,7 @@
  * Gère l'authentification des utilisateurs avec :
  * - Identification par nom d'utilisateur OU email
  * - Hashage côté client du mot de passe (SHA-256) avant envoi au serveur
- * - Stockage du token JWT et de l'userId dans localStorage
+ * - Ouverture de la session via l'AuthContext (token + userId gardés dans localStorage)
  * - Redirection vers l'accueil après connexion réussie
  *
  * Sécurité :
@@ -19,6 +19,7 @@ import {clientHash} from "../../../Services/hash";
 import {authService} from "../../../Services/auth.service";
 import type {LoggedUser} from "../../../Models/loggedUser.model.ts";
 import {useNavigate} from "react-router-dom";
+import {useAuth} from "../../../Context/authContext.ts";
 
 /**
  * Composant de la page de connexion
@@ -38,6 +39,7 @@ export default function Login() {
     const [error, setError] = useState<string | null>(null);
 
     const navigate = useNavigate();
+    const {login} = useAuth();
 
     /**
      * Gère la soumission du formulaire de connexion
@@ -46,7 +48,7 @@ export default function Login() {
      * 1. Valide que tous les champs sont remplis
      * 2. Hash le mot de passe côté client (SHA-256)
      * 3. Envoie les credentials au serveur
-     * 4. Stocke le token JWT et l'userId en localStorage
+     * 4. Ouvre la session (AuthContext)
      * 5. Redirige vers la page d'accueil
      *
      * @param e - Événement de soumission du formulaire
@@ -69,19 +71,10 @@ export default function Login() {
             // Le backend va comparer avec le hash bcrypt stocké en base
             const loggedUser: LoggedUser = await authService.login(identifier, Hash)
 
-            // Étape 3 : Extraire les données de la réponse
-            const token = loggedUser.token; // Token JWT pour authentifier les requêtes futures
-            const userId = loggedUser.userId; // ID de l'utilisateur pour récupérer ses stats
-            const userLevel = loggedUser.userLevel.toString();
-            const userXp = loggedUser.userXp.toString();
+            // Étape 3 : Ouvrir la session (le header se met à jour tout seul)
+            login(loggedUser);
 
-            // Étape 4 : Sauvegarder les informations en localStorage
-            authService.saveToken(token); // Stocke le token JWT
-            localStorage.setItem('userId', userId); // Stocke l'ID utilisateur
-            localStorage.setItem('userLevel', userLevel);
-            localStorage.setItem('userXp', userXp);
-
-            // Étape 5 : Rediriger vers la page d'accueil
+            // Étape 4 : Rediriger vers la page d'accueil
             navigate("/");
         } catch (err: unknown) {
             // Gestion des erreurs : convertir en message lisible

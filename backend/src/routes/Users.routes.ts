@@ -5,11 +5,13 @@ import {UsersRepository} from '../repository/Users.repository.js';
 import {UsersService} from '../services/Users.service.js';
 import {createUsersController} from '../controllers/Users.controller.js';
 import {rateLimit} from 'express-rate-limit';
+import {requireAuth} from '../middleware/auth.js';
 
 /*
  * Router pour les endpoints utilisateurs
  * - POST /register : création d'un nouvel utilisateur
  * - POST /login : authentification et obtention d'un JWT
+ * - GET /me : profil du joueur connecté (JWT requis)
  * - GET /:userId : profil public (sans email ni mot de passe)
  *
  * /register et /login sont limités pour freiner le brute-force.
@@ -30,6 +32,8 @@ const registerLimiter = rateLimit({windowMs: 60 * 60 * 1000, limit: 5, standardH
 
 UsersRoutes.post('/register', registerLimiter, controller.register);
 UsersRoutes.post('/login', loginLimiter, controller.login);
+// /me doit être déclarée avant /:userId
+UsersRoutes.get('/me', requireAuth, controller.me);
 UsersRoutes.get('/:userId', controller.getByUserId);
 
 export default UsersRoutes;

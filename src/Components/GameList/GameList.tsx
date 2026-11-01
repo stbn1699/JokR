@@ -6,6 +6,8 @@ import type {GameStats} from "../../Models/gameStats.model.ts";
 import {gameStatsService} from "../../Services/gameStats.service.ts";
 import {useNavigate} from "react-router-dom";
 import sounds from "../../Services/sounds";
+import {useAuth} from "../../Context/authContext.ts";
+import {xpToNextLevel} from "../../Services/leveling.ts";
 
 export default function GameList() {
     const [games, setGames] = useState<Game[]>([])
@@ -14,7 +16,7 @@ export default function GameList() {
     const [error, setError] = useState<string | null>(null);
     const [overlayVisible, setOverlayVisible] = useState(false);
     const timeoutRef = useRef<number | null>(null);
-    const userId = window.localStorage.getItem('userId');
+    const {userId} = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -80,16 +82,16 @@ export default function GameList() {
 
             <div className="game-list">
                 {games.map((game) => {
-                    const stat = userStats?.find(s => s.game_id === game.id);
+                    const stat = userStats?.find(s => s.game_code === game.code);
 
                     return (
-                        <div className="game-card" key={game.id}>
+                        <div className="game-card" key={game.code}>
                             {userId && stat && (
                                 <div className="stats">
                                     <div>
                                         <p>Niveau {stat.game_level ?? 0}</p>
                                         <p>
-                                            ({stat.game_xp ?? 0} / {Math.ceil(120 * Math.pow(stat.game_level, 1.4))} xp)
+                                            ({stat.game_xp ?? 0} / {xpToNextLevel(stat.game_level)} xp)
                                         </p>
                                     </div>
                                     <div>

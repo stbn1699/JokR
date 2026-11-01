@@ -1,5 +1,6 @@
+// Jeu tel que renvoyé par GET /games/list
 export interface Game {
-    id: number;
     code: string;
     designation: string;
+    base_xp: number;
 }

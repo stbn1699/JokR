@@ -25,6 +25,10 @@
 		color       : #374151;
 		margin      : 0; /* géré par flex */
 
+		svg {
+			cursor : pointer;
+		}
+
 		.user-section {
 			display     : flex;
 			align-items : center;

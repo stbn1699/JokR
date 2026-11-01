@@ -3,24 +3,29 @@
  *
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
- * - L'icône utilisateur (cliquable pour aller à la page de connexion)
+ * - Connecté : icône de niveau, barre d'XP, accès au profil et déconnexion
+ * - Invité : icône pour aller à la page de connexion
+ *
+ * Les infos viennent de l'AuthContext : le header se met à jour dès qu'elles changent.
  */
 
 import "./Header.scss"
-import {FaUser, FaUserCircle} from "react-icons/fa";
+import {FaSignOutAlt, FaUser, FaUserCircle} from "react-icons/fa";
 import {useNavigate} from "react-router-dom";
+import {useAuth} from "../../Context/authContext.ts";
+import {levelIconSrc, xpToNextLevel} from "../../Services/leveling.ts";
 
-/**
- * Rendu du header avec logo et section utilisateur
- * @returns JSX du composant Header
- */
 export default function Header() {
     const navigate = useNavigate();
+    const {isLoggedIn, level, xp, logout} = useAuth();
 
-    const userLevel: number = Number(localStorage.getItem('userLevel')) || 1;
-    const userXp: number = Number(localStorage.getItem('userXp')) || 0;
-    const xpNextLevel: number = Math.ceil(120 * Math.pow(userLevel, 1.4))
-    const xpPercent: number = Math.min(100, (Number(userXp) / xpNextLevel) * 100);
+    const xpNextLevel = xpToNextLevel(level);
+    const xpPercent = Math.min(100, (xp / xpNextLevel) * 100);
+
+    const handleLogout = () => {
+        logout();
+        navigate("/");
+    };
 
     return (
         <div className="header">
@@ -32,20 +37,21 @@ export default function Header() {
             />
 
             <div className="usersection">
-                {localStorage.getItem('userId') ? (
+                {isLoggedIn ? (
                     <div className="user-section">
-                        <img src={`/Icons/level_${userLevel}.png`} alt="levelIcon" className="level-icon"/>
+                        <img src={levelIconSrc(level)} alt={`Niveau ${level}`} className="level-icon"/>
 
                         <div className="xp-bar" aria-hidden>
-                            <div className="xp-bar-track" title={`${userXp} / ${xpNextLevel} xp`}>
+                            <div className="xp-bar-track" title={`${xp} / ${xpNextLevel} xp`}>
                                 <div className="xp-bar-fill" style={{width: `${xpPercent}%`}}/>
                             </div>
                         </div>
 
-                        <FaUserCircle onClick={() => navigate("/profile")}/>
+                        <FaUserCircle title="Mon profil" onClick={() => navigate("/profile")}/>
+                        <FaSignOutAlt title="Se déconnecter" onClick={handleLogout}/>
                     </div>
                 ) : (
-                    <FaUser onClick={() => navigate("/login")}/>
+                    <FaUser title="Se connecter" onClick={() => navigate("/login")}/>
                 )}
             </div>
         </div>

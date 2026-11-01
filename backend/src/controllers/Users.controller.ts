@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import {config} from "../config.js";
 import {isUuid} from "../utils/validation.js";
+import type {AuthLocals} from "../middleware/auth.js";
 
 /*
  * Contrôleur des utilisateurs
@@ -76,6 +77,13 @@ export function createUsersController(service: UsersService) {
                 status: 'ok',
                 data: {token, userId: user.id, userLevel: user.user_level, userXp: user.user_xp}
             });
+        }),
+
+        // Profil du joueur connecté (route protégée par requireAuth)
+        me: asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
+            const user = await service.getByUserId(res.locals.userId!);
+            if (!user) return res.status(404).json({status: 'error', message: 'User not found'});
+            res.status(200).json({status: 'ok', data: user});
         }),
 
         // Profil public (id, username, niveau, xp)

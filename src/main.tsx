@@ -4,12 +4,14 @@
  * Ce fichier initialise l'application en :
  * - Créant la racine React dans l'élément DOM #root
  * - Enveloppant l'app dans BrowserRouter pour la navigation côté client
+ * - Fournissant la session utilisateur (AuthProvider, qui a besoin du router)
  * - Chargeant les styles globaux (index.css)
  */
 
 import {createRoot} from "react-dom/client";
 import {BrowserRouter} from "react-router-dom";
 import App from "./App.tsx";
+import {AuthProvider} from "./Context/AuthProvider.tsx";
 import "./index.css";
 
 // Récupère l'élément HTML racine où React va s'injecter
@@ -21,6 +23,8 @@ const root = createRoot(container);
 // Rend l'application complète avec le router pour gérer les routes
 root.render(
     <BrowserRouter>
-        <App/>
+        <AuthProvider>
+            <App/>
+        </AuthProvider>
     </BrowserRouter>
 );

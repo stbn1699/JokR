@@ -28,6 +28,7 @@ import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import {gameService} from "../../Services/game.service.ts";
 import {useNavigate} from "react-router-dom";
 import sounds from "../../Services/sounds.ts";
+import {useAuth} from "../../Context/authContext.ts";
 
 /**
  * Props du composant Sudoku
@@ -47,6 +48,7 @@ export default function Sudoku({gameCode}: SudokuProps) {
 
     // Référence vers tous les inputs de la grille (81 cellules = 9×9)
     const inputs = useRef<HTMLInputElement[]>([]);
+    const {refresh: refreshUser} = useAuth();
 
     // Référence pour identifier une génération en cours (permet d'annuler l'animation)
     const generationRef = useRef(0);
@@ -517,6 +519,8 @@ export default function Sudoku({gameCode}: SudokuProps) {
                             gameIdRef.current = null;
                             // server returns xp (or undefined if not recorded)
                             setXpAwarded(xp ?? null);
+                            // met à jour niveau / XP dans le header
+                            if (xp !== undefined) void refreshUser();
                             setShowSuccess(true);
                         } catch (err) {
                             console.error('Validation failed', err);

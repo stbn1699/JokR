@@ -6,6 +6,7 @@
  * - /playgame/:gameCode : Page de jeu (dynamique selon le code du jeu)
  * - /login : Page de connexion
  * - /register : Page d'inscription
+ * - /profile : Profil du joueur connecté
  * - * : Page 404 pour les routes inexistantes
  */
 
@@ -18,7 +19,7 @@ import Register from "./Components/UserSection/Register/Register.tsx";
 import Header from "./Components/Header/Header.tsx";
 import {useEffect} from "react";
 import sounds from "./Services/sounds";
-import {userService} from "./Services/user.service.ts";
+import Profile from "./Components/UserSection/Profile/Profile.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -26,7 +27,6 @@ import {userService} from "./Services/user.service.ts";
  */
 function App() {
     const location = useLocation();
-    const userId: string | null = localStorage.getItem('userId');
 
     useEffect(() => {
         // Play a subtle woosh sound on every route change (initial load + navigations)
@@ -38,14 +38,6 @@ function App() {
         }
     }, [location.pathname]);
 
-    useEffect(() => {
-        if (!userId) return;
-        userService.getByUserId(userId).then(r => {
-            localStorage.setItem('userLevel', r.user_level.toString());
-            localStorage.setItem('userXp', r.user_xp.toString());
-        })
-    }, []);
-
     return (
         <div className="app-root">
             <Header/>
@@ -54,6 +46,7 @@ function App() {
                 <Route path="/playgame/:gameCode" element={<PlayGame/>}/>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/register" element={<Register/>}/>
+                <Route path="/profile" element={<Profile/>}/>
                 <Route path="*" element={<div>404<br/>Page non trouvée</div>}/>
             </Routes>
         </div>

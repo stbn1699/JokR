@@ -1,0 +1,99 @@
+.profile {
+	display         : flex;
+	justify-content : center;
+	padding         : 2rem 1rem;
+
+	.profile-card {
+		width          : min(36rem, 100%);
+		padding        : 2rem;
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		text-align     : center;
+		border         : 3px solid #f9fafb;
+		border-radius  : 12px;
+		background     : #02061735;
+		box-sizing     : border-box;
+	}
+
+	.profile-level-icon {
+		width      : 7rem;
+		height     : 7rem;
+		object-fit : contain;
+	}
+
+	h1 {
+		font-size : 3.5rem;
+		margin    : 0.5rem 0 0;
+		word-break: break-word;
+	}
+
+	h2 {
+		font-size : 2rem;
+		margin    : 2rem 0 1rem;
+	}
+
+	.profile-level {
+		font-size : 1.6rem;
+		margin    : 0.25rem 0 1rem;
+	}
+
+	.profile-xp {
+		width         : 100%;
+		max-width     : 20rem;
+		height        : 1rem;
+		background    : #EDE7DB;
+		border-radius : 999px;
+		overflow      : hidden;
+	}
+
+	.profile-xp-fill {
+		height     : 100%;
+		background : linear-gradient(90deg, #F59E0B, #F97316);
+		transition : width 300ms ease-in-out;
+	}
+
+	.profile-xp-label {
+		margin    : 0.5rem 0 0;
+		opacity   : 0.8;
+		font-size : 1.2rem;
+	}
+
+	.profile-stats {
+		width           : 100%;
+		border-collapse : collapse;
+		font-size       : 1.3rem;
+
+		th, td {
+			padding       : 0.5rem;
+			border-bottom : 1px solid rgba(249, 250, 251, 0.25);
+		}
+
+		th {
+			font-weight : 600;
+			opacity     : 0.8;
+		}
+	}
+
+	.profile-error {
+		color : #fca5a5;
+	}
+
+	.profile-logout {
+		margin        : 2rem 0 0;
+		height        : 3rem;
+		width         : 12rem;
+		font-size     : 1.5rem;
+		font-weight   : 600;
+		border-radius : 2rem;
+		cursor        : pointer;
+		background    : transparent;
+		color         : #f9fafb;
+		border        : 3px solid #10b981;
+		transition    : all 0.2s ease-in-out;
+
+		&:hover {
+			background : #10b981;
+		}
+	}
+}
