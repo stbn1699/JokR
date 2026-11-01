@@ -3,21 +3,23 @@ import {pool} from "../db/pool.js";
 import {createDb} from "../db/kysely.js";
 import {BineroService} from "../services/Binero.service.js";
 import {createBineroController} from "../controllers/Binero.controller.js";
-import {PuzzleStore} from "../services/PuzzleStore.js";
+import {bineroStore} from "../services/stores.js";
+import {createDailyService} from "../services/daily.js";
 import {ProgressionService} from "../services/Progression.service.js";
 import {GamesService} from "../services/Games.service.js";
 import {GamesRepository} from "../repository/Games.repository.js";
 import {optionalAuth} from "../middleware/auth.js";
-import type {BineroGrid} from "../utils/binero.js";
 
 const router = Router();
 const db = createDb(pool);
 
 const controller = createBineroController(
     new BineroService(),
-    new PuzzleStore<BineroGrid>(),
+    // parties en cours partagées avec le défi du jour
+    bineroStore,
     new ProgressionService(db),
     new GamesService(new GamesRepository(db)),
+    createDailyService(db),
 );
 
 // GET /binero/settings (tailles, plages de cases à remplir et XP associée)

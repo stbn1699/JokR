@@ -35,6 +35,16 @@ export class UsersRepository {
             .executeTakeFirst();
     }
 
+    // Remplace le mot de passe (déjà hashé)
+    async updatePassword(id: string, passwordHash: string): Promise<void> {
+        await this.db.updateTable('users').set({password: passwordHash}).where('id', '=', id).execute();
+    }
+
+    // Supprime le compte (stats, historique et résultats du défi partent avec, en cascade)
+    async delete(id: string): Promise<void> {
+        await this.db.deleteFrom('users').where('id', '=', id).execute();
+    }
+
     // Crée un nouvel utilisateur (s'attend à recevoir le mot de passe déjà hashé)
     async create(user: NewUser): Promise<User> {
         return this.db

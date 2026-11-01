@@ -87,10 +87,34 @@ export function createUsersController(service: UsersService, results: GameResult
             res.status(200).json({status: 'ok', data: user});
         }),
 
-        // 10 dernières parties gagnées par le joueur connecté (route protégée par requireAuth)
-        myResults: asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
-            const data = await results.listRecent(res.locals.userId!, 10);
+        // Parties gagnées par le joueur connecté, par pages : ?limit=10&offset=0 (limit ≤ 50)
+        myResults: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
+            const offset = Math.max(0, Number(req.query.offset) || 0);
+            const data = await results.listRecent(res.locals.userId!, limit, offset);
             res.status(200).json({status: 'ok', data});
+        }),
+
+        // Changement de mot de passe : { currentPassword, newPassword }
+        changePassword: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const {currentPassword, newPassword} = req.body ?? {};
+            if (!isNonEmptyString(currentPassword, 200) || !isNonEmptyString(newPassword, 200)) {
+                return res.status(400).json({status: 'error', message: 'Tous les champs sont obligatoires'});
+            }
+            const ok = await service.changePassword(res.locals.userId!, currentPassword, newPassword);
+            if (!ok) return res.status(403).json({status: 'error', message: 'Mot de passe actuel incorrect'});
+            res.status(200).json({status: 'ok', data: null});
+        }),
+
+        // Suppression définitive du compte : { password }
+        deleteAccount: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const {password} = req.body ?? {};
+            if (!isNonEmptyString(password, 200)) {
+                return res.status(400).json({status: 'error', message: 'Mot de passe obligatoire'});
+            }
+            const ok = await service.deleteAccount(res.locals.userId!, password);
+            if (!ok) return res.status(403).json({status: 'error', message: 'Mot de passe incorrect'});
+            res.status(200).json({status: 'ok', data: null});
         }),
 
         // Profil public (id, username, niveau, xp)

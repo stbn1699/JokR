@@ -5,6 +5,7 @@ import type {ProgressionService} from "../services/Progression.service.js";
 import type {GamesService} from "../services/Games.service.js";
 import type {PuzzleStore} from "../services/PuzzleStore.js";
 import type {AuthLocals} from "../middleware/auth.js";
+import type {DailyService} from "../services/Daily.service.js";
 import {routeParam} from "../utils/validation.js";
 
 const GAME_CODE = "SUDOKU";
@@ -22,6 +23,7 @@ export function createSudokuController(
     store: PuzzleStore<number[][]>,
     progressionService: ProgressionService,
     gamesService: GamesService,
+    dailyService: DailyService,
 ) {
     const minClues = 81 - SUDOKU_LIMITS.maxEmptyCells;
     const maxClues = 81 - SUDOKU_LIMITS.minEmptyCells;
@@ -109,6 +111,13 @@ export function createSudokuController(
                 return;
             }
 
+            // Défi du jour : une seule réussite compte par jour (pas d'XP pour les suivantes)
+            const daily = game.daily ? await dailyService.recordResult(GAME_CODE, game.daily, userId, durationMs) : undefined;
+            if (daily && !daily.counted) {
+                res.status(200).json({status: 'ok', data: {xp: undefined, durationMs, daily}});
+                return;
+            }
+
             // XP calculée uniquement côté serveur, à partir du nombre réel d'indices de la grille
             const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
             const xp = service.computeXp(baseXp, game.cluesCount);
@@ -119,7 +128,7 @@ export function createSudokuController(
                 durationMs,
             });
 
-            res.status(200).json({status: 'ok', data: {xp, durationMs, personalBest}});
+            res.status(200).json({status: 'ok', data: {xp, durationMs, personalBest, daily}});
         })
     };
 }

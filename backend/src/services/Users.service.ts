@@ -48,6 +48,26 @@ export class UsersService {
         return this.repo.findByUuid(uuid);
     }
 
+    // Vérifie le mot de passe d'un joueur connecté
+    private async checkPassword(userId: string, password: string): Promise<boolean> {
+        const user = await this.repo.findByUuid(userId);
+        return !!user && await bcrypt.compare(password, user.password);
+    }
+
+    // false si le mot de passe actuel est incorrect
+    async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<boolean> {
+        if (!await this.checkPassword(userId, currentPassword)) return false;
+        await this.repo.updatePassword(userId, await bcrypt.hash(newPassword, config.saltRounds));
+        return true;
+    }
+
+    // false si le mot de passe est incorrect
+    async deleteAccount(userId: string, password: string): Promise<boolean> {
+        if (!await this.checkPassword(userId, password)) return false;
+        await this.repo.delete(userId);
+        return true;
+    }
+
     async getByUserId(userId: string): Promise<PublicUser | undefined> {
         const user = await this.findByUuid(userId);
         return user ? toPublicUser(user) : undefined;

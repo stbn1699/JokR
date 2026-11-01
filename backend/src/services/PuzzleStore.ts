@@ -11,6 +11,8 @@ import {randomUUID} from "node:crypto";
 
 export type StoredPuzzle<P> = {
     puzzle: P;
+    // Date du défi du jour si la partie en est un (AAAA-MM-JJ), sinon absent
+    daily?: string;
     cluesCount: number;
     createdAt: number;
 };
@@ -22,7 +24,7 @@ export class PuzzleStore<P> {
     private games = new Map<string, StoredPuzzle<P>>();
 
     // cluesCount : nombre de chiffres donnés au départ (sert au calcul de l'XP)
-    create(puzzle: P, cluesCount: number): string {
+    create(puzzle: P, cluesCount: number, options: { daily?: string } = {}): string {
         this.purgeExpired();
         // Map garde l'ordre d'insertion : on supprime la plus ancienne si on est plein
         if (this.games.size >= MAX_GAMES) {
@@ -31,7 +33,7 @@ export class PuzzleStore<P> {
         }
 
         const gameId = randomUUID();
-        this.games.set(gameId, {puzzle, cluesCount, createdAt: Date.now()});
+        this.games.set(gameId, {puzzle, cluesCount, createdAt: Date.now(), ...options});
         return gameId;
     }
 

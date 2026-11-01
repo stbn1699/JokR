@@ -19,8 +19,8 @@ export class GameResultsRepository {
     constructor(private db: Kysely<DB>) {
     }
 
-    // Dernières parties gagnées par un joueur, les plus récentes d'abord
-    async listRecent(userId: string, limit: number): Promise<RecentResult[]> {
+    // Parties gagnées par un joueur, les plus récentes d'abord (par pages)
+    async listRecent(userId: string, limit: number, offset = 0): Promise<RecentResult[]> {
         return this.db
             .selectFrom("game_results")
             .innerJoin("games", "games.code", "game_results.game_code")
@@ -36,6 +36,7 @@ export class GameResultsRepository {
             .where("game_results.user_id", "=", userId)
             .orderBy("game_results.finished_at", "desc")
             .limit(limit)
+            .offset(offset)
             .execute();
     }
 }

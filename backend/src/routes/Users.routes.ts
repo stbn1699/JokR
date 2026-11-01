@@ -13,7 +13,9 @@ import {GameResultsRepository} from '../repository/GameResults.repository.js';
  * - POST /register : création d'un nouvel utilisateur
  * - POST /login : authentification et obtention d'un JWT
  * - GET /me : profil du joueur connecté (JWT requis)
- * - GET /me/results : ses 10 dernières parties gagnées (JWT requis)
+ * - GET /me/results : ses parties gagnées, par pages (JWT requis)
+ * - PUT /me/password : change son mot de passe (JWT requis)
+ * - DELETE /me : supprime son compte (JWT + mot de passe requis)
  * - GET /:userId : profil public (sans email ni mot de passe)
  *
  * /register et /login sont limités pour freiner le brute-force.
@@ -37,6 +39,9 @@ UsersRoutes.post('/login', loginLimiter, controller.login);
 // /me doit être déclarée avant /:userId
 UsersRoutes.get('/me', requireAuth, controller.me);
 UsersRoutes.get('/me/results', requireAuth, controller.myResults);
+// ces deux routes vérifient le mot de passe : même limite de tentatives que la connexion
+UsersRoutes.put('/me/password', requireAuth, loginLimiter, controller.changePassword);
+UsersRoutes.delete('/me', requireAuth, loginLimiter, controller.deleteAccount);
 UsersRoutes.get('/:userId', controller.getByUserId);
 
 export default UsersRoutes;
