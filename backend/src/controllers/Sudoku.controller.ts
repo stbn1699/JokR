@@ -38,7 +38,7 @@ export function createSudokuController(
 
             // Plage limitée à ce que le générateur atteint vite et de façon fiable (voir SUDOKU_LIMITS)
             if (!Number.isInteger(cluesCount) || cluesCount < minClues || cluesCount > maxClues) {
-                res.status(400).json({status: "error", message: `cluesCount must be an integer between ${minClues} and ${maxClues}`});
+                res.status(400).json({status: "error", message: `Le nombre d'indices doit être compris entre ${minClues} et ${maxClues}`});
                 return;
             }
 
@@ -54,7 +54,7 @@ export function createSudokuController(
                 grid = await Promise.race([service.generate(cluesCount), timeoutPromise]);
             } catch (err) {
                 console.error('[Sudoku] generation error or timeout', err);
-                res.status(503).json({status: 'error', message: 'Generation timed out or failed'});
+                res.status(503).json({status: 'error', message: 'La génération de la grille a échoué, réessaie'});
                 return;
             } finally {
                 clearTimeout(timer);
@@ -69,7 +69,7 @@ export function createSudokuController(
             const {gameId, grid} = req.body ?? {};
 
             if (typeof gameId !== "string" || !grid) {
-                res.status(400).json({status: 'error', message: 'gameId and grid are required'});
+                res.status(400).json({status: 'error', message: 'La partie et la grille sont obligatoires'});
                 return;
             }
 
@@ -80,7 +80,7 @@ export function createSudokuController(
             }
 
             if (!service.validate(grid) || !service.respectsClues(game.puzzle, grid)) {
-                res.status(400).json({status: 'error', message: 'Invalid Sudoku grid'});
+                res.status(400).json({status: 'error', message: 'La grille ne respecte pas les règles'});
                 return;
             }
 

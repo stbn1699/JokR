@@ -40,7 +40,7 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
     void _next; // explicit mark as used to satisfy linters
 	console.error(err);
 	// renvoie une réponse standardisée
-	res.status(500).json({status: "error", message: "Internal server error"});
+	res.status(500).json({status: "error", message: "Erreur interne du serveur, réessaie plus tard"});
 });
 
 app.listen(PORT, () => {

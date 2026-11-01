@@ -30,13 +30,13 @@ export function requireAuth(req: Request, res: Response<unknown, AuthLocals>, ne
     try {
         const userId = readUserId(req);
         if (!userId) {
-            res.status(401).json({status: "error", message: "Authentication required"});
+            res.status(401).json({status: "error", message: "Connexion requise"});
             return;
         }
         res.locals.userId = userId;
         next();
     } catch {
-        res.status(401).json({status: "error", message: "Invalid or expired token"});
+        res.status(401).json({status: "error", message: "Session expirée, reconnecte-toi"});
     }
 }
 
@@ -47,6 +47,6 @@ export function optionalAuth(req: Request, res: Response<unknown, AuthLocals>, n
         if (userId) res.locals.userId = userId;
         next();
     } catch {
-        res.status(401).json({status: "error", message: "Invalid or expired token"});
+        res.status(401).json({status: "error", message: "Session expirée, reconnecte-toi"});
     }
 }

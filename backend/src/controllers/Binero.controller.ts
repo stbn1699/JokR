@@ -40,7 +40,7 @@ export function createBineroController(
             if (!Number.isInteger(emptyCells) || emptyCells < limits.minEmptyCells || emptyCells > limits.maxEmptyCells) {
                 res.status(400).json({
                     status: "error",
-                    message: `emptyCells must be an integer between ${limits.minEmptyCells} and ${limits.maxEmptyCells}`,
+                    message: `Le nombre de cases à remplir doit être compris entre ${limits.minEmptyCells} et ${limits.maxEmptyCells}`,
                 });
                 return;
             }
@@ -55,7 +55,7 @@ export function createBineroController(
             const {gameId, grid} = req.body ?? {};
 
             if (typeof gameId !== "string" || !grid) {
-                res.status(400).json({status: "error", message: "gameId and grid are required"});
+                res.status(400).json({status: "error", message: "La partie et la grille sont obligatoires"});
                 return;
             }
 

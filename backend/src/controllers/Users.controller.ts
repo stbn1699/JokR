@@ -60,11 +60,11 @@ export function createUsersController(service: UsersService) {
 
             // identifier peut être un username ou un email
             if (!isNonEmptyString(identifier, 255) || !isNonEmptyString(password, 200)) {
-                return res.status(400).json({status: 'error', message: 'Missing fields'});
+                return res.status(400).json({status: 'error', message: 'Tous les champs sont obligatoires'});
             }
 
             const user = await service.authenticate(identifier, password);
-            if (!user) return res.status(401).json({status: 'error', message: 'Invalid credentials'});
+            if (!user) return res.status(401).json({status: 'error', message: 'Identifiant ou mot de passe incorrect'});
 
             // JWT minimal : subject (sub) = id utilisateur
             const token = jwt.sign(
@@ -82,16 +82,16 @@ export function createUsersController(service: UsersService) {
         // Profil du joueur connecté (route protégée par requireAuth)
         me: asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
             const user = await service.getByUserId(res.locals.userId!);
-            if (!user) return res.status(404).json({status: 'error', message: 'User not found'});
+            if (!user) return res.status(404).json({status: 'error', message: 'Utilisateur introuvable'});
             res.status(200).json({status: 'ok', data: user});
         }),
 
         // Profil public (id, username, niveau, xp)
         getByUserId: asyncHandler(async (req: Request, res: Response) => {
             const userId = routeParam(req.params, "userId");
-            if (!userId || !isUuid(userId)) return res.status(400).json({status: 'error', message: 'Invalid userId'});
+            if (!userId || !isUuid(userId)) return res.status(400).json({status: 'error', message: "Identifiant d'utilisateur invalide"});
             const user = await service.getByUserId(userId);
-            if (!user) return res.status(404).json({status: 'error', message: 'User not found'});
+            if (!user) return res.status(404).json({status: 'error', message: 'Utilisateur introuvable'});
             res.status(200).json({status: 'ok', data: user});
         })
     };

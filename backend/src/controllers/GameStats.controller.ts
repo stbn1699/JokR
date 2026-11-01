@@ -16,7 +16,7 @@ export function GameStatsController(gameStatsService: GameStatsService) {
             const userId = routeParam(req.params, "userId");
 
             if (!userId || !isUuid(userId)) {
-                res.status(400).json({status: "error", message: "Invalid userId"});
+                res.status(400).json({status: "error", message: "Identifiant d'utilisateur invalide"});
                 return;
             }
 

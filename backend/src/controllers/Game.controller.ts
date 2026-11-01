@@ -27,7 +27,7 @@ export function createGamesController(service: GamesService) {
 
             // Validation simple du paramètre
             if (!gameCode) {
-                res.status(400).json({status: "error", message: "gameCode parameter is required"});
+                res.status(400).json({status: "error", message: "Le code du jeu est obligatoire"});
                 return;
             }
 
