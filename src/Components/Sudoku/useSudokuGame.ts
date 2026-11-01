@@ -2,7 +2,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import {gameService} from "../../Services/game.service.ts";
 import sounds from "../../Services/sounds.ts";
 import {countDigits, parseGridValues} from "./gridValues.ts";
-import {isPeer} from "./gridGeometry.ts";
+import {isPeer} from "../PuzzleUI/gridGeometry.ts";
 
 // Durée totale de l'animation de remplissage de la grille (ms)
 const TOTAL_ANIMATION_MS = 500;
@@ -66,7 +66,7 @@ export function useSudokuGame() {
     useEffect(() => {
         inputs.current.forEach((el, i) => {
             if (!el) return;
-            el.classList.toggle('peer-highlight', selectedCell !== null && isPeer(selectedCell, i));
+            el.classList.toggle('peer-highlight', selectedCell !== null && isPeer(selectedCell, i, 9, 3));
         });
     }, [selectedCell]);
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { focusCell } from "./focusCell";
-import {type Direction, nextEditableIndex} from "./gridGeometry";
+import {type Direction, nextEditableIndex} from "../PuzzleUI/gridGeometry";
 
 const ARROWS: Record<string, Direction> = {
     ArrowLeft: "left",

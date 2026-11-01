@@ -1,0 +1,105 @@
+// S'appuie sur les styles .modal-overlay / .modal / .modal-button de SuccessPopup.scss
+
+.modal-overlay.game-settings-overlay {
+	position : fixed; // couvre toute la page, header compris
+	z-index  : 100;
+}
+
+.modal.game-settings {
+	display        : flex;
+	flex-direction : column;
+	gap            : 1rem;
+
+	h2 {
+		margin-bottom : 0.5rem;
+	}
+
+	.game-settings-sizes {
+		border  : none;
+		margin  : 0 0 0.5rem;
+		padding : 0;
+
+		legend {
+			font-size     : 1.5rem;
+			margin-bottom : 0.75rem;
+			text-align    : left;
+			padding       : 0;
+		}
+	}
+
+	.game-settings-size-list {
+		display : flex;
+		gap     : 0.75rem;
+	}
+
+	.game-settings-size {
+		flex          : 1;
+		padding       : 0.6rem 0;
+		border-radius : 8px;
+		border        : 2px solid rgba(255, 255, 255, 0.15);
+		background    : transparent;
+		color         : #e6eef3;
+		font-family   : inherit;
+		font-size     : 1.3rem;
+		cursor        : pointer;
+		transition    : all 0.12s ease;
+
+		&:hover {
+			border-color : #10b981;
+		}
+
+		&.selected {
+			border-color : #10b981;
+			background   : rgba(16, 185, 129, 0.18);
+			color        : #fff;
+			font-weight  : 700;
+		}
+	}
+
+	.game-settings-label {
+		display         : flex;
+		justify-content : space-between;
+		align-items     : baseline;
+		font-size       : 1.5rem;
+	}
+
+	.game-settings-value {
+		font-size   : 2.4rem;
+		font-weight : 700;
+		color       : #10b981;
+		min-width   : 3ch;
+		text-align  : right;
+	}
+
+	input[type="range"] {
+		width        : 100%;
+		accent-color : #10b981;
+		cursor       : pointer;
+	}
+
+	.game-settings-scale {
+		display         : flex;
+		justify-content : space-between;
+		font-size       : 1rem;
+		opacity         : 0.65;
+		margin-top      : -0.5rem;
+	}
+
+	.game-settings-xp {
+		margin    : 0.5rem 0 1rem;
+		font-size : 1.4rem;
+
+		strong {
+			color : #F59E0B;
+		}
+	}
+
+	.game-settings-error {
+		color : #fca5a5;
+	}
+
+	.modal-button:disabled {
+		opacity : 0.5;
+		cursor  : not-allowed;
+	}
+}

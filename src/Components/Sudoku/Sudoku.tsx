@@ -11,6 +11,7 @@
  */
 
 import {useState} from 'react';
+import "../PuzzleUI/PuzzleLayout.scss";
 import "./Sudoku.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import sounds from "../../Services/sounds.ts";
@@ -18,7 +19,9 @@ import {useAuth} from "../../Context/authContext.ts";
 import {useSudokuGame} from "./useSudokuGame.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
 import SudokuGrid from "./SudokuGrid.tsx";
-import DigitPanel from "./DigitPanel.tsx";
+import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
+
+const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 type SudokuProps = {
     gameCode: string;
@@ -58,8 +61,9 @@ export default function Sudoku({gameCode}: SudokuProps) {
     };
 
     return (
-        <div className="sudoku">
-            <DigitPanel counts={digitCounts} selected={selectedDigit} onSelect={toggleDigit}/>
+        <div className="puzzle-layout sudoku">
+            <DigitPanel digits={DIGITS} perDigit={9} counts={digitCounts}
+                        selected={selectedDigit} onSelect={toggleDigit}/>
 
             <div className="game">
                 <h1 className="title">Sudoku</h1>

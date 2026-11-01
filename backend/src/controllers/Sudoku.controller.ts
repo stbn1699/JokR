@@ -1,9 +1,9 @@
 import type {Request, Response} from "express";
-import {SUDOKU_LIMITS, SudokuService} from "../services/Sudoku.service.js";
+import {countClues, SUDOKU_LIMITS, SudokuService} from "../services/Sudoku.service.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import type {GamesService} from "../services/Games.service.js";
-import type {SudokuGameStore} from "../services/SudokuGameStore.js";
+import type {PuzzleStore} from "../services/PuzzleStore.js";
 import type {AuthLocals} from "../middleware/auth.js";
 
 const GAME_CODE = "SUDOKU";
@@ -17,7 +17,7 @@ const GAME_CODE = "SUDOKU";
  */
 export function createSudokuController(
     service: SudokuService,
-    store: SudokuGameStore,
+    store: PuzzleStore<number[][]>,
     progressionService: ProgressionService,
     gamesService: GamesService,
 ) {
@@ -60,7 +60,7 @@ export function createSudokuController(
                 clearTimeout(timer);
             }
 
-            const gameId = store.create(grid);
+            const gameId = store.create(grid, countClues(grid));
             res.status(200).json({status: "ok", data: {gameId, grid}});
         }),
 

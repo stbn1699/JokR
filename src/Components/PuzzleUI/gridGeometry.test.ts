@@ -4,23 +4,32 @@ import {isPeer, nextEditableIndex} from "./gridGeometry.ts";
 const at = (row: number, col: number) => row * 9 + col;
 
 describe("isPeer", () => {
-    it("reconnaît la même ligne, colonne ou bloc", () => {
-        expect(isPeer(at(4, 4), at(4, 0))).toBe(true); // ligne
-        expect(isPeer(at(4, 4), at(8, 4))).toBe(true); // colonne
-        expect(isPeer(at(4, 4), at(3, 5))).toBe(true); // bloc central
+    it("reconnaît la même ligne, colonne ou bloc (Sudoku)", () => {
+        expect(isPeer(at(4, 4), at(4, 0), 9, 3)).toBe(true); // ligne
+        expect(isPeer(at(4, 4), at(8, 4), 9, 3)).toBe(true); // colonne
+        expect(isPeer(at(4, 4), at(3, 5), 9, 3)).toBe(true); // bloc central
+    });
+
+    it("sans blocs, seulement la ligne et la colonne (Binero)", () => {
+        const at6 = (row: number, col: number) => row * 6 + col;
+        expect(isPeer(at6(2, 2), at6(2, 5), 6)).toBe(true);
+        expect(isPeer(at6(2, 2), at6(5, 2), 6)).toBe(true);
+        expect(isPeer(at6(2, 2), at6(3, 3), 6)).toBe(false);
     });
 
     it("exclut la case elle-même et les autres cases", () => {
-        expect(isPeer(at(4, 4), at(4, 4))).toBe(false);
-        expect(isPeer(at(4, 4), at(0, 0))).toBe(false);
-        expect(isPeer(at(4, 4), at(2, 6))).toBe(false);
+        expect(isPeer(at(4, 4), at(4, 4), 9, 3)).toBe(false);
+        expect(isPeer(at(4, 4), at(0, 0), 9, 3)).toBe(false);
+        expect(isPeer(at(4, 4), at(2, 6), 9, 3)).toBe(false);
     });
 
-    it("donne 20 voisines pour chaque case", () => {
+    it("donne 20 voisines pour chaque case du Sudoku, 2×(size-1) sans blocs", () => {
         for (const cell of [0, 40, 80]) {
-            const peers = Array.from({length: 81}, (_, i) => i).filter(i => isPeer(cell, i));
+            const peers = Array.from({length: 81}, (_, i) => i).filter(i => isPeer(cell, i, 9, 3));
             expect(peers).toHaveLength(20);
         }
+        const peers10 = Array.from({length: 100}, (_, i) => i).filter(i => isPeer(55, i, 10));
+        expect(peers10).toHaveLength(18);
     });
 });
 
@@ -46,6 +55,11 @@ describe("nextEditableIndex", () => {
         expect(nextEditableIndex(at(0, 1), "right", i => editable.has(i))).toBe(at(0, 6));
         // en revenant par le bord gauche
         expect(nextEditableIndex(at(0, 6), "right", i => editable.has(i))).toBe(at(0, 1));
+    });
+
+    it("fonctionne sur une autre taille de grille", () => {
+        expect(nextEditableIndex(5, "right", all, 6)).toBe(0);
+        expect(nextEditableIndex(0, "up", all, 6)).toBe(30);
     });
 
     it("renvoie null s'il n'y a pas d'autre case modifiable sur la ligne", () => {

@@ -1,8 +1,7 @@
 import {randomUUID} from "node:crypto";
-import {countClues} from "./Sudoku.service.js";
 
 /*
- * Mémorise en mémoire les grilles générées par le serveur.
+ * Mémorise en mémoire les grilles générées par le serveur (Sudoku, Binero...).
  * La validation n'accepte qu'une solution d'une grille connue, et une seule fois :
  * impossible d'envoyer une grille "maison" ou de rejouer la même victoire.
  *
@@ -10,8 +9,8 @@ import {countClues} from "./Sudoku.service.js";
  * (à remplacer par une table si besoin de persistance ou de plusieurs instances).
  */
 
-export type SudokuGame = {
-    puzzle: number[][];
+export type StoredPuzzle<P> = {
+    puzzle: P;
     cluesCount: number;
     createdAt: number;
 };
@@ -19,10 +18,11 @@ export type SudokuGame = {
 const GAME_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const MAX_GAMES = 10_000;
 
-export class SudokuGameStore {
-    private games = new Map<string, SudokuGame>();
+export class PuzzleStore<P> {
+    private games = new Map<string, StoredPuzzle<P>>();
 
-    create(puzzle: number[][]): string {
+    // cluesCount : nombre de chiffres donnés au départ (sert au calcul de l'XP)
+    create(puzzle: P, cluesCount: number): string {
         this.purgeExpired();
         // Map garde l'ordre d'insertion : on supprime la plus ancienne si on est plein
         if (this.games.size >= MAX_GAMES) {
@@ -31,12 +31,11 @@ export class SudokuGameStore {
         }
 
         const gameId = randomUUID();
-        const cluesCount = countClues(puzzle);
         this.games.set(gameId, {puzzle, cluesCount, createdAt: Date.now()});
         return gameId;
     }
 
-    get(gameId: string): SudokuGame | undefined {
+    get(gameId: string): StoredPuzzle<P> | undefined {
         const game = this.games.get(gameId);
         if (game && Date.now() - game.createdAt > GAME_TTL_MS) {
             this.games.delete(gameId);

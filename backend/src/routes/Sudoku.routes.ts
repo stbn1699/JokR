@@ -5,14 +5,14 @@ import {SudokuService} from "../services/Sudoku.service.js";
 import {createSudokuController} from "../controllers/Sudoku.controller.js";
 import {GamesRepository} from "../repository/Games.repository.js";
 import {GamesService} from "../services/Games.service.js";
-import {SudokuGameStore} from "../services/SudokuGameStore.js";
+import {PuzzleStore} from "../services/PuzzleStore.js";
 import {ProgressionService} from "../services/Progression.service.js";
 import {optionalAuth} from "../middleware/auth.js";
 
 const router = Router();
 const db = createDb(pool);
 const service = new SudokuService();
-const store = new SudokuGameStore();
+const store = new PuzzleStore<number[][]>();
 
 // enregistre les victoires (stats du jeu + XP du joueur) dans une transaction
 const progressionService = new ProgressionService(db);
