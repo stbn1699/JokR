@@ -7,7 +7,6 @@
 	.options {
 		display         : flex;
 		flex-direction  : column;
-		justify-content : space-between;
 		gap             : 1rem;
 		background      : #02061735;
 		border          : 3px solid #e5e7eb;
@@ -15,7 +14,81 @@
 		border-radius   : 10px;
 		height          : 50rem;
 		margin          : 1rem;
-		// vide pour l'instant (anciens paramètres déplacés dans SudokuSettingsPopup)
+
+		h2 {
+			text-align    : center;
+			margin        : 0;
+			color         : white;
+			font-size     : 3rem;
+			font-weight   : 600;
+			border-bottom : 3px solid #e5e7eb;
+			padding       : 1rem 0;
+		}
+
+		// Pavé 3×3 des chiffres
+		.digit-pad {
+			display               : grid;
+			grid-template-columns : repeat(3, 1fr);
+			gap                   : 1rem;
+			padding               : 1rem 2rem;
+		}
+
+		.digit {
+			display        : flex;
+			flex-direction : column;
+			align-items    : center;
+			justify-content: center;
+			aspect-ratio   : 1;
+			background     : #02061750;
+			border         : 2px solid rgba(229, 231, 235, 0.6);
+			border-radius  : 10px;
+			color          : #f9fafb;
+			font-family    : inherit;
+			cursor         : pointer;
+			transition     : all 0.15s ease-in-out;
+
+			.digit-value {
+				font-size   : 3rem;
+				line-height : 1;
+			}
+
+			.digit-remaining {
+				font-size : 1.1rem;
+				opacity   : 0.7;
+			}
+
+			&:hover {
+				transform  : scale(1.06);
+				border     : 2px solid rgba(59, 246, 68, 0.9);
+			}
+
+			// Chiffre surligné dans la grille (même couleur que la surbrillance des cases)
+			&.selected {
+				border     : 2px solid rgba(59, 246, 68, 0.9);
+				background : rgba(59, 246, 68, 0.12);
+				box-shadow : 0 0 0.8rem 0.15rem rgba(59, 246, 68, 0.25);
+			}
+
+			// Les 9 sont posés
+			&.complete {
+				opacity : 0.35;
+
+				.digit-remaining {
+					color   : #3bf644;
+					opacity : 1;
+				}
+			}
+
+			// Plus de 9 : il y a une erreur dans la grille
+			&.overflow {
+				border-color : #f87171;
+
+				.digit-remaining {
+					color   : #f87171;
+					opacity : 1;
+				}
+			}
+		}
 	}
 
 	.game {

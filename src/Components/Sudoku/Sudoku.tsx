@@ -5,8 +5,9 @@
  * - Grille : navigation clavier, surbrillance des chiffres identiques
  * - Actions : validation côté serveur, qui calcule et enregistre l'XP si le joueur est connecté
  *
- * La logique est dans useSudokuGame, l'affichage dans SudokuSettingsPopup et SudokuGrid.
- * Le panneau de gauche est vide pour l'instant.
+ * - Panneau de gauche : chiffres restants à placer, clic pour les surligner dans la grille
+ *
+ * La logique est dans useSudokuGame, l'affichage dans SudokuSettingsPopup, DigitPanel et SudokuGrid.
  */
 
 import {useState} from 'react';
@@ -17,13 +18,17 @@ import {useAuth} from "../../Context/authContext.ts";
 import {useSudokuGame} from "./useSudokuGame.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
 import SudokuGrid from "./SudokuGrid.tsx";
+import DigitPanel from "./DigitPanel.tsx";
 
 type SudokuProps = {
     gameCode: string;
 }
 
 export default function Sudoku({gameCode}: SudokuProps) {
-    const {inputs, isGenerating, generate, validate, setHighlight} = useSudokuGame();
+    const {
+        inputs, isGenerating, generate, validate,
+        digitCounts, selectedDigit, toggleDigit, setHoverDigit, onCellInput,
+    } = useSudokuGame();
     const {refresh: refreshUser} = useAuth();
 
     // La popup de paramètres s'ouvre avec la page ("Nouveau puzzle" recharge la page)
@@ -54,11 +59,11 @@ export default function Sudoku({gameCode}: SudokuProps) {
 
     return (
         <div className="sudoku">
-            <div className="options"/>
+            <DigitPanel counts={digitCounts} selected={selectedDigit} onSelect={toggleDigit}/>
 
             <div className="game">
                 <h1 className="title">Sudoku</h1>
-                <SudokuGrid inputs={inputs} onHighlight={setHighlight}/>
+                <SudokuGrid inputs={inputs} onHover={setHoverDigit} onCellInput={onCellInput}/>
             </div>
 
             <div className="actions">

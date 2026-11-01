@@ -7,8 +7,10 @@ const BLOCKED_ON_CLUES = new Set(["Backspace", "Delete", "0", "1", "2", "3", "4"
 
 type SudokuGridProps = {
     inputs: RefObject<HTMLInputElement[]>;
-    // Chiffre à surligner dans toute la grille (null = aucun)
-    onHighlight: (n: number | null) => void;
+    // Chiffre à surligner temporairement (case survolée ou en cours d'édition, null = aucun)
+    onHover: (n: number | null) => void;
+    // Une case vient d'être modifiée par le joueur
+    onCellInput: () => void;
 };
 
 const valueOf = (el: HTMLInputElement) => (el.value === '' ? null : Number(el.value));
@@ -17,7 +19,7 @@ const valueOf = (el: HTMLInputElement) => (el.value === '' ? null : Number(el.va
  * Grille 9×9 : 81 inputs non contrôlés (leur contenu est géré par useSudokuGame).
  * Navigation aux flèches, saisie d'un chiffre 1-9, surbrillance du chiffre survolé.
  */
-export default function SudokuGrid({inputs, onHighlight}: SudokuGridProps) {
+export default function SudokuGrid({inputs, onHover, onCellInput}: SudokuGridProps) {
     const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.currentTarget.readOnly && BLOCKED_ON_CLUES.has(e.key)) {
             e.preventDefault();
@@ -29,7 +31,8 @@ export default function SudokuGrid({inputs, onHighlight}: SudokuGridProps) {
     const onInput = (e: FormEvent<HTMLInputElement>) => {
         sanitizeInput(e);
         // La case est en cours d'édition : on surligne le chiffre qu'on vient de taper
-        if (document.activeElement === e.currentTarget) onHighlight(valueOf(e.currentTarget));
+        if (document.activeElement === e.currentTarget) onHover(valueOf(e.currentTarget));
+        onCellInput();
     };
 
     return (
@@ -53,14 +56,14 @@ export default function SudokuGrid({inputs, onHighlight}: SudokuGridProps) {
                     onInput={onInput}
                     onMouseEnter={(e) => {
                         const v = valueOf(e.currentTarget);
-                        if (v !== null) onHighlight(v);
+                        if (v !== null) onHover(v);
                     }}
-                    onMouseLeave={() => onHighlight(null)}
+                    onMouseLeave={() => onHover(null)}
                     onFocus={(e) => {
                         const v = valueOf(e.currentTarget);
-                        if (v !== null) onHighlight(v);
+                        if (v !== null) onHover(v);
                     }}
-                    onBlur={() => onHighlight(null)}
+                    onBlur={() => onHover(null)}
                 />
             ))}
         </div>

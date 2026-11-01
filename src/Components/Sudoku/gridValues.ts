@@ -17,3 +17,16 @@ export function parseGridValues(values: string[]): number[][] | null {
     }
     return grid;
 }
+
+/**
+ * Compte combien de fois chaque chiffre apparaît dans la grille.
+ * Retourne un tableau de 10 cases : counts[n] = nombre de n (l'index 0 n'est pas utilisé).
+ */
+export function countDigits(values: string[]): number[] {
+    const counts = Array<number>(10).fill(0);
+    for (const v of values) {
+        const n = Number(v);
+        if (Number.isInteger(n) && n >= 1 && n <= 9) counts[n]!++;
+    }
+    return counts;
+}

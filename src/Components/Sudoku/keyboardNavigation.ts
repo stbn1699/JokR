@@ -59,11 +59,10 @@ export function handleKeyDown(
 
     if (/^[0-9]$/.test(key)) {
         e.preventDefault();
-        if (key === "0") {
-            el.value = "";
-        } else {
-            el.value = key;
-        }
+        el.value = key === "0" ? "" : key;
+        // La valeur est écrite à la main (touche bloquée) : on signale le changement à React
+        // pour mettre à jour la surbrillance et le compteur de chiffres
+        el.dispatchEvent(new Event("input", {bubbles: true}));
     }
 }
 

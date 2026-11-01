@@ -1,12 +1,14 @@
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {gameService} from "../../Services/game.service.ts";
 import sounds from "../../Services/sounds.ts";
-import {parseGridValues} from "./gridValues.ts";
+import {countDigits, parseGridValues} from "./gridValues.ts";
 
 // Durée totale de l'animation de remplissage de la grille (ms)
 const TOTAL_ANIMATION_MS = 500;
 
 const sleep = (ms: number) => new Promise<void>(res => setTimeout(res, ms));
+
+const EMPTY_COUNTS = Array<number>(10).fill(0);
 
 export type ValidationResult =
     | { ok: true; xp: number | undefined }
@@ -20,7 +22,11 @@ export type ValidationResult =
  *
  * - generate(clues) : demande une grille au serveur et l'affiche case par case
  * - validate() : envoie la grille remplie au serveur (qui calcule l'XP si connecté)
- * - setHighlight(n) : surligne toutes les cases contenant le chiffre n
+ * - digitCounts[n] : nombre de n présents dans la grille (indices + saisies)
+ * - selectedDigit / toggleDigit(n) : chiffre surligné en continu (choisi dans le panneau)
+ * - setHoverDigit(n) : surbrillance temporaire (case survolée / en cours d'édition),
+ *   prioritaire sur le chiffre sélectionné tant qu'elle est active
+ * - onCellInput() : à appeler quand le joueur modifie une case
  */
 export function useSudokuGame() {
     // Les 81 inputs de la grille (index = ligne * 9 + colonne)
@@ -33,19 +39,32 @@ export function useSudokuGame() {
     const gameIdRef = useRef<string | null>(null);
 
     const [isGenerating, setIsGenerating] = useState(false);
-    const [highlight, setHighlight] = useState<number | null>(null);
+    const [digitCounts, setDigitCounts] = useState<number[]>(EMPTY_COUNTS);
+    const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
+    const [hoverDigit, setHoverDigit] = useState<number | null>(null);
 
-    // Surligne les cases contenant le chiffre survolé / sélectionné
+    const highlight = hoverDigit ?? selectedDigit;
+
+    const readValues = () => Array.from({length: 81}, (_, i) => inputs.current[i]?.value ?? '');
+
+    const recount = useCallback(() => setDigitCounts(countDigits(readValues())), []);
+
+    // Surligne les cases contenant le chiffre actif.
+    // Relancé aussi quand les chiffres changent, pour suivre les nouvelles saisies.
     useEffect(() => {
         const target = highlight === null ? null : String(highlight);
         inputs.current.forEach((el) => {
             if (!el) return;
             el.classList.toggle('same-number-highlight', target !== null && el.value === target);
         });
-    }, [highlight]);
+    }, [highlight, digitCounts]);
+
+    const toggleDigit = (n: number) => setSelectedDigit(current => (current === n ? null : n));
 
     const generate = async (cluesCount: number) => {
-        setHighlight(null);
+        setHoverDigit(null);
+        setSelectedDigit(null);
+        setDigitCounts(EMPTY_COUNTS);
         setIsGenerating(true);
 
         generationRef.current += 1;
@@ -85,6 +104,8 @@ export function useSudokuGame() {
 
                 await sleep(delayPerCell);
             }
+
+            recount();
         } catch (err) {
             console.error('Failed to generate sudoku from server', err);
             alert('Erreur lors de la génération de la grille. Réessayez plus tard.');
@@ -98,7 +119,7 @@ export function useSudokuGame() {
             return {ok: false, message: 'Génère une grille avant de valider.'};
         }
 
-        const grid = parseGridValues(Array.from({length: 81}, (_, i) => inputs.current[i]?.value ?? ''));
+        const grid = parseGridValues(readValues());
         if (!grid) {
             return {ok: false, message: 'La grille doit être complètement remplie avec des chiffres 1-9 avant la validation.'};
         }
@@ -114,5 +135,15 @@ export function useSudokuGame() {
         }
     };
 
-    return {inputs, isGenerating, generate, validate, setHighlight};
+    return {
+        inputs,
+        isGenerating,
+        generate,
+        validate,
+        digitCounts,
+        selectedDigit,
+        toggleDigit,
+        setHoverDigit,
+        onCellInput: recount,
+    };
 }
