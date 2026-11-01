@@ -73,13 +73,17 @@ export function generateSudoku(numPlaced: number): number[][] {
         const b1 = result[r1]![c1]!;
         const b2 = result[r2]![c2]!;
 
+        // Les cases sont retirées par paires symétriques : on ne descend pas sous le nombre demandé
+        const removed = (b1 === 0 ? 0 : 1) + (idx2 !== idx && b2 !== 0 ? 1 : 0);
+        if (placed - removed < numPlaced) continue;
+
         result[r1]![c1] = 0;
         if (idx2 !== idx) result[r2]![c2] = 0;
 
         const sols = countSolutions(result, 2);
         const logical = logicalSolve(result);
         if (sols === 1 && logical.solved) {
-            placed -= (idx2 === idx) ? (b1 === 0 ? 0 : 1) : ((b1 === 0 ? 0 : 1) + (b2 === 0 ? 0 : 1));
+            placed -= removed;
         } else {
             result[r1]![c1] = b1;
             result[r2]![c2] = b2;
