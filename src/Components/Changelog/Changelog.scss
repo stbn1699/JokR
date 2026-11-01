@@ -3,13 +3,39 @@
 	justify-content : center;
 	padding         : 2rem 1rem;
 
+	// La boîte reste centrée ; le bouton Retour est à sa gauche, aligné sur son haut
+	.changelog-column {
+		position : relative;
+		width    : min(42rem, 100%);
+	}
+
 	.changelog-card {
-		width         : min(42rem, 100%);
+		width         : 100%;
 		padding       : 2rem;
 		box-sizing    : border-box;
 		border        : 3px solid #f9fafb;
 		border-radius : 12px;
 		background    : #02061735;
+	}
+
+	.changelog-back {
+		position      : absolute;
+		top           : 0;
+		right         : calc(100% + 1rem);
+		white-space   : nowrap;
+		padding       : 0.45rem 1.2rem;
+		border        : 2px solid rgba(249, 250, 251, 0.45);
+		border-radius : 999px;
+		background    : rgba(2, 6, 23, 0.45);
+		color         : #f9fafb;
+		font-family   : inherit;
+		font-size     : 1.25rem;
+		cursor        : pointer;
+		transition    : border-color 0.15s ease;
+
+		&:hover {
+			border-color : #fbbf24;
+		}
 	}
 
 	h1 {
@@ -67,6 +93,14 @@
 			font-size     : 1.2rem;
 			line-height   : 1.4;
 		}
+	}
+}
+
+// Pas assez de place à gauche de la boîte : le bouton passe au-dessus
+@media (max-width: 1000px) {
+	.changelog .changelog-back {
+		position      : static;
+		margin-bottom : 0.75rem;
 	}
 }
 
