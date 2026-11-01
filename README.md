@@ -36,7 +36,7 @@ Autour des jeux :
 
 ## Version et nouveautés
 
-La version du site est le champ `version` de `package.json` (actuellement 1.0.0). Elle s'affiche en bas à droite
+La version du site est le champ `version` de `package.json` (actuellement 1.1.0). Elle s'affiche en bas à droite
 du site, avec un lien vers la page « Nouveautés » (`/nouveautes`), qui affiche [`CHANGELOG.md`](CHANGELOG.md).
 Pour une nouvelle version : ajouter une section en haut de `CHANGELOG.md` et mettre le même numéro dans
 `package.json` (un test vérifie que les deux correspondent).

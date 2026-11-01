@@ -3,6 +3,20 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 1.1.0 — 1er novembre 2026
+
+Deux catégories de jeux.
+
+### Navigation
+
+- Onglets « Puzzle » et « Hasard » dans le haut de la page
+- Puzzle : Sudoku, Binero et Rikudo, comme avant
+- Hasard : nouvelle catégorie, les premiers jeux (roulette, poker, blackjack, machine à sous…) arrivent bientôt
+
+### Améliorations
+
+- Bouton « Retour » sur la page Nouveautés
+
 ## 1.0.0 — 1er novembre 2026
 
 Première version de JokR.
