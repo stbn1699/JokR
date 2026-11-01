@@ -4,10 +4,14 @@ import type {Game} from "../../Models/game.model.ts";
 import {gameService} from "../../Services/game.service.ts";
 import type {GameStats} from "../../Models/gameStats.model.ts";
 import {gameStatsService} from "../../Services/gameStats.service.ts";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import {FaCalendarDay, FaLock} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
 import DailyBanner from "./DailyBanner.tsx";
+import {useDailyOverview} from "./useDailyOverview.ts";
+import {formatDuration} from "../../Services/format.ts";
+import {dailyGridLabel} from "../../Services/dailyGames.ts";
 
 export default function GameList() {
     const [games, setGames] = useState<Game[]>([])
@@ -16,8 +20,9 @@ export default function GameList() {
     const [error, setError] = useState<string | null>(null);
     const [overlayVisible, setOverlayVisible] = useState(false);
     const timeoutRef = useRef<number | null>(null);
-    const {userId} = useAuth();
+    const {userId, isLoggedIn} = useAuth();
     const navigate = useNavigate();
+    const daily = useDailyOverview();
 
     useEffect(() => {
         const controller = new AbortController();
@@ -77,11 +82,12 @@ export default function GameList() {
             {/* overlay covering the whole viewport when a game is selected */}
             <div className={`click-overlay ${overlayVisible ? 'visible' : ''}`}/>
 
-            <DailyBanner/>
+            {daily && <DailyBanner overview={daily}/>}
 
             <div className="game-list">
                 {games.map((game) => {
                     const stat = userStats?.find(s => s.game_code === game.code);
+                    const challenge = daily?.games.find(g => g.code === game.code);
 
                     return (
                         <div className="game-card" key={game.code}>
@@ -107,6 +113,17 @@ export default function GameList() {
                                 <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
                                 <h1>{game.code}</h1>
                             </div>
+
+                            {/* Défi du jour de ce jeu (invité : ouvre l'invitation à créer un compte) */}
+                            {challenge && (
+                                <Link to={`/defi/${game.code}`}
+                                      className={`daily-button ${challenge.result ? "done" : ""} ${isLoggedIn ? "" : "locked"}`}
+                                      title={`Défi du jour : ${dailyGridLabel(challenge.code, challenge.size, challenge.emptyCells)}`}>
+                                    {challenge.result
+                                        ? <>✓ {formatDuration(challenge.result.durationMs)} · {challenge.result.rank}<sup>{challenge.result.rank === 1 ? "er" : "e"}</sup> / {challenge.result.total}</>
+                                        : <>{isLoggedIn ? <FaCalendarDay aria-hidden/> : <FaLock aria-hidden/>} Défi du jour</>}
+                                </Link>
+                            )}
                         </div>
                     );
                 })}

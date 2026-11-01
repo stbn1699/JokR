@@ -95,6 +95,51 @@
 		}
 	}
 
+	// Bouton "Défi du jour" sous chaque jeu
+	.daily-button {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.5rem;
+		width           : 15rem;
+		margin-top      : 0.75rem;
+		padding         : 0.55rem 0;
+		box-sizing      : border-box;
+		border          : 2px solid rgba(245, 158, 11, 0.75);
+		border-radius   : 999px;
+		background      : rgba(245, 158, 11, 0.15);
+		color           : #fbbf24;
+		font-size       : 1.3rem;
+		font-weight     : 700;
+		text-decoration : none;
+		transition      : all 0.15s ease;
+
+		&:hover {
+			background : rgba(245, 158, 11, 0.3);
+		}
+
+		// Déjà réussi aujourd'hui : temps et place
+		&.done {
+			border-color : rgba(59, 246, 68, 0.6);
+			background   : rgba(59, 246, 68, 0.1);
+			color        : #3bf644;
+			font-weight  : 400;
+		}
+
+		// Invité : le clic ouvre l'invitation à créer un compte
+		&.locked {
+			border-color : rgba(249, 250, 251, 0.3);
+			background   : transparent;
+			color        : rgba(249, 250, 251, 0.75);
+			font-weight  : 400;
+
+			&:hover {
+				border-color : rgba(245, 158, 11, 0.75);
+				color        : #fbbf24;
+			}
+		}
+	}
+
 	.game-card:hover .stats {
 		opacity    : 1;
 		visibility : visible;
@@ -160,6 +205,10 @@
 			div {
 				margin : 0;
 			}
+		}
+
+		.daily-button {
+			order : 3;
 		}
 	}
 }

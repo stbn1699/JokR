@@ -1,154 +1,57 @@
+// Ligne "Défi du jour" en haut de l'accueil
 .daily-banner {
-	width         : min(40rem, calc(100vw - 2rem));
-	margin        : 1rem auto 0;
-	padding       : 1.25rem 1.5rem;
-	box-sizing    : border-box;
-	border        : 2px solid rgba(245, 158, 11, 0.7);
-	border-radius : 14px;
-	background    : linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(2, 6, 23, 0.4));
+	display         : flex;
+	justify-content : space-between;
+	align-items     : center;
+	flex-wrap       : wrap;
+	gap             : 0.5rem 1.5rem;
+	width           : min(62rem, calc(100vw - 2rem));
+	margin          : 1.25rem auto 0;
+	padding         : 0.6rem 1rem;
+	box-sizing      : border-box;
+	border-bottom   : 2px solid rgba(245, 158, 11, 0.5);
+	font-size       : 1.25rem;
 
-	.daily-banner-header {
-		display         : flex;
-		justify-content : space-between;
-		align-items     : baseline;
-		gap             : 1rem;
-
-		h2 {
-			margin    : 0;
-			font-size : 2.2rem;
-			color     : #fbbf24;
-		}
-	}
-
-	.daily-banner-date {
-		font-size : 1.3rem;
-		opacity   : 0.8;
-	}
-
-	.daily-banner-text {
-		margin    : 0.4rem 0 1rem;
-		font-size : 1.2rem;
-		opacity   : 0.85;
-	}
-
-	.daily-banner-games {
-		display : flex;
-		gap     : 0.75rem;
-	}
-
-	.daily-banner-game {
-		flex            : 1;
-		display         : flex;
-		flex-direction  : column;
-		align-items     : center;
-		gap             : 0.25rem;
-		padding         : 0.75rem 0.5rem;
-		border-radius   : 10px;
-		border          : 2px solid rgba(249, 250, 251, 0.25);
-		background      : rgba(2, 6, 23, 0.45);
-		color           : #f9fafb;
-		text-decoration : none;
-		transition      : all 0.15s ease;
-
-		&:hover {
-			border-color : #fbbf24;
-			transform    : translateY(-2px);
-		}
-
-		&.done {
-			border-color : rgba(59, 246, 68, 0.6);
-
-			.daily-banner-game-info {
-				color : #3bf644;
-			}
-		}
-	}
-
-	.daily-banner-game-name {
-		font-size   : 1.7rem;
-		font-weight : 700;
-	}
-
-	.daily-banner-game-info {
-		font-size : 1.1rem;
-		opacity   : 0.85;
-	}
-
-	.daily-banner-links {
-		display         : flex;
-		justify-content : space-between;
-		flex-wrap       : wrap;
-		gap             : 0.5rem;
-	}
-
-	.daily-banner-link {
-		display         : inline-block;
-		margin-top      : 0.9rem;
-		color           : #fbbf24;
-		font-size       : 1.2rem;
-		text-decoration : none;
+	a {
+		color : #fbbf24;
 
 		&:hover {
 			text-decoration : underline;
 		}
 	}
 
-	// Invité : défis verrouillés
-	.daily-banner-game.locked {
-		position : relative;
-		opacity  : 0.55;
-		cursor   : not-allowed;
+	.daily-banner-text {
+		margin : 0;
 
-		&:hover {
-			border-color : rgba(249, 250, 251, 0.25);
-			transform    : none;
-		}
-
-		.daily-banner-lock {
-			position  : absolute;
-			top       : 0.5rem;
-			right     : 0.6rem;
-			font-size : 1rem;
+		strong {
+			color : #fbbf24;
 		}
 	}
 
-	// Invitation à créer un compte
-	.daily-banner-login {
-		margin-top    : 1rem;
-		padding       : 0.9rem 1rem;
-		border-radius : 10px;
-		background    : rgba(2, 6, 23, 0.45);
-		text-align    : center;
-
-		p {
-			margin    : 0 0 0.7rem;
-			font-size : 1.25rem;
-		}
+	.daily-banner-icon {
+		margin-right   : 0.5rem;
+		color          : #fbbf24;
+		vertical-align : -0.1em;
 	}
 
-	.daily-banner-login-buttons {
-		display         : flex;
-		justify-content : center;
-		gap             : 0.75rem;
-		flex-wrap       : wrap;
+	.daily-banner-hint {
+		opacity : 0.85;
+	}
+
+	.daily-banner-links {
+		display : flex;
+		gap     : 1.25rem;
 
 		a {
-			padding         : 0.45rem 1.3rem;
-			border-radius   : 999px;
-			border          : 2px solid rgba(249, 250, 251, 0.45);
-			color           : #f9fafb;
-			font-size       : 1.2rem;
 			text-decoration : none;
-
-			&:hover {
-				border-color : #fbbf24;
-			}
-
-			&.primary {
-				border-color : #fbbf24;
-				background   : rgba(245, 158, 11, 0.25);
-				font-weight  : 700;
-			}
 		}
+	}
+}
+
+@media (max-width: 600px) {
+	.daily-banner {
+		justify-content : center;
+		text-align      : center;
+		font-size       : 1.1rem;
 	}
 }
