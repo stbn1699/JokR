@@ -3,11 +3,7 @@ import type {Game} from "../Models/game.model.ts";
 
 export const gameService = {
     list(signal?: AbortSignal) {
-        return api<Game[]>("/games/list/", {method: "GET"}, signal);
-    },
-
-    getBaseXp(gameCode: string): Promise<number> {
-        return api<number>(`/games/getBaseXp/${gameCode}`, {method: "GET"});
+        return api<Game[]>("/games/list", {method: "GET"}, signal);
     },
 
     // demande au backend une grille Sudoku ; gameId identifie la partie pour la validation
