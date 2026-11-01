@@ -3,7 +3,7 @@ import {useState} from "react";
 import "../Login/Login.scss"; // même mise en forme que la connexion
 import {clientHash} from "../../../Services/hash";
 import {authService} from "../../../Services/auth.service";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 
 export default function Register() {
     const [email, setEmail] = useState("");
@@ -13,6 +13,8 @@ export default function Register() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+    // Page à rouvrir après la connexion qui suit l'inscription
+    const from = (useLocation().state as { from?: string } | null)?.from;
 
     const validateEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
 
@@ -26,8 +28,8 @@ export default function Register() {
             setLoading(true);
             const firstHash = await clientHash(password);
             await authService.register(username, email, firstHash);
-            // redirect to login
-            navigate("/login");
+            // Compte créé : connexion, puis retour à la page demandée
+            navigate("/login", {state: {from}});
         } catch (err: unknown) {
             // Handle unknown error without using `any` to satisfy ESLint/TS rules
             if (err instanceof Error) {
@@ -83,7 +85,7 @@ export default function Register() {
 
 
                     <div className="buttons">
-                        <button type="button" className="secondary" onClick={() => navigate("/login")}
+                        <button type="button" className="secondary" onClick={() => navigate("/login", {state: {from}})}
                                 disabled={loading}>Se Connecter
                         </button>
                         <button type="submit" disabled={loading}>S'inscrire</button>

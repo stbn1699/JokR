@@ -15,7 +15,7 @@ import {useDailyRefresh} from "../PuzzleUI/useDailyRefresh.ts";
 import {DAILY_GAME_NAMES, dailyGridLabel} from "../../Services/dailyGames.ts";
 
 export default function DailyHistory() {
-    const {userId} = useAuth();
+    const {userId, isLoggedIn} = useAuth();
     const [days, setDays] = useState<DailyHistoryDay[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     // À minuit, le défi de la veille rejoint l'historique : la page se recharge
@@ -44,6 +44,12 @@ export default function DailyHistory() {
                     (XP habituelle), mais n'entre pas dans le classement de son jour.
                 </p>
                 <Link to="/" className="daily-history-today">← Défi d'aujourd'hui</Link>
+                {!isLoggedIn && (
+                    <p className="daily-history-login">
+                        <Link to="/register" state={{from: "/defi"}}>Crée un compte</Link> ou{" "}
+                        <Link to="/login" state={{from: "/defi"}}>connecte-toi</Link> pour rejouer les défis.
+                    </p>
+                )}
 
                 {error && <p className="daily-history-error" role="alert">{error}</p>}
                 {!error && !days && <p className="daily-history-status">Chargement…</p>}
@@ -65,7 +71,7 @@ export default function DailyHistory() {
                                             : <>{game.players} joueur{game.players > 1 ? "s" : ""} classé{game.players > 1 ? "s" : ""}</>}
                                     </p>
                                     <div className="daily-history-actions">
-                                        <Link to={`/defi/${game.code}/${day.date}`} className="replay">Rejouer</Link>
+                                        {isLoggedIn && <Link to={`/defi/${game.code}/${day.date}`} className="replay">Rejouer</Link>}
                                         <Link to={`/classements?onglet=defi&jeu=${game.code.toLowerCase()}&date=${day.date}`}>
                                             Classement
                                         </Link>

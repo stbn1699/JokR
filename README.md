@@ -205,9 +205,9 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
 | GET     | `/rikudo/games/:gameId`    | –         | partie en cours (pour la reprendre)       |
 | POST    | `/rikudo/validate`         | optionnel | valide `{ gameId, values }`, XP si connecté |
 | GET     | `/daily`                   | optionnel | défis du jour (et résultats du joueur)    |
-| POST    | `/daily/:game/start`       | optionnel | commence le défi du jour                  |
+| POST    | `/daily/:game/start`       | oui       | commence le défi du jour                  |
 | GET     | `/daily/history`           | optionnel | défis des 30 jours précédents             |
-| POST    | `/daily/:game/replay/:date`| –         | rejoue un défi passé (partie normale)     |
+| POST    | `/daily/:game/replay/:date`| oui       | rejoue un défi passé (partie normale)     |
 | GET     | `/daily/:game/leaderboard` | optionnel | meilleurs temps du jour (`?date=` passée) |
 | GET     | `/leaderboard/xp`          | optionnel | classement par XP globale                 |
 | GET     | `/leaderboard/games/:game` | optionnel | classement d'un jeu                       |

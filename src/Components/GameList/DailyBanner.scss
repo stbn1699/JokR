@@ -92,4 +92,63 @@
 			text-decoration : underline;
 		}
 	}
+
+	// Invité : défis verrouillés
+	.daily-banner-game.locked {
+		position : relative;
+		opacity  : 0.55;
+		cursor   : not-allowed;
+
+		&:hover {
+			border-color : rgba(249, 250, 251, 0.25);
+			transform    : none;
+		}
+
+		.daily-banner-lock {
+			position  : absolute;
+			top       : 0.5rem;
+			right     : 0.6rem;
+			font-size : 1rem;
+		}
+	}
+
+	// Invitation à créer un compte
+	.daily-banner-login {
+		margin-top    : 1rem;
+		padding       : 0.9rem 1rem;
+		border-radius : 10px;
+		background    : rgba(2, 6, 23, 0.45);
+		text-align    : center;
+
+		p {
+			margin    : 0 0 0.7rem;
+			font-size : 1.25rem;
+		}
+	}
+
+	.daily-banner-login-buttons {
+		display         : flex;
+		justify-content : center;
+		gap             : 0.75rem;
+		flex-wrap       : wrap;
+
+		a {
+			padding         : 0.45rem 1.3rem;
+			border-radius   : 999px;
+			border          : 2px solid rgba(249, 250, 251, 0.45);
+			color           : #f9fafb;
+			font-size       : 1.2rem;
+			text-decoration : none;
+
+			&:hover {
+				border-color : #fbbf24;
+			}
+
+			&.primary {
+				border-color : #fbbf24;
+				background   : rgba(245, 158, 11, 0.25);
+				font-weight  : 700;
+			}
+		}
+	}
 }

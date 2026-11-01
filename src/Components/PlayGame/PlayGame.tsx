@@ -12,6 +12,8 @@ import {useParams} from "react-router-dom"
 import Sudoku from "../Sudoku/Sudoku.tsx";
 import Binero from "../Binero/Binero.tsx";
 import Rikudo from "../Rikudo/Rikudo.tsx";
+import DailyLoginRequired from "../PuzzleUI/DailyLoginRequired.tsx";
+import {useAuth} from "../../Context/authContext.ts";
 
 /**
  * Type définissant les paramètres de route attendus
@@ -30,12 +32,15 @@ type RouteParams = {
 export default function PlayGame({daily = false}: { daily?: boolean }) {
     // Extraction du code du jeu depuis l'URL (ex: /playgame/SUDOKU → gameCode = "SUDOKU")
     const {gameCode, date} = useParams<RouteParams>()
+    const {isLoggedIn} = useAuth()
 
     /**
      * Fonction qui retourne le composant du jeu correspondant au code
      * @returns Le composant React du jeu ou null si le code est invalide
      */
     const renderGame = () => {
+        // Défis (du jour ou rejoués) réservés aux joueurs connectés
+        if (daily && !isLoggedIn) return <DailyLoginRequired/>;
         switch (gameCode) {
             case "SUDOKU":
                 // Affiche le jeu Sudoku avec son code

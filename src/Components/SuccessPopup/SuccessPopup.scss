@@ -208,3 +208,16 @@
 		}
 	}
 }
+
+// Lien discret sous l'invitation à créer un compte (défis du jour)
+.daily-login-home {
+	margin-top  : 1rem;
+	background  : none;
+	border      : none;
+	color       : inherit;
+	font-family : inherit;
+	font-size   : 1.1rem;
+	opacity     : 0.7;
+	cursor      : pointer;
+	text-decoration : underline;
+}

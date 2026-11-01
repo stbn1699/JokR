@@ -6,6 +6,7 @@ import {formatDuration} from "../../Services/format.ts";
 import type {DailyOverview} from "../../Models/daily.model.ts";
 import {useAuth} from "../../Context/authContext.ts";
 import {useDailyRefresh} from "../PuzzleUI/useDailyRefresh.ts";
+import {FaLock} from "react-icons/fa";
 import {DAILY_GAME_NAMES, dailyGridLabel} from "../../Services/dailyGames.ts";
 
 /**
@@ -14,7 +15,7 @@ import {DAILY_GAME_NAMES, dailyGridLabel} from "../../Services/dailyGames.ts";
  * À minuit, le bandeau se recharge tout seul avec les défis du nouveau jour.
  */
 export default function DailyBanner() {
-    const {userId} = useAuth();
+    const {userId, isLoggedIn} = useAuth();
     const [overview, setOverview] = useState<DailyOverview | null>(null);
     const dayTick = useDailyRefresh(overview?.nextInMs, overview ? !overview.ready : false);
 
@@ -40,18 +41,36 @@ export default function DailyBanner() {
             </p>
 
             <div className="daily-banner-games">
-                {overview.games.map(game => (
-                    <Link key={game.code} to={`/defi/${game.code}`}
-                          className={`daily-banner-game ${game.result ? "done" : ""}`}>
-                        <span className="daily-banner-game-name">{DAILY_GAME_NAMES[game.code] ?? game.code}</span>
-                        <span className="daily-banner-game-info">
-                            {game.result
-                                ? <>✓ {formatDuration(game.result.durationMs)} · {game.result.rank}<sup>{game.result.rank === 1 ? "er" : "e"}</sup> / {game.result.total}</>
-                                : dailyGridLabel(game.code, game.size, game.emptyCells)}
-                        </span>
-                    </Link>
-                ))}
+                {overview.games.map(game => {
+                    const content = (
+                        <>
+                            <span className="daily-banner-game-name">{DAILY_GAME_NAMES[game.code] ?? game.code}</span>
+                            <span className="daily-banner-game-info">
+                                {game.result
+                                    ? <>✓ {formatDuration(game.result.durationMs)} · {game.result.rank}<sup>{game.result.rank === 1 ? "er" : "e"}</sup> / {game.result.total}</>
+                                    : dailyGridLabel(game.code, game.size, game.emptyCells)}
+                            </span>
+                        </>
+                    );
+                    // Invité : grilles visibles mais verrouillées
+                    return isLoggedIn
+                        ? <Link key={game.code} to={`/defi/${game.code}`}
+                                className={`daily-banner-game ${game.result ? "done" : ""}`}>{content}</Link>
+                        : <div key={game.code} className="daily-banner-game locked" aria-disabled>
+                            <FaLock className="daily-banner-lock" aria-hidden/>{content}
+                        </div>;
+                })}
             </div>
+
+            {!isLoggedIn && (
+                <div className="daily-banner-login">
+                    <p>Crée un compte pour jouer aux défis du jour et entrer dans le classement !</p>
+                    <div className="daily-banner-login-buttons">
+                        <Link to="/register" className="primary">Créer un compte</Link>
+                        <Link to="/login">Se connecter</Link>
+                    </div>
+                </div>
+            )}
 
             <div className="daily-banner-links">
                 <Link to="/classements?onglet=defi" className="daily-banner-link">Classement du jour →</Link>

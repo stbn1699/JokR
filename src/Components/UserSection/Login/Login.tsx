@@ -18,7 +18,7 @@ import "./Login.scss";
 import {clientHash} from "../../../Services/hash";
 import {authService} from "../../../Services/auth.service";
 import type {LoggedUser} from "../../../Models/loggedUser.model.ts";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../../Context/authContext.ts";
 
 /**
@@ -39,6 +39,8 @@ export default function Login() {
     const [error, setError] = useState<string | null>(null);
 
     const navigate = useNavigate();
+    // Page à rouvrir après la connexion (ex : un défi du jour), sinon l'accueil
+    const from = (useLocation().state as { from?: string } | null)?.from;
     const {login} = useAuth();
 
     /**
@@ -74,8 +76,8 @@ export default function Login() {
             // Étape 3 : Ouvrir la session (le header se met à jour tout seul)
             login(loggedUser);
 
-            // Étape 4 : Rediriger vers la page d'accueil
-            navigate("/");
+            // Étape 4 : Rediriger vers la page demandée, ou l'accueil
+            navigate(from ?? "/");
         } catch (err: unknown) {
             // Gestion des erreurs : convertir en message lisible
             if (err instanceof Error) {
@@ -120,7 +122,7 @@ export default function Login() {
                         <button
                             type="button"
                             className="secondary"
-                            onClick={() => navigate("/register")}
+                            onClick={() => navigate("/register", {state: {from}})}
                             disabled={loading}
                         >
                             s'inscrire
