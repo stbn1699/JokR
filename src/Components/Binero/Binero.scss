@@ -1,8 +1,9 @@
 // Grille du Binero (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
 .binero {
 	.game {
-		// Même largeur de grille que le Sudoku (9 × 4.5rem), quelle que soit la taille
-		--grid-width : 40.5rem;
+		// Même largeur de grille que le Sudoku (9 × 4.5rem), quelle que soit la taille,
+		// moins sur un écran étroit
+		--grid-width : min(40.5rem, calc(100vw - 2rem));
 
 		.grid {
 			--cell-size           : calc(var(--grid-width) / var(--size));

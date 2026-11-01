@@ -1,6 +1,6 @@
 import type {FormEvent} from "react";
 import {useState} from "react";
-import "./Register.scss";
+import "../Login/Login.scss"; // même mise en forme que la connexion
 import {clientHash} from "../../../Services/hash";
 import {authService} from "../../../Services/auth.service";
 import {useNavigate} from "react-router-dom";

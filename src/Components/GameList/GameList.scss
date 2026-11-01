@@ -134,3 +134,32 @@
 		opacity : 1;
 	}
 }
+
+// Écrans tactiles (pas de survol) : les stats s'affichent sous la carte du jeu
+@media (hover: none) {
+	.game-list {
+		.game-card:hover {
+			transform : none;
+		}
+
+		.stats {
+			position         : static;
+			order            : 2;
+			opacity          : 1;
+			visibility       : visible;
+			height           : auto;
+			aspect-ratio     : auto;
+			margin-top       : 0.5rem;
+			padding          : 0.4rem 0;
+			flex-direction   : row;
+			justify-content  : space-around;
+			font-size        : 1.1rem;
+			background-color : transparent;
+			border           : none;
+
+			div {
+				margin : 0;
+			}
+		}
+	}
+}

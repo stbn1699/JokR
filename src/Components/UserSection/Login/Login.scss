@@ -81,3 +81,41 @@
 		}
 	}
 }
+// Connexion / inscription sur téléphone : le formulaire prend la largeur de l'écran
+@media (max-width: 600px) {
+	.login {
+		width      : calc(100vw - 2rem);
+		height     : auto;
+		margin     : 2rem auto;
+		box-sizing : border-box;
+
+		&:hover {
+			transform : none;
+		}
+
+		form {
+			gap : 1.2rem;
+
+			h1 {
+				font-size : 3.2rem;
+			}
+
+			input {
+				width      : 100%;
+				box-sizing : border-box;
+				height     : 2.8rem;
+			}
+
+			.buttons {
+				flex-direction : column-reverse;
+				width          : 100%;
+
+				button,
+				button.secondary {
+					width  : 100%;
+					margin : 0;
+				}
+			}
+		}
+	}
+}

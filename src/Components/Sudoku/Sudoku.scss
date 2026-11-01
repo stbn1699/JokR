@@ -1,6 +1,7 @@
 // Grille du Sudoku (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
 .sudoku .game {
-	--cell-size : 4.5rem;
+	// 4.5rem par case, moins sur un écran étroit (la grille tient dans la largeur)
+	--cell-size : min(4.5rem, calc((100vw - 2rem) / 9));
 
 	.grid {
 		background            : #02061735;
@@ -23,7 +24,7 @@
 			border          : 1px solid rgba(229, 231, 235, 0.25);
 
 			color           : #f9fafb;
-			font-size       : 3rem;
+			font-size       : calc(var(--cell-size) * 0.65);
 			font-weight     : 600;
 			text-align      : center;
 

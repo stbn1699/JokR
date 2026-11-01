@@ -17,7 +17,8 @@
 	padding       : 2rem 2.5rem;
 	border-radius : 12px;
 	box-shadow    : 0 1rem 2rem rgba(0, 0, 0, 0.6);
-	width         : min(36rem, 90%);
+	width         : min(36rem, calc(100vw - 2rem));
+	box-sizing    : border-box; // marges intérieures comprises dans la largeur
 	text-align    : center;
 	border        : 2px solid rgba(255, 255, 255, 0.06);
 
@@ -152,5 +153,24 @@
 	100% {
 		opacity   : 1;
 		transform : scale(1);
+	}
+}
+
+// Popups sur téléphone : marges et textes réduits
+@media (max-width: 600px) {
+	.modal {
+		padding : 1.5rem 1.25rem;
+
+		h2 {
+			font-size : 1.9rem;
+		}
+
+		p {
+			font-size : 1.2rem;
+		}
+
+		.modal-buttons {
+			flex-wrap : wrap;
+		}
 	}
 }
