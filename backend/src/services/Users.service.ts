@@ -2,6 +2,8 @@ import {UsersRepository} from "../repository/Users.repository.js";
 import type {User} from "../models/User.model.js";
 import bcrypt from "bcrypt";
 import type {NewUser} from "../models/NewUser.model.js";
+import {type PublicUser, toPublicUser} from "../models/PublicUser.model.js";
+import {config} from "../config.js";
 
 /*
  * Service métier pour les utilisateurs
@@ -10,7 +12,7 @@ import type {NewUser} from "../models/NewUser.model.js";
  * - updateUserXpAndLevel : applique la logique de montée en niveau et persiste
  *
  * Remarques :
- * - `bcrypt.hash` utilise la variable d'environnement SALTROUNDS (ou 10 par défaut)
+ * - `bcrypt.hash` utilise config.saltRounds (variable SALTROUNDS, 10 par défaut)
  * - Les mots de passe stockés sont déjà hashés et ne doivent pas être exposés
  */
 export class UsersService {
@@ -20,9 +22,18 @@ export class UsersService {
     }
 
     // Inscription : hash du mot de passe avant insertion
-    async register(user: NewUser): Promise<User> {
-        const doubleHashed = await bcrypt.hash(user.password, process.env.SALTROUNDS || 10);
-        return this.repo.create({...user, password: doubleHashed});
+    // Lève UserAlreadyExistsError si le pseudo ou l'email est déjà pris
+    async register(user: NewUser): Promise<PublicUser> {
+        // bcrypt attend un nombre de tours (number) : une string serait prise pour un sel
+        const doubleHashed = await bcrypt.hash(user.password, config.saltRounds);
+        try {
+            const created = await this.repo.create({...user, password: doubleHashed});
+            return toPublicUser(created);
+        } catch (err) {
+            // 23505 = violation de contrainte UNIQUE dans Postgres
+            if ((err as { code?: string }).code === "23505") throw new UserAlreadyExistsError();
+            throw err;
+        }
     }
 
     // Authentification : recherche par email ou username puis compare le hash
@@ -58,7 +69,14 @@ export class UsersService {
         await this.repo.updateUserXpAndLevel(userId, newXp, level);
     }
 
-    async getByUserId(userId: string): Promise<User | void> {
-        return this.findByUuid(userId);
+    async getByUserId(userId: string): Promise<PublicUser | undefined> {
+        const user = await this.findByUuid(userId);
+        return user ? toPublicUser(user) : undefined;
+    }
+}
+
+export class UserAlreadyExistsError extends Error {
+    constructor() {
+        super("Username or email already in use");
     }
 }

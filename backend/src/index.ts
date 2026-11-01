@@ -1,8 +1,8 @@
+import {config} from "./config.js"; // en premier : charge le .env et vérifie les secrets
 import express from "express";
 import cors from "cors";
 import gamesRoutes from "./routes/Games.routes.js";
 import usersRoutes from "./routes/Users.routes.js";
-import "dotenv/config";
 import GameStatsRoutes from "./routes/GameStatsRoutes.js";
 import sudokuRoutes from "./routes/Sudoku.routes.js";
 
@@ -14,14 +14,13 @@ import sudokuRoutes from "./routes/Sudoku.routes.js";
  * - Un handler d'erreur global minimal capture et logge les erreurs
  */
 const app = express();
-const PORT = Number(process.env.PORT ?? 3000);
+const PORT = config.port;
 
 app.use(express.json()); // parse le JSON des requêtes
 
 // CORS configuré via la variable d'environnement CORS_ORIGIN (ex: http://localhost:5173)
-// Si non définie, autorise toutes les origines en développement pour éviter les problèmes de preflight
-const corsOrigin = process.env.CORS_ORIGIN ?? true;
-app.use(cors({ origin: corsOrigin }));
+// Si non définie, autorise toutes les origines (pratique en dev, à éviter en prod)
+app.use(cors({ origin: config.corsOrigin }));
 
 // Route de healthcheck
 app.get("/ping", (_req, res) => {

@@ -4,13 +4,20 @@ export interface ApiResponse<T> {
     message?: string;
 }
 
-function isStatusEnvelope<T>(v: any): v is ApiResponse<T> {
+function isStatusEnvelope<T>(v: unknown): v is ApiResponse<T> {
     return (
         v !== null &&
         typeof v === "object" &&
+        "status" in v &&
         typeof v.status === "string" &&
         "data" in v
     );
+}
+
+// Le token JWT est stocké au login (voir auth.service.ts)
+function authHeader(): Record<string, string> {
+    const token = localStorage.getItem("auth_token");
+    return token ? {Authorization: `Bearer ${token}`} : {};
 }
 
 export async function api<T>(
@@ -22,6 +29,7 @@ export async function api<T>(
         ...options,
         headers: {
             Accept: "application/json",
+            ...authHeader(),
             ...(options.headers ?? {}),
         },
         signal,
