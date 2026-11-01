@@ -1,0 +1,111 @@
+// Grille du Binero (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.binero {
+	.game {
+		// Même largeur de grille que le Sudoku (9 × 4.5rem), quelle que soit la taille
+		--grid-width : 40.5rem;
+
+		.grid {
+			--cell-size           : calc(var(--grid-width) / var(--size));
+			background            : #02061735;
+			border                : 3px solid #e5e7eb;
+			border-radius         : 10px;
+			display               : grid;
+			grid-template-columns : repeat(var(--size), var(--cell-size));
+			grid-template-rows    : repeat(var(--size), var(--cell-size));
+
+			.cell {
+				display         : flex;
+				align-items     : center;
+				justify-content : center;
+				background      : #02061760;
+				border          : 1px solid rgba(229, 231, 235, 0.25);
+				color           : #f9fafb;
+				font-family     : inherit;
+				font-size       : calc(var(--cell-size) * 0.6);
+				font-weight     : 600;
+				padding         : 0;
+				outline         : none;
+				user-select     : none;
+			}
+
+			// Cases à remplir
+			button.cell {
+				cursor : pointer;
+
+				&:not(:disabled):hover {
+					background    : #000000cc;
+					transition    : all 0.05s ease-in-out;
+					transform     : scale(1.1);
+					border-radius : 5px;
+					border        : 2px solid #ffffff;
+				}
+
+				&:focus {
+					background    : #000000;
+					z-index       : 1;
+					transform     : scale(1.2);
+					transition    : all 0.05s ease-in-out;
+					border-radius : 5px;
+					border        : 2px solid #ffffff;
+				}
+
+				&:disabled {
+					cursor : default;
+				}
+			}
+
+			// Chiffres donnés : verts, pas sélectionnables
+			.cell.prefilled {
+				color            : #3bf644;
+				background       : transparent;
+				animation        : jump 360ms cubic-bezier(.2, .9, .3, 1) both;
+				transform-origin : center bottom;
+			}
+
+			// Ligne et colonne de la case sélectionnée
+			.cell.peer-highlight {
+				background : rgba(255, 255, 255, 0.09);
+			}
+
+			// Chiffre surligné depuis le panneau de gauche
+			.cell.same-number-highlight {
+				box-shadow    : 0 0 0.8rem 0.15rem rgba(59, 246, 68, 0.18) inset;
+				background    : rgba(59, 246, 68, 0.06);
+				border        : 2px solid rgba(59, 246, 68, 0.9);
+				border-radius : 5px;
+			}
+		}
+	}
+
+	// Rappel des règles sous le bouton Valider
+	.actions .rules {
+		padding   : 0 1.5rem;
+		font-size : 1.2rem;
+		color     : rgba(249, 250, 251, 0.85);
+
+		h3 {
+			font-size : 1.8rem;
+			margin    : 0 0 0.5rem;
+		}
+
+		ul {
+			margin       : 0 0 1rem;
+			padding-left : 1.2rem;
+
+			li {
+				margin-bottom : 0.5rem;
+			}
+		}
+
+		.rules-keys {
+			opacity : 0.75;
+		}
+
+		kbd {
+			border        : 1px solid rgba(249, 250, 251, 0.4);
+			border-radius : 4px;
+			padding       : 0 0.35rem;
+			font-family   : inherit;
+		}
+	}
+}

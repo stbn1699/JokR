@@ -10,6 +10,7 @@
 import "./PlayGame.scss"
 import {useParams} from "react-router-dom"
 import Sudoku from "../Sudoku/Sudoku.tsx";
+import Binero from "../Binero/Binero.tsx";
 
 /**
  * Type définissant les paramètres de route attendus
@@ -36,6 +37,8 @@ export default function PlayGame() {
             case "SUDOKU":
                 // Affiche le jeu Sudoku avec son code
                 return <Sudoku gameCode={gameCode}/>;
+            case "BINERO":
+                return <Binero gameCode={gameCode}/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

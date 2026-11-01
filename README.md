@@ -1,7 +1,14 @@
 # JokR
 
 Plateforme de mini-jeux avec comptes joueurs et progression (niveaux et XP, globaux et par jeu).
-Jeu disponible : **Sudoku**.
+Jeux disponibles :
+
+- **Sudoku** : grille 9×9, de 20 à 55 cases à remplir.
+- **Binero** (Takuzu) : grille de 0 et de 1, en 6×6, 8×8, 10×10 ou 12×12. Jamais trois chiffres identiques
+  côte à côte, autant de 0 que de 1 par ligne et par colonne, pas deux lignes (ou colonnes) identiques.
+
+Avant chaque partie, une popup permet de choisir les paramètres (taille, nombre de cases à remplir)
+et affiche l'XP gagnée à la résolution.
 
 ## Stack
 
@@ -76,8 +83,10 @@ et sur chaque pull request.
 
 - **Comptes** : le mot de passe est haché en SHA-256 dans le navigateur, puis avec bcrypt côté serveur.
   La connexion renvoie un JWT (valable 7 jours), envoyé ensuite dans l'en-tête `Authorization: Bearer …`.
-- **XP** : elle est toujours calculée et attribuée par le serveur. Pour le Sudoku, le serveur garde chaque grille
-  générée (`gameId`) et n'accepte qu'une solution de cette grille, une seule fois.
+- **XP** : elle est toujours calculée et attribuée par le serveur. Le serveur garde chaque grille générée
+  (`gameId`) et n'accepte qu'une solution de cette grille, une seule fois.
+- **Grilles** : générées par le serveur, toujours à solution unique (résolvables par déduction, sans hasard).
+  Les plages de difficulté proposées sont celles que le générateur atteint exactement en moins de 100 ms.
 - **Niveaux** : passer du niveau `n` au suivant demande `ceil(120 × n^1.4)` XP.
   La formule est dans `backend/src/utils/leveling.ts` et `src/Services/leveling.ts`.
 
@@ -93,5 +102,9 @@ et sur chaque pull request.
 | GET     | `/users/me`                | requise   | profil du joueur connecté                 |
 | GET     | `/users/:userId`           | –         | profil public (sans email)                |
 | GET     | `/gameStats/user/:userId`  | –         | stats par jeu d'un joueur                 |
+| GET     | `/sudoku/settings`         | –         | plage de cases à remplir et XP proposées  |
 | POST    | `/sudoku/generateSudoku`   | –         | nouvelle grille → `{ gameId, grid }`      |
 | POST    | `/sudoku/validateSudoku`   | optionnel | valide `{ gameId, grid }`, XP si connecté |
+| GET     | `/binero/settings`         | –         | tailles, plages et XP proposées           |
+| POST    | `/binero/generate`         | –         | `{ size, emptyCells }` → `{ gameId, grid }` |
+| POST    | `/binero/validate`         | optionnel | valide `{ gameId, grid }`, XP si connecté |
