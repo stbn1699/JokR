@@ -5,9 +5,10 @@ import {DAILY_GAMES, DAILY_REWARD_MULTIPLIER, type DailyGameCode, type DailyServ
 import {countClues} from "../services/Sudoku.service.js";
 import {toApiGrid} from "../services/Binero.service.js";
 import {type BineroGrid, countBineroClues} from "../utils/binero.js";
-import {sudokuStore, bineroStore, rikudoStore, tectonicStore} from "../services/stores.js";
+import {sudokuStore, bineroStore, rikudoStore, tectonicStore, galaxiesStore} from "../services/stores.js";
 import {countRikudoClues, type RikudoPuzzle} from "../utils/rikudo.js";
 import {countTectonicClues, type TectonicPuzzle} from "../utils/tectonic.js";
+import type {GalaxiesPuzzle} from "../utils/galaxies.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
 import {tracker} from "../services/tracker.js";
 import {isDateKey, routeParam} from "../utils/validation.js";
@@ -45,6 +46,10 @@ export function createDailyController(service: DailyService) {
         if (code === "TECTONIC") {
             const tectonic = puzzle as TectonicPuzzle;
             return {gameId: tectonicStore.create(tectonic, countTectonicClues(tectonic), options), grid: tectonic};
+        }
+        if (code === "GALAXIES") {
+            const galaxies = puzzle as GalaxiesPuzzle;
+            return {gameId: galaxiesStore.create(galaxies, galaxies.walls.length, options), grid: galaxies};
         }
         const grid = puzzle as BineroGrid;
         return {gameId: bineroStore.create(grid, countBineroClues(grid), options), grid: toApiGrid(grid)};

@@ -1,0 +1,181 @@
+/**
+ * Composant Galaxies (Tentai Show) - découper la grille en galaxies symétriques autour de leur point
+ *
+ * - À l'ouverture : popup de paramètres (taille de grille, murs déjà tracés en aide, XP gagnée)
+ * - Plateau : un appui près du trait entre deux cases pose ou retire un mur ;
+ *   une galaxie terminée se colore toute seule
+ * - Panneau de gauche : galaxies terminées, et comment jouer
+ * - Panneau de droite : chrono, annuler / rétablir, erreurs et rappel des règles
+ * - Découpage terminé : validé automatiquement par le serveur
+ */
+
+import "../PuzzleUI/PuzzleLayout.scss";
+import "./Galaxies.scss";
+import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
+import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
+import GameTimer from "../PuzzleUI/GameTimer.tsx";
+import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
+import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
+import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
+import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
+import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
+import {useAutoValidate} from "../PuzzleUI/useAutoValidate.ts";
+import {useResumableGame} from "../PuzzleUI/savedGame.ts";
+import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
+import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
+import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
+import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
+import {useNavigate} from "react-router-dom";
+import {galaxiesService} from "../../Services/galaxies.service.ts";
+import type {GalaxiesPuzzle} from "../../Models/galaxies.model.ts";
+import {type SavedGalaxies, useGalaxiesGame} from "./useGalaxiesGame.ts";
+import GalaxiesBoard from "./GalaxiesBoard.tsx";
+import GalaxiesSettingsPopup from "./GalaxiesSettingsPopup.tsx";
+
+type GalaxiesProps = {
+    // Défi du jour : grille imposée, pas de popup de paramètres
+    daily?: boolean;
+    // Défi d'un jour passé, rejoué en partie normale (hors classement) : AAAA-MM-JJ
+    replayDate?: string;
+};
+
+export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
+    const navigate = useNavigate();
+    // Grille imposée : défi du jour, ou défi d'un jour passé rejoué
+    const challenge = daily || replayDate !== undefined;
+    // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
+    const saveKey = replayDate ? `GALAXIES:replay:${replayDate}` : daily ? "GALAXIES:daily" : "GALAXIES";
+    const game = useGalaxiesGame(saveKey);
+    const flow = useGameFlow();
+    const {resumable, dismissResumable} = useResumableGame<SavedGalaxies, GalaxiesPuzzle>(saveKey, galaxiesService.getGame, !challenge);
+    const dailyGame = useDailyGame<SavedGalaxies, GalaxiesPuzzle>({
+        enabled: challenge,
+        gameCode: "GALAXIES",
+        saveKey,
+        fetchStatus: galaxiesService.getGame,
+        emptySave: gameId => ({gameId, walls: []}),
+        start: replayDate ? () => dailyService.replay("GALAXIES", replayDate) : undefined,
+        onLoad: (puzzle, saved, elapsedMs) => {
+            game.restore(puzzle, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
+    const [showErrors, setShowErrors] = useShowErrors();
+    const analysis = game.analysis;
+    const errorCount = analysis
+        ? analysis.badWalls.size + analysis.regions.filter(r => r.status === "error").length
+        : 0;
+    const doneCount = analysis ? analysis.regions.filter(r => r.status === "valid").length : 0;
+    const total = game.puzzle?.dots.length ?? 0;
+
+    // Découpage terminé (chaque zone a un point et est symétrique) : validé tout seul
+    const filledKey = analysis?.solution ? analysis.solution.join(",") : null;
+    useAutoValidate({
+        filledKey, playing, hasErrors: false,
+        submit: () => flow.submit(game.validate), setNotice: flow.setNotice,
+    });
+    useUndoShortcuts(game.undo, game.redo, playing);
+
+    const handleResume = () => {
+        if (!resumable) return;
+        game.restore(resumable.grid, resumable.saved);
+        flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
+        dismissResumable();
+    };
+
+    const handleGenerate = (size: number, hints: number) => {
+        dismissResumable();
+        void flow.generate(() => game.generate(size, hints));
+    };
+
+    const rules = (
+        <ul>
+            <li>Découpe la grille en galaxies en traçant des murs entre les cases</li>
+            <li>Chaque galaxie contient exactement un point</li>
+            <li>Chaque galaxie est symétrique autour de son point : un demi-tour autour du point la laisse identique</li>
+        </ul>
+    );
+
+    return (
+        <div className="puzzle-layout galaxies">
+            <GameToolbar
+                gameName="Galaxies"
+                label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                    : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : undefined}
+                clock={flow.clock}
+                canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
+                onUndo={game.undo} onRedo={game.redo}
+                showErrors={showErrors} onToggleErrors={setShowErrors} errorCount={errorCount}
+                rules={rules}
+            />
+
+            <div className="options">
+                <h2 className="title">Galaxies</h2>
+                <p className="galaxies-progress">
+                    {total > 0 ? <><strong>{doneCount}</strong> / {total} galaxies terminées</> : "–"}
+                </p>
+                <p className="digit-hint">
+                    Touche le trait entre deux cases pour poser ou retirer un mur.
+                    Une galaxie bien fermée se colore toute seule.
+                </p>
+            </div>
+
+            <div className="game">
+                {daily && (
+                    <p className="daily-label">
+                        Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
+                        <span className="daily-x2">XP et crédits ×{DAILY_REWARD_MULTIPLIER}</span>
+                    </p>
+                )}
+                {replayDate && (
+                    <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
+                )}
+                <h1 className="title">Galaxies</h1>
+                {game.puzzle && analysis && (
+                    <GalaxiesBoard
+                        puzzle={game.puzzle}
+                        walls={game.walls}
+                        hintWalls={game.hintWalls}
+                        analysis={analysis}
+                        disabled={!playing}
+                        onToggleWall={game.toggleWall}
+                        showErrors={showErrors}
+                    />
+                )}
+            </div>
+
+            <div className="actions">
+                <h2 className="title">Actions</h2>
+                <GameTimer clock={flow.clock}/>
+                <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
+                                onUndo={game.undo} onRedo={game.redo}/>
+                <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={errorCount}/>
+                <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
+
+                <div className="rules">
+                    <h3>Règles</h3>
+                    {rules}
+                    <p className="rules-keys">Clavier : flèches pour se déplacer, <kbd>Maj</kbd> + flèche pour poser
+                        ou retirer le mur de ce côté</p>
+                </div>
+            </div>
+
+            <GalaxiesSettingsPopup open={!challenge && flow.showSettings} onGenerate={handleGenerate}
+                                   resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
+
+            {dailyGame.done && <DailyDonePopup gameCode="GALAXIES" gameName="Galaxies" result={dailyGame.done}/>}
+
+            {flow.victory && (
+                <SuccessPopup gameName="Galaxies" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
+                              rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
+                              durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
+                              daily={flow.victory.daily}
+                              onNewGame={replayDate ? () => navigate("/defi")
+                                  : daily ? () => navigate(`/playgame/GALAXIES`) : flow.newGame}
+                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}/>
+            )}
+        </div>
+    );
+}

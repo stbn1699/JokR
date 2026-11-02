@@ -3,6 +3,7 @@ import type {SudokuService} from "./Sudoku.service.js";
 import type {BineroService} from "./Binero.service.js";
 import type {RikudoService} from "./Rikudo.service.js";
 import type {TectonicService} from "./Tectonic.service.js";
+import type {GalaxiesService} from "./Galaxies.service.js";
 
 /*
  * Défi du jour : une grille par jeu et par jour, la même pour tout le monde.
@@ -19,6 +20,8 @@ export const DAILY_GAMES = {
     RIKUDO: {size: 60, emptyCells: 40},
     // Tectonic : size = côté de la grille
     TECTONIC: {size: 7, emptyCells: 34},
+    // Galaxies : size = côté, emptyCells = nombre de murs donnés en aide
+    GALAXIES: {size: 7, emptyCells: 0},
 } as const;
 
 export type DailyGameCode = keyof typeof DAILY_GAMES;
@@ -35,6 +38,7 @@ export class DailyService {
         private binero: BineroService,
         private rikudo: RikudoService,
         private tectonic: TectonicService,
+        private galaxies: GalaxiesService,
     ) {
     }
 
@@ -61,6 +65,8 @@ export class DailyService {
                 return this.rikudo.generate(size, size - emptyCells);
             case "TECTONIC":
                 return this.tectonic.generate(size, size * size - emptyCells);
+            case "GALAXIES":
+                return this.galaxies.generate(size, emptyCells);
         }
     }
 

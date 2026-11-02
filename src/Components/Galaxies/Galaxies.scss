@@ -1,0 +1,110 @@
+// Plateau des Galaxies (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.galaxies {
+	.game {
+		// Même largeur que les autres grilles (9 × 4.5rem), moins sur un écran étroit
+		--grid-width : min(40.5rem, calc(100vw - 2rem));
+	}
+
+	.galaxies-board {
+		width         : var(--grid-width);
+		border-radius : 10px;
+		background    : #02061760;
+		outline       : none;
+		touch-action  : manipulation;
+
+		&:focus-visible {
+			box-shadow : 0 0 0 3px rgba(147, 197, 253, 0.6);
+		}
+
+		svg {
+			display : block;
+			width   : 100%;
+			height  : auto;
+			cursor  : pointer;
+		}
+	}
+
+	.galaxies-cell {
+		transition : fill 0.2s ease;
+	}
+
+	.galaxies-gridline {
+		stroke       : rgba(229, 231, 235, 0.22);
+		stroke-width : 0.25;
+	}
+
+	.galaxies-wall {
+		stroke         : #f9fafb;
+		stroke-width   : 1.1;
+		stroke-linecap : round;
+
+		// Murs donnés au départ : un peu plus discrets
+		&.hint {
+			stroke : #cbd5e1;
+		}
+
+		// Mur à travers un point (option Montrer les erreurs)
+		&.bad {
+			stroke : #f87171;
+		}
+
+		// Aperçu au survol de la souris
+		&.preview {
+			stroke : rgba(249, 250, 251, 0.35);
+		}
+	}
+
+	.galaxies-frame {
+		fill         : none;
+		stroke       : #e5e7eb;
+		stroke-width : 1.2;
+	}
+
+	.galaxies-cursor {
+		fill         : none;
+		stroke       : #93c5fd;
+		stroke-width : 0.5;
+		rx           : 1;
+	}
+
+	.galaxies-dot {
+		fill         : #0b1020;
+		stroke       : #f9fafb;
+		stroke-width : 0.7;
+
+		// Galaxie terminée : point plein
+		&.done {
+			fill : #f9fafb;
+		}
+	}
+
+	// Panneau de gauche : avancement
+	.options .galaxies-progress {
+		margin     : 1.5rem 1rem 0.5rem;
+		font-size  : 1.5rem;
+		text-align : center;
+
+		strong {
+			font-size : 2.2rem;
+			color     : #3bf644;
+		}
+	}
+}
+
+// Téléphone : le plateau remplit la zone de jeu ; l'avancement tient sur une ligne sous le plateau
+@media (max-width: 1100px) {
+	.puzzle-layout.galaxies {
+		.game {
+			--grid-width : min(100cqw, 100cqh);
+		}
+
+		.options .galaxies-progress {
+			margin    : 0.4rem 0;
+			font-size : 1.2rem;
+
+			strong {
+				font-size : 1.5rem;
+			}
+		}
+	}
+}

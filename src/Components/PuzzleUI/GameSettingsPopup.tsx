@@ -16,6 +16,9 @@ type GameSettingsPopupProps = {
     // Titre et libellé des tailles (par défaut "Taille de la grille" et "8×8")
     sizeLegend?: string;
     sizeLabel?: (size: number) => string;
+    // Libellé du curseur (par défaut "Cases à remplir") ; easierWhenHigher : plus de = plus facile (aide)
+    amountLabel?: string;
+    easierWhenHigher?: boolean;
     // Nombre de cases à remplir et ses limites
     emptyCells: number;
     minEmptyCells: number;
@@ -88,7 +91,7 @@ export default function GameSettingsPopup(props: GameSettingsPopupProps) {
                         )}
 
                         <label htmlFor="empty-cells" className="game-settings-label">
-                            Cases à remplir
+                            {props.amountLabel ?? "Cases à remplir"}
                             <span className="game-settings-value">{emptyCells}</span>
                         </label>
 
@@ -102,8 +105,8 @@ export default function GameSettingsPopup(props: GameSettingsPopupProps) {
                             onChange={(e) => props.onEmptyCellsChange(Number(e.target.value))}
                         />
                         <div className="game-settings-scale" aria-hidden>
-                            <span>{minEmptyCells} · plus facile</span>
-                            <span>plus difficile · {maxEmptyCells}</span>
+                            <span>{minEmptyCells} · {props.easierWhenHigher ? "plus difficile" : "plus facile"}</span>
+                            <span>{props.easierWhenHigher ? "plus facile" : "plus difficile"} · {maxEmptyCells}</span>
                         </div>
 
                         <p className="game-settings-xp">
