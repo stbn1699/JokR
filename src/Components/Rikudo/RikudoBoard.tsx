@@ -131,7 +131,8 @@ export default function RikudoBoard(props: RikudoBoardProps) {
     };
 
     return (
-        <div className="rikudo-board" style={{aspectRatio: `${board.width} / ${board.height}`}}>
+        <div className="rikudo-board"
+             style={{aspectRatio: `${board.width} / ${board.height}`, "--board-ratio": board.width / board.height} as CSSProperties}>
             {/* Case centrale vide */}
             <div className="rikudo-hole" style={{...cellStyle, ...position(0, 0)}} aria-hidden/>
 

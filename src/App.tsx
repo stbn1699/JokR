@@ -14,7 +14,8 @@
 
 import "./App.css";
 import GameList from "./Components/GameList/GameList.tsx";
-import {Route, Routes} from "react-router-dom";
+import {Route, Routes, useLocation} from "react-router-dom";
+import {isGameRoute} from "./Services/routes.ts";
 import PlayGame from "./Components/PlayGame/PlayGame.tsx";
 import Login from "./Components/UserSection/Login/Login.tsx";
 import Register from "./Components/UserSection/Register/Register.tsx";
@@ -32,8 +33,11 @@ import AppFooter from "./Components/AppFooter/AppFooter.tsx";
  * @returns JSX du composant App avec toutes les routes définies
  */
 function App() {
+    // Pages de jeu : sur téléphone, l'app occupe exactement l'écran (pas de défilement pendant une partie)
+    const inGame = isGameRoute(useLocation().pathname);
+
     return (
-        <div className="app-root">
+        <div className={`app-root ${inGame ? "in-game" : ""}`}>
             <Header/>
             <Routes>
                 <Route path="/" element={<GameList/>}/>

@@ -19,6 +19,9 @@
 	box-shadow    : 0 1rem 2rem rgba(0, 0, 0, 0.6);
 	width         : min(36rem, calc(100vw - 2rem));
 	box-sizing    : border-box; // marges intérieures comprises dans la largeur
+	// Jamais plus haute que l'écran (petit téléphone) : son contenu défile alors à l'intérieur
+	max-height    : calc(100dvh - 2rem);
+	overflow-y    : auto;
 	text-align    : center;
 	border        : 2px solid rgba(255, 255, 255, 0.06);
 

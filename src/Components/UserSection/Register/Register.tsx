@@ -51,6 +51,9 @@ export default function Register() {
                     <input
                         id="username"
                         name="username"
+                        autoComplete="username"
+                        autoCapitalize="none"
+                        spellCheck={false}
                         placeholder="Nom d'utilisateur"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
@@ -60,6 +63,7 @@ export default function Register() {
                         id="email"
                         name="email"
                         type="email"
+                        autoComplete="email"
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -69,6 +73,7 @@ export default function Register() {
                         id="password"
                         name="password"
                         type="password"
+                        autoComplete="new-password"
                         placeholder="Mot de passe"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -78,7 +83,8 @@ export default function Register() {
                         id="confirmPassword"
                         name="confirmPassword"
                         type="password"
-                        placeholder="Confirmation du mot de passe"
+                        autoComplete="new-password"
+                        placeholder="Confirmer le mot de passe"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                     />

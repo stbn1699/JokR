@@ -16,6 +16,14 @@
 		box-sizing     : border-box;
 	}
 
+	.profile-head,
+	.profile-head-info {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		width          : 100%;
+	}
+
 	.profile-level-icon {
 		width      : 7rem;
 		height     : 7rem;
@@ -232,7 +240,52 @@
 		padding : 1rem;
 
 		.profile-card {
-			padding : 1.25rem 0.75rem;
+			padding : 1rem 0.75rem;
+		}
+
+		// En-tête compact : icône à gauche, nom / niveau / XP / crédits à droite
+		.profile-head {
+			flex-direction : row;
+			align-items    : center;
+			gap            : 0.9rem;
+		}
+
+		.profile-level-icon {
+			flex   : none;
+			width  : 4.5rem;
+			height : 4.5rem;
+		}
+
+		.profile-head-info {
+			flex        : 1;
+			min-width   : 0;
+			align-items : flex-start;
+			text-align  : left;
+
+			h1 {
+				max-width     : 100%;
+				margin        : 0;
+				overflow      : hidden;
+				text-overflow : ellipsis;
+				white-space   : nowrap;
+				font-size     : 1.9rem;
+			}
+
+			.profile-level {
+				margin    : 0;
+				font-size : 1.15rem;
+			}
+
+			.profile-xp {
+				width  : 100%;
+				margin : 0.3rem 0 0;
+			}
+
+			.profile-xp-label,
+			.profile-credits {
+				margin    : 0.2rem 0 0;
+				font-size : 1.05rem;
+			}
 		}
 
 		.profile-stats {

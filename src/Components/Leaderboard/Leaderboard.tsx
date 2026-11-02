@@ -7,7 +7,7 @@
  */
 
 import "./Leaderboard.scss";
-import {type ReactNode, useEffect, useMemo, useState} from "react";
+import {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import {useSearchParams} from "react-router-dom";
 import {FaMedal} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
@@ -21,12 +21,13 @@ import DayStrip from "../DailyHistory/DayStrip.tsx";
 import {useDailyMonth} from "../DailyHistory/useDailyMonth.ts";
 import {daysOfMonth, longDate} from "../DailyHistory/calendar.ts";
 
+// `short` : libellé sur téléphone
 const TABS = [
-    {id: "xp", label: "XP globale"},
-    {id: "sudoku", label: "Sudoku"},
-    {id: "binero", label: "Binero"},
-    {id: "rikudo", label: "Rikudo"},
-    {id: "defi", label: "Défi du jour"},
+    {id: "xp", label: "XP globale", short: "XP"},
+    {id: "sudoku", label: "Sudoku", short: "Sudoku"},
+    {id: "binero", label: "Binero", short: "Binero"},
+    {id: "rikudo", label: "Rikudo", short: "Rikudo"},
+    {id: "defi", label: "Défi du jour", short: "Défi"},
 ] as const;
 type Tab = typeof TABS[number]["id"];
 
@@ -62,6 +63,15 @@ export default function Leaderboard() {
         if (available.has(month.today)) return month.today;
         return month.days[0]?.date ?? null;
     }, [month, dateParam, available]);
+
+    // Téléphone : les onglets peuvent dépasser, on fait défiler jusqu'à celui qui est choisi
+    const tabsRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const bar = tabsRef.current;
+        const selected = bar?.querySelector<HTMLElement>("button.selected");
+        if (!bar || !selected || bar.scrollWidth <= bar.clientWidth) return;
+        bar.scrollLeft = selected.offsetLeft - (bar.clientWidth - selected.clientWidth) / 2;
+    }, [tab]);
 
     const [board, setBoard] = useState<Board | null>(null);
     const [daily, setDaily] = useState<DailyLeaderboard | null>(null);
@@ -130,12 +140,13 @@ export default function Leaderboard() {
             <section className="leaderboard-card">
                 <h1>Classements</h1>
 
-                <div className="leaderboard-tabs" role="tablist">
+                <div className="leaderboard-tabs" role="tablist" ref={tabsRef}>
                     {TABS.map(t => (
                         <button key={t.id} type="button" role="tab" aria-selected={tab === t.id}
                                 className={`${tab === t.id ? "selected" : ""} ${t.id === "defi" ? "daily" : ""}`}
                                 onClick={() => select(t.id === "defi" ? dailyParams() : {onglet: t.id})}>
-                            {t.label}
+                            <span className="tab-long">{t.label}</span>
+                            <span className="tab-short" aria-hidden>{t.short}</span>
                         </button>
                     ))}
                 </div>

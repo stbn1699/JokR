@@ -83,15 +83,20 @@ export default function Profile() {
     return (
         <main className="profile">
             <section className="profile-card">
-                <img src={levelIconSrc(level)} alt={`Niveau ${level}`} className="profile-level-icon"/>
-                <h1>{username ?? "…"}</h1>
-                <p className="profile-level">Niveau {level}</p>
+                {/* Icône de niveau puis infos : en colonne sur grand écran, côte à côte sur téléphone */}
+                <div className="profile-head">
+                    <img src={levelIconSrc(level)} alt={`Niveau ${level}`} className="profile-level-icon"/>
+                    <div className="profile-head-info">
+                        <h1>{username ?? "…"}</h1>
+                        <p className="profile-level">Niveau {level}</p>
 
-                <div className="profile-xp" title={`${xp} / ${xpNextLevel} xp`}>
-                    <div className="profile-xp-fill" style={{width: `${xpPercent}%`}}/>
+                        <div className="profile-xp" title={`${xp} / ${xpNextLevel} xp`}>
+                            <div className="profile-xp-fill" style={{width: `${xpPercent}%`}}/>
+                        </div>
+                        <p className="profile-xp-label">{xp} / {xpNextLevel} xp</p>
+                        <p className="profile-credits"><FaCoins aria-hidden/> {credits} crédit{credits > 1 ? "s" : ""}</p>
+                    </div>
                 </div>
-                <p className="profile-xp-label">{xp} / {xpNextLevel} xp</p>
-                <p className="profile-credits"><FaCoins aria-hidden/> {credits} crédit{credits > 1 ? "s" : ""}</p>
 
                 <h2>Mes jeux</h2>
                 {error && <p className="profile-error">{error}</p>}

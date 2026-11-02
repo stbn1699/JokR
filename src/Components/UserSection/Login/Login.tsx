@@ -101,6 +101,9 @@ export default function Login() {
                     <input
                         id="identifier"
                         name="identifier"
+                        autoComplete="username"
+                        autoCapitalize="none"
+                        spellCheck={false}
                         placeholder="Nom d'utilisateur ou email"
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
@@ -111,6 +114,7 @@ export default function Login() {
                         id="password"
                         name="password"
                         type="password"
+                        autoComplete="current-password"
                         placeholder="Mot de passe"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

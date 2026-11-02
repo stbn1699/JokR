@@ -18,7 +18,11 @@
 		font-size : 3.2rem;
 	}
 
-	// ---------- Onglets : barre segmentée
+	// ---------- Onglets : barre segmentée (libellé court sur téléphone)
+	.tab-short {
+		display : none;
+	}
+
 	.leaderboard-tabs {
 		display       : inline-flex;
 		flex-wrap     : wrap;
@@ -270,23 +274,59 @@
 
 @media (max-width: 700px) {
 	.leaderboard {
-		padding : 1rem;
+		padding : 0.5rem;
 
 		.leaderboard-card {
-			padding : 1.25rem 0.75rem;
+			padding      : 0.9rem 0.6rem;
+			border-width : 2px;
 		}
 
 		h1 {
-			font-size : 2.4rem;
+			margin    : 0 0 0.75rem;
+			font-size : 2.1rem;
 		}
 
+		// Onglets sur une seule ligne, qu'on fait glisser si besoin
 		.leaderboard-tabs {
-			border-radius : 16px;
+			display         : flex;
+			flex-wrap       : nowrap;
+			justify-content : flex-start;
+			max-width       : 100%;
+			box-sizing      : border-box;
+			margin-bottom   : 0.75rem;
+			overflow-x      : auto;
+			scrollbar-width : none;
+
+			&::-webkit-scrollbar {
+				display : none;
+			}
+
+			// Référence des positions (pour faire défiler jusqu'à l'onglet choisi)
+			position : relative;
 
 			button {
-				padding   : 0.4rem 0.8rem;
-				font-size : 1.1rem;
+				flex        : none;
+				padding     : 0.4rem 0.6rem;
+				font-size   : 1.1rem;
+				white-space : nowrap;
 			}
+
+			.tab-long {
+				display : none;
+			}
+
+			.tab-short {
+				display : inline;
+			}
+		}
+
+		.leaderboard-date {
+			margin-top : 0.4rem;
+			font-size  : 1.25rem;
+		}
+
+		.podium {
+			margin : 1rem 0 0.75rem;
 		}
 
 		.podium {

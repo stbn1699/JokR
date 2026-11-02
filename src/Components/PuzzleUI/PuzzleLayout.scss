@@ -424,3 +424,237 @@
 		text-transform : none;
 	}
 }
+
+// ---------- Barre d'outils (téléphone uniquement)
+.game-toolbar {
+	display : none;
+}
+
+// =====================================================================
+// Téléphone et tablette : la partie tient dans l'écran, sans défilement
+// barre d'outils / grille (prend toute la place restante) / pavé / Valider
+// =====================================================================
+@media (max-width: 1100px) {
+	.app-root.in-game {
+		display        : flex;
+		flex-direction : column;
+		height         : 100dvh;
+		overflow       : hidden;
+
+		.header {
+			flex : none;
+		}
+	}
+
+	.puzzle-layout {
+		flex           : 1;
+		min-height     : 0;
+		box-sizing     : border-box;
+		width          : 100%;
+		display        : flex;
+		flex-direction : column;
+		align-items    : stretch;
+		gap            : 0.5rem;
+		padding        : 0 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
+
+		// Barre d'outils : nom du jeu, chrono, annuler / rétablir, erreurs, règles
+		.game-toolbar {
+			order       : 0;
+			flex        : none;
+			display     : flex;
+			align-items : center;
+			gap         : 0.5rem;
+			min-height  : 2.6rem;
+
+			.game-timer {
+				font-size : 1.35rem;
+
+				.game-timer-icon {
+					font-size : 1rem;
+				}
+			}
+		}
+
+		.game-toolbar-title {
+			flex           : 1;
+			min-width      : 0;
+			display        : flex;
+			flex-direction : column;
+			line-height    : 1.1;
+
+			strong {
+				font-size : 1.6rem;
+			}
+		}
+
+		.game-toolbar-label {
+			overflow      : hidden;
+			text-overflow : ellipsis;
+			white-space   : nowrap;
+			color         : #fbbf24;
+			font-size     : 0.95rem;
+
+			.daily-x2 {
+				padding       : 0 0.35rem;
+				border-radius : 999px;
+				background    : #f59e0b;
+				color         : #1f1300;
+				font-weight   : 700;
+			}
+		}
+
+		.game-toolbar-buttons {
+			display : flex;
+			gap     : 0.3rem;
+
+			button {
+				position        : relative;
+				display         : flex;
+				align-items     : center;
+				justify-content : center;
+				width           : 2.4rem;
+				height          : 2.4rem;
+				padding         : 0;
+				border          : 2px solid rgba(229, 231, 235, 0.35);
+				border-radius   : 10px;
+				background      : rgba(2, 6, 23, 0.45);
+				color           : #f9fafb;
+				font-size       : 1rem;
+				cursor          : pointer;
+
+				&:disabled {
+					opacity : 0.3;
+				}
+
+				&.errors.active {
+					border-color : #f87171;
+					color        : #f87171;
+				}
+			}
+		}
+
+		.game-toolbar-count {
+			position      : absolute;
+			top           : -0.45rem;
+			right         : -0.45rem;
+			min-width     : 1.1rem;
+			padding       : 0 0.25rem;
+			border-radius : 999px;
+			background    : #f87171;
+			color         : #1f0a0a;
+			font-size     : 0.75rem;
+			font-weight   : 700;
+		}
+
+		// Grille : toute la place restante ; sa taille se règle sur cette zone (unités cqw / cqh)
+		.game {
+			order           : 1;
+			flex            : 1;
+			min-height      : 0;
+			justify-content : center;
+			container-type  : size;
+
+			.title,
+			.daily-label {
+				display : none;
+			}
+		}
+
+		// Pavé de chiffres sous la grille, sans cadre ni titre
+		.options {
+			order      : 2;
+			flex       : none;
+			width      : 100%;
+			height     : auto;
+			margin     : 0;
+			padding    : 0;
+			border     : none;
+			background : none;
+
+			h2,
+			.digit-hint {
+				display : none;
+			}
+
+			.digit-pad {
+				grid-template-columns : repeat(6, 1fr);
+				gap                   : 0.35rem;
+				padding               : 0;
+			}
+
+			.digit {
+				aspect-ratio : auto;
+				height       : 3rem;
+				padding      : 0;
+
+				.digit-value {
+					font-size : 1.7rem;
+				}
+
+				.digit-remaining {
+					font-size : 0.75rem;
+				}
+			}
+		}
+
+		// Seul le bouton Valider reste en bas (le reste est dans la barre d'outils)
+		.actions {
+			order      : 3;
+			flex       : none;
+			display    : block;
+			width      : 100%;
+			height     : auto;
+			margin     : 0;
+			padding    : 0;
+			border     : none;
+			background : none;
+
+			> :not(.validate-button):not(.game-notice) {
+				display : none;
+			}
+
+			.validate-button {
+				width     : 100%;
+				height    : 3.2rem;
+				padding   : 0;
+				font-size : 1.9rem;
+
+				&:hover {
+					transform : none;
+				}
+			}
+
+			// Message (grille incomplète, fausse…) : par-dessus le jeu, juste au-dessus de Valider
+			.game-notice {
+				position : fixed;
+				left     : 0.75rem;
+				right    : 0.75rem;
+				bottom   : calc(4.5rem + env(safe-area-inset-bottom));
+				z-index  : 20;
+				margin   : 0;
+				background : #3b0d0d;
+				box-shadow : 0 0.5rem 1.5rem rgba(0, 0, 0, 0.5);
+			}
+		}
+	}
+}
+
+// Règles du jeu dans une popup (bouton « ? » de la barre d'outils)
+.modal.game-rules-modal {
+	text-align : left;
+
+	h2 {
+		text-align : center;
+	}
+
+	ul {
+		margin       : 0.5rem 0 1rem;
+		padding-left : 1.2rem;
+		font-size    : 1.2rem;
+		line-height  : 1.4;
+
+		li {
+			margin-bottom : 0.5rem;
+		}
+	}
+}

@@ -16,6 +16,7 @@ import "../PuzzleUI/PuzzleLayout.scss";
 import "./Sudoku.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
 import {useEffect} from "react";
@@ -100,8 +101,25 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
         dismissResumable();
     };
 
+    const rules = (
+        <ul>
+            <li>Chaque ligne, chaque colonne et chaque bloc 3×3 contient les chiffres de 1 à 9, une fois chacun</li>
+            <li>Mode notes (✏) : pour noter les chiffres possibles en petit dans une case</li>
+        </ul>
+    );
+
     return (
         <div className="puzzle-layout sudoku">
+            <GameToolbar
+                gameName="Sudoku"
+                label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                    : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : undefined}
+                clock={flow.clock}
+                canUndo={playing && canUndo} canRedo={playing && canRedo}
+                onUndo={undo} onRedo={redo}
+                showErrors={showErrors} onToggleErrors={setShowErrors} errorCount={conflicts.size}
+                rules={rules}
+            />
             <DigitPanel digits={DIGITS} perDigit={9} counts={digitCounts} selected={selectedDigit}
                         onSelect={n => pressDigit(n) || toggleDigit(n)}
                         onErase={() => fillSelected(null)}

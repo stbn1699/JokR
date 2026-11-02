@@ -14,6 +14,7 @@ import "./Binero.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
 import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
@@ -93,8 +94,26 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
         void flow.generate(() => game.generate(size, emptyCells));
     };
 
+    const rules = (
+        <ul>
+            <li>Jamais trois 0 ou trois 1 côte à côte</li>
+            <li>Autant de 0 que de 1 sur chaque ligne et chaque colonne</li>
+            <li>Deux lignes (ou deux colonnes) ne peuvent pas être identiques</li>
+        </ul>
+    );
+
     return (
         <div className="puzzle-layout binero">
+            <GameToolbar
+                gameName="Binero"
+                label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                    : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : undefined}
+                clock={flow.clock}
+                canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
+                onUndo={game.undo} onRedo={game.redo}
+                showErrors={showErrors} onToggleErrors={setShowErrors} errorCount={conflicts.size}
+                rules={rules}
+            />
             <DigitPanel
                 digits={DIGITS}
                 perDigit={(game.size * game.size) / 2}
@@ -146,11 +165,7 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
 
                 <div className="rules">
                     <h3>Règles</h3>
-                    <ul>
-                        <li>Jamais trois 0 ou trois 1 côte à côte</li>
-                        <li>Autant de 0 que de 1 sur chaque ligne et chaque colonne</li>
-                        <li>Deux lignes (ou deux colonnes) ne peuvent pas être identiques</li>
-                    </ul>
+                    {rules}
                     <p className="rules-keys">Clavier : <kbd>0</kbd> <kbd>1</kbd> pour remplir, <kbd>⌫</kbd> pour
                         vider, flèches pour se déplacer</p>
                 </div>

@@ -14,6 +14,7 @@ import "../PuzzleUI/PuzzleLayout.scss";
 import "./Rikudo.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
 import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
@@ -82,6 +83,20 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
     );
     useUndoShortcuts(game.undo, game.redo, playing);
 
+    // Nombre probablement attendu dans la case choisie (un voisin ± 1, pas encore posé) : la bande de nombres
+    // du téléphone défile jusqu'à lui
+    const focusNumber = useMemo(() => {
+        if (selectedCell === null || !game.board) return null;
+        for (const neighbor of game.board.neighbors[selectedCell] ?? []) {
+            const v = game.values[neighbor];
+            if (v === null || v === undefined) continue;
+            for (const candidate of [v + 1, v - 1]) {
+                if (candidate >= 1 && candidate <= game.board.size && !placed[candidate]) return candidate;
+            }
+        }
+        return null;
+    }, [selectedCell, game.board, game.values, placed]);
+
     // Case sélectionnée modifiable (pas un nombre donné)
     const editableSelection = selectedCell !== null && !game.isClue(selectedCell) ? selectedCell : null;
 
@@ -105,14 +120,33 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
         void flow.generate(() => game.generate(size, emptyCells));
     };
 
+    const rules = (
+        <ul>
+            <li>Place les nombres de 1 à {game.board?.size ?? "N"}, une fois chacun</li>
+            <li>Deux nombres qui se suivent sont dans des cases voisines : on peut aller de 1 à {game.board?.size ?? "N"} de case en case</li>
+            <li>Un point entre deux cases : leurs nombres se suivent</li>
+        </ul>
+    );
+
     return (
         <div className="puzzle-layout rikudo">
+            <GameToolbar
+                gameName="Rikudo"
+                label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                    : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : undefined}
+                clock={flow.clock}
+                canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
+                onUndo={game.undo} onRedo={game.redo}
+                showErrors={showErrors} onToggleErrors={setShowErrors} errorCount={conflicts.size}
+                rules={rules}
+            />
             <RikudoNumberPanel
                 size={game.board?.size ?? 0}
                 placed={placed}
                 selected={selectedNumber}
                 onSelect={handleNumber}
                 onErase={() => editableSelection !== null && game.setCell(editableSelection, null)}
+                focusNumber={focusNumber}
             />
 
             <div className="game">
@@ -159,11 +193,7 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
 
                 <div className="rules">
                     <h3>Règles</h3>
-                    <ul>
-                        <li>Place les nombres de 1 à {game.board?.size ?? "N"}, une fois chacun</li>
-                        <li>Deux nombres qui se suivent sont dans des cases voisines : on peut aller de 1 à {game.board?.size ?? "N"} de case en case</li>
-                        <li>Un point entre deux cases : leurs nombres se suivent</li>
-                    </ul>
+                    {rules}
                     <p className="rules-keys">Clavier : tape le nombre (<kbd>2</kbd> <kbd>7</kbd> pour 27), <kbd>⌫</kbd> pour
                         vider, flèches pour se déplacer</p>
                 </div>

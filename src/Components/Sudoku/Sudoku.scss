@@ -140,3 +140,11 @@
 .sudoku .game .grid.notes-mode .cell:focus {
 	border-color : #93c5fd !important;
 }
+
+// Téléphone : la grille remplit la zone de jeu (largeur ou hauteur, la plus petite des deux)
+@media (max-width: 1100px) {
+	.puzzle-layout.sudoku .game {
+		// - 6px : bordure de la grille (3px de chaque côté)
+		--cell-size : calc((min(100cqw, 100cqh) - 6px) / 9);
+	}
+}

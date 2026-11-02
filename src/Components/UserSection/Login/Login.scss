@@ -84,9 +84,9 @@
 // Connexion / inscription sur téléphone : le formulaire prend la largeur de l'écran
 @media (max-width: 600px) {
 	.login {
-		width      : calc(100vw - 2rem);
+		width      : calc(100vw - 1rem);
 		height     : auto;
-		margin     : 2rem auto;
+		margin     : 1rem auto;
 		box-sizing : border-box;
 
 		&:hover {
@@ -94,10 +94,11 @@
 		}
 
 		form {
-			gap : 1.2rem;
+			gap : 1rem;
 
 			h1 {
-				font-size : 3.2rem;
+				margin    : 0;
+				font-size : 2.6rem;
 			}
 
 			input {

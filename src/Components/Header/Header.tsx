@@ -16,6 +16,7 @@ import {FaCoins, FaSignOutAlt, FaUser, FaUserCircle} from "react-icons/fa";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {levelIconSrc, xpToNextLevel} from "../../Services/leveling.ts";
+import {isGameRoute} from "../../Services/routes.ts";
 
 // Onglets du header ; `match` dit si une adresse appartient à l'onglet, `highlight` le met en orange
 const TABS = [
@@ -39,7 +40,7 @@ export default function Header() {
     };
 
     return (
-        <div className="header">
+        <div className={`header ${isGameRoute(pathname) ? "in-game" : ""}`}>
             <img
                 src="/JokR_Logo_Full.svg"
                 alt="logo"

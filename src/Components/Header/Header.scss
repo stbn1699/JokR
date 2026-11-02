@@ -200,3 +200,21 @@
 		display : none;
 	}
 }
+
+// Téléphone, pendant une partie : une seule ligne (logo et profil), les onglets laissent la place au jeu
+@media (max-width: 760px) {
+	.header.in-game {
+		min-height : 0;
+		height     : 3rem;
+		margin     : 0.4rem;
+		padding    : 0 0.75rem;
+
+		.logo {
+			height : 1.9rem;
+		}
+
+		.header-tabs {
+			display : none;
+		}
+	}
+}

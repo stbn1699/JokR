@@ -110,3 +110,17 @@
 		}
 	}
 }
+
+// Téléphone : la grille remplit la zone de jeu, le pavé (0, 1, effacer) tient sur une ligne
+@media (max-width: 1100px) {
+	.puzzle-layout.binero {
+		.game {
+			// - 6px : bordure de la grille (3px de chaque côté)
+			--grid-width : calc(min(100cqw, 100cqh) - 6px);
+		}
+
+		.options .digit-pad {
+			grid-template-columns : repeat(3, 1fr);
+		}
+	}
+}
