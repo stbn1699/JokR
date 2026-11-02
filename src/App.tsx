@@ -14,7 +14,8 @@
 
 import "./App.css";
 import GameList from "./Components/GameList/GameList.tsx";
-import {Route, Routes, useLocation} from "react-router-dom";
+import {Route, Routes, useLocation, useNavigationType} from "react-router-dom";
+import {useEffect} from "react";
 import {isGameRoute} from "./Services/routes.ts";
 import PlayGame from "./Components/PlayGame/PlayGame.tsx";
 import Login from "./Components/UserSection/Login/Login.tsx";
@@ -34,7 +35,15 @@ import AppFooter from "./Components/AppFooter/AppFooter.tsx";
  */
 function App() {
     // Pages de jeu : sur téléphone, l'app occupe exactement l'écran (pas de défilement pendant une partie)
-    const inGame = isGameRoute(useLocation().pathname);
+    const {pathname} = useLocation();
+    const inGame = isGameRoute(pathname);
+
+    // Nouvelle page : on repart du haut (sinon on garde la position de la page précédente, ex. le lien
+    // Nouveautés tout en bas sur téléphone). Retour arrière / avant : le navigateur garde sa position.
+    const navigationType = useNavigationType();
+    useEffect(() => {
+        if (navigationType !== "POP") window.scrollTo(0, 0);
+    }, [pathname, navigationType]);
 
     return (
         <div className={`app-root ${inGame ? "in-game" : ""}`}>
