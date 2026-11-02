@@ -7,6 +7,7 @@
  * - user_level : niveau de l'utilisateur dans le système de progression
  * - user_xp : XP courante de l'utilisateur
  * - credits : crédits à miser sur les jeux de hasard
+ * - is_admin : accès à la page Statistiques (jamais renvoyé dans un profil public)
  */
 export type User = {
 	id: string;
@@ -16,4 +17,5 @@ export type User = {
     user_level: number;
     user_xp: number;
     credits: number;
+    is_admin: boolean;
 };

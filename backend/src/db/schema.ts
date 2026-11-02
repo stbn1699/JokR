@@ -22,6 +22,8 @@ export type UsersTable = {
     created_at: Generated<Date>;
     // Dernière activité (requête authentifiée), null si jamais vu depuis l'ajout de la colonne
     last_seen_at: Date | null;
+    // Administrateur (page Statistiques) : modifié directement en base, sans redémarrage
+    is_admin: Generated<boolean>;
 };
 
 export type GameStatsTable = {

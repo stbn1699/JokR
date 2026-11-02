@@ -72,6 +72,12 @@ export class UsersService {
         const user = await this.findByUuid(userId);
         return user ? toPublicUser(user) : undefined;
     }
+
+    // Profil du joueur connecté : profil public + accès administrateur
+    async getMe(userId: string): Promise<(PublicUser & { isAdmin: boolean }) | undefined> {
+        const user = await this.findByUuid(userId);
+        return user ? {...toPublicUser(user), isAdmin: user.is_admin === true} : undefined;
+    }
 }
 
 export class UserAlreadyExistsError extends Error {

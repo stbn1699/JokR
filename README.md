@@ -173,8 +173,13 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
 | `MIGRATIONS_DIR` | `/app/migrations`   | migrations appliquées au démarrage                     |
 | `TRUST_PROXY`    | (compose : `1`)     | nombre de proxys devant le serveur, pour la vraie IP    |
 
-`ADMIN_USERNAMES` (dans `.env`) : noms d'utilisateur administrateurs, séparés par des virgules.
-Ils voient l'icône Statistiques dans le header et la page `/stats`.
+Administrateurs : colonne `users.is_admin` en base, effet immédiat (sans redémarrer). Ils voient l'icône
+Statistiques dans le header et la page `/stats`.
+
+```sql
+update users set is_admin = true  where username = 'pseudo';  -- ajouter
+update users set is_admin = false where username = 'pseudo';  -- retirer
+```
 
 ## Fonctionnement
 

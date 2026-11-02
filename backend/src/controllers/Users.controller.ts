@@ -5,7 +5,6 @@ import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import {config} from "../config.js";
 import {isUuid, routeParam} from "../utils/validation.js";
 import type {AuthLocals} from "../middleware/auth.js";
-import {isAdminUsername} from "../utils/admin.js";
 import type {GameResultsRepository} from "../repository/GameResults.repository.js";
 
 /*
@@ -83,9 +82,9 @@ export function createUsersController(service: UsersService, results: GameResult
 
         // Profil du joueur connecté (route protégée par requireAuth)
         me: asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
-            const user = await service.getByUserId(res.locals.userId!);
+            const user = await service.getMe(res.locals.userId!);
             if (!user) return res.status(404).json({status: 'error', message: 'Utilisateur introuvable'});
-            res.status(200).json({status: 'ok', data: {...user, isAdmin: isAdminUsername(user.username)}});
+            res.status(200).json({status: 'ok', data: user});
         }),
 
         // Parties gagnées par le joueur connecté, par pages : ?limit=10&offset=0 (limit ≤ 50)
