@@ -3,6 +3,16 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 1.3.0 — 2 novembre 2026
+
+### UX
+- validation des grilles de sudoku, binero et rikudo automatiques lorsque toutes les cases sont remplies
+
+### UI
+- ajout des règles du sudoku dans le panneau droite
+- transformation du point vert dans le sélecteur de jours du défi du jour en un point doré si toutes les grilles sont validées
+
+
 ## 1.2.0 — 2 novembre 2026
 
 Crédits, défis du jour revus, nouvelle progression et version mobile repensée.
