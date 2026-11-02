@@ -14,6 +14,9 @@ Jeux disponibles :
 - **Galaxies** (Tentai Show) : grille de 5×5 à 10×10 avec des points. Tracer des murs entre les cases pour la
   découper en galaxies : chacune contient un seul point et reste identique après un demi-tour autour de lui.
   Le réglage avant la partie est le nombre de murs déjà tracés en aide ; une galaxie terminée se colore.
+- **Shikaku** (Rectangles) : grille de 5×5 à 15×15 avec des nombres. La découper en rectangles qui contiennent
+  chacun un seul nombre, égal à leur aire. On trace un rectangle en glissant d'une case à l'autre ; le réglage
+  avant la partie est le nombre de rectangles déjà tracés en aide.
 
 Avant chaque partie, une popup permet de choisir les paramètres (taille, nombre de cases à remplir)
 et affiche l'XP gagnée à la résolution.
@@ -31,7 +34,7 @@ En jeu :
 Autour des jeux :
 
 - **Défi du jour** : une grille Sudoku (9×9, 45 cases), une Binero (10×10, 50 cases), un Rikudo (60 cases,
-  40 à remplir) un Tectonic (7×7, 34 cases) et une Galaxies (7×7, sans aide) par jour, les mêmes pour tout le monde, avec un classement au temps. Une seule réussite comptée
+  40 à remplir) un Tectonic (7×7, 34 cases), une Galaxies (7×7, sans aide) et un Shikaku (10×10, sans aide) par jour, les mêmes pour tout le monde, avec un classement au temps. Une seule réussite comptée
   par jour (XP et classement), avec XP et crédits doublés. Le jour change à minuit, heure de Paris : le serveur génère alors les grilles du
   nouveau jour (et au démarrage si elles manquent), et les pages ouvertes se mettent à jour d'elles-mêmes
   quelques secondes après minuit. Tous les défis (mois par mois, jour par jour) sont sur `/defi` ; ceux des jours passés se rejouent :
@@ -242,6 +245,10 @@ update users set is_admin = false where username = 'pseudo';  -- retirer
 | POST    | `/galaxies/generate`       | –         | `{ size, hints }` → `{ gameId, puzzle: { width, height, dots, walls } }` |
 | GET     | `/galaxies/games/:gameId`  | –         | partie en cours (pour la reprendre)       |
 | POST    | `/galaxies/validate`       | optionnel | valide `{ gameId, regions }`, XP si connecté |
+| GET     | `/shikaku/settings`        | –         | tailles, rectangles donnés possibles et XP |
+| POST    | `/shikaku/generate`        | –         | `{ size, hints }` → `{ gameId, puzzle: { width, height, clues, rects } }` |
+| GET     | `/shikaku/games/:gameId`   | –         | partie en cours (pour la reprendre)       |
+| POST    | `/shikaku/validate`        | optionnel | valide `{ gameId, regions }`, XP si connecté |
 | GET     | `/daily`                   | optionnel | défis du jour (et résultats du joueur)    |
 | POST    | `/daily/:game/start`       | oui       | commence le défi du jour                  |
 | GET     | `/daily/history?month=`    | optionnel | défis d'un mois (AAAA-MM), aujourd'hui compris |

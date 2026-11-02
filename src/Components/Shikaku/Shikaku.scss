@@ -1,0 +1,112 @@
+// Plateau du Shikaku (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.shikaku {
+	.game {
+		// Même largeur que les autres grilles (9 × 4.5rem), moins sur un écran étroit
+		--grid-width : min(40.5rem, calc(100vw - 2rem));
+	}
+
+	.shikaku-board {
+		width         : var(--grid-width);
+		border-radius : 10px;
+		background    : #02061760;
+		outline       : none;
+
+		&:focus-visible {
+			box-shadow : 0 0 0 3px rgba(147, 197, 253, 0.6);
+		}
+
+		svg {
+			display      : block;
+			width        : 100%;
+			height       : auto;
+			cursor       : crosshair;
+			// Le glissé trace un rectangle : pas de défilement ni de zoom du navigateur
+			touch-action : none;
+			user-select  : none;
+		}
+	}
+
+	.shikaku-gridline {
+		stroke       : rgba(229, 231, 235, 0.22);
+		stroke-width : 0.25;
+	}
+
+	.shikaku-rect {
+		stroke       : #f9fafb;
+		stroke-width : 0.8;
+		transition   : fill 0.2s ease;
+
+		// Rectangles donnés au départ : bord plus discret
+		&.hint {
+			stroke : #cbd5e1;
+		}
+	}
+
+	.shikaku-preview {
+		rect {
+			fill             : rgba(147, 197, 253, 0.18);
+			stroke           : #93c5fd;
+			stroke-width     : 0.8;
+			stroke-dasharray : 2 1.2;
+		}
+
+		text {
+			fill        : #93c5fd;
+			font-size   : 3.6px;
+			font-weight : 700;
+			text-anchor : end;
+		}
+	}
+
+	.shikaku-frame {
+		fill         : none;
+		stroke       : #e5e7eb;
+		stroke-width : 1.2;
+	}
+
+	.shikaku-cursor {
+		fill         : none;
+		stroke       : #93c5fd;
+		stroke-width : 0.5;
+		rx           : 1;
+	}
+
+	.shikaku-clue {
+		fill               : #f9fafb;
+		font-size          : 5.2px;
+		font-weight        : 700;
+		text-anchor        : middle;
+		dominant-baseline  : central;
+		pointer-events     : none;
+	}
+
+	// Panneau de gauche : avancement
+	.options .shikaku-progress {
+		margin     : 1.5rem 1rem 0.5rem;
+		font-size  : 1.5rem;
+		text-align : center;
+
+		strong {
+			font-size : 2.2rem;
+			color     : #3bf644;
+		}
+	}
+}
+
+// Téléphone : le plateau remplit la zone de jeu ; l'avancement tient sur une ligne sous le plateau
+@media (max-width: 1100px) {
+	.puzzle-layout.shikaku {
+		.game {
+			--grid-width : min(100cqw, 100cqh);
+		}
+
+		.options .shikaku-progress {
+			margin    : 0.4rem 0;
+			font-size : 1.2rem;
+
+			strong {
+				font-size : 1.5rem;
+			}
+		}
+	}
+}

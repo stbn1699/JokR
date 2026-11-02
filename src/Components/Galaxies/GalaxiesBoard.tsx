@@ -22,8 +22,8 @@ type GalaxiesBoardProps = {
     showErrors: boolean;
 };
 
-// Couleur d'une galaxie terminée (une teinte par point, bien espacées)
-const galaxyColor = (dot: number) => `hsl(${(dot * 137.5) % 360} 70% 52% / 0.55)`;
+// Couleur d'une galaxie terminée (une teinte par point, bien espacées, jamais rouge : le rouge signale une erreur)
+const galaxyColor = (dot: number) => `hsl(${30 + ((dot * 137.5) % 300)} 70% 52% / 0.55)`;
 
 // Segment d'un mur : [x1, y1, x2, y2] en unités SVG
 function wallSegment(wall: number, width: number, height: number): [number, number, number, number] {

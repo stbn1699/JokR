@@ -3,6 +3,7 @@ import type {BineroGrid} from "../utils/binero.js";
 import type {RikudoPuzzle} from "../utils/rikudo.js";
 import type {TectonicPuzzle} from "../utils/tectonic.js";
 import type {GalaxiesPuzzle} from "../utils/galaxies.js";
+import type {ShikakuPuzzle} from "../utils/shikaku.js";
 
 /*
  * Parties en cours, une mémoire par jeu, partagées entre les routes du jeu
@@ -14,3 +15,5 @@ export const rikudoStore = new PuzzleStore<RikudoPuzzle>();
 export const tectonicStore = new PuzzleStore<TectonicPuzzle>();
 // Galaxies : cluesCount = nombre de murs donnés en aide
 export const galaxiesStore = new PuzzleStore<GalaxiesPuzzle>();
+// Shikaku : cluesCount = nombre de rectangles donnés en aide
+export const shikakuStore = new PuzzleStore<ShikakuPuzzle>();
