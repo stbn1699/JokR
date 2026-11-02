@@ -173,6 +173,9 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
 | `MIGRATIONS_DIR` | `/app/migrations`   | migrations appliquées au démarrage                     |
 | `TRUST_PROXY`    | (compose : `1`)     | nombre de proxys devant le serveur, pour la vraie IP    |
 
+`ADMIN_USERNAMES` (dans `.env`) : noms d'utilisateur administrateurs, séparés par des virgules.
+Ils voient l'icône Statistiques dans le header et la page `/stats`.
+
 ## Fonctionnement
 
 - **Comptes** : le mot de passe est haché en SHA-256 dans le navigateur, puis avec bcrypt côté serveur.
@@ -188,13 +191,18 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
   au début puis se stabilise vers 2 050 XP par niveau. Pour un joueur régulier (~600 XP par jour) :
   niveau 10 en ~1 semaine, niveau 50 en ~3,5 mois, niveau 100 en ~9 mois.
   La formule est dans `backend/src/utils/leveling.ts` et `src/Services/leveling.ts`.
+- **Statistiques** : chaque partie lancée est enregistrée dans `game_sessions` (invités compris) : jeu, mode
+  (libre, défi du jour, défi rejoué), joueur, appareil (lu dans le User-Agent), réglages, début, fin,
+  grilles fausses envoyées. Une partie non finie après 6 h compte comme abandonnée. La dernière activité
+  des joueurs est notée (`users.last_seen_at`). L'accueil trie les jeux par parties lancées sur 30 jours.
+  La page `/stats` (administrateur) affiche tout et exporte les données brutes (JSON, ou CSV des parties).
 
 ## API
 
 | Méthode | Route                      | Auth      | Rôle                                      |
 |---------|----------------------------|-----------|-------------------------------------------|
 | GET     | `/ping`                    | –         | healthcheck                               |
-| GET     | `/games/list`              | –         | liste des jeux                            |
+| GET     | `/games/list`              | –         | liste des jeux, les plus joués d'abord    |
 | GET     | `/games/getBaseXp/:code`   | –         | XP de base d'un jeu                       |
 | POST    | `/users/register`          | –         | inscription (limitée à 5/h par IP)        |
 | POST    | `/users/login`             | –         | connexion (limitée à 10/15 min par IP)    |
@@ -223,3 +231,5 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
 | GET     | `/daily/:game/leaderboard` | optionnel | meilleurs temps du jour (`?date=` passée) |
 | GET     | `/leaderboard/xp`          | optionnel | classement par XP globale                 |
 | GET     | `/leaderboard/games/:game` | optionnel | classement d'un jeu                       |
+| GET     | `/stats`                   | admin     | tous les chiffres de la page Statistiques |
+| GET     | `/stats/export`            | admin     | données brutes (sans email ni mot de passe) |

@@ -6,7 +6,7 @@ import {userService} from "../Services/user.service.ts";
 import {ApiError, AUTH_EXPIRED_EVENT} from "../api/api.ts";
 import type {LoggedUser} from "../Models/loggedUser.model.ts";
 
-const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0, credits: 0};
+const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0, credits: 0, isAdmin: false};
 
 /*
  * Fournit la session à toute l'app.
@@ -31,7 +31,10 @@ export function AuthProvider({children}: { children: ReactNode }) {
         if (!authService.getSession()) return;
         try {
             const user = await userService.getMe();
-            setState({userId: user.id, username: user.username, level: user.user_level, xp: user.user_xp, credits: user.credits});
+            setState({
+                userId: user.id, username: user.username, level: user.user_level, xp: user.user_xp, credits: user.credits,
+                isAdmin: user.isAdmin === true,
+            });
         } catch (err) {
             const status = err instanceof ApiError ? err.status : undefined;
             if (status === 404) logout();
@@ -42,7 +45,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
     const login = useCallback((user: LoggedUser) => {
         authService.saveSession(user.token, user.userId);
-        setState({userId: user.userId, username: null, level: user.userLevel, xp: user.userXp, credits: 0});
+        setState({userId: user.userId, username: null, level: user.userLevel, xp: user.userXp, credits: 0, isAdmin: false});
         void refresh(); // récupère le username et les crédits
     }, [refresh]);
 

@@ -10,6 +10,8 @@ import bineroRoutes from "./routes/Binero.routes.js";
 import rikudoRoutes from "./routes/Rikudo.routes.js";
 import dailyRoutes from "./routes/Daily.routes.js";
 import leaderboardRoutes from "./routes/Leaderboard.routes.js";
+import statsRoutes from "./routes/Stats.routes.js";
+import {tracker} from "./services/tracker.js";
 import {pool} from "./db/pool.js";
 import {migrate} from "./db/migrate.js";
 import {createDb} from "./db/kysely.js";
@@ -39,6 +41,9 @@ api.get("/ping", (_req, res) => {
 	res.status(200).json({status: "ok", message: "pong"});
 });
 
+// Statistiques : dernière activité des joueurs connectés
+api.use(tracker.activity);
+
 // Montage des routes (les routers gèrent leurs propres chemins relatifs)
 api.use("/games", gamesRoutes);
 api.use("/users", usersRoutes);
@@ -48,6 +53,7 @@ api.use("/binero", bineroRoutes);
 api.use("/rikudo", rikudoRoutes);
 api.use("/daily", dailyRoutes);
 api.use("/leaderboard", leaderboardRoutes);
+api.use("/stats", statsRoutes);
 
 if (config.apiPrefix) {
 	// Route d'API inconnue : réponse JSON plutôt que la page du front

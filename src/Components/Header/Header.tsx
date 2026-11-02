@@ -6,13 +6,14 @@
  * - Les onglets Daily (défis du jour, en orange), Puzzle (accueil : Sudoku, Binero, Rikudo…),
  *   Hasard (jeux de hasard, à venir) et Classement
  * - Connecté : icône de niveau, barre d'XP, crédits, accès au profil et déconnexion
+ *   (et aux statistiques pour l'administrateur)
  * - Invité : icône pour aller à la page de connexion
  *
  * Les infos viennent de l'AuthContext : le header se met à jour dès qu'elles changent.
  */
 
 import "./Header.scss"
-import {FaCoins, FaSignOutAlt, FaUser, FaUserCircle} from "react-icons/fa";
+import {FaChartBar, FaCoins, FaSignOutAlt, FaUser, FaUserCircle} from "react-icons/fa";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {levelIconSrc, xpToNextLevel} from "../../Services/leveling.ts";
@@ -29,7 +30,7 @@ const TABS = [
 export default function Header() {
     const navigate = useNavigate();
     const {pathname} = useLocation();
-    const {isLoggedIn, level, xp, credits, logout} = useAuth();
+    const {isLoggedIn, isAdmin, level, xp, credits, logout} = useAuth();
 
     const xpNextLevel = xpToNextLevel(level);
     const xpPercent = Math.min(100, (xp / xpNextLevel) * 100);
@@ -77,6 +78,7 @@ export default function Header() {
                             <span>{credits}</span>
                         </span>
 
+                        {isAdmin && <FaChartBar title="Statistiques" onClick={() => navigate("/stats")}/>}
                         <FaUserCircle title="Mon profil" onClick={() => navigate("/profile")}/>
                         <FaSignOutAlt title="Se déconnecter" onClick={handleLogout}/>
                     </div>

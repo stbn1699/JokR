@@ -25,6 +25,16 @@ function readUserId(req: Request): string | null {
     return payload.sub;
 }
 
+// Id du joueur connecté s'il y en a un, sans jamais refuser la requête (token absent ou invalide = invité).
+// Sert aux statistiques sur des routes ouvertes à tous (génération d'une grille).
+export function peekUserId(req: Request): string | null {
+    try {
+        return readUserId(req);
+    } catch {
+        return null;
+    }
+}
+
 // Refuse la requête si l'utilisateur n'est pas connecté.
 export function requireAuth(req: Request, res: Response<unknown, AuthLocals>, next: NextFunction) {
     try {

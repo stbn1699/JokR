@@ -35,6 +35,9 @@ if (staticDir && !apiPrefix) {
 // Nombre de proxys devant le serveur (reverse proxy du NAS = 1), pour lire la vraie IP du client
 const trustProxy = /^\d+$/.test(process.env.TRUST_PROXY ?? "") ? Number(process.env.TRUST_PROXY) : 0;
 
+// Comptes administrateurs (page Statistiques) : noms d'utilisateur séparés par des virgules
+const adminUsernames = (process.env.ADMIN_USERNAMES ?? "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+
 export const config = {
     port: Number(process.env.PORT ?? 3000),
     // Front servi par le même serveur : pas besoin d'autoriser d'autres origines
@@ -47,4 +50,5 @@ export const config = {
     trustProxy,
     // Dossier des migrations SQL à appliquer au démarrage (image Docker). Vide = rien (en dev : pnpm migrate)
     migrationsDir: process.env.MIGRATIONS_DIR || undefined,
+    adminUsernames,
 } as const;

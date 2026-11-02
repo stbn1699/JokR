@@ -8,6 +8,7 @@ import {type BineroGrid, countBineroClues} from "../utils/binero.js";
 import {sudokuStore, bineroStore, rikudoStore} from "../services/stores.js";
 import {countRikudoClues, type RikudoPuzzle} from "../utils/rikudo.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
+import {tracker} from "../services/tracker.js";
 import {isDateKey, routeParam} from "../utils/validation.js";
 
 const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -77,6 +78,7 @@ export function createDailyController(service: DailyService) {
             const challenge = await service.challenge(code, date);
             const {size, emptyCells} = DAILY_GAMES[code];
             const {gameId, grid} = createGame(code, challenge.puzzle, date);
+            tracker.started(req, {gameId, gameCode: code, mode: "daily", gridSize: size, emptyCells});
             res.status(200).json({status: "ok", data: {date, alreadyDone: false, gameId, grid, size, emptyCells}});
         }),
 
@@ -108,6 +110,7 @@ export function createDailyController(service: DailyService) {
             }
             // Pas de date "daily" : la validation la traite comme une partie normale
             const {gameId, grid} = createGame(code, challenge.puzzle);
+            tracker.started(req, {gameId, gameCode: code, mode: "replay", gridSize: challenge.grid_size, emptyCells: challenge.empty_cells});
             res.status(200).json({
                 status: "ok",
                 data: {date, gameId, grid, size: challenge.grid_size, emptyCells: challenge.empty_cells},

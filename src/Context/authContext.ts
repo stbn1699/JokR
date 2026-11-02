@@ -11,6 +11,8 @@ export type AuthState = {
     level: number;
     xp: number;
     credits: number;
+    // Administrateur : accès à la page Statistiques
+    isAdmin: boolean;
 };
 
 export type AuthContextValue = AuthState & {

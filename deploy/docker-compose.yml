@@ -37,4 +37,5 @@ services:
       JWT_SECRET: ${JWT_SECRET:?à définir dans .env}
       SALTROUNDS: ${SALTROUNDS:-12}
       TRUST_PROXY: ${TRUST_PROXY:-1}
+      ADMIN_USERNAMES: ${ADMIN_USERNAMES:-}
       TZ: Europe/Paris

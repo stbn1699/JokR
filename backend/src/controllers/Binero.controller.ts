@@ -8,6 +8,7 @@ import type {AuthLocals} from "../middleware/auth.js";
 import {DAILY_REWARD_MULTIPLIER, type DailyService} from "../services/Daily.service.js";
 import {type BineroGrid, countBineroClues} from "../utils/binero.js";
 import {routeParam} from "../utils/validation.js";
+import {tracker} from "../services/tracker.js";
 
 const GAME_CODE = "BINERO";
 
@@ -51,6 +52,7 @@ export function createBineroController(
 
             const puzzle = service.generate(size, size * size - emptyCells);
             const gameId = store.create(puzzle, countBineroClues(puzzle));
+            tracker.started(req, {gameId, gameCode: GAME_CODE, mode: "free", gridSize: size, emptyCells});
             res.status(200).json({status: "ok", data: {gameId, grid: toApiGrid(puzzle)}});
         }),
 
@@ -81,6 +83,7 @@ export function createBineroController(
 
             const size = game.puzzle.length;
             if (!service.validate(grid, size) || !service.respectsClues(game.puzzle, grid)) {
+                tracker.failed(gameId);
                 res.status(400).json({status: "error", message: "La grille ne respecte pas les règles"});
                 return;
             }
@@ -90,6 +93,7 @@ export function createBineroController(
 
             // Temps mesuré par le serveur (de la génération à la validation)
             const durationMs = Date.now() - game.createdAt;
+            tracker.finished(gameId, durationMs, res.locals.userId);
 
             const userId = res.locals.userId;
             if (!userId) {

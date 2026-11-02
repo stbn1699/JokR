@@ -28,6 +28,7 @@ import DailyHistory from "./Components/DailyHistory/DailyHistory.tsx";
 import Changelog from "./Components/Changelog/Changelog.tsx";
 import Hasard from "./Components/Hasard/Hasard.tsx";
 import AppFooter from "./Components/AppFooter/AppFooter.tsx";
+import Stats from "./Components/Stats/Stats.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -62,6 +63,7 @@ function App() {
                 <Route path="/classements" element={<Leaderboard/>}/>
                 <Route path="/nouveautes" element={<Changelog/>}/>
                 <Route path="/hasard" element={<Hasard/>}/>
+                <Route path="/stats" element={<Stats/>}/>
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
             <AppFooter/>

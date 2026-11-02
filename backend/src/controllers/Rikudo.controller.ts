@@ -8,6 +8,7 @@ import type {AuthLocals} from "../middleware/auth.js";
 import {DAILY_REWARD_MULTIPLIER, type DailyService} from "../services/Daily.service.js";
 import type {RikudoPuzzle} from "../utils/rikudo.js";
 import {routeParam} from "../utils/validation.js";
+import {tracker} from "../services/tracker.js";
 
 const GAME_CODE = "RIKUDO";
 
@@ -51,6 +52,7 @@ export function createRikudoController(
 
             const puzzle = service.generate(size, size - emptyCells);
             const gameId = store.create(puzzle, service.countClues(puzzle));
+            tracker.started(req, {gameId, gameCode: GAME_CODE, mode: "free", gridSize: size, emptyCells});
             res.status(200).json({status: "ok", data: {gameId, puzzle}});
         }),
 
@@ -80,6 +82,7 @@ export function createRikudoController(
             }
 
             if (!service.validate(game.puzzle, values)) {
+                tracker.failed(gameId);
                 res.status(400).json({status: "error", message: "La grille ne respecte pas les règles"});
                 return;
             }
@@ -89,6 +92,7 @@ export function createRikudoController(
 
             // Temps mesuré par le serveur (de la génération à la validation)
             const durationMs = Date.now() - game.createdAt;
+            tracker.finished(gameId, durationMs, res.locals.userId);
 
             const userId = res.locals.userId;
             if (!userId) {

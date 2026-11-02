@@ -1,4 +1,4 @@
-import type {Kysely} from "kysely";
+import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
 import type {Game} from "../models/Game.model.js";
 
@@ -11,12 +11,18 @@ import type {Game} from "../models/Game.model.js";
 export class GamesRepository {
     constructor(private readonly db: Kysely<DB>) {}
 
-    // Récupère la liste complète des jeux triés par designation
+    // Liste des jeux, les plus populaires d'abord : parties lancées sur les 30 derniers jours,
+    // puis depuis toujours ; sans données, le Sudoku passe devant, puis l'ordre alphabétique
     async list(): Promise<Game[]> {
         return this.db
             .selectFrom("games")
-            .selectAll()
-            .orderBy("designation", "asc")
+            .leftJoin("game_sessions", "game_sessions.game_code", "games.code")
+            .select(["games.code", "games.designation", "games.base_xp"])
+            .groupBy(["games.code", "games.designation", "games.base_xp"])
+            .orderBy(sql`count(game_sessions.id) filter (where game_sessions.started_at > now() - interval '30 days')`, "desc")
+            .orderBy(sql`count(game_sessions.id)`, "desc")
+            .orderBy(sql`games.code = 'SUDOKU'`, "desc")
+            .orderBy("games.designation", "asc")
             .execute();
     }
 

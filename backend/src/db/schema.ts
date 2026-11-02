@@ -19,6 +19,9 @@ export type UsersTable = {
     user_xp: number;
     // Crédits à miser sur les jeux de hasard (gagnés en finissant des puzzles)
     credits: Generated<number>;
+    created_at: Generated<Date>;
+    // Dernière activité (requête authentifiée), null si jamais vu depuis l'ajout de la colonne
+    last_seen_at: Date | null;
 };
 
 export type GameStatsTable = {
@@ -62,6 +65,26 @@ export type DailyResultsTable = {
     finished_at: Generated<Date>;
 };
 
+// Statistiques : une ligne par partie lancée (invités compris)
+export type GameSessionsTable = {
+    id: Generated<string>;
+    game_id: string | null;
+    game_code: string;
+    mode: GameMode;
+    user_id: string | null;
+    logged_in: boolean;
+    grid_size: number;
+    empty_cells: number;
+    device: Device | null;
+    started_at: Generated<Date>;
+    finished_at: Date | null;
+    duration_ms: number | null;
+    failed_attempts: Generated<number>;
+};
+
+export type GameMode = "free" | "daily" | "replay";
+export type Device = "mobile" | "tablet" | "desktop";
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
@@ -69,5 +92,6 @@ export type DB = {
     game_results: GameResultsTable;
     daily_challenges: DailyChallengesTable;
     daily_results: DailyResultsTable;
+    game_sessions: GameSessionsTable;
 };
 

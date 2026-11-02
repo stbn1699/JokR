@@ -6,4 +6,6 @@ export interface User {
     user_xp: number;
     // Crédits à miser sur les jeux de hasard
     credits: number;
+    // Seulement dans GET /users/me : accès à la page Statistiques
+    isAdmin?: boolean;
 }

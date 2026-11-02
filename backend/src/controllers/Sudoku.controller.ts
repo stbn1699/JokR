@@ -7,6 +7,7 @@ import type {PuzzleStore} from "../services/PuzzleStore.js";
 import type {AuthLocals} from "../middleware/auth.js";
 import {DAILY_REWARD_MULTIPLIER, type DailyService} from "../services/Daily.service.js";
 import {routeParam} from "../utils/validation.js";
+import {tracker} from "../services/tracker.js";
 
 const GAME_CODE = "SUDOKU";
 
@@ -65,6 +66,7 @@ export function createSudokuController(
             }
 
             const gameId = store.create(grid, countClues(grid));
+            tracker.started(req, {gameId, gameCode: GAME_CODE, mode: "free", gridSize: 9, emptyCells: 81 - countClues(grid)});
             res.status(200).json({status: "ok", data: {gameId, grid}});
         }),
 
@@ -94,6 +96,7 @@ export function createSudokuController(
             }
 
             if (!service.validate(grid) || !service.respectsClues(game.puzzle, grid)) {
+                tracker.failed(gameId);
                 res.status(400).json({status: 'error', message: 'La grille ne respecte pas les règles'});
                 return;
             }
@@ -103,6 +106,7 @@ export function createSudokuController(
 
             // Temps mesuré par le serveur (de la génération à la validation)
             const durationMs = Date.now() - game.createdAt;
+            tracker.finished(gameId, durationMs, res.locals.userId);
 
             // Invité : grille valide mais pas d'XP
             const userId = res.locals.userId;
