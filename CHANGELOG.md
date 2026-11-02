@@ -3,6 +3,42 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 1.2.0 — 2 novembre 2026
+
+Crédits, défis du jour revus, nouvelle progression et version mobile repensée.
+
+### Crédits
+
+- Chaque puzzle fini rapporte de 1 à 3 crédits selon la difficulté choisie
+- Les crédits s'affichent à côté de l'XP, avant de jouer, dans la popup de victoire et sur le profil
+- Ils serviront bientôt à miser sur les jeux de hasard
+
+### Défi du jour
+
+- XP et crédits doublés pour la réussite qui compte au classement
+- Nouvel onglet « Daily » : tous les défis, mois par mois et jour par jour, aujourd'hui compris
+- Sélecteur de mois et bandeau des jours à faire glisser, avec un point vert sur les jours réussis
+- Bouton « Défi du jour » sous chaque jeu de l'accueil
+- Les défis sont réservés aux joueurs inscrits
+
+### Progression
+
+- Nouvelle courbe d'XP : les premiers niveaux arrivent vite, le niveau 100 demande environ 9 mois de jeu régulier
+- Chaque joueur garde son niveau
+- Nouvelles icônes de niveau, jusqu'au niveau 50
+
+### Classements
+
+- Onglet « Classement » dans le haut de la page
+- Page plus large, podium avec médailles pour les trois premiers
+- Défi du jour : choix de la date comme sur la page des défis
+
+### Sur téléphone
+
+- Les parties tiennent dans l'écran, sans défilement : grille à la taille de l'écran, barre d'outils au-dessus, pavé compact en dessous
+- Rikudo : bande de nombres à faire glisser, qui se place toute seule sur les nombres utiles
+- Accueil, défis, classements, profil et connexion plus compacts
+
 ## 1.1.0 — 1er novembre 2026
 
 Deux catégories de jeux.
