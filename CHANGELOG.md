@@ -3,6 +3,10 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 1.3.1 — 2 novembre 2026
+
+Corrections et améliorations.
+
 ## 1.3.0 — 2 novembre 2026
 
 ### UX
