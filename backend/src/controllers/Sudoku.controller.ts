@@ -33,7 +33,7 @@ export function createSudokuController(
             const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
             res.status(200).json({
                 status: "ok",
-                data: {...SUDOKU_LIMITS, xpByEmptyCells: service.xpTable(baseXp)},
+                data: {...SUDOKU_LIMITS, xpByEmptyCells: service.xpTable(baseXp), creditsByEmptyCells: service.creditsTable()},
             });
         }),
 
@@ -121,14 +121,15 @@ export function createSudokuController(
             // XP calculée uniquement côté serveur, à partir du nombre réel d'indices de la grille
             const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
             const xp = service.computeXp(baseXp, game.cluesCount);
+            const credits = service.computeCredits(81 - game.cluesCount);
 
             const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
                 gridSize: 9,
                 emptyCells: 81 - game.cluesCount,
                 durationMs,
-            });
+            }, credits);
 
-            res.status(200).json({status: 'ok', data: {xp, durationMs, personalBest, daily}});
+            res.status(200).json({status: 'ok', data: {xp, credits, durationMs, personalBest, daily}});
         })
     };
 }

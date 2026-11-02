@@ -43,6 +43,7 @@ export default function SudokuSettingsPopup({open, onGenerate, resume}: SudokuSe
             maxEmptyCells={settings?.maxEmptyCells ?? 0}
             onEmptyCellsChange={setEmptyCells}
             xp={settings?.xpByEmptyCells[emptyCells]}
+            credits={settings?.creditsByEmptyCells[emptyCells]}
             onGenerate={() => onGenerate(81 - emptyCells)}
             resume={resume}
         />

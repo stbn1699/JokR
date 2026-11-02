@@ -4,14 +4,14 @@
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
  * - Les onglets Puzzle (accueil : Sudoku, Binero, Rikudo…) et Hasard (jeux de hasard, à venir)
- * - Connecté : icône de niveau, barre d'XP, accès au profil et déconnexion
+ * - Connecté : icône de niveau, barre d'XP, crédits, accès au profil et déconnexion
  * - Invité : icône pour aller à la page de connexion
  *
  * Les infos viennent de l'AuthContext : le header se met à jour dès qu'elles changent.
  */
 
 import "./Header.scss"
-import {FaSignOutAlt, FaTrophy, FaUser, FaUserCircle} from "react-icons/fa";
+import {FaCoins, FaSignOutAlt, FaTrophy, FaUser, FaUserCircle} from "react-icons/fa";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {levelIconSrc, xpToNextLevel} from "../../Services/leveling.ts";
@@ -25,7 +25,7 @@ const TABS = [
 export default function Header() {
     const navigate = useNavigate();
     const {pathname} = useLocation();
-    const {isLoggedIn, level, xp, logout} = useAuth();
+    const {isLoggedIn, level, xp, credits, logout} = useAuth();
 
     const xpNextLevel = xpToNextLevel(level);
     const xpPercent = Math.min(100, (xp / xpNextLevel) * 100);
@@ -67,6 +67,11 @@ export default function Header() {
                                 <div className="xp-bar-fill" style={{width: `${xpPercent}%`}}/>
                             </div>
                         </div>
+
+                        <span className="credits" title="Crédits (à miser sur les jeux de hasard)">
+                            <FaCoins aria-hidden/>
+                            <span>{credits}</span>
+                        </span>
 
                         <FaUserCircle title="Mon profil" onClick={() => navigate("/profile")}/>
                         <FaSignOutAlt title="Se déconnecter" onClick={handleLogout}/>

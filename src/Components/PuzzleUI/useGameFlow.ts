@@ -9,6 +9,7 @@ export type ValidationResult =
 
 export type Victory = {
     xpAwarded: number | null;
+    creditsAwarded: number | null;
     before: Progress | null;
     durationMs: number;
     personalBest: boolean;
@@ -71,6 +72,7 @@ export function useGameFlow() {
         if (result.xp !== undefined) void refresh();
         setVictory({
             xpAwarded: result.xp ?? null,
+            creditsAwarded: result.credits ?? null,
             before: result.xp !== undefined ? before : null,
             durationMs: result.durationMs,
             personalBest: result.personalBest === true,

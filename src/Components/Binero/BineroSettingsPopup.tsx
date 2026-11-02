@@ -60,6 +60,7 @@ export default function BineroSettingsPopup({open, onGenerate, resume}: BineroSe
             maxEmptyCells={current?.maxEmptyCells ?? 0}
             onEmptyCellsChange={setEmptyCells}
             xp={current?.xpByEmptyCells[emptyCells]}
+            credits={current?.creditsByEmptyCells[emptyCells]}
             onGenerate={() => onGenerate(size, emptyCells)}
             resume={resume}
         />

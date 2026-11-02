@@ -17,6 +17,8 @@ export type UsersTable = {
 	password: string;
     user_level: number;
     user_xp: number;
+    // Crédits à miser sur les jeux de hasard (gagnés en finissant des puzzles)
+    credits: Generated<number>;
 };
 
 export type GameStatsTable = {
@@ -36,6 +38,7 @@ export type GameResultsTable = {
     empty_cells: number;
     duration_ms: number;
     xp: number;
+    credits: number;
     finished_at: Generated<Date>;
 };
 

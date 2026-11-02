@@ -106,13 +106,14 @@ export function createBineroController(
 
             const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
             const xp = service.computeXp(baseXp, size, size * size - game.cluesCount);
+            const credits = service.computeCredits(size, size * size - game.cluesCount);
             const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
                 gridSize: size,
                 emptyCells: size * size - game.cluesCount,
                 durationMs,
-            });
+            }, credits);
 
-            res.status(200).json({status: "ok", data: {xp, durationMs, personalBest, daily}});
+            res.status(200).json({status: "ok", data: {xp, credits, durationMs, personalBest, daily}});
         }),
     };
 }

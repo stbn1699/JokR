@@ -1,4 +1,5 @@
 import {generateSudoku} from "../utils/sudokuGenerator.js";
+import {creditsFor, creditsTable} from "../utils/credits.js";
 
 /*
  * Plage de cases vides proposée au joueur.
@@ -32,6 +33,15 @@ export class SudokuService {
             table[empty] = this.computeXp(baseXp, 81 - empty);
         }
         return table;
+    }
+
+    // Crédits gagnés (1 à 3) selon le nombre de cases à remplir, et la table affichée avant de jouer
+    computeCredits(emptyCells: number): number {
+        return creditsFor(emptyCells, SUDOKU_LIMITS.minEmptyCells, SUDOKU_LIMITS.maxEmptyCells);
+    }
+
+    creditsTable(): Record<number, number> {
+        return creditsTable(SUDOKU_LIMITS.minEmptyCells, SUDOKU_LIMITS.maxEmptyCells);
     }
 
     // XP gagnée selon la difficulté : xp = baseXp × (40 / cluesCount)^1.1, bornée entre 20 et 300

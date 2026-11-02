@@ -1,4 +1,5 @@
 import {type BineroGrid, countBineroClues, EMPTY, generateBinero, isValidSolution} from "../utils/binero.js";
+import {creditsFor, creditsTable} from "../utils/credits.js";
 
 /*
  * Tailles de grille proposées et nombre de cases à remplir pour chacune.
@@ -45,7 +46,13 @@ export class BineroService {
         return Math.max(20, Math.min(xp, 300));
     }
 
-    // Plages et XP pour chaque taille (affichées avant de générer)
+    // Crédits gagnés (1 à 3) selon la difficulté, dans la plage proposée pour cette taille
+    computeCredits(size: number, emptyCells: number): number {
+        const limits = bineroLimits(size);
+        return limits ? creditsFor(emptyCells, limits.minEmptyCells, limits.maxEmptyCells) : 1;
+    }
+
+    // Plages, XP et crédits pour chaque taille (affichés avant de générer)
     settings(baseXp: number) {
         return {
             defaultSize: BINERO_DEFAULT_SIZE,
@@ -54,7 +61,7 @@ export class BineroService {
                 for (let empty = limits.minEmptyCells; empty <= limits.maxEmptyCells; empty++) {
                     xpByEmptyCells[empty] = this.computeXp(baseXp, limits.size, empty);
                 }
-                return {...limits, xpByEmptyCells};
+                return {...limits, xpByEmptyCells, creditsByEmptyCells: creditsTable(limits.minEmptyCells, limits.maxEmptyCells)};
             }),
         };
     }

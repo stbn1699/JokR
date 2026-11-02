@@ -221,3 +221,13 @@
 	cursor      : pointer;
 	text-decoration : underline;
 }
+
+// Crédits gagnés, à côté de l'XP dans la popup de victoire
+.credits-gain {
+	color       : #fbbf24;
+	white-space : nowrap;
+
+	svg {
+		vertical-align : -0.1em;
+	}
+}

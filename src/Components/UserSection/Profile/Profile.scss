@@ -59,6 +59,26 @@
 		font-size : 1.2rem;
 	}
 
+	.profile-credits {
+		margin      : 0.4rem 0 0;
+		color       : #fbbf24;
+		font-size   : 1.4rem;
+		font-weight : 700;
+
+		svg {
+			vertical-align : -0.1em;
+		}
+	}
+
+	.profile-credits-gain {
+		color       : #fbbf24;
+		white-space : nowrap;
+
+		svg {
+			vertical-align : -0.1em;
+		}
+	}
+
 	.profile-stats {
 		width           : 100%;
 		border-collapse : collapse;

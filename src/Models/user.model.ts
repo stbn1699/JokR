@@ -4,4 +4,6 @@ export interface User {
     username: string;
     user_level: number;
     user_xp: number;
+    // Crédits à miser sur les jeux de hasard
+    credits: number;
 }

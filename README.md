@@ -181,6 +181,9 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
   (`gameId`) et n'accepte qu'une solution de cette grille, une seule fois.
 - **Grilles** : générées par le serveur, toujours à solution unique (résolvables par déduction, sans hasard).
   Les plages de difficulté proposées sont celles que le générateur atteint exactement en moins de 100 ms.
+- **Crédits** : chaque puzzle fini rapporte de 1 à 3 crédits selon la difficulté choisie (tiers de la plage
+  de cases à remplir proposée pour la taille). Ils serviront à miser sur les jeux de hasard.
+  Calcul dans `backend/src/utils/credits.ts`.
 - **Niveaux** : passer du niveau `n` au suivant demande `ceil(120 × n^1.4)` XP.
   La formule est dans `backend/src/utils/leveling.ts` et `src/Services/leveling.ts`.
 

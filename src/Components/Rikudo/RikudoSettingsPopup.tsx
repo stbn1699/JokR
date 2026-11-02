@@ -61,6 +61,7 @@ export default function RikudoSettingsPopup({open, onGenerate, resume}: RikudoSe
             maxEmptyCells={current?.maxEmptyCells ?? 0}
             onEmptyCellsChange={setEmptyCells}
             xp={current?.xpByEmptyCells[emptyCells]}
+            credits={current?.creditsByEmptyCells[emptyCells]}
             onGenerate={() => onGenerate(size, emptyCells)}
             resume={resume}
         />

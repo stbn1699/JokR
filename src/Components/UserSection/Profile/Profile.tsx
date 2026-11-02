@@ -6,6 +6,7 @@
  * Redirige vers /login si personne n'est connecté.
  */
 
+import {FaCoins} from "react-icons/fa";
 import "./Profile.scss";
 import {useEffect, useState} from "react";
 import {Navigate} from "react-router-dom";
@@ -23,7 +24,7 @@ import AccountSettings from "./AccountSettings.tsx";
 const PAGE_SIZE = 10;
 
 export default function Profile() {
-    const {isLoggedIn, userId, username, level, xp, logout} = useAuth();
+    const {isLoggedIn, userId, username, level, xp, credits, logout} = useAuth();
     // Vrai quand le joueur quitte volontairement (déconnexion, compte supprimé) : retour à l'accueil
     const [leaving, setLeaving] = useState(false);
     const [stats, setStats] = useState<GameStats[] | null>(null);
@@ -90,6 +91,7 @@ export default function Profile() {
                     <div className="profile-xp-fill" style={{width: `${xpPercent}%`}}/>
                 </div>
                 <p className="profile-xp-label">{xp} / {xpNextLevel} xp</p>
+                <p className="profile-credits"><FaCoins aria-hidden/> {credits} crédit{credits > 1 ? "s" : ""}</p>
 
                 <h2>Mes jeux</h2>
                 {error && <p className="profile-error">{error}</p>}
@@ -127,7 +129,7 @@ export default function Profile() {
                                 <th>Jeu</th>
                                 <th>Grille</th>
                                 <th>Temps</th>
-                                <th>XP</th>
+                                <th>Gains</th>
                                 <th>Date</th>
                             </tr>
                             </thead>
@@ -139,7 +141,7 @@ export default function Profile() {
                                         {r.game_code === "RIKUDO" ? `${r.grid_size} cases` : `${r.grid_size}×${r.grid_size}`} · {r.empty_cells}
                                     </td>
                                     <td>{formatDuration(r.duration_ms)}</td>
-                                    <td>+{r.xp}</td>
+                                    <td>+{r.xp}{r.credits > 0 && <span className="profile-credits-gain"> · +{r.credits} <FaCoins aria-hidden/></span>}</td>
                                     <td>{new Date(r.finished_at).toLocaleDateString("fr-FR")}</td>
                                 </tr>
                             ))}

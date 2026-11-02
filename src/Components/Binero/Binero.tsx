@@ -160,7 +160,7 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
             {dailyGame.done && <DailyDonePopup gameCode="BINERO" gameName="Binero" result={dailyGame.done}/>}
 
             {flow.victory && (
-                <SuccessPopup gameName="Binero" xpAwarded={flow.victory.xpAwarded} before={flow.victory.before}
+                <SuccessPopup gameName="Binero" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
                               onNewGame={replayDate ? () => navigate("/defi")

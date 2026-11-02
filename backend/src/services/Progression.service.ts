@@ -10,8 +10,8 @@ export type GameResult = {
 };
 
 /*
- * Enregistre une victoire : +1 victoire et XP sur le jeu, XP sur le joueur,
- * et une ligne d'historique (temps de la partie).
+ * Enregistre une victoire : +1 victoire et XP sur le jeu, XP et crédits sur le joueur,
+ * et une ligne d'historique (temps de la partie, XP et crédits gagnés).
  *
  * Tout se fait dans une transaction avec les lignes verrouillées (SELECT ... FOR UPDATE) :
  * deux victoires simultanées sont appliquées l'une après l'autre au lieu de s'écraser.
@@ -24,7 +24,7 @@ export class ProgressionService {
      * Retourne `personalBest` : true si c'est le meilleur temps du joueur sur cette configuration
      * (même jeu, même taille, même nombre de cases à remplir).
      */
-    async recordWin(userId: string, gameCode: string, xpGained: number, result: GameResult): Promise<{ personalBest: boolean }> {
+    async recordWin(userId: string, gameCode: string, xpGained: number, result: GameResult, creditsGained = 0): Promise<{ personalBest: boolean }> {
         return this.db.transaction().execute(async (trx) => {
             // Crée la ligne de stats si c'est la première victoire sur ce jeu
             await trx
@@ -53,7 +53,7 @@ export class ProgressionService {
 
             await trx
                 .updateTable("users")
-                .set({user_level: newUser.level, user_xp: newUser.xp})
+                .set(eb => ({user_level: newUser.level, user_xp: newUser.xp, credits: eb("credits", "+", creditsGained)}))
                 .where("id", "=", userId)
                 .execute();
 
@@ -86,6 +86,7 @@ export class ProgressionService {
                     empty_cells: result.emptyCells,
                     duration_ms: result.durationMs,
                     xp: xpGained,
+                    credits: creditsGained,
                 })
                 .execute();
 

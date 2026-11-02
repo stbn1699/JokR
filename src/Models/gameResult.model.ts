@@ -2,6 +2,8 @@
 export interface WinResult {
     // XP gagnée (absente si le joueur n'est pas connecté)
     xp?: number;
+    // Crédits gagnés (1 à 3 selon la difficulté, absents si le joueur n'est pas connecté)
+    credits?: number;
     // Temps de la partie, mesuré par le serveur (de la génération à la validation)
     durationMs: number;
     // Meilleur temps du joueur sur cette configuration (jeu, taille, cases à remplir)
@@ -18,6 +20,7 @@ export interface RecentResult {
     empty_cells: number;
     duration_ms: number;
     xp: number;
+    credits: number;
     finished_at: string;
 }
 

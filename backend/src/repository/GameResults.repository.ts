@@ -31,6 +31,7 @@ export class GameResultsRepository {
                 "game_results.empty_cells",
                 "game_results.duration_ms",
                 "game_results.xp",
+                "game_results.credits",
                 "game_results.finished_at",
             ])
             .where("game_results.user_id", "=", userId)

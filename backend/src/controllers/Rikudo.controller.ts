@@ -107,13 +107,14 @@ export function createRikudoController(
             const emptyCells = size - game.cluesCount;
             const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
             const xp = service.computeXp(baseXp, size, emptyCells);
+            const credits = service.computeCredits(size, emptyCells);
             const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
                 gridSize: size,
                 emptyCells,
                 durationMs,
-            });
+            }, credits);
 
-            res.status(200).json({status: "ok", data: {xp, durationMs, personalBest, daily}});
+            res.status(200).json({status: "ok", data: {xp, credits, durationMs, personalBest, daily}});
         }),
     };
 }

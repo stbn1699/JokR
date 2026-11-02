@@ -91,6 +91,21 @@
 			border        : 1px solid rgba(0, 0, 0, 0.06);
 		}
 
+		// Crédits du joueur, à côté de la barre d'XP
+		.credits {
+			display     : flex;
+			align-items : center;
+			gap         : 0.35rem;
+			color       : #b45309;
+			font-size   : 1.35rem;
+			font-weight : 700;
+			cursor      : default;
+
+			svg {
+				cursor : default;
+			}
+		}
+
 		.xp-bar-fill {
 			background : linear-gradient(90deg, #F59E0B, #F97316);
 			height     : 100%;
@@ -153,6 +168,10 @@
 
 			.xp-bar {
 				width : 4.5rem;
+			}
+
+			.credits {
+				font-size : 1.1rem;
 			}
 		}
 	}

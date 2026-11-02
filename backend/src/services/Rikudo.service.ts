@@ -1,4 +1,5 @@
 import {countRikudoClues, generateRikudo, isRikudoSolution, type RikudoPuzzle, rikudoSize} from "../utils/rikudo.js";
+import {creditsFor, creditsTable} from "../utils/credits.js";
 
 /*
  * Plateaux proposés (nombre d'anneaux autour du centre) et nombre de cases à remplir pour chacun.
@@ -47,7 +48,13 @@ export class RikudoService {
         return Math.max(20, Math.min(xp, 300));
     }
 
-    // Plages et XP pour chaque taille (affichées avant de générer)
+    // Crédits gagnés (1 à 3) selon la difficulté, dans la plage proposée pour cette taille
+    computeCredits(size: number, emptyCells: number): number {
+        const limits = rikudoLimits(size);
+        return limits ? creditsFor(emptyCells, limits.minEmptyCells, limits.maxEmptyCells) : 1;
+    }
+
+    // Plages, XP et crédits pour chaque taille (affichés avant de générer)
     settings(baseXp: number) {
         return {
             defaultSize: RIKUDO_DEFAULT_SIZE,
@@ -56,7 +63,7 @@ export class RikudoService {
                 for (let empty = limits.minEmptyCells; empty <= limits.maxEmptyCells; empty++) {
                     xpByEmptyCells[empty] = this.computeXp(baseXp, limits.size, empty);
                 }
-                return {...limits, xpByEmptyCells};
+                return {...limits, xpByEmptyCells, creditsByEmptyCells: creditsTable(limits.minEmptyCells, limits.maxEmptyCells)};
             }),
         };
     }

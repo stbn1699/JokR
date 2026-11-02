@@ -10,13 +10,14 @@ export type AuthState = {
     username: string | null;
     level: number;
     xp: number;
+    credits: number;
 };
 
 export type AuthContextValue = AuthState & {
     isLoggedIn: boolean;
     login: (user: LoggedUser) => void;
     logout: () => void;
-    // Recharge niveau et XP depuis le serveur (après une victoire par exemple)
+    // Recharge niveau, XP et crédits depuis le serveur (après une victoire par exemple)
     refresh: () => Promise<void>;
 };
 

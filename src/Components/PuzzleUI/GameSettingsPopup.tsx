@@ -21,8 +21,9 @@ type GameSettingsPopupProps = {
     minEmptyCells: number;
     maxEmptyCells: number;
     onEmptyCellsChange: (emptyCells: number) => void;
-    // XP gagnée à la résolution avec ces paramètres
+    // XP et crédits gagnés à la résolution avec ces paramètres
     xp: number | undefined;
+    credits?: number | undefined;
     onGenerate: () => void;
     // Partie en cours qu'on peut reprendre (après un rafraîchissement de la page)
     resume?: { elapsedMs: number; onResume: () => void };
@@ -108,8 +109,8 @@ export default function GameSettingsPopup(props: GameSettingsPopupProps) {
 
                         <p className="game-settings-xp">
                             {isLoggedIn
-                                ? <>Victoire : <strong>+{xp} XP</strong></>
-                                : <>Connecte-toi pour gagner <strong>{xp} XP</strong> à la résolution</>}
+                                ? <>Victoire : <strong>+{xp} XP</strong>{props.credits ? <> · <strong>+{props.credits} crédit{props.credits > 1 ? "s" : ""}</strong></> : null}</>
+                                : <>Connecte-toi pour gagner <strong>{xp} XP</strong>{props.credits ? <> et <strong>{props.credits} crédit{props.credits > 1 ? "s" : ""}</strong></> : null} à la résolution</>}
                         </p>
                     </>
                 )}

@@ -6,6 +6,7 @@
  * - password : mot de passe hashé (ne jamais exposer côté client)
  * - user_level : niveau de l'utilisateur dans le système de progression
  * - user_xp : XP courante de l'utilisateur
+ * - credits : crédits à miser sur les jeux de hasard
  */
 export type User = {
 	id: string;
@@ -14,4 +15,5 @@ export type User = {
 	password: string;
     user_level: number;
     user_xp: number;
+    credits: number;
 };
