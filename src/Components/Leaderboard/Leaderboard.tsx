@@ -2,7 +2,7 @@
  * Page Classements : XP globale, par jeu, et défi du jour.
  * - Podium (médailles) pour les trois premiers, puis le reste du classement
  * - Défi du jour : jeu, puis date choisie comme sur la page Daily (mois avec flèches, bandeau des jours)
- * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|rikudo|tectonic|galaxies|shikaku|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku
+ * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens
  * [&mois=AAAA-MM][&date=AAAA-MM-JJ]) pour pouvoir y renvoyer (ex. classement d'un défi passé).
  */
 
@@ -30,11 +30,12 @@ const TABS = [
     {id: "tectonic", label: "Tectonic", short: "Tectonic"},
     {id: "galaxies", label: "Galaxies", short: "Galaxies"},
     {id: "shikaku", label: "Shikaku", short: "Shikaku"},
+    {id: "queens", label: "Queens", short: "Queens"},
     {id: "defi", label: "Défi du jour", short: "Défi"},
 ] as const;
 type Tab = typeof TABS[number]["id"];
 
-const DAILY_GAMES = [{id: "sudoku", label: "Sudoku"}, {id: "binero", label: "Binero"}, {id: "rikudo", label: "Rikudo"}, {id: "tectonic", label: "Tectonic"}, {id: "galaxies", label: "Galaxies"}, {id: "shikaku", label: "Shikaku"}] as const;
+const DAILY_GAMES = [{id: "sudoku", label: "Sudoku"}, {id: "binero", label: "Binero"}, {id: "rikudo", label: "Rikudo"}, {id: "tectonic", label: "Tectonic"}, {id: "galaxies", label: "Galaxies"}, {id: "shikaku", label: "Shikaku"}, {id: "queens", label: "Queens"}] as const;
 const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 

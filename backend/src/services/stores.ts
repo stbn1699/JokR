@@ -4,6 +4,7 @@ import type {RikudoPuzzle} from "../utils/rikudo.js";
 import type {TectonicPuzzle} from "../utils/tectonic.js";
 import type {GalaxiesPuzzle} from "../utils/galaxies.js";
 import type {ShikakuPuzzle} from "../utils/shikaku.js";
+import type {QueensPuzzle} from "../utils/queens.js";
 
 /*
  * Parties en cours, une mémoire par jeu, partagées entre les routes du jeu
@@ -17,3 +18,5 @@ export const tectonicStore = new PuzzleStore<TectonicPuzzle>();
 export const galaxiesStore = new PuzzleStore<GalaxiesPuzzle>();
 // Shikaku : cluesCount = nombre de rectangles donnés en aide
 export const shikakuStore = new PuzzleStore<ShikakuPuzzle>();
+// Queens : cluesCount = nombre de dames données en aide
+export const queensStore = new PuzzleStore<QueensPuzzle>();

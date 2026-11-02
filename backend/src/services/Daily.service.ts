@@ -5,6 +5,7 @@ import type {RikudoService} from "./Rikudo.service.js";
 import type {TectonicService} from "./Tectonic.service.js";
 import type {GalaxiesService} from "./Galaxies.service.js";
 import type {ShikakuService} from "./Shikaku.service.js";
+import type {QueensService} from "./Queens.service.js";
 
 /*
  * Défi du jour : une grille par jeu et par jour, la même pour tout le monde.
@@ -25,6 +26,8 @@ export const DAILY_GAMES = {
     GALAXIES: {size: 7, emptyCells: 0},
     // Shikaku : size = côté, emptyCells = nombre de rectangles donnés en aide
     SHIKAKU: {size: 10, emptyCells: 0},
+    // Queens : size = côté, emptyCells = nombre de dames données en aide
+    QUEENS: {size: 8, emptyCells: 0},
 } as const;
 
 export type DailyGameCode = keyof typeof DAILY_GAMES;
@@ -43,6 +46,7 @@ export class DailyService {
         private tectonic: TectonicService,
         private galaxies: GalaxiesService,
         private shikaku: ShikakuService,
+        private queens: QueensService,
     ) {
     }
 
@@ -73,6 +77,8 @@ export class DailyService {
                 return this.galaxies.generate(size, emptyCells);
             case "SHIKAKU":
                 return this.shikaku.generate(size, emptyCells);
+            case "QUEENS":
+                return this.queens.generate(size, emptyCells);
         }
     }
 

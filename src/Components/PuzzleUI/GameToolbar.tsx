@@ -18,6 +18,8 @@ type GameToolbarProps = {
     errorCount: number;
     // Règles du jeu, affichées dans une popup (bouton « ? »)
     rules?: ReactNode;
+    // Option propre au jeu (ex. croix automatiques du Queens), bouton à bascule avant les règles
+    extraToggle?: { active: boolean; onToggle: () => void; label: string; icon: ReactNode };
 };
 
 // Les boutons ne prennent pas le focus : la case sélectionnée dans la grille le garde
@@ -55,6 +57,14 @@ export default function GameToolbar(props: GameToolbarProps) {
                     <FaExclamationTriangle aria-hidden/>
                     {props.showErrors && props.errorCount > 0 && <span className="game-toolbar-count">{props.errorCount}</span>}
                 </button>
+                {props.extraToggle && (
+                    <button type="button" className={`extra ${props.extraToggle.active ? "active" : ""}`}
+                            aria-pressed={props.extraToggle.active} aria-label={props.extraToggle.label}
+                            title={props.extraToggle.label}
+                            onMouseDown={keepGridFocus} onClick={props.extraToggle.onToggle}>
+                        {props.extraToggle.icon}
+                    </button>
+                )}
                 {props.rules && (
                     <button type="button" onMouseDown={keepGridFocus} onClick={() => setRulesOpen(true)} aria-label="Règles">
                         <FaQuestion aria-hidden/>

@@ -3,7 +3,7 @@
  *
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
- * - Les onglets Daily (défis du jour, en orange), Puzzle (accueil : Sudoku, Binero, Rikudo, Tectonic, Galaxies, Shikaku…),
+ * - Les onglets Daily (défis du jour, en orange), Puzzle (accueil : Sudoku, Binero, Rikudo, Tectonic, Galaxies, Shikaku, Queens…),
  *   Hasard (jeux de hasard, à venir) et Classement
  * - Connecté : icône de niveau, barre d'XP, crédits, accès au profil et déconnexion
  *   (et aux statistiques pour l'administrateur)

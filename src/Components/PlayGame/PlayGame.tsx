@@ -15,6 +15,7 @@ import Rikudo from "../Rikudo/Rikudo.tsx";
 import Tectonic from "../Tectonic/Tectonic.tsx";
 import Galaxies from "../Galaxies/Galaxies.tsx";
 import Shikaku from "../Shikaku/Shikaku.tsx";
+import Queens from "../Queens/Queens.tsx";
 import DailyLoginRequired from "../PuzzleUI/DailyLoginRequired.tsx";
 import {useAuth} from "../../Context/authContext.ts";
 
@@ -58,6 +59,8 @@ export default function PlayGame({daily = false}: { daily?: boolean }) {
                 return <Galaxies daily={daily && !date} replayDate={date}/>;
             case "SHIKAKU":
                 return <Shikaku daily={daily && !date} replayDate={date}/>;
+            case "QUEENS":
+                return <Queens daily={daily && !date} replayDate={date}/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

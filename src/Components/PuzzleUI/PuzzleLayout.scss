@@ -1,4 +1,4 @@
-// Mise en page commune aux jeux de grille (Sudoku, Binero, Rikudo, Tectonic, Galaxies, Shikaku) :
+// Mise en page commune aux jeux de grille (Sudoku, Binero, Rikudo, Tectonic, Galaxies, Shikaku, Queens) :
 // panneau de gauche (chiffres), jeu au centre, panneau de droite (actions)
 
 /* Effet de saut à l'apparition des chiffres donnés */
@@ -535,6 +535,11 @@
 				&.errors.active {
 					border-color : #f87171;
 					color        : #f87171;
+				}
+
+				&.extra.active {
+					border-color : #93c5fd;
+					color        : #93c5fd;
 				}
 			}
 		}

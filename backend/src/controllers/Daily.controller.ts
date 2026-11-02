@@ -5,11 +5,12 @@ import {DAILY_GAMES, DAILY_REWARD_MULTIPLIER, type DailyGameCode, type DailyServ
 import {countClues} from "../services/Sudoku.service.js";
 import {toApiGrid} from "../services/Binero.service.js";
 import {type BineroGrid, countBineroClues} from "../utils/binero.js";
-import {sudokuStore, bineroStore, rikudoStore, tectonicStore, galaxiesStore, shikakuStore} from "../services/stores.js";
+import {sudokuStore, bineroStore, rikudoStore, tectonicStore, galaxiesStore, shikakuStore, queensStore} from "../services/stores.js";
 import {countRikudoClues, type RikudoPuzzle} from "../utils/rikudo.js";
 import {countTectonicClues, type TectonicPuzzle} from "../utils/tectonic.js";
 import type {GalaxiesPuzzle} from "../utils/galaxies.js";
 import type {ShikakuPuzzle} from "../utils/shikaku.js";
+import type {QueensPuzzle} from "../utils/queens.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
 import {tracker} from "../services/tracker.js";
 import {isDateKey, routeParam} from "../utils/validation.js";
@@ -55,6 +56,10 @@ export function createDailyController(service: DailyService) {
         if (code === "SHIKAKU") {
             const shikaku = puzzle as ShikakuPuzzle;
             return {gameId: shikakuStore.create(shikaku, shikaku.rects.length, options), grid: shikaku};
+        }
+        if (code === "QUEENS") {
+            const queens = puzzle as QueensPuzzle;
+            return {gameId: queensStore.create(queens, queens.queens.length, options), grid: queens};
         }
         const grid = puzzle as BineroGrid;
         return {gameId: bineroStore.create(grid, countBineroClues(grid), options), grid: toApiGrid(grid)};

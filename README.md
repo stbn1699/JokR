@@ -17,6 +17,9 @@ Jeux disponibles :
 - **Shikaku** (Rectangles) : grille de 5×5 à 15×15 avec des nombres. La découper en rectangles qui contiennent
   chacun un seul nombre, égal à leur aire. On trace un rectangle en glissant d'une case à l'autre ; le réglage
   avant la partie est le nombre de rectangles déjà tracés en aide.
+- **Queens** : grille de 6×6 à 10×10 découpée en autant de zones de couleur. Placer une dame par ligne, par colonne
+  et par zone, sans que deux dames se touchent (diagonales comprises). Un appui met une croix, un deuxième une dame ;
+  glisser met des croix. Le réglage avant la partie est le nombre de dames déjà placées en aide.
 
 Avant chaque partie, une popup permet de choisir les paramètres (taille, nombre de cases à remplir)
 et affiche l'XP gagnée à la résolution.
@@ -34,7 +37,7 @@ En jeu :
 Autour des jeux :
 
 - **Défi du jour** : une grille Sudoku (9×9, 45 cases), une Binero (10×10, 50 cases), un Rikudo (60 cases,
-  40 à remplir) un Tectonic (7×7, 34 cases), une Galaxies (7×7, sans aide) et un Shikaku (10×10, sans aide) par jour, les mêmes pour tout le monde, avec un classement au temps. Une seule réussite comptée
+  40 à remplir) un Tectonic (7×7, 34 cases), une Galaxies (7×7, sans aide), un Shikaku (10×10, sans aide) et un Queens (8×8, sans aide) par jour, les mêmes pour tout le monde, avec un classement au temps. Une seule réussite comptée
   par jour (XP et classement), avec XP et crédits doublés. Le jour change à minuit, heure de Paris : le serveur génère alors les grilles du
   nouveau jour (et au démarrage si elles manquent), et les pages ouvertes se mettent à jour d'elles-mêmes
   quelques secondes après minuit. Tous les défis (mois par mois, jour par jour) sont sur `/defi` ; ceux des jours passés se rejouent :
@@ -249,6 +252,10 @@ update users set is_admin = false where username = 'pseudo';  -- retirer
 | POST    | `/shikaku/generate`        | –         | `{ size, hints }` → `{ gameId, puzzle: { width, height, clues, rects } }` |
 | GET     | `/shikaku/games/:gameId`   | –         | partie en cours (pour la reprendre)       |
 | POST    | `/shikaku/validate`        | optionnel | valide `{ gameId, regions }`, XP si connecté |
+| GET     | `/queens/settings`         | –         | tailles, dames données possibles et XP    |
+| POST    | `/queens/generate`         | –         | `{ size, hints }` → `{ gameId, puzzle: { size, regions, queens } }` |
+| GET     | `/queens/games/:gameId`    | –         | partie en cours (pour la reprendre)       |
+| POST    | `/queens/validate`         | optionnel | valide `{ gameId, queens }`, XP si connecté |
 | GET     | `/daily`                   | optionnel | défis du jour (et résultats du joueur)    |
 | POST    | `/daily/:game/start`       | oui       | commence le défi du jour                  |
 | GET     | `/daily/history?month=`    | optionnel | défis d'un mois (AAAA-MM), aujourd'hui compris |

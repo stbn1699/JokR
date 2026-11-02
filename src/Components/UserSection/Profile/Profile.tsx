@@ -142,7 +142,7 @@ export default function Profile() {
                             {results.map((r, i) => (
                                 <tr key={i}>
                                     <td>{r.designation}</td>
-                                    <td title={r.game_code === "GALAXIES" ? `${r.empty_cells} murs donnés` : r.game_code === "SHIKAKU" ? `${r.empty_cells} rectangles donnés` : `${r.empty_cells} cases à remplir`}>
+                                    <td title={r.game_code === "GALAXIES" ? `${r.empty_cells} murs donnés` : r.game_code === "SHIKAKU" ? `${r.empty_cells} rectangles donnés` : r.game_code === "QUEENS" ? `${r.empty_cells} dames données` : `${r.empty_cells} cases à remplir`}>
                                         {r.game_code === "RIKUDO" ? `${r.grid_size} cases` : `${r.grid_size}×${r.grid_size}`} · {r.empty_cells}
                                     </td>
                                     <td>{formatDuration(r.duration_ms)}</td>
