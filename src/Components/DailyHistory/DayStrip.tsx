@@ -9,6 +9,8 @@ type DayStripProps = {
     available: Set<string>;
     // Jours où le joueur a réussi au moins un défi (petit point vert)
     completed: Set<string>;
+    // Jours où le joueur a réussi tous les défis (point doré)
+    allDone: Set<string>;
     today: string;
     selected: string | null;
     onSelect: (date: string) => void;
@@ -21,7 +23,7 @@ const DRAG_THRESHOLD = 6;
  * Bandeau des jours du mois : on le fait glisser (doigt, souris ou molette) puis on clique un jour.
  * Le jour choisi est recentré. Les jours sans défi sont grisés et ne se cliquent pas.
  */
-export default function DayStrip({days, available, completed, today, selected, onSelect}: DayStripProps) {
+export default function DayStrip({days, available, completed, allDone, today, selected, onSelect}: DayStripProps) {
     const stripRef = useRef<HTMLDivElement>(null);
     const drag = useRef<{ x: number; scroll: number; moved: boolean } | null>(null);
 
@@ -108,8 +110,9 @@ export default function DayStrip({days, available, completed, today, selected, o
                     >
                         <span className="day-strip-weekday">{weekdayShort(date).replace(".", "")}</span>
                         <span className="day-strip-number">{Number(date.slice(8))}</span>
-                        <span className={`day-strip-dot ${completed.has(date) ? "visible" : ""}`} aria-hidden/>
-                        {completed.has(date) && <span className="sr-only">(réussi)</span>}
+                        <span className={`day-strip-dot ${completed.has(date) ? "visible" : ""} ${allDone.has(date) ? "gold" : ""}`}
+                              aria-hidden/>
+                        {completed.has(date) && <span className="sr-only">{allDone.has(date) ? "(tout réussi)" : "(réussi)"}</span>}
                     </button>
                 );
             })}

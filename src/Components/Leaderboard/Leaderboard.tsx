@@ -57,6 +57,10 @@ export default function Leaderboard() {
     const completed = useMemo(() => new Set(month?.days
         .filter(d => d.games.some(g => g.code.toLowerCase() === dailyGame && g.result))
         .map(d => d.date) ?? []), [month, dailyGame]);
+    // Point doré : jours où le joueur a réussi tous les défis
+    const allDone = useMemo(() => new Set(month?.days
+        .filter(d => d.games.length > 0 && d.games.every(g => g.result))
+        .map(d => d.date) ?? []), [month]);
     const selectedDate = useMemo(() => {
         if (!month) return null;
         if (dateParam && available.has(dateParam)) return dateParam;
@@ -165,7 +169,7 @@ export default function Leaderboard() {
                             <>
                                 <MonthPicker month={month.month} firstMonth={month.firstMonth} currentMonth={month.currentMonth}
                                              onChange={m => select({onglet: "defi", jeu: dailyGame, mois: m})}/>
-                                <DayStrip days={days} available={available} completed={completed} today={month.today}
+                                <DayStrip days={days} available={available} completed={completed} allDone={allDone} today={month.today}
                                           selected={selectedDate}
                                           onSelect={d => select({onglet: "defi", jeu: dailyGame, mois: d.slice(0, 7), date: d})}/>
                                 {selectedDate

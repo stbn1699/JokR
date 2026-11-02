@@ -76,4 +76,10 @@
 	&.visible {
 		background : #3bf644;
 	}
+
+	// Tous les défis du jour réussis
+	&.visible.gold {
+		background : radial-gradient(circle at 35% 35%, #fde68a, #f59e0b);
+		box-shadow : 0 0 0.35rem rgba(251, 191, 36, 0.8);
+	}
 }

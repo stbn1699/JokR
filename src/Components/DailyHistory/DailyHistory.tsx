@@ -39,6 +39,11 @@ export default function DailyHistory() {
         () => new Set(data?.days.filter(d => d.games.some(g => g.result)).map(d => d.date) ?? []),
         [data],
     );
+    // Tous les défis du jour réussis : point doré
+    const allDone = useMemo(
+        () => new Set(data?.days.filter(d => d.games.length > 0 && d.games.every(g => g.result)).map(d => d.date) ?? []),
+        [data],
+    );
 
     // Jour choisi : celui de l'adresse s'il a un défi, sinon aujourd'hui (mois courant) ou le dernier jour du mois
     const dayParam = params.get("jour");
@@ -80,7 +85,7 @@ export default function DailyHistory() {
                         <MonthPicker month={month} firstMonth={data.firstMonth} currentMonth={data.currentMonth}
                                      onChange={goToMonth}/>
 
-                        <DayStrip days={days} available={available} completed={completed} today={data.today}
+                        <DayStrip days={days} available={available} completed={completed} allDone={allDone} today={data.today}
                                   selected={selected} onSelect={selectDay}/>
 
                         {!selectedDay && (
