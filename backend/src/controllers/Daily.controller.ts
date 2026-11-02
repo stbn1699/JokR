@@ -1,7 +1,7 @@
 import type {Request, Response} from "express";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import type {AuthLocals} from "../middleware/auth.js";
-import {DAILY_GAMES, type DailyGameCode, type DailyService, isDailyGame} from "../services/Daily.service.js";
+import {DAILY_GAMES, DAILY_REWARD_MULTIPLIER, type DailyGameCode, type DailyService, isDailyGame} from "../services/Daily.service.js";
 import {countClues} from "../services/Sudoku.service.js";
 import {toApiGrid} from "../services/Binero.service.js";
 import {type BineroGrid, countBineroClues} from "../utils/binero.js";
@@ -54,7 +54,7 @@ export function createDailyController(service: DailyService) {
                 result: userId ? await service.resultOf(code, date, userId) : null,
             })));
             const ready = await service.ready(date);
-            res.status(200).json({status: "ok", data: {date, nextInMs: nextDailyChange().getTime() - Date.now(), ready, games}});
+            res.status(200).json({status: "ok", data: {date, nextInMs: nextDailyChange().getTime() - Date.now(), ready, rewardMultiplier: DAILY_REWARD_MULTIPLIER, games}});
         }),
 
         start: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {

@@ -4,6 +4,8 @@ export interface WinResult {
     xp?: number;
     // Crédits gagnés (1 à 3 selon la difficulté, absents si le joueur n'est pas connecté)
     credits?: number;
+    // XP et crédits multipliés (2 au défi du jour, 1 sinon)
+    rewardMultiplier?: number;
     // Temps de la partie, mesuré par le serveur (de la génération à la validation)
     durationMs: number;
     // Meilleur temps du joueur sur cette configuration (jeu, taille, cases à remplir)

@@ -28,6 +28,7 @@ import {useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
+import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {useNavigate} from "react-router-dom";
 import {gameService} from "../../Services/game.service.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
@@ -110,6 +111,7 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
                 {daily && (
                     <p className="daily-label">
                         Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
+                        <span className="daily-x2">XP et crédits ×{DAILY_REWARD_MULTIPLIER}</span>
                     </p>
                 )}
                 {replayDate && (
@@ -139,7 +141,8 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
             {dailyGame.done && <DailyDonePopup gameCode="SUDOKU" gameName="Sudoku" result={dailyGame.done}/>}
 
             {flow.victory && (
-                <SuccessPopup gameName="Sudoku" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded} before={flow.victory.before}
+                <SuccessPopup gameName="Sudoku" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
+                              rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
                               onNewGame={replayDate ? () => navigate("/defi")

@@ -231,3 +231,16 @@
 		vertical-align : -0.1em;
 	}
 }
+
+// Badge « ×2 » des gains du défi du jour
+.reward-multiplier {
+	display        : inline-block;
+	margin-left    : 0.4rem;
+	padding        : 0 0.45rem;
+	border-radius  : 999px;
+	background     : #f59e0b;
+	color          : #1f1300;
+	font-size      : 0.85em;
+	font-weight    : 800;
+	vertical-align : 0.1em;
+}

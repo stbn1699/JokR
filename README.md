@@ -27,7 +27,7 @@ Autour des jeux :
 
 - **Défi du jour** : une grille Sudoku (9×9, 45 cases), une Binero (10×10, 50 cases) et un Rikudo (60 cases,
   40 à remplir) par jour, les mêmes pour tout le monde, avec un classement au temps. Une seule réussite comptée
-  par jour (XP et classement). Le jour change à minuit, heure de Paris : le serveur génère alors les grilles du
+  par jour (XP et classement), avec XP et crédits doublés. Le jour change à minuit, heure de Paris : le serveur génère alors les grilles du
   nouveau jour (et au démarrage si elles manquent), et les pages ouvertes se mettent à jour d'elles-mêmes
   quelques secondes après minuit. Les défis des jours précédents se rejouent depuis `/defi` :
   ils comptent alors comme une partie normale (XP habituelle) et n'entrent pas dans le classement de leur jour.

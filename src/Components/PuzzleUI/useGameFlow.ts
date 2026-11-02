@@ -10,6 +10,8 @@ export type ValidationResult =
 export type Victory = {
     xpAwarded: number | null;
     creditsAwarded: number | null;
+    // Gains multipliés (défi du jour : 2)
+    rewardMultiplier: number;
     before: Progress | null;
     durationMs: number;
     personalBest: boolean;
@@ -73,6 +75,7 @@ export function useGameFlow() {
         setVictory({
             xpAwarded: result.xp ?? null,
             creditsAwarded: result.credits ?? null,
+            rewardMultiplier: result.rewardMultiplier ?? 1,
             before: result.xp !== undefined ? before : null,
             durationMs: result.durationMs,
             personalBest: result.personalBest === true,

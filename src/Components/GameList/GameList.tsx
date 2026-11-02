@@ -115,13 +115,16 @@ export default function GameList() {
                             </div>
 
                             {/* Défi du jour de ce jeu (invité : ouvre l'invitation à créer un compte) */}
-                            {challenge && (
+                            {challenge && daily && (
                                 <Link to={`/defi/${game.code}`}
                                       className={`daily-button ${challenge.result ? "done" : ""} ${isLoggedIn ? "" : "locked"}`}
-                                      title={`Défi du jour : ${dailyGridLabel(challenge.code, challenge.size, challenge.emptyCells)}`}>
+                                      title={`Défi du jour : ${dailyGridLabel(challenge.code, challenge.size, challenge.emptyCells)} · XP et crédits ×${daily.rewardMultiplier}`}>
                                     {challenge.result
                                         ? <>✓ {formatDuration(challenge.result.durationMs)} · {challenge.result.rank}<sup>{challenge.result.rank === 1 ? "er" : "e"}</sup> / {challenge.result.total}</>
-                                        : <>{isLoggedIn ? <FaCalendarDay aria-hidden/> : <FaLock aria-hidden/>} Défi du jour</>}
+                                        : <>
+                                            {isLoggedIn ? <FaCalendarDay aria-hidden/> : <FaLock aria-hidden/>} Défi du jour
+                                            {daily.rewardMultiplier > 1 && <span className="daily-x2" title="XP et crédits doublés">×{daily.rewardMultiplier}</span>}
+                                        </>}
                                 </Link>
                             )}
                         </div>

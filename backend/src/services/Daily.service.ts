@@ -20,6 +20,9 @@ export const DAILY_GAMES = {
 
 export type DailyGameCode = keyof typeof DAILY_GAMES;
 
+// XP et crédits multipliés pour la réussite qui compte au défi du jour (pas pour un défi passé rejoué)
+export const DAILY_REWARD_MULTIPLIER = 2;
+
 export const isDailyGame = (code: string): code is DailyGameCode => code in DAILY_GAMES;
 
 export class DailyService {

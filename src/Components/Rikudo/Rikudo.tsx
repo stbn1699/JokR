@@ -25,6 +25,7 @@ import {rikudoService} from "../../Services/rikudo.service.ts";
 import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
+import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {useNavigate} from "react-router-dom";
 import type {RikudoPuzzle} from "../../Models/rikudo.model.ts";
 import {type SavedRikudo, useRikudoGame} from "./useRikudoGame.ts";
@@ -118,6 +119,7 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
                 {daily && (
                     <p className="daily-label">
                         Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
+                        <span className="daily-x2">XP et crédits ×{DAILY_REWARD_MULTIPLIER}</span>
                     </p>
                 )}
                 {replayDate && (
@@ -173,7 +175,8 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
             {dailyGame.done && <DailyDonePopup gameCode="RIKUDO" gameName="Rikudo" result={dailyGame.done}/>}
 
             {flow.victory && (
-                <SuccessPopup gameName="Rikudo" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded} before={flow.victory.before}
+                <SuccessPopup gameName="Rikudo" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
+                              rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
                               onNewGame={replayDate ? () => navigate("/defi")

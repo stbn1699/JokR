@@ -26,6 +26,7 @@ import {useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
+import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {useNavigate} from "react-router-dom";
 import {bineroService} from "../../Services/binero.service.ts";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
@@ -108,6 +109,7 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
                 {daily && (
                     <p className="daily-label">
                         Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
+                        <span className="daily-x2">XP et crédits ×{DAILY_REWARD_MULTIPLIER}</span>
                     </p>
                 )}
                 {replayDate && (
@@ -160,7 +162,8 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
             {dailyGame.done && <DailyDonePopup gameCode="BINERO" gameName="Binero" result={dailyGame.done}/>}
 
             {flow.victory && (
-                <SuccessPopup gameName="Binero" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded} before={flow.victory.before}
+                <SuccessPopup gameName="Binero" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
+                              rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
                               onNewGame={replayDate ? () => navigate("/defi")

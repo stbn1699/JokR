@@ -5,7 +5,7 @@ import type {PuzzleStore} from "../services/PuzzleStore.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import type {GamesService} from "../services/Games.service.js";
 import type {AuthLocals} from "../middleware/auth.js";
-import type {DailyService} from "../services/Daily.service.js";
+import {DAILY_REWARD_MULTIPLIER, type DailyService} from "../services/Daily.service.js";
 import type {RikudoPuzzle} from "../utils/rikudo.js";
 import {routeParam} from "../utils/validation.js";
 
@@ -106,15 +106,17 @@ export function createRikudoController(
             const size = game.puzzle.cells.length;
             const emptyCells = size - game.cluesCount;
             const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
-            const xp = service.computeXp(baseXp, size, emptyCells);
-            const credits = service.computeCredits(size, emptyCells);
+            // Défi du jour (réussite qui compte) : XP et crédits doublés
+            const multiplier = daily?.counted ? DAILY_REWARD_MULTIPLIER : 1;
+            const xp = service.computeXp(baseXp, size, emptyCells) * multiplier;
+            const credits = service.computeCredits(size, emptyCells) * multiplier;
             const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
                 gridSize: size,
                 emptyCells,
                 durationMs,
             }, credits);
 
-            res.status(200).json({status: "ok", data: {xp, credits, durationMs, personalBest, daily}});
+            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: multiplier, durationMs, personalBest, daily}});
         }),
     };
 }

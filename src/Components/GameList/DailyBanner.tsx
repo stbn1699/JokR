@@ -19,9 +19,8 @@ export default function DailyBanner({overview}: { overview: DailyOverview }) {
                 <FaCalendarDay className="daily-banner-icon" aria-hidden/>
                 <strong>Défi du jour</strong> · {formatDailyDate(overview.date)}
                 <span className="daily-banner-hint">
-                    {isLoggedIn
-                        ? " — la même grille pour tout le monde"
-                        : <> — <Link to="/register">crée un compte</Link> pour y jouer</>}
+                    {!isLoggedIn && <> — <Link to="/register">crée un compte</Link> pour y jouer</>}
+                    {overview.rewardMultiplier > 1 && <span className="daily-banner-x2">XP et crédits ×{overview.rewardMultiplier}</span>}
                 </span>
             </p>
             <div className="daily-banner-links">

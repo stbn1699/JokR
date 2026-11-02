@@ -38,6 +38,19 @@
 		opacity : 0.85;
 	}
 
+	// Badge « XP et crédits ×2 »
+	.daily-banner-x2 {
+		display       : inline-block;
+		margin-left   : 0.6rem;
+		padding       : 0.05rem 0.6rem;
+		border-radius : 999px;
+		background    : #f59e0b;
+		color         : #1f1300;
+		font-size     : 0.9em;
+		font-weight   : 700;
+		opacity       : 1;
+	}
+
 	.daily-banner-links {
 		display : flex;
 		gap     : 1.25rem;

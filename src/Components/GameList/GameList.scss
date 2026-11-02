@@ -118,6 +118,16 @@
 			background : rgba(245, 158, 11, 0.3);
 		}
 
+		// Badge « ×2 » : XP et crédits doublés
+		.daily-x2 {
+			padding       : 0 0.45rem;
+			border-radius : 999px;
+			background    : #f59e0b;
+			color         : #1f1300;
+			font-size     : 0.9em;
+			font-weight   : 800;
+		}
+
 		// Déjà réussi aujourd'hui : temps et place
 		&.done {
 			border-color : rgba(59, 246, 68, 0.6);

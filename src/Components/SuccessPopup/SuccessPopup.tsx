@@ -20,6 +20,8 @@ type SuccessPopupProps = {
     xpAwarded: number | null;
     // Crédits gagnés (null si le joueur n'est pas connecté)
     creditsAwarded?: number | null;
+    // Gains multipliés (défi du jour : 2) ; affiché en badge s'il est supérieur à 1
+    rewardMultiplier?: number;
     // Niveau et XP du joueur avant la victoire (null si pas connecté)
     before: Progress | null;
     // Temps de la partie (mesuré par le serveur)
@@ -43,7 +45,7 @@ type Phase = "start" | "fill" | "levelUp";
  * puis elle repart sur le niveau suivant.
  */
 export function SuccessPopup(props: SuccessPopupProps) {
-    const {gameName, xpAwarded, creditsAwarded, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie"} = props;
+    const {gameName, xpAwarded, creditsAwarded, rewardMultiplier = 1, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie"} = props;
     const modalRef = useRef<HTMLDivElement | null>(null);
     const navigate = useNavigate();
 
@@ -114,6 +116,7 @@ export function SuccessPopup(props: SuccessPopupProps) {
                                         {" · "}<FaCoins aria-hidden/> +{creditsAwarded} crédit{creditsAwarded > 1 ? "s" : ""}
                                     </span>
                                 ) : null}
+                                {rewardMultiplier > 1 && <span className="reward-multiplier" title="Défi du jour : XP et crédits doublés">×{rewardMultiplier}</span>}
                             </span>
                         </div>
 

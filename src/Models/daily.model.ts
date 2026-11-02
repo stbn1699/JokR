@@ -16,6 +16,8 @@ export interface DailyOverview {
     nextInMs: number;
     // Défis du jour déjà générés
     ready: boolean;
+    // XP et crédits multipliés par ce nombre au défi du jour
+    rewardMultiplier: number;
     games: {
         code: string;
         size: number;
