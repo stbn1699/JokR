@@ -150,6 +150,13 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
                 <HistoryButtons canUndo={playing && canUndo} canRedo={playing && canRedo} onUndo={undo} onRedo={redo}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
                 <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
+
+                <div className="rules">
+                    <h3>Règles</h3>
+                    {rules}
+                    <p className="rules-keys">Clavier : <kbd>1</kbd>…<kbd>9</kbd> pour remplir, <kbd>⌫</kbd> pour vider,
+                        flèches pour se déplacer, <kbd>N</kbd> pour le mode notes</p>
+                </div>
             </div>
 
             <SudokuSettingsPopup open={!challenge && flow.showSettings} onGenerate={handleGenerate}
