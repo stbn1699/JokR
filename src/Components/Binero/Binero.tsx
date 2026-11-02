@@ -22,6 +22,7 @@ import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
 import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import {bineroConflicts} from "./bineroRules.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
+import {useAutoValidate} from "../PuzzleUI/useAutoValidate.ts";
 import {type SavedBinero, useBineroGame} from "./useBineroGame.ts";
 import {useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
@@ -69,6 +70,12 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
     const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
     const [showErrors, setShowErrors] = useShowErrors();
     const conflicts = useMemo(() => bineroConflicts(game.values, game.size), [game.values, game.size]);
+    // Grille remplie : validée toute seule (sans appel au serveur si elle contient une erreur)
+    const filledKey = game.values.length > 0 && game.values.every(v => v !== null) ? game.values.join("") : null;
+    useAutoValidate({
+        filledKey, playing, hasErrors: conflicts.size > 0,
+        submit: () => flow.submit(game.validate), setNotice: flow.setNotice,
+    });
     useUndoShortcuts(game.undo, game.redo, playing);
 
     // Case sélectionnée modifiable (pas un chiffre donné)
@@ -154,10 +161,6 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
             <div className="actions">
                 <h2 className="title">Actions</h2>
                 <GameTimer clock={flow.clock}/>
-                <button type="button" onClick={() => flow.submit(game.validate)} className="validate-button"
-                        disabled={game.isGenerating || flow.showSettings}>
-                    Valider
-                </button>
                 <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
                                 onUndo={game.undo} onRedo={game.redo}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>

@@ -71,8 +71,11 @@
 		text-align  : right;
 	}
 
+	// Sans marge : la marge par défaut du navigateur, ajoutée aux 100 %, faisait déborder la popup
 	input[type="range"] {
 		width        : 100%;
+		margin       : 0;
+		box-sizing   : border-box;
 		accent-color : #10b981;
 		cursor       : pointer;
 	}

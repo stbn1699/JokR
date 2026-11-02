@@ -74,6 +74,8 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [digitCounts, setDigitCounts] = useState<number[]>(EMPTY_COUNTS);
+    // Contenu de la grille quand elle est entièrement remplie (validation automatique), null sinon
+    const [filledKey, setFilledKey] = useState<string | null>(null);
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
     const [hoverDigit, setHoverDigit] = useState<number | null>(null);
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
@@ -95,6 +97,7 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
     const recount = useCallback(() => {
         const values = readValues();
         setDigitCounts(countDigits(values));
+        setFilledKey(values.every(v => /^[1-9]$/.test(v)) ? values.join("") : null);
         setConflicts(sudokuConflicts(values));
     }, []);
 
@@ -288,6 +291,7 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
         isGenerating,
         generate,
         validate,
+        filledKey,
         digitCounts,
         selectedDigit,
         toggleDigit,

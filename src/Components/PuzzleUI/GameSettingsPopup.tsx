@@ -100,7 +100,6 @@ export default function GameSettingsPopup(props: GameSettingsPopupProps) {
                             step={1}
                             value={emptyCells}
                             onChange={(e) => props.onEmptyCellsChange(Number(e.target.value))}
-                            autoFocus
                         />
                         <div className="game-settings-scale" aria-hidden>
                             <span>{minEmptyCells} · plus facile</span>

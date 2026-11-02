@@ -21,6 +21,7 @@ import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
 import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
 import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
+import {useAutoValidate} from "../PuzzleUI/useAutoValidate.ts";
 import {useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {rikudoService} from "../../Services/rikudo.service.ts";
 import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
@@ -81,6 +82,12 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
         () => (game.board && game.puzzle ? rikudoConflicts(game.board, settledValues, game.puzzle.links) : new Set<number>()),
         [game.board, game.puzzle, settledValues],
     );
+    // Plateau rempli (saisie terminée) : validé tout seul (sans appel au serveur s'il contient une erreur)
+    const filledKey = settledValues.length > 0 && settledValues.every(v => v !== null) ? settledValues.join(",") : null;
+    useAutoValidate({
+        filledKey, playing, hasErrors: conflicts.size > 0,
+        submit: () => flow.submit(game.validate), setNotice: flow.setNotice,
+    });
     useUndoShortcuts(game.undo, game.redo, playing);
 
     // Nombre probablement attendu dans la case choisie (un voisin ± 1, pas encore posé) : la bande de nombres
@@ -182,10 +189,6 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
             <div className="actions">
                 <h2 className="title">Actions</h2>
                 <GameTimer clock={flow.clock}/>
-                <button type="button" onClick={() => flow.submit(game.validate)} className="validate-button"
-                        disabled={game.isGenerating || flow.showSettings}>
-                    Valider
-                </button>
                 <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
                                 onUndo={game.undo} onRedo={game.redo}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>

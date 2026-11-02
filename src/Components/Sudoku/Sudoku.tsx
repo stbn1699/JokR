@@ -4,7 +4,7 @@
  * - À l'ouverture : popup de paramètres (cases à remplir, XP gagnée), puis génération côté serveur
  * - Victoire : popup avec la barre d'XP ; "Nouvelle partie" rouvre les paramètres sans recharger
  * - Grille : navigation clavier, surbrillance des chiffres identiques
- * - Actions : validation côté serveur, qui calcule et enregistre l'XP si le joueur est connecté
+ * - Grille remplie : validée automatiquement côté serveur, qui calcule et enregistre l'XP si le joueur est connecté
  *
  * - Panneau de gauche : chiffres restants à placer ; avec une case sélectionnée, un chiffre la remplit
  *   (ou y ajoute une note au crayon en mode notes, touche N) ; sinon il est surligné dans la grille
@@ -24,6 +24,7 @@ import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
 import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
 import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
+import {useAutoValidate} from "../PuzzleUI/useAutoValidate.ts";
 import {type SavedSudoku, useSudokuGame} from "./useSudokuGame.ts";
 import {useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
@@ -53,7 +54,7 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
     const saveKey = replayDate ? `SUDOKU:replay:${replayDate}` : daily ? "SUDOKU:daily" : "SUDOKU";
     const [showErrors, setShowErrors] = useShowErrors();
     const {
-        inputs, isGenerating, generate, validate,
+        inputs, isGenerating, generate, validate, filledKey,
         digitCounts, selectedDigit, toggleDigit, fillSelected, pressDigit, setHoverDigit, setSelectedCell,
         onCellInput, undo, redo, canUndo, canRedo, conflicts, notes, notesMode, setNotesMode, toggleNoteAt,
         restore,
@@ -74,6 +75,8 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
     });
     const playing = !flow.showSettings && !flow.victory && !isGenerating;
     useUndoShortcuts(undo, redo, playing);
+    // Grille remplie : validée toute seule
+    useAutoValidate({filledKey, playing, hasErrors: conflicts.size > 0, submit: () => flow.submit(validate), setNotice: flow.setNotice});
 
     // Touche N : bascule le mode notes
     useEffect(() => {
@@ -144,10 +147,6 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
             <div className="actions">
                 <h2 className="title">Actions</h2>
                 <GameTimer clock={flow.clock}/>
-                <button type="button" onClick={() => flow.submit(validate)} className="validate-button"
-                        disabled={isGenerating || flow.showSettings}>
-                    Valider
-                </button>
                 <HistoryButtons canUndo={playing && canUndo} canRedo={playing && canRedo} onUndo={undo} onRedo={redo}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
                 <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
