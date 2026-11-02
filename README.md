@@ -9,6 +9,8 @@ Jeux disponibles :
 - **Rikudo** : plateau en nid d'abeille de 36, 60 ou 90 cases autour d'une case centrale vide. Placer les nombres
   de 1 à N pour que deux nombres consécutifs soient voisins ; un point entre deux cases impose que leurs nombres
   se suivent. 1 et N sont toujours donnés.
+- **Tectonic** (Suguru) : grille de 5×5 à 8×8 découpée en zones de 1 à 5 cases. Une zone de n cases contient
+  les nombres de 1 à n, et deux cases qui se touchent (diagonales comprises) n'ont jamais le même nombre.
 
 Avant chaque partie, une popup permet de choisir les paramètres (taille, nombre de cases à remplir)
 et affiche l'XP gagnée à la résolution.
@@ -25,8 +27,8 @@ En jeu :
 
 Autour des jeux :
 
-- **Défi du jour** : une grille Sudoku (9×9, 45 cases), une Binero (10×10, 50 cases) et un Rikudo (60 cases,
-  40 à remplir) par jour, les mêmes pour tout le monde, avec un classement au temps. Une seule réussite comptée
+- **Défi du jour** : une grille Sudoku (9×9, 45 cases), une Binero (10×10, 50 cases), un Rikudo (60 cases,
+  40 à remplir) et un Tectonic (7×7, 34 cases) par jour, les mêmes pour tout le monde, avec un classement au temps. Une seule réussite comptée
   par jour (XP et classement), avec XP et crédits doublés. Le jour change à minuit, heure de Paris : le serveur génère alors les grilles du
   nouveau jour (et au démarrage si elles manquent), et les pages ouvertes se mettent à jour d'elles-mêmes
   quelques secondes après minuit. Tous les défis (mois par mois, jour par jour) sont sur `/defi` ; ceux des jours passés se rejouent :
@@ -229,6 +231,10 @@ update users set is_admin = false where username = 'pseudo';  -- retirer
 | POST    | `/rikudo/generate`         | –         | `{ size, emptyCells }` → `{ gameId, puzzle: { radius, cells, links } }` |
 | GET     | `/rikudo/games/:gameId`    | –         | partie en cours (pour la reprendre)       |
 | POST    | `/rikudo/validate`         | optionnel | valide `{ gameId, values }`, XP si connecté |
+| GET     | `/tectonic/settings`       | –         | tailles, plages et XP proposées           |
+| POST    | `/tectonic/generate`       | –         | `{ size, emptyCells }` → `{ gameId, puzzle: { width, height, regions, cells } }` |
+| GET     | `/tectonic/games/:gameId`  | –         | partie en cours (pour la reprendre)       |
+| POST    | `/tectonic/validate`       | optionnel | valide `{ gameId, values }`, XP si connecté |
 | GET     | `/daily`                   | optionnel | défis du jour (et résultats du joueur)    |
 | POST    | `/daily/:game/start`       | oui       | commence le défi du jour                  |
 | GET     | `/daily/history?month=`    | optionnel | défis d'un mois (AAAA-MM), aujourd'hui compris |

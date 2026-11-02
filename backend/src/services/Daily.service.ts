@@ -2,6 +2,7 @@ import type {DailyRanking, DailyRepository} from "../repository/Daily.repository
 import type {SudokuService} from "./Sudoku.service.js";
 import type {BineroService} from "./Binero.service.js";
 import type {RikudoService} from "./Rikudo.service.js";
+import type {TectonicService} from "./Tectonic.service.js";
 
 /*
  * Défi du jour : une grille par jeu et par jour, la même pour tout le monde.
@@ -16,6 +17,8 @@ export const DAILY_GAMES = {
     BINERO: {size: 10, emptyCells: 50},
     // Rikudo : size = nombre de cases du plateau
     RIKUDO: {size: 60, emptyCells: 40},
+    // Tectonic : size = côté de la grille
+    TECTONIC: {size: 7, emptyCells: 34},
 } as const;
 
 export type DailyGameCode = keyof typeof DAILY_GAMES;
@@ -31,6 +34,7 @@ export class DailyService {
         private sudoku: SudokuService,
         private binero: BineroService,
         private rikudo: RikudoService,
+        private tectonic: TectonicService,
     ) {
     }
 
@@ -55,6 +59,8 @@ export class DailyService {
                 return this.binero.generate(size, size * size - emptyCells);
             case "RIKUDO":
                 return this.rikudo.generate(size, size - emptyCells);
+            case "TECTONIC":
+                return this.tectonic.generate(size, size * size - emptyCells);
         }
     }
 

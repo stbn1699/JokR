@@ -1,10 +1,11 @@
 import type {CSSProperties, MouseEvent} from "react";
 
 type DigitPanelProps = {
-    // Chiffres proposés (1 à 9 pour le Sudoku, 0 et 1 pour le Binero)
+    // Chiffres proposés (1 à 9 pour le Sudoku, 0 et 1 pour le Binero, 1 à 5 pour le Tectonic)
     digits: number[];
-    // Nombre d'exemplaires de chaque chiffre dans une grille complète (0 = pas encore de grille)
-    perDigit: number;
+    // Nombre d'exemplaires de chaque chiffre dans une grille complète (0 = pas encore de grille),
+    // le même pour tous ou chiffre par chiffre (Tectonic)
+    perDigit: number | Record<number, number>;
     // counts[n] = nombre de n présents dans la grille
     counts: Record<number, number>;
     // Chiffre surligné dans la grille
@@ -31,7 +32,8 @@ const keepGridFocus = (e: MouseEvent<HTMLButtonElement>) => e.preventDefault();
  * Indispensable sur téléphone (pas de clavier physique).
  */
 export default function DigitPanel({digits, perDigit, counts, selected, onSelect, onErase, columns = 3, notes}: DigitPanelProps) {
-    const hasGrid = perDigit > 0;
+    const expected = (n: number) => (typeof perDigit === "number" ? perDigit : perDigit[n] ?? 0);
+    const hasGrid = digits.some(n => expected(n) > 0);
 
     return (
         <div className="options">
@@ -40,7 +42,7 @@ export default function DigitPanel({digits, perDigit, counts, selected, onSelect
             <div className="digit-pad"
                  style={{"--digit-columns": columns, "--digit-count": digits.length + (notes ? 2 : 1)} as CSSProperties}>
                 {digits.map((n) => {
-                    const remaining = perDigit - (counts[n] ?? 0);
+                    const remaining = expected(n) - (counts[n] ?? 0);
                     const state = !hasGrid ? "" : remaining === 0 ? "complete" : remaining < 0 ? "overflow" : "";
 
                     return (

@@ -11,7 +11,7 @@ import BarChart from "./BarChart.tsx";
 import {downloadFile, toCsv} from "./exportData.ts";
 
 // Une couleur fixe par jeu (vérifiée lisible et distincte, daltonisme compris) ; les autres jeux en gris
-const GAME_COLORS: Record<string, string> = {SUDOKU: "#3987e5", BINERO: "#e46f24", RIKUDO: "#1baf7a"};
+const GAME_COLORS: Record<string, string> = {SUDOKU: "#3987e5", BINERO: "#e46f24", RIKUDO: "#1baf7a", TECTONIC: "#9085e9"};
 const OTHER_COLOR = "#94a3b8";
 const gameColor = (code: string) => GAME_COLORS[code] ?? OTHER_COLOR;
 

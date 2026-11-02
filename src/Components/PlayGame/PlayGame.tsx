@@ -12,6 +12,7 @@ import {useParams} from "react-router-dom"
 import Sudoku from "../Sudoku/Sudoku.tsx";
 import Binero from "../Binero/Binero.tsx";
 import Rikudo from "../Rikudo/Rikudo.tsx";
+import Tectonic from "../Tectonic/Tectonic.tsx";
 import DailyLoginRequired from "../PuzzleUI/DailyLoginRequired.tsx";
 import {useAuth} from "../../Context/authContext.ts";
 
@@ -49,6 +50,8 @@ export default function PlayGame({daily = false}: { daily?: boolean }) {
                 return <Binero daily={daily && !date} replayDate={date}/>;
             case "RIKUDO":
                 return <Rikudo daily={daily && !date} replayDate={date}/>;
+            case "TECTONIC":
+                return <Tectonic daily={daily && !date} replayDate={date}/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;
