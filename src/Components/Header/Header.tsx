@@ -3,7 +3,8 @@
  *
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
- * - Les onglets Puzzle (accueil : Sudoku, Binero, Rikudo…) et Hasard (jeux de hasard, à venir)
+ * - Les onglets Daily (défis du jour, en orange), Puzzle (accueil : Sudoku, Binero, Rikudo…),
+ *   Hasard (jeux de hasard, à venir) et Classement
  * - Connecté : icône de niveau, barre d'XP, crédits, accès au profil et déconnexion
  * - Invité : icône pour aller à la page de connexion
  *
@@ -11,15 +12,17 @@
  */
 
 import "./Header.scss"
-import {FaCoins, FaSignOutAlt, FaTrophy, FaUser, FaUserCircle} from "react-icons/fa";
+import {FaCoins, FaSignOutAlt, FaUser, FaUserCircle} from "react-icons/fa";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {levelIconSrc, xpToNextLevel} from "../../Services/leveling.ts";
 
-// Onglets du header ; `match` dit si une adresse appartient à l'onglet
+// Onglets du header ; `match` dit si une adresse appartient à l'onglet, `highlight` le met en orange
 const TABS = [
-    {label: "Puzzle", to: "/", match: (path: string) => path === "/" || path.startsWith("/playgame") || path.startsWith("/defi")},
+    {label: "Daily", to: "/defi", match: (path: string) => path.startsWith("/defi"), highlight: true},
+    {label: "Puzzle", to: "/", match: (path: string) => path === "/" || path.startsWith("/playgame")},
     {label: "Hasard", to: "/hasard", match: (path: string) => path.startsWith("/hasard")},
+    {label: "Classement", to: "/classements", match: (path: string) => path.startsWith("/classements")},
 ];
 
 export default function Header() {
@@ -48,7 +51,8 @@ export default function Header() {
                 {TABS.map(tab => {
                     const active = tab.match(pathname);
                     return (
-                        <Link key={tab.to} to={tab.to} className={`header-tab ${active ? "active" : ""}`}
+                        <Link key={tab.to} to={tab.to}
+                              className={`header-tab ${active ? "active" : ""} ${"highlight" in tab && tab.highlight ? "highlight" : ""}`}
                               aria-current={active ? "page" : undefined}>
                             {tab.label}
                         </Link>
@@ -57,7 +61,6 @@ export default function Header() {
             </nav>
 
             <div className="usersection">
-                <FaTrophy title="Classements" className="trophy" onClick={() => navigate("/classements")}/>
                 {isLoggedIn ? (
                     <div className="user-section">
                         <img src={levelIconSrc(level)} alt={`Niveau ${level}`} className="level-icon"/>

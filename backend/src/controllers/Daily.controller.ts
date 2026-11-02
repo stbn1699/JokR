@@ -10,8 +10,7 @@ import {countRikudoClues, type RikudoPuzzle} from "../utils/rikudo.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
 import {isDateKey, routeParam} from "../utils/validation.js";
 
-// Nombre de jours affichés dans l'historique des défis
-const HISTORY_DAYS = 30;
+const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 /*
  * Défi du jour
@@ -19,7 +18,8 @@ const HISTORY_DAYS = 30;
  *   nextInMs = temps avant le prochain changement de jour (le front se rafraîchit à ce moment-là), ready = défis déjà générés
  * - start : commence le défi (grille du jour) ; la partie se valide ensuite comme une partie normale
  * - leaderboard : meilleurs temps du jour (ou d'un jour passé, ?date=AAAA-MM-JJ) et place du joueur connecté
- * - history : défis des jours précédents (et résultats du joueur connecté)
+ * - history : défis d'un mois (?month=AAAA-MM, mois courant par défaut), aujourd'hui compris,
+ *   et résultats du joueur connecté
  * - replay : rejoue le défi d'un jour passé ; c'est une partie normale (XP normale, hors classement du jour)
  */
 export function createDailyController(service: DailyService) {
@@ -80,9 +80,14 @@ export function createDailyController(service: DailyService) {
             res.status(200).json({status: "ok", data: {date, alreadyDone: false, gameId, grid, size, emptyCells}});
         }),
 
-        history: asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
-            const days = await service.history(dailyDate(), HISTORY_DAYS, res.locals.userId);
-            res.status(200).json({status: "ok", data: days});
+        history: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const today = dailyDate();
+            const month = typeof req.query.month === "string" ? req.query.month : today.slice(0, 7);
+            if (!MONTH_KEY.test(month) || month > today.slice(0, 7)) {
+                res.status(400).json({status: "error", message: "Mois invalide"});
+                return;
+            }
+            res.status(200).json({status: "ok", data: await service.month(month, today, res.locals.userId)});
         }),
 
         replay: asyncHandler(async (req: Request, res: Response) => {

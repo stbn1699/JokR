@@ -40,7 +40,7 @@ export interface DailyLeaderboard {
     me: DailyResult | null;
 }
 
-// GET /daily/history : défis des jours précédents
+// Un jour de la page des défis (GET /daily/history)
 export interface DailyHistoryDay {
     date: string;
     games: {
@@ -52,4 +52,14 @@ export interface DailyHistoryDay {
         // Réussite du joueur connecté ce jour-là (null si pas joué ou invité)
         result: DailyResult | null;
     }[];
+}
+
+// GET /daily/history?month=AAAA-MM : défis d'un mois, du plus récent au plus ancien (aujourd'hui compris)
+export interface DailyMonth {
+    month: string;
+    today: string;
+    // Premier mois qui a des défis, et mois courant (bornes du sélecteur)
+    firstMonth: string;
+    currentMonth: string;
+    days: DailyHistoryDay[];
 }

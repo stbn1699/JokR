@@ -75,21 +75,8 @@ export class DailyRepository {
         return {rank: Number(row.faster) + 1, total: Number(row.total)};
     }
 
-    /**
-     * Défis des jours précédents (avant `beforeDate`), les plus récents d'abord, sur `days` jours au plus,
-     * avec le nombre de joueurs classés. Les dates sont renvoyées en texte (AAAA-MM-JJ).
-     */
-    async listPast(beforeDate: string, days: number) {
-        const dates = await this.db
-            .selectFrom("daily_challenges")
-            .select(sql<string>`challenge_date::text`.as("date"))
-            .where("challenge_date", "<", beforeDate)
-            .groupBy("challenge_date")
-            .orderBy("challenge_date", "desc")
-            .limit(days)
-            .execute();
-        if (dates.length === 0) return [];
-
+    // Défis entre deux dates incluses (AAAA-MM-JJ), avec le nombre de joueurs classés pour chacun
+    async listRange(from: string, to: string) {
         return this.db
             .selectFrom("daily_challenges as c")
             .leftJoin("daily_results as r", join => join
@@ -102,11 +89,20 @@ export class DailyRepository {
                 "c.empty_cells",
                 eb.fn.count<string>("r.user_id").as("players"),
             ])
-            .where(sql<string>`c.challenge_date::text`, "in", dates.map(d => d.date))
+            .where("c.challenge_date", ">=", from)
+            .where("c.challenge_date", "<=", to)
             .groupBy(["c.challenge_date", "c.game_code", "c.grid_size", "c.empty_cells"])
             .orderBy("c.challenge_date", "desc")
-            .orderBy("c.game_code", "desc")
             .execute();
+    }
+
+    // Date du tout premier défi (null s'il n'y en a encore aucun)
+    async firstDate(): Promise<string | null> {
+        const row = await this.db
+            .selectFrom("daily_challenges")
+            .select(sql<string | null>`min(challenge_date)::text`.as("first"))
+            .executeTakeFirst();
+        return row?.first ?? null;
     }
 
     // Réussites d'un joueur sur une liste de jours

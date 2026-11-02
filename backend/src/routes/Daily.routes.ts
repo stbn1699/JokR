@@ -10,7 +10,7 @@ const controller = createDailyController(createDailyService(createDb(pool)));
 
 // GET /daily : défis du jour (et résultats du joueur connecté)
 router.get("/", optionalAuth, controller.overview);
-// GET /daily/history : défis des jours précédents (et résultats du joueur connecté)
+// GET /daily/history[?month=AAAA-MM] : défis d'un mois, aujourd'hui compris (et résultats du joueur connecté)
 router.get("/history", optionalAuth, controller.history);
 // Jouer aux défis (du jour ou des jours passés) est réservé aux joueurs connectés ;
 // voir les défis, l'historique et les classements reste ouvert à tous.

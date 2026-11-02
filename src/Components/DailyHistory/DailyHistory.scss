@@ -4,8 +4,8 @@
 	padding         : 2rem 1rem;
 
 	.daily-history-card {
-		width         : min(42rem, 100%);
-		padding       : 2rem;
+		width         : min(64rem, 100%);
+		padding       : 2rem 2.5rem;
 		box-sizing    : border-box;
 		border        : 3px solid #f9fafb;
 		border-radius : 12px;
@@ -19,108 +19,20 @@
 	}
 
 	.daily-history-intro {
-		margin     : 0 0 0.75rem;
+		margin     : 0 auto 1rem;
+		max-width  : 44rem;
 		font-size  : 1.25rem;
 		opacity    : 0.8;
 		text-align : center;
 	}
 
-	.daily-history-today {
-		display         : block;
-		margin-bottom   : 1rem;
-		color           : #fbbf24;
-		font-size       : 1.2rem;
-		text-align      : center;
-		text-decoration : none;
-
-		&:hover {
-			text-decoration : underline;
-		}
-	}
-
 	.daily-history-login {
 		margin     : 0 0 1rem;
-		font-size  : 1.2rem;
+		font-size  : 1.25rem;
 		text-align : center;
 
 		a {
 			color : #fbbf24;
-		}
-	}
-
-	.daily-history-day {
-		padding    : 1rem 0;
-		border-top : 1px solid rgba(249, 250, 251, 0.15);
-
-		h2 {
-			margin    : 0 0 0.75rem;
-			font-size : 1.8rem;
-			color     : #fbbf24;
-		}
-	}
-
-	.daily-history-games {
-		display : flex;
-		gap     : 0.75rem;
-	}
-
-	.daily-history-game {
-		flex           : 1;
-		display        : flex;
-		flex-direction : column;
-		gap            : 0.4rem;
-		padding        : 0.75rem 1rem;
-		border-radius  : 10px;
-		border         : 2px solid rgba(249, 250, 251, 0.2);
-		background     : rgba(2, 6, 23, 0.45);
-	}
-
-	.daily-history-game-head {
-		display         : flex;
-		justify-content : space-between;
-		align-items     : baseline;
-		gap             : 0.5rem;
-		flex-wrap       : wrap;
-
-		strong {
-			font-size : 1.5rem;
-		}
-
-		span {
-			font-size : 1.05rem;
-			opacity   : 0.75;
-		}
-	}
-
-	.daily-history-result {
-		margin    : 0;
-		font-size : 1.15rem;
-		opacity   : 0.9;
-	}
-
-	.daily-history-actions {
-		display : flex;
-		gap     : 0.5rem;
-
-		a {
-			flex            : 1;
-			padding         : 0.4rem 0;
-			border-radius   : 999px;
-			border          : 2px solid rgba(249, 250, 251, 0.35);
-			color           : #f9fafb;
-			font-size       : 1.1rem;
-			text-align      : center;
-			text-decoration : none;
-
-			&:hover {
-				border-color : #10b981;
-			}
-
-			&.replay {
-				border-color : #10b981;
-				background   : rgba(16, 185, 129, 0.2);
-				font-weight  : 700;
-			}
 		}
 	}
 
@@ -135,9 +47,243 @@
 		color      : #fca5a5;
 		text-align : center;
 	}
+
+	// ---------- Sélecteur de mois
+	.month-picker {
+		display         : flex;
+		justify-content : center;
+		align-items     : center;
+		gap             : 0.75rem;
+		margin          : 1.5rem 0 1rem;
+
+		select {
+			min-width     : 14rem;
+			padding       : 0.5rem 1rem;
+			border        : 2px solid rgba(249, 250, 251, 0.45);
+			border-radius : 999px;
+			background    : rgba(2, 6, 23, 0.6);
+			color         : #f9fafb;
+			font-family   : inherit;
+			font-size     : 1.4rem;
+			text-align    : center;
+			cursor        : pointer;
+
+			option {
+				background : #0f172a;
+			}
+		}
+	}
+
+	.month-arrow {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		width           : 2.8rem;
+		height          : 2.8rem;
+		padding         : 0;
+		border          : 2px solid rgba(249, 250, 251, 0.45);
+		border-radius   : 50%;
+		background      : rgba(2, 6, 23, 0.6);
+		color           : #f9fafb;
+		font-size       : 1.1rem;
+		cursor          : pointer;
+
+		&:hover:not(:disabled) {
+			border-color : #fbbf24;
+			color        : #fbbf24;
+		}
+
+		&:disabled {
+			opacity : 0.3;
+			cursor  : default;
+		}
+	}
+
+	// ---------- Bandeau des jours
+	.day-strip {
+		// Référence des positions des jours (pour centrer le jour choisi)
+		position        : relative;
+		display         : flex;
+		gap             : 0.5rem;
+		padding         : 0.5rem calc(50% - 2.25rem);
+		overflow-x      : auto;
+		scrollbar-width : none;
+		cursor          : grab;
+		user-select     : none;
+		// Bords qui s'estompent : on comprend qu'on peut faire glisser
+		mask-image      : linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+
+		&::-webkit-scrollbar {
+			display : none;
+		}
+
+		&.dragging {
+			cursor : grabbing;
+		}
+	}
+
+	.day-strip-day {
+		flex            : 0 0 4.5rem;
+		display         : flex;
+		flex-direction  : column;
+		align-items     : center;
+		gap             : 0.1rem;
+		padding         : 0.5rem 0 0.4rem;
+		border          : 2px solid rgba(249, 250, 251, 0.25);
+		border-radius   : 12px;
+		background      : rgba(2, 6, 23, 0.45);
+		color           : #f9fafb;
+		font-family     : inherit;
+		cursor          : pointer;
+		transition      : border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+
+		&:hover:not(:disabled) {
+			border-color : #fbbf24;
+		}
+
+		&.today .day-strip-number {
+			color : #fbbf24;
+		}
+
+		&.selected {
+			border-color : #fbbf24;
+			background   : rgba(245, 158, 11, 0.25);
+			transform    : scale(1.08);
+		}
+
+		&.disabled {
+			opacity : 0.25;
+			cursor  : default;
+		}
+	}
+
+	.day-strip-weekday {
+		font-size      : 0.95rem;
+		opacity        : 0.75;
+		text-transform : capitalize;
+	}
+
+	.day-strip-number {
+		font-size   : 1.8rem;
+		font-weight : 700;
+		line-height : 1.1;
+	}
+
+	.day-strip-dot {
+		width         : 0.45rem;
+		height        : 0.45rem;
+		border-radius : 50%;
+
+		&.visible {
+			background : #3bf644;
+		}
+	}
+
+	// ---------- Défis du jour choisi
+	.daily-history-day {
+		margin-top : 1.5rem;
+
+		h2 {
+			display         : flex;
+			justify-content : center;
+			align-items     : center;
+			flex-wrap       : wrap;
+			gap             : 0.5rem 1rem;
+			margin          : 0 0 1rem;
+			font-size       : 2rem;
+			color           : #fbbf24;
+		}
+	}
+
+	.daily-history-today-badge {
+		padding       : 0.15rem 0.7rem;
+		border-radius : 999px;
+		background    : #f59e0b;
+		color         : #1f1300;
+		font-size     : 1.05rem;
+
+		svg {
+			vertical-align : -0.1em;
+		}
+	}
+
+	.daily-history-games {
+		display               : grid;
+		grid-template-columns : repeat(3, minmax(0, 1fr));
+		gap                   : 1rem;
+	}
+
+	.daily-history-game {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.35rem;
+		padding        : 1.1rem 1.25rem;
+		border         : 2px solid rgba(249, 250, 251, 0.2);
+		border-radius  : 12px;
+		background     : rgba(2, 6, 23, 0.45);
+
+		&.done {
+			border-color : rgba(59, 246, 68, 0.5);
+
+			.daily-history-result {
+				color : #3bf644;
+			}
+		}
+
+		h3 {
+			margin    : 0;
+			font-size : 1.9rem;
+		}
+	}
+
+	.daily-history-grid {
+		margin    : 0;
+		font-size : 1.15rem;
+		opacity   : 0.75;
+	}
+
+	.daily-history-result {
+		margin    : 0;
+		font-size : 1.25rem;
+	}
+
+	// Boutons pleine largeur, alignés en bas de chaque carte
+	.daily-history-actions {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.5rem;
+		margin-top     : auto;
+		padding-top    : 0.75rem;
+
+		a {
+			display         : block;
+			padding         : 0.6rem 0;
+			border-radius   : 999px;
+			border          : 2px solid rgba(249, 250, 251, 0.4);
+			color           : #f9fafb;
+			font-size       : 1.3rem;
+			text-align      : center;
+			text-decoration : none;
+			transition      : border-color 0.15s ease, background 0.15s ease;
+
+			&:hover {
+				border-color : #fbbf24;
+			}
+
+			&.primary {
+				border-color : #10b981;
+				background   : rgba(16, 185, 129, 0.25);
+				font-weight  : 700;
+
+				&:hover {
+					background : rgba(16, 185, 129, 0.4);
+				}
+			}
+		}
+	}
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
 	.daily-history {
 		padding : 1rem;
 
@@ -150,7 +296,11 @@
 		}
 
 		.daily-history-games {
-			flex-direction : column;
+			grid-template-columns : 1fr;
+		}
+
+		.daily-history-day h2 {
+			font-size : 1.6rem;
 		}
 	}
 }

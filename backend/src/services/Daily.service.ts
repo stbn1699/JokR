@@ -103,29 +103,47 @@ export class DailyService {
     }
 
     /**
-     * Historique des défis avant `today` (sur `days` jours), avec le nombre de joueurs classés
-     * et, si `userId` est donné, la réussite du joueur ce jour-là (temps et place).
+     * Défis d'un mois (AAAA-MM), jusqu'à aujourd'hui inclus, du plus récent au plus ancien,
+     * avec le nombre de joueurs classés et, si `userId` est donné, la réussite du joueur (temps et place).
+     * Renvoie aussi le premier mois qui a des défis (bornes du sélecteur de mois).
      */
-    async history(today: string, days: number, userId?: string) {
-        const rows = await this.repo.listPast(today, days);
+    async month(month: string, today: string, userId?: string) {
+        const [year, monthIndex] = month.split("-").map(Number);
+        const lastDay = new Date(Date.UTC(year!, monthIndex!, 0)).getUTCDate();
+        const monthEnd = `${month}-${String(lastDay).padStart(2, "0")}`;
+        const to = monthEnd < today ? monthEnd : today;
+
+        const [rows, first] = await Promise.all([this.repo.listRange(`${month}-01`, to), this.repo.firstDate()]);
         const dates = [...new Set(rows.map(r => r.date))];
         const mine = userId ? await this.repo.resultsOf(userId, dates) : [];
+        const order = Object.keys(DAILY_GAMES);
 
-        return Promise.all(dates.map(async date => ({
+        const days = await Promise.all(dates.map(async date => ({
             date,
-            games: await Promise.all(rows.filter(r => r.date === date).map(async r => {
-                const result = mine.find(m => m.date === date && m.game_code === r.game_code);
-                return {
-                    code: r.game_code,
-                    size: r.grid_size,
-                    emptyCells: r.empty_cells,
-                    players: Number(r.players),
-                    result: result
-                        ? {durationMs: result.duration_ms, ...await this.repo.rankOf(date, r.game_code, result.duration_ms)}
-                        : null,
-                };
-            })),
+            games: await Promise.all(rows
+                .filter(r => r.date === date)
+                .sort((a, b) => order.indexOf(a.game_code) - order.indexOf(b.game_code))
+                .map(async r => {
+                    const result = mine.find(m => m.date === date && m.game_code === r.game_code);
+                    return {
+                        code: r.game_code,
+                        size: r.grid_size,
+                        emptyCells: r.empty_cells,
+                        players: Number(r.players),
+                        result: result
+                            ? {durationMs: result.duration_ms, ...await this.repo.rankOf(date, r.game_code, result.duration_ms)}
+                            : null,
+                    };
+                })),
         })));
+
+        return {
+            month,
+            today,
+            firstMonth: (first ?? today).slice(0, 7),
+            currentMonth: today.slice(0, 7),
+            days,
+        };
     }
 
     async leaderboard(gameCode: DailyGameCode, date: string, limit = 20) {

@@ -29,7 +29,7 @@ Autour des jeux :
   40 à remplir) par jour, les mêmes pour tout le monde, avec un classement au temps. Une seule réussite comptée
   par jour (XP et classement), avec XP et crédits doublés. Le jour change à minuit, heure de Paris : le serveur génère alors les grilles du
   nouveau jour (et au démarrage si elles manquent), et les pages ouvertes se mettent à jour d'elles-mêmes
-  quelques secondes après minuit. Les défis des jours précédents se rejouent depuis `/defi` :
+  quelques secondes après minuit. Tous les défis (mois par mois, jour par jour) sont sur `/defi` ; ceux des jours passés se rejouent :
   ils comptent alors comme une partie normale (XP habituelle) et n'entrent pas dans le classement de leur jour.
 - **Classements** : XP globale, niveau par jeu, et défi du jour (page `/classements`).
 - **Profil** : stats par jeu, historique des parties, changement de mot de passe, suppression du compte.
@@ -216,7 +216,7 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
 | POST    | `/rikudo/validate`         | optionnel | valide `{ gameId, values }`, XP si connecté |
 | GET     | `/daily`                   | optionnel | défis du jour (et résultats du joueur)    |
 | POST    | `/daily/:game/start`       | oui       | commence le défi du jour                  |
-| GET     | `/daily/history`           | optionnel | défis des 30 jours précédents             |
+| GET     | `/daily/history?month=`    | optionnel | défis d'un mois (AAAA-MM), aujourd'hui compris |
 | POST    | `/daily/:game/replay/:date`| oui       | rejoue un défi passé (partie normale)     |
 | GET     | `/daily/:game/leaderboard` | optionnel | meilleurs temps du jour (`?date=` passée) |
 | GET     | `/leaderboard/xp`          | optionnel | classement par XP globale                 |

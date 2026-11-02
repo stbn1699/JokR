@@ -1,5 +1,5 @@
 import {api} from "../api/api.ts";
-import type {DailyHistoryDay, DailyLeaderboard, DailyOverview, DailyStart} from "../Models/daily.model.ts";
+import type {DailyLeaderboard, DailyMonth, DailyOverview, DailyStart} from "../Models/daily.model.ts";
 
 const code = (gameCode: string) => encodeURIComponent(gameCode.toLowerCase());
 
@@ -20,9 +20,10 @@ export const dailyService = {
         return api<DailyLeaderboard>(`/daily/${code(gameCode)}/leaderboard${query}`, {method: "GET"}, signal);
     },
 
-    // Défis des jours précédents (et résultats du joueur connecté)
-    history(signal?: AbortSignal): Promise<DailyHistoryDay[]> {
-        return api<DailyHistoryDay[]>("/daily/history", {method: "GET"}, signal);
+    // Défis d'un mois (AAAA-MM, mois courant par défaut) et résultats du joueur connecté
+    history(month?: string, signal?: AbortSignal): Promise<DailyMonth> {
+        const query = month ? `?month=${encodeURIComponent(month)}` : "";
+        return api<DailyMonth>(`/daily/history${query}`, {method: "GET"}, signal);
     },
 
     // Rejoue le défi d'un jour passé : partie normale (XP normale, hors classement du jour)

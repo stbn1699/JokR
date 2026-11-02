@@ -37,12 +37,29 @@
 		transition      : background 0.15s ease, color 0.15s ease;
 
 		&:hover {
-			background : rgba(217, 119, 6, 0.12);
+			background : rgba(55, 65, 81, 0.12);
 		}
 
+		// Onglet de la page affichée (l'orange est réservé à Daily)
 		&.active {
-			background : #d97706;
-			color      : #fff7ed;
+			background : #374151;
+			color      : #F4E5CB;
+		}
+
+		// Onglet Daily : toujours en orange (même couleur que les badges « XP et crédits ×2 »)
+		&.highlight {
+			background : #f59e0b;
+			color      : #1f1300;
+
+			&:hover {
+				background : #fbbf24;
+			}
+
+			&.active {
+				background : #f59e0b;
+				color      : #1f1300;
+				box-shadow : 0 0 0 2px #F4E5CB, 0 0 0 4px #374151;
+			}
 		}
 	}
 
@@ -56,10 +73,6 @@
 
 		svg {
 			cursor : pointer;
-		}
-
-		.trophy {
-			color : #d97706;
 		}
 
 		.user-section {
@@ -148,9 +161,13 @@
 			height : 2.2rem;
 		}
 
+		.header-tabs {
+			gap : 0.15rem;
+		}
+
 		.header-tab {
-			padding   : 0.25rem 1rem;
-			font-size : 1.15rem;
+			padding   : 0.25rem 0.7rem;
+			font-size : 1.1rem;
 		}
 
 		.usersection {

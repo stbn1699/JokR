@@ -1,24 +1,37 @@
 /**
- * Page "Défis précédents" (/defi) : les défis des 30 derniers jours.
- * Pour chaque jour : rejouer la grille (partie normale, hors classement), voir le classement du jour,
- * et le résultat du joueur s'il l'avait réussi ce jour-là.
+ * Page des défis (/defi) : tous les défis du jour, mois par mois.
+ * - Sélecteur de mois (avec l'année) et flèches ; la flèche est grisée au premier mois et au mois courant
+ * - Bandeau des jours : on le fait glisser puis on clique un jour (jours sans défi grisés,
+ *   point vert sur les jours où le joueur a réussi un défi)
+ * - Défis du jour choisi : aujourd'hui « Jouer » (classé, XP et crédits ×2),
+ *   les jours passés « Rejouer » (partie normale, hors classement), et le classement de ce jour
+ * Le mois et le jour sont dans l'adresse (?mois=AAAA-MM&jour=JJ) pour que le retour arrière y ramène.
  */
 
 import "./DailyHistory.scss";
-import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
-import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
+import {useEffect, useMemo, useState} from "react";
+import {Link, useSearchParams} from "react-router-dom";
+import {FaChevronLeft, FaChevronRight, FaCoins} from "react-icons/fa";
+import {dailyService} from "../../Services/daily.service.ts";
 import {formatDuration} from "../../Services/format.ts";
-import type {DailyHistoryDay} from "../../Models/daily.model.ts";
+import type {DailyMonth} from "../../Models/daily.model.ts";
 import {useAuth} from "../../Context/authContext.ts";
 import {useDailyRefresh} from "../PuzzleUI/useDailyRefresh.ts";
-import {DAILY_GAME_NAMES, dailyGridLabel} from "../../Services/dailyGames.ts";
+import {DAILY_GAME_NAMES, DAILY_REWARD_MULTIPLIER, dailyGridLabel} from "../../Services/dailyGames.ts";
+import {daysOfMonth, longDate, monthLabel, monthsBetween, shiftMonth} from "./calendar.ts";
+import DayStrip from "./DayStrip.tsx";
+
+const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 export default function DailyHistory() {
     const {userId, isLoggedIn} = useAuth();
-    const [days, setDays] = useState<DailyHistoryDay[] | null>(null);
+    const [params, setParams] = useSearchParams();
+    const monthParam = params.get("mois");
+    const requestedMonth = monthParam && MONTH_KEY.test(monthParam) ? monthParam : undefined;
+
+    const [data, setData] = useState<DailyMonth | null>(null);
     const [error, setError] = useState<string | null>(null);
-    // À minuit, le défi de la veille rejoint l'historique : la page se recharge
+    // À minuit, le nouveau défi apparaît : la page se recharge
     const [nextInMs, setNextInMs] = useState<number | undefined>(undefined);
     const dayTick = useDailyRefresh(nextInMs);
 
@@ -27,60 +40,125 @@ export default function DailyHistory() {
         dailyService.overview(controller.signal)
             .then(o => setNextInMs(o.nextInMs))
             .catch(() => undefined);
-        dailyService.history(controller.signal)
-            .then(setDays)
+        dailyService.history(requestedMonth, controller.signal)
+            .then(d => {
+                setData(d);
+                setError(null);
+            })
             .catch((err: Error) => {
-                if (err.name !== "AbortError") setError(err.message || "Impossible de charger les défis précédents.");
+                if (err.name !== "AbortError") setError(err.message || "Impossible de charger les défis.");
             });
         return () => controller.abort();
-    }, [userId, dayTick]);
+    }, [userId, dayTick, requestedMonth]);
+
+    // Données du mois demandé (pendant un changement de mois, on garde l'ancien affichage)
+    const month = data?.month ?? requestedMonth ?? null;
+    const days = useMemo(() => (month ? daysOfMonth(month) : []), [month]);
+    const available = useMemo(() => new Set(data?.days.map(d => d.date) ?? []), [data]);
+    const completed = useMemo(
+        () => new Set(data?.days.filter(d => d.games.some(g => g.result)).map(d => d.date) ?? []),
+        [data],
+    );
+
+    // Jour choisi : celui de l'adresse s'il a un défi, sinon aujourd'hui (mois courant) ou le dernier jour du mois
+    const dayParam = params.get("jour");
+    const selected = useMemo(() => {
+        if (!data || !month) return null;
+        const fromParam = dayParam ? `${month}-${dayParam.padStart(2, "0")}` : null;
+        if (fromParam && available.has(fromParam)) return fromParam;
+        if (available.has(data.today)) return data.today;
+        return data.days[0]?.date ?? null;
+    }, [data, month, dayParam, available]);
+    const selectedDay = data?.days.find(d => d.date === selected) ?? null;
+
+    const goToMonth = (next: string) => setParams({mois: next}, {replace: true});
+    const selectDay = (date: string) => setParams({mois: date.slice(0, 7), jour: String(Number(date.slice(8)))}, {replace: true});
+
+    const months = data ? monthsBetween(data.firstMonth, data.currentMonth) : [];
+    const canGoBack = !!data && !!month && month > data.firstMonth;
+    const canGoForward = !!data && !!month && month < data.currentMonth;
+    const isToday = !!data && selected === data.today;
 
     return (
         <main className="daily-history">
             <section className="daily-history-card">
-                <h1>Défis précédents</h1>
+                <h1>Défis du jour</h1>
                 <p className="daily-history-intro">
-                    Rejoue les grilles des jours passés. Une grille rejouée compte comme une partie normale
-                    (XP habituelle), mais n'entre pas dans le classement de son jour.
+                    Le défi du jour rapporte XP et crédits ×{DAILY_REWARD_MULTIPLIER} et compte au classement.
+                    Les défis des jours passés se rejouent comme une partie normale, hors classement.
                 </p>
-                <Link to="/" className="daily-history-today">← Défi d'aujourd'hui</Link>
+
                 {!isLoggedIn && (
                     <p className="daily-history-login">
                         <Link to="/register" state={{from: "/defi"}}>Crée un compte</Link> ou{" "}
-                        <Link to="/login" state={{from: "/defi"}}>connecte-toi</Link> pour rejouer les défis.
+                        <Link to="/login" state={{from: "/defi"}}>connecte-toi</Link> pour jouer aux défis.
                     </p>
                 )}
 
                 {error && <p className="daily-history-error" role="alert">{error}</p>}
-                {!error && !days && <p className="daily-history-status">Chargement…</p>}
-                {days?.length === 0 && <p className="daily-history-status">Pas encore de défi passé : reviens demain !</p>}
+                {!error && !data && <p className="daily-history-status">Chargement…</p>}
 
-                {days?.map(day => (
-                    <article key={day.date} className="daily-history-day">
-                        <h2>{formatDailyDate(day.date)}</h2>
-                        <div className="daily-history-games">
-                            {day.games.map(game => (
-                                <div key={game.code} className="daily-history-game">
-                                    <div className="daily-history-game-head">
-                                        <strong>{DAILY_GAME_NAMES[game.code] ?? game.code}</strong>
-                                        <span>{dailyGridLabel(game.code, game.size, game.emptyCells)}</span>
-                                    </div>
-                                    <p className="daily-history-result">
-                                        {game.result
-                                            ? <>✓ {formatDuration(game.result.durationMs)} · {game.result.rank}<sup>{game.result.rank === 1 ? "er" : "e"}</sup> / {game.result.total}</>
-                                            : <>{game.players} joueur{game.players > 1 ? "s" : ""} classé{game.players > 1 ? "s" : ""}</>}
-                                    </p>
-                                    <div className="daily-history-actions">
-                                        {isLoggedIn && <Link to={`/defi/${game.code}/${day.date}`} className="replay">Rejouer</Link>}
-                                        <Link to={`/classements?onglet=defi&jeu=${game.code.toLowerCase()}&date=${day.date}`}>
-                                            Classement
-                                        </Link>
-                                    </div>
-                                </div>
-                            ))}
+                {data && month && (
+                    <>
+                        <div className="month-picker">
+                            <button type="button" className="month-arrow" disabled={!canGoBack}
+                                    onClick={() => goToMonth(shiftMonth(month, -1))} aria-label="Mois précédent">
+                                <FaChevronLeft aria-hidden/>
+                            </button>
+                            <select value={month} onChange={e => goToMonth(e.target.value)} aria-label="Mois">
+                                {months.map(m => <option key={m} value={m}>{monthLabel(m)}</option>)}
+                            </select>
+                            <button type="button" className="month-arrow" disabled={!canGoForward}
+                                    onClick={() => goToMonth(shiftMonth(month, 1))} aria-label="Mois suivant">
+                                <FaChevronRight aria-hidden/>
+                            </button>
                         </div>
-                    </article>
-                ))}
+
+                        <DayStrip days={days} available={available} completed={completed} today={data.today}
+                                  selected={selected} onSelect={selectDay}/>
+
+                        {!selectedDay && (
+                            <p className="daily-history-status">Pas de défi ce mois-ci.</p>
+                        )}
+
+                        {selectedDay && (
+                            <div className="daily-history-day">
+                                <h2>
+                                    {longDate(selectedDay.date)}
+                                    {isToday && <span className="daily-history-today-badge">
+                                        Aujourd'hui · XP et <FaCoins aria-hidden/> ×{DAILY_REWARD_MULTIPLIER}
+                                    </span>}
+                                </h2>
+
+                                <div className="daily-history-games">
+                                    {selectedDay.games.map(game => {
+                                        const leaderboard = `/classements?onglet=defi&jeu=${game.code.toLowerCase()}${isToday ? "" : `&date=${selectedDay.date}`}`;
+                                        return (
+                                            <article key={game.code} className={`daily-history-game ${game.result ? "done" : ""}`}>
+                                                <h3>{DAILY_GAME_NAMES[game.code] ?? game.code}</h3>
+                                                <p className="daily-history-grid">{dailyGridLabel(game.code, game.size, game.emptyCells)}</p>
+                                                <p className="daily-history-result">
+                                                    {game.result
+                                                        ? <>✓ {formatDuration(game.result.durationMs)} · {game.result.rank}<sup>{game.result.rank === 1 ? "er" : "e"}</sup> / {game.result.total}</>
+                                                        : <>{game.players} joueur{game.players > 1 ? "s" : ""} classé{game.players > 1 ? "s" : ""}</>}
+                                                </p>
+                                                <div className="daily-history-actions">
+                                                    {isLoggedIn && !(isToday && game.result) && (
+                                                        <Link className="primary"
+                                                              to={isToday ? `/defi/${game.code}` : `/defi/${game.code}/${selectedDay.date}`}>
+                                                            {isToday ? "Jouer" : "Rejouer"}
+                                                        </Link>
+                                                    )}
+                                                    <Link to={leaderboard}>Classement</Link>
+                                                </div>
+                                            </article>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
             </section>
         </main>
     );
