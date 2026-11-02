@@ -184,7 +184,9 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
 - **Crédits** : chaque puzzle fini rapporte de 1 à 3 crédits selon la difficulté choisie (tiers de la plage
   de cases à remplir proposée pour la taille). Ils serviront à miser sur les jeux de hasard.
   Calcul dans `backend/src/utils/credits.ts`.
-- **Niveaux** : passer du niveau `n` au suivant demande `ceil(120 × n^1.4)` XP.
+- **Niveaux** : passer du niveau `n` au suivant demande `ceil(2050 × (1 − e^(−n/20)))` XP : ça monte vite
+  au début puis se stabilise vers 2 050 XP par niveau. Pour un joueur régulier (~600 XP par jour) :
+  niveau 10 en ~1 semaine, niveau 50 en ~3,5 mois, niveau 100 en ~9 mois.
   La formule est dans `backend/src/utils/leveling.ts` et `src/Services/leveling.ts`.
 
 ## API

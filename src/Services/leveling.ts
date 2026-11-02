@@ -1,11 +1,14 @@
-// Même formule que le backend (backend/src/utils/leveling.ts) : XP nécessaire pour passer au niveau suivant
+// Même courbe que le backend (voir backend/src/utils/leveling.ts) : XP nécessaire pour passer au niveau suivant
+const LEVEL_XP_CAP = 2050;
+const LEVEL_XP_RAMP = 20;
+
 export function xpToNextLevel(level: number): number {
-    return Math.ceil(120 * Math.pow(level, 1.4));
+    return Math.ceil(LEVEL_XP_CAP * (1 - Math.exp(-level / LEVEL_XP_RAMP)));
 }
 
-// Icônes disponibles : public/Icons/level_0.png à level_49.png.
+// Icônes disponibles : public/Icons/level_0.png à level_50.png.
 // Au-delà, on réutilise la dernière en attendant les nouvelles icônes.
-const MAX_LEVEL_ICON = 49;
+const MAX_LEVEL_ICON = 50;
 
 export function levelIconSrc(level: number): string {
     const icon = Math.max(0, Math.min(level, MAX_LEVEL_ICON));
