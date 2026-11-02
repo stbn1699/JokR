@@ -1,5 +1,6 @@
 import {type PointerEvent, useEffect, useRef} from "react";
 import {weekdayShort} from "./calendar.ts";
+import "./DayStrip.scss";
 
 type DayStripProps = {
     // Tous les jours du mois (AAAA-MM-JJ)

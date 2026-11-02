@@ -9,47 +9,27 @@
  */
 
 import "./DailyHistory.scss";
-import {useEffect, useMemo, useState} from "react";
+import {useMemo} from "react";
 import {Link, useSearchParams} from "react-router-dom";
-import {FaChevronLeft, FaChevronRight, FaCoins} from "react-icons/fa";
-import {dailyService} from "../../Services/daily.service.ts";
+import {FaCoins} from "react-icons/fa";
 import {formatDuration} from "../../Services/format.ts";
-import type {DailyMonth} from "../../Models/daily.model.ts";
 import {useAuth} from "../../Context/authContext.ts";
-import {useDailyRefresh} from "../PuzzleUI/useDailyRefresh.ts";
 import {DAILY_GAME_NAMES, DAILY_REWARD_MULTIPLIER, dailyGridLabel} from "../../Services/dailyGames.ts";
-import {daysOfMonth, longDate, monthLabel, monthsBetween, shiftMonth} from "./calendar.ts";
+import {daysOfMonth, longDate} from "./calendar.ts";
 import DayStrip from "./DayStrip.tsx";
+import MonthPicker from "./MonthPicker.tsx";
+import {useDailyMonth} from "./useDailyMonth.ts";
 
 const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 export default function DailyHistory() {
-    const {userId, isLoggedIn} = useAuth();
+    const {isLoggedIn} = useAuth();
     const [params, setParams] = useSearchParams();
     const monthParam = params.get("mois");
     const requestedMonth = monthParam && MONTH_KEY.test(monthParam) ? monthParam : undefined;
 
-    const [data, setData] = useState<DailyMonth | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    // À minuit, le nouveau défi apparaît : la page se recharge
-    const [nextInMs, setNextInMs] = useState<number | undefined>(undefined);
-    const dayTick = useDailyRefresh(nextInMs);
-
-    useEffect(() => {
-        const controller = new AbortController();
-        dailyService.overview(controller.signal)
-            .then(o => setNextInMs(o.nextInMs))
-            .catch(() => undefined);
-        dailyService.history(requestedMonth, controller.signal)
-            .then(d => {
-                setData(d);
-                setError(null);
-            })
-            .catch((err: Error) => {
-                if (err.name !== "AbortError") setError(err.message || "Impossible de charger les défis.");
-            });
-        return () => controller.abort();
-    }, [userId, dayTick, requestedMonth]);
+    // Défis du mois (rechargés à la connexion et à minuit)
+    const {data, error} = useDailyMonth(requestedMonth);
 
     // Données du mois demandé (pendant un changement de mois, on garde l'ancien affichage)
     const month = data?.month ?? requestedMonth ?? null;
@@ -74,9 +54,6 @@ export default function DailyHistory() {
     const goToMonth = (next: string) => setParams({mois: next}, {replace: true});
     const selectDay = (date: string) => setParams({mois: date.slice(0, 7), jour: String(Number(date.slice(8)))}, {replace: true});
 
-    const months = data ? monthsBetween(data.firstMonth, data.currentMonth) : [];
-    const canGoBack = !!data && !!month && month > data.firstMonth;
-    const canGoForward = !!data && !!month && month < data.currentMonth;
     const isToday = !!data && selected === data.today;
 
     return (
@@ -100,19 +77,8 @@ export default function DailyHistory() {
 
                 {data && month && (
                     <>
-                        <div className="month-picker">
-                            <button type="button" className="month-arrow" disabled={!canGoBack}
-                                    onClick={() => goToMonth(shiftMonth(month, -1))} aria-label="Mois précédent">
-                                <FaChevronLeft aria-hidden/>
-                            </button>
-                            <select value={month} onChange={e => goToMonth(e.target.value)} aria-label="Mois">
-                                {months.map(m => <option key={m} value={m}>{monthLabel(m)}</option>)}
-                            </select>
-                            <button type="button" className="month-arrow" disabled={!canGoForward}
-                                    onClick={() => goToMonth(shiftMonth(month, 1))} aria-label="Mois suivant">
-                                <FaChevronRight aria-hidden/>
-                            </button>
-                        </div>
+                        <MonthPicker month={month} firstMonth={data.firstMonth} currentMonth={data.currentMonth}
+                                     onChange={goToMonth}/>
 
                         <DayStrip days={days} available={available} completed={completed} today={data.today}
                                   selected={selected} onSelect={selectDay}/>

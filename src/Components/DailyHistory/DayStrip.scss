@@ -1,0 +1,79 @@
+// Bandeau des jours (page des défis, classement du défi)
+.day-strip {
+	// Référence des positions des jours (pour centrer le jour choisi)
+	position        : relative;
+	display         : flex;
+	gap             : 0.5rem;
+	padding         : 0.5rem calc(50% - 2.25rem);
+	overflow-x      : auto;
+	scrollbar-width : none;
+	cursor          : grab;
+	user-select     : none;
+	// Bords qui s'estompent : on comprend qu'on peut faire glisser
+	mask-image      : linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+
+	&::-webkit-scrollbar {
+		display : none;
+	}
+
+	&.dragging {
+		cursor : grabbing;
+	}
+}
+
+.day-strip-day {
+	flex            : 0 0 4.5rem;
+	display         : flex;
+	flex-direction  : column;
+	align-items     : center;
+	gap             : 0.1rem;
+	padding         : 0.5rem 0 0.4rem;
+	border          : 2px solid rgba(249, 250, 251, 0.25);
+	border-radius   : 12px;
+	background      : rgba(2, 6, 23, 0.45);
+	color           : #f9fafb;
+	font-family     : inherit;
+	cursor          : pointer;
+	transition      : border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+
+	&:hover:not(:disabled) {
+		border-color : #fbbf24;
+	}
+
+	&.today .day-strip-number {
+		color : #fbbf24;
+	}
+
+	&.selected {
+		border-color : #fbbf24;
+		background   : rgba(245, 158, 11, 0.25);
+		transform    : scale(1.08);
+	}
+
+	&.disabled {
+		opacity : 0.25;
+		cursor  : default;
+	}
+}
+
+.day-strip-weekday {
+	font-size      : 0.95rem;
+	opacity        : 0.75;
+	text-transform : capitalize;
+}
+
+.day-strip-number {
+	font-size   : 1.8rem;
+	font-weight : 700;
+	line-height : 1.1;
+}
+
+.day-strip-dot {
+	width         : 0.45rem;
+	height        : 0.45rem;
+	border-radius : 50%;
+
+	&.visible {
+		background : #3bf644;
+	}
+}

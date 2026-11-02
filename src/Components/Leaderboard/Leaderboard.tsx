@@ -1,18 +1,25 @@
 /**
  * Page Classements : XP globale, par jeu, et défi du jour.
- * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|rikudo|defi&jeu=sudoku|binero|rikudo[&date=AAAA-MM-JJ])
- * pour pouvoir y renvoyer (date = classement d'un défi passé).
+ * - Podium (médailles) pour les trois premiers, puis le reste du classement
+ * - Défi du jour : jeu, puis date choisie comme sur la page Daily (mois avec flèches, bandeau des jours)
+ * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|rikudo|defi&jeu=sudoku|binero|rikudo
+ * [&mois=AAAA-MM][&date=AAAA-MM-JJ]) pour pouvoir y renvoyer (ex. classement d'un défi passé).
  */
 
 import "./Leaderboard.scss";
-import {useEffect, useState} from "react";
+import {type ReactNode, useEffect, useMemo, useState} from "react";
 import {useSearchParams} from "react-router-dom";
+import {FaMedal} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {type Leaderboard as Board, leaderboardService} from "../../Services/leaderboard.service.ts";
-import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
+import {dailyService} from "../../Services/daily.service.ts";
 import {formatDuration} from "../../Services/format.ts";
+import {levelIconSrc} from "../../Services/leveling.ts";
 import type {DailyLeaderboard} from "../../Models/daily.model.ts";
-import {useDailyRefresh} from "../PuzzleUI/useDailyRefresh.ts";
+import MonthPicker from "../DailyHistory/MonthPicker.tsx";
+import DayStrip from "../DailyHistory/DayStrip.tsx";
+import {useDailyMonth} from "../DailyHistory/useDailyMonth.ts";
+import {daysOfMonth, longDate} from "../DailyHistory/calendar.ts";
 
 const TABS = [
     {id: "xp", label: "XP globale"},
@@ -24,27 +31,49 @@ const TABS = [
 type Tab = typeof TABS[number]["id"];
 
 const DAILY_GAMES = [{id: "sudoku", label: "Sudoku"}, {id: "binero", label: "Binero"}, {id: "rikudo", label: "Rikudo"}] as const;
+const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
+const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 const ordinal = (rank: number) => <>{rank}<sup>{rank === 1 ? "er" : "e"}</sup></>;
+
+// Une ligne de classement, prête à afficher (XP, jeu ou défi)
+type Row = { rank: number; username: string; level?: number; main: ReactNode; detail?: ReactNode };
 
 export default function Leaderboard() {
     const {username} = useAuth();
     const [params, setParams] = useSearchParams();
     const tab: Tab = TABS.some(t => t.id === params.get("onglet")) ? params.get("onglet") as Tab : "xp";
     const dailyGame = DAILY_GAMES.find(g => g.id === params.get("jeu"))?.id ?? "sudoku";
-    const dailyDateParam = params.get("date") ?? undefined;
+
+    // ---------- Défi du jour : mois et jour choisis
+    const dateParam = DATE_KEY.test(params.get("date") ?? "") ? params.get("date")! : undefined;
+    const monthParam = params.get("mois");
+    const requestedMonth = monthParam && MONTH_KEY.test(monthParam) ? monthParam : dateParam?.slice(0, 7);
+    const {data: month, dayTick} = useDailyMonth(requestedMonth, tab === "defi");
+    const days = useMemo(() => (month ? daysOfMonth(month.month) : []), [month]);
+    const available = useMemo(() => new Set(month?.days.map(d => d.date) ?? []), [month]);
+    // Point vert : jours où le joueur a réussi le défi de ce jeu
+    const completed = useMemo(() => new Set(month?.days
+        .filter(d => d.games.some(g => g.code.toLowerCase() === dailyGame && g.result))
+        .map(d => d.date) ?? []), [month, dailyGame]);
+    const selectedDate = useMemo(() => {
+        if (!month) return null;
+        if (dateParam && available.has(dateParam)) return dateParam;
+        if (available.has(month.today)) return month.today;
+        return month.days[0]?.date ?? null;
+    }, [month, dateParam, available]);
 
     const [board, setBoard] = useState<Board | null>(null);
     const [daily, setDaily] = useState<DailyLeaderboard | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    // Classement du jour (sans date) : il passe au nouveau jour à minuit
-    const dayTick = useDailyRefresh(tab === "defi" && !dailyDateParam ? daily?.nextInMs : undefined);
 
     useEffect(() => {
+        // Défi : on attend de connaître le jour choisi
+        if (tab === "defi" && !selectedDate) return;
         const controller = new AbortController();
         const request = tab === "defi"
-            ? dailyService.leaderboard(dailyGame, controller.signal, dailyDateParam).then(d => {
+            ? dailyService.leaderboard(dailyGame, controller.signal, selectedDate ?? undefined).then(d => {
                 setDaily(d);
                 setBoard(null);
             })
@@ -60,14 +89,41 @@ export default function Leaderboard() {
             })
             .finally(() => setLoading(false));
         return () => controller.abort();
-    }, [tab, dailyGame, dailyDateParam, dayTick]);
+    }, [tab, dailyGame, selectedDate, dayTick]);
 
     const select = (next: Record<string, string>) => {
         setLoading(true);
         setParams(next, {replace: true});
     };
+    const dailyParams = (extra: Record<string, string> = {}) => ({
+        onglet: "defi", jeu: dailyGame,
+        ...(selectedDate ? {mois: selectedDate.slice(0, 7), date: selectedDate} : {}),
+        ...extra,
+    });
 
     const isMe = (name: string) => username !== null && name === username;
+
+    // Lignes à afficher, quel que soit l'onglet
+    const rows: Row[] | null = board
+        ? board.entries.map(e => ({
+            rank: e.rank, username: e.username, level: e.level,
+            // Classé par niveau puis par XP dans le niveau
+            main: <>Niveau {e.level}</>,
+            detail: <>
+                {e.xp.toLocaleString("fr-FR")} XP
+                {tab !== "xp" && e.gamesWon !== undefined && <> · {e.gamesWon} victoire{e.gamesWon > 1 ? "s" : ""}</>}
+            </>,
+        }))
+        : daily
+            ? daily.entries.map(e => ({rank: e.rank, username: e.username, main: formatDuration(e.durationMs)}))
+            : null;
+    const podium = rows?.slice(0, 3) ?? [];
+    const rest = rows?.slice(3) ?? [];
+    const me = board?.me
+        ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · niveau {board.me.level}</>
+        : daily?.me
+            ? <>Ta place : <strong>{ordinal(daily.me.rank)}</strong> sur {daily.me.total} · {formatDuration(daily.me.durationMs)}</>
+            : null;
 
     return (
         <main className="leaderboard">
@@ -77,25 +133,36 @@ export default function Leaderboard() {
                 <div className="leaderboard-tabs" role="tablist">
                     {TABS.map(t => (
                         <button key={t.id} type="button" role="tab" aria-selected={tab === t.id}
-                                className={tab === t.id ? "selected" : ""} onClick={() => select({onglet: t.id})}>
+                                className={`${tab === t.id ? "selected" : ""} ${t.id === "defi" ? "daily" : ""}`}
+                                onClick={() => select(t.id === "defi" ? dailyParams() : {onglet: t.id})}>
                             {t.label}
                         </button>
                     ))}
                 </div>
 
                 {tab === "defi" && (
-                    <div className="leaderboard-subtabs">
-                        {DAILY_GAMES.map(g => (
-                            <button key={g.id} type="button" className={dailyGame === g.id ? "selected" : ""}
-                                    onClick={() => select({onglet: "defi", jeu: g.id, ...(dailyDateParam ? {date: dailyDateParam} : {})})}>
-                                {g.label}
-                            </button>
-                        ))}
-                        {daily && <span className="leaderboard-date">{formatDailyDate(daily.date)}</span>}
-                        {dailyDateParam && (
-                            <button type="button" onClick={() => select({onglet: "defi", jeu: dailyGame})}>
-                                Aujourd'hui
-                            </button>
+                    <div className="leaderboard-daily">
+                        <div className="leaderboard-subtabs">
+                            {DAILY_GAMES.map(g => (
+                                <button key={g.id} type="button" className={dailyGame === g.id ? "selected" : ""}
+                                        onClick={() => select(dailyParams({jeu: g.id}))}>
+                                    {g.label}
+                                </button>
+                            ))}
+                        </div>
+                        {month && (
+                            <>
+                                <MonthPicker month={month.month} firstMonth={month.firstMonth} currentMonth={month.currentMonth}
+                                             onChange={m => select({onglet: "defi", jeu: dailyGame, mois: m})}/>
+                                <DayStrip days={days} available={available} completed={completed} today={month.today}
+                                          selected={selectedDate}
+                                          onSelect={d => select({onglet: "defi", jeu: dailyGame, mois: d.slice(0, 7), date: d})}/>
+                                {selectedDate
+                                    ? <p className="leaderboard-date">
+                                        {longDate(selectedDate)}{selectedDate === month.today && " · aujourd'hui"}
+                                    </p>
+                                    : <p className="leaderboard-status">Pas de défi ce mois-ci.</p>}
+                            </>
                         )}
                     </div>
                 )}
@@ -103,69 +170,49 @@ export default function Leaderboard() {
                 {error && <p className="leaderboard-error" role="alert">{error}</p>}
                 {loading && !error && <p className="leaderboard-status">Chargement…</p>}
 
-                {!loading && !error && board && (
-                    board.entries.length === 0
-                        ? <p className="leaderboard-status">Personne n'est encore classé.</p>
-                        : (
-                            <table className="leaderboard-table">
-                                <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Joueur</th>
-                                    <th>Niveau</th>
-                                    <th>XP</th>
-                                    {tab !== "xp" && <th>Victoires</th>}
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {board.entries.map(e => (
-                                    <tr key={e.username} className={isMe(e.username) ? "me" : ""}>
-                                        <td>{ordinal(e.rank)}</td>
-                                        <td>{e.username}</td>
-                                        <td>{e.level}</td>
-                                        <td>{e.xp}</td>
-                                        {tab !== "xp" && <td>{e.gamesWon}</td>}
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        )
-                )}
-
-                {!loading && !error && daily && (
-                    daily.entries.length === 0
-                        ? <p className="leaderboard-status">Personne n'a encore réussi le défi aujourd'hui. À toi de jouer !</p>
-                        : (
-                            <table className="leaderboard-table">
-                                <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Joueur</th>
-                                    <th>Temps</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {daily.entries.map(e => (
-                                    <tr key={e.username} className={isMe(e.username) ? "me" : ""}>
-                                        <td>{ordinal(e.rank)}</td>
-                                        <td>{e.username}</td>
-                                        <td>{formatDuration(e.durationMs)}</td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        )
-                )}
-
-                {/* Place du joueur connecté, utile quand il n'est pas dans le top 20 */}
-                {!loading && board?.me && (
-                    <p className="leaderboard-me">Ta place : {ordinal(board.me.rank)} sur {board.me.total}</p>
-                )}
-                {!loading && daily?.me && (
-                    <p className="leaderboard-me">
-                        Ta place : {ordinal(daily.me.rank)} sur {daily.me.total} ({formatDuration(daily.me.durationMs)})
+                {!loading && !error && rows && rows.length === 0 && (
+                    <p className="leaderboard-status">
+                        {!daily
+                            ? "Personne n'est encore classé."
+                            : selectedDate === month?.today
+                                ? "Personne n'a encore réussi ce défi. À toi de jouer !"
+                                : "Personne n'a réussi ce défi ce jour-là."}
                     </p>
                 )}
+
+                {!loading && !error && podium.length > 0 && (
+                    <ol className="podium">
+                        {/* Ordre d'affichage : 2e, 1er, 3e (le 1er au centre, plus haut) */}
+                        {[podium[1], podium[0], podium[2]].map((row, i) => row && (
+                            <li key={row.rank + row.username} className={`podium-place place-${row.rank} ${isMe(row.username) ? "me" : ""}`}
+                                style={{order: i}}>
+                                <FaMedal className="podium-medal" aria-label={`${row.rank}e place`}/>
+                                {row.level !== undefined && <img src={levelIconSrc(row.level)} alt={`Niveau ${row.level}`} className="podium-level"/>}
+                                <span className="podium-name">{row.username}</span>
+                                <span className="podium-main">{row.main}</span>
+                                {row.detail && <span className="podium-detail">{row.detail}</span>}
+                                <span className="podium-step">{ordinal(row.rank)}</span>
+                            </li>
+                        ))}
+                    </ol>
+                )}
+
+                {!loading && !error && rest.length > 0 && (
+                    <ol className="leaderboard-list" start={4}>
+                        {rest.map(row => (
+                            <li key={row.rank + row.username} className={isMe(row.username) ? "me" : ""}>
+                                <span className="leaderboard-rank">{ordinal(row.rank)}</span>
+                                {row.level !== undefined && <img src={levelIconSrc(row.level)} alt="" className="leaderboard-level"/>}
+                                <span className="leaderboard-name">{row.username}</span>
+                                {row.detail && <span className="leaderboard-detail">{row.detail}</span>}
+                                <span className="leaderboard-main">{row.main}</span>
+                            </li>
+                        ))}
+                    </ol>
+                )}
+
+                {/* Place du joueur connecté, utile quand il n'est pas dans le haut du classement */}
+                {!loading && me && <p className="leaderboard-me">{me}</p>}
             </section>
         </main>
     );
