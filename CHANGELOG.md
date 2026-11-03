@@ -3,6 +3,30 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 1.4.0 — 3 novembre 2026
+
+Quatre nouveaux puzzles et connexion avec Google ou Discord.
+
+### Nouveaux puzzles
+
+- **Tectonic** : remplir chaque zone de 1 à sa taille, sans deux chiffres identiques côte à côte (5×5 à 8×8),
+  avec notes au crayon
+- **Galaxies** : découper la grille en galaxies symétriques autour de leur point (5×5 à 10×10)
+- **Shikaku** : découper la grille en rectangles en glissant le doigt ou la souris (5×5 à 15×15)
+- **Queens** : placer une dame par ligne, colonne et zone, sans qu'elles se touchent (6×6 à 10×10),
+  avec croix automatiques en option
+- Comme les autres jeux : XP et crédits, aides selon la difficulté, validation automatique, annuler / rétablir,
+  reprise de partie, version téléphone, défi du jour et classement
+
+### Connexion
+
+- Nouvelles pages de connexion et d'inscription
+- Connexion et inscription en un clic avec Google ou Discord : il suffit de choisir son pseudo
+- Si l'email Google ou Discord est celui d'un compte JokR, on retrouve son compte et sa progression
+- Profil : lier ou retirer ses comptes Google et Discord, créer un mot de passe
+- Après l'inscription avec email, on est connecté directement
+- Bouton pour afficher le mot de passe pendant la saisie
+
 ## 1.3.1 — 2 novembre 2026
 
 Corrections et améliorations.
