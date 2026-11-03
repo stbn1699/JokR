@@ -3,6 +3,29 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 1.6.0 — 3 novembre 2026
+
+### Parties
+- Grille vide affichée dès le choix de la taille, avec un effet de chargement
+- Validation envoyée dès que la grille est remplie, indicateur « Vérification… »
+- Victoire : bouton « Voir la grille », puis barre pour relancer une partie
+
+### Jeux
+- Tectonic : une couleur par zone, comme le Queens
+- Galaxies : murs tracés en glissant
+- Galaxies : un mur qui ne sépare rien empêche la validation
+- Rikudo : case sélectionnée plus visible
+- Rikudo : la bande de nombres ne défile plus toute seule
+
+### Accueil
+- Stats au survol d'un jeu refaites et calées sur la carte
+- « Pas encore joué » sur les jeux jamais gagnés
+
+### Header
+- Niveau et crédits plus espacés, séparés par un trait
+- Onglet « Stats » pour l'administrateur
+- Déconnexion déplacée dans la zone de danger du profil
+
 ## 1.5.0 — 3 novembre 2026
 
 ### Profil
