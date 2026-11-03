@@ -11,7 +11,7 @@
 
 import {useMemo, useState} from "react";
 import "../PuzzleUI/PuzzleLayout.scss";
-import {HexSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import {HexSkeleton, SkeletonLabel} from "../PuzzleUI/GridSkeleton.tsx";
 import Loader from "../Loader/Loader.tsx";
 import "./Rikudo.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
@@ -175,6 +175,8 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
                         onPendingChange={setPendingCell}
                     />
                 )}
+                {/* Grille envoyée au serveur : il ne se passe pas « rien » */}
+                {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
             <div className="actions">

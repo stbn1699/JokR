@@ -13,6 +13,7 @@
  */
 
 import "../PuzzleUI/PuzzleLayout.scss";
+import {SkeletonLabel} from "../PuzzleUI/GridSkeleton.tsx";
 import "./Sudoku.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
@@ -142,6 +143,8 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
                 <SudokuGrid inputs={inputs} onHover={setHoverDigit} onCellInput={onCellInput}
                             onSelectCell={setSelectedCell} notes={notes} notesMode={notesMode}
                             onToggleNote={toggleNoteAt} loading={isLoading || dailyGame.loading}/>
+                {/* Grille envoyée au serveur : il ne se passe pas « rien » */}
+                {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
             <div className="actions">

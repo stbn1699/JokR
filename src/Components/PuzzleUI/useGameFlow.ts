@@ -30,6 +30,7 @@ export type Clock = { startedAt: number | null; finalMs: number | null };
  *   puis démarre le chrono
  * - resume(elapsedMs) : ferme la popup et reprend le chrono d'une partie déjà commencée
  * - submit(fn) : valide la grille ; en cas d'échec, le message s'affiche dans `notice`
+ *   (`validating` est vrai pendant que le serveur vérifie)
  * - newGame() : rouvre la popup de paramètres, sans recharger la page
  */
 export function useGameFlow() {
@@ -39,6 +40,7 @@ export function useGameFlow() {
     const [notice, setNotice] = useState<string | null>(null);
     const [victory, setVictory] = useState<Victory | null>(null);
     const [clock, setClock] = useState<Clock>({startedAt: null, finalMs: null});
+    const [validating, setValidating] = useState(false);
 
     const generate = async (run: () => Promise<string | null>) => {
         setShowSettings(false);
@@ -62,7 +64,8 @@ export function useGameFlow() {
         // Progression avant la victoire, pour animer la barre d'XP
         const before = isLoggedIn ? {level, xp} : null;
 
-        const outcome = await run();
+        setValidating(true);
+        const outcome = await run().finally(() => setValidating(false));
         if (!outcome.ok) {
             setNotice(outcome.message);
             return;
@@ -100,6 +103,7 @@ export function useGameFlow() {
         clearNotice: () => setNotice(null),
         setNotice,
         victory,
+        validating,
         clock,
         generate,
         resume,

@@ -10,7 +10,7 @@
  */
 
 import "../PuzzleUI/PuzzleLayout.scss";
-import {GridSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import {GridSkeleton, SkeletonLabel} from "../PuzzleUI/GridSkeleton.tsx";
 import Loader from "../Loader/Loader.tsx";
 import "./Queens.scss";
 import {useMemo} from "react";
@@ -162,6 +162,8 @@ export default function Queens({daily = false, replayDate}: QueensProps) {
                         autoCrosses={autoCrosses}
                     />
                 )}
+                {/* Grille envoyée au serveur : il ne se passe pas « rien » */}
+                {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
             <div className="actions">

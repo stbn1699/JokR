@@ -12,7 +12,7 @@
 
 import {useEffect, useMemo, useState} from "react";
 import "../PuzzleUI/PuzzleLayout.scss";
-import {GridSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import {GridSkeleton, SkeletonLabel} from "../PuzzleUI/GridSkeleton.tsx";
 import Loader from "../Loader/Loader.tsx";
 import "./Tectonic.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
@@ -191,6 +191,8 @@ export default function Tectonic({daily = false, replayDate}: TectonicProps) {
                         onToggleNote={game.toggleNoteAt}
                     />
                 )}
+                {/* Grille envoyée au serveur : il ne se passe pas « rien » */}
+                {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
             <div className="actions">

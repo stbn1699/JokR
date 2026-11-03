@@ -1,8 +1,5 @@
 import {useEffect, useRef} from "react";
 
-// Petit délai : laisse le temps d'un annuler juste après avoir posé le dernier chiffre
-const AUTO_VALIDATE_DELAY_MS = 300;
-
 export const GRID_HAS_ERRORS = "La grille est remplie mais contient une erreur.";
 
 type AutoValidateOptions = {
@@ -17,6 +14,7 @@ type AutoValidateOptions = {
 
 /**
  * Valide la partie toute seule dès que la grille est remplie (plus de bouton Valider).
+ * Vérifié à chaque modification de la grille : la grille complète part tout de suite au serveur.
  *
  * - Grille remplie sans erreur : envoyée au serveur, une seule fois par grille
  * - Grille remplie avec une erreur : rien n'est envoyé, un message le signale
@@ -43,18 +41,15 @@ export function useAutoValidate({filledKey, playing, hasErrors, submit, setNotic
         }
         if (!playing || filledKey === lastKeyRef.current) return;
 
-        const timer = setTimeout(() => {
-            if (busyRef.current) return;
-            lastKeyRef.current = filledKey;
-            if (hasErrors) {
-                noticeRef.current(GRID_HAS_ERRORS);
-                return;
-            }
-            busyRef.current = true;
-            void submitRef.current().finally(() => {
-                busyRef.current = false;
-            });
-        }, AUTO_VALIDATE_DELAY_MS);
-        return () => clearTimeout(timer);
+        if (busyRef.current) return;
+        lastKeyRef.current = filledKey;
+        if (hasErrors) {
+            noticeRef.current(GRID_HAS_ERRORS);
+            return;
+        }
+        busyRef.current = true;
+        void submitRef.current().finally(() => {
+            busyRef.current = false;
+        });
     }, [filledKey, playing, hasErrors]);
 }

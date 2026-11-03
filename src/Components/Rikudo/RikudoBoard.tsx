@@ -114,8 +114,12 @@ export default function RikudoBoard(props: RikudoBoardProps) {
             typing.current = {cell: i, text, at: now};
             const value = Number(text);
             if (value >= 1) props.onSetCell(i, value);
+            // Dernière case du plateau et nombre encore libre : c'est forcément le nombre manquant,
+            // pas d'attente (la validation part tout de suite)
+            const completes = value >= 1 && values.every((v, k) => k === i || v !== null)
+                && !values.some((v, k) => k !== i && v === value);
             // Un 2e chiffre peut encore suivre (ex : 1 → 12) : on attend avant de vérifier la case
-            if (value * 10 <= board.size) {
+            if (value * 10 <= board.size && !completes) {
                 if (pendingTimer.current !== null) window.clearTimeout(pendingTimer.current);
                 onPendingChange(i);
                 pendingTimer.current = window.setTimeout(settle, TYPING_DELAY_MS);

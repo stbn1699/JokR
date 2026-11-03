@@ -10,7 +10,7 @@
 
 import {useMemo, useState} from "react";
 import "../PuzzleUI/PuzzleLayout.scss";
-import {GridSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import {GridSkeleton, SkeletonLabel} from "../PuzzleUI/GridSkeleton.tsx";
 import Loader from "../Loader/Loader.tsx";
 import "./Binero.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
@@ -162,6 +162,8 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
                         errors={showErrors ? conflicts : null}
                     />
                 )}
+                {/* Grille envoyée au serveur : il ne se passe pas « rien » */}
+                {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
             <div className="actions">
