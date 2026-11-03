@@ -2,9 +2,11 @@
  * Page Classements : XP globale, par jeu, et défi du jour.
  * - Podium (médailles) des trois premiers, en bref (icône, pseudo, score), puis le classement complet
  *   en dessous (trois premiers compris, avec niveau et détails)
- * - Défi du jour : jeu, puis date choisie comme sur la page Daily (mois avec flèches, bandeau des jours)
- * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens
+ * - Par jeu et défi du jour : même sélecteur de jeu (GameSelector) ; pour le défi, date choisie
+ *   comme sur la page Daily (mois avec flèches, bandeau des jours)
+ * L'onglet est dans l'adresse (?onglet=xp|jeu|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens
  * [&mois=AAAA-MM][&date=AAAA-MM-JJ]) pour pouvoir y renvoyer (ex. classement d'un défi passé).
+ * Anciennes adresses (?onglet=sudoku...) : ouvrent l'onglet « Par jeu » sur ce jeu.
  */
 
 import "./Leaderboard.scss";
@@ -26,18 +28,40 @@ import Avatar from "../Avatar/Avatar.tsx";
 // `short` : libellé sur téléphone
 const TABS = [
     {id: "xp", label: "XP globale", short: "XP"},
-    {id: "sudoku", label: "Sudoku", short: "Sudoku"},
-    {id: "binero", label: "Binero", short: "Binero"},
-    {id: "rikudo", label: "Rikudo", short: "Rikudo"},
-    {id: "tectonic", label: "Tectonic", short: "Tectonic"},
-    {id: "galaxies", label: "Galaxies", short: "Galaxies"},
-    {id: "shikaku", label: "Shikaku", short: "Shikaku"},
-    {id: "queens", label: "Queens", short: "Queens"},
+    {id: "jeu", label: "Par jeu", short: "Par jeu"},
     {id: "defi", label: "Défi du jour", short: "Défi"},
 ] as const;
 type Tab = typeof TABS[number]["id"];
 
-const DAILY_GAMES = [{id: "sudoku", label: "Sudoku"}, {id: "binero", label: "Binero"}, {id: "rikudo", label: "Rikudo"}, {id: "tectonic", label: "Tectonic"}, {id: "galaxies", label: "Galaxies"}, {id: "shikaku", label: "Shikaku"}, {id: "queens", label: "Queens"}] as const;
+// Jeux du sélecteur (onglets « Par jeu » et « Défi du jour »)
+const GAMES = [
+    {id: "sudoku", label: "Sudoku"},
+    {id: "binero", label: "Binero"},
+    {id: "rikudo", label: "Rikudo"},
+    {id: "tectonic", label: "Tectonic"},
+    {id: "galaxies", label: "Galaxies"},
+    {id: "shikaku", label: "Shikaku"},
+    {id: "queens", label: "Queens"},
+] as const;
+type GameId = typeof GAMES[number]["id"];
+
+const isGameId = (v: string | null): v is GameId => GAMES.some(g => g.id === v);
+
+/**
+ * Sélecteur de jeu, le même pour « Par jeu » et « Défi du jour » (orange pour le défi, comme le Daily).
+ */
+function GameSelector({selected, onSelect, daily = false}: { selected: GameId; onSelect: (id: GameId) => void; daily?: boolean }) {
+    return (
+        <div className={`leaderboard-subtabs ${daily ? "daily" : ""}`} role="radiogroup" aria-label="Jeu">
+            {GAMES.map(g => (
+                <button key={g.id} type="button" role="radio" aria-checked={selected === g.id}
+                        className={selected === g.id ? "selected" : ""} onClick={() => onSelect(g.id)}>
+                    {g.label}
+                </button>
+            ))}
+        </div>
+    );
+}
 const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -50,8 +74,12 @@ type Row = { rank: number; username: string; avatar: string; userLevel: number; 
 export default function Leaderboard() {
     const {username} = useAuth();
     const [params, setParams] = useSearchParams();
-    const tab: Tab = TABS.some(t => t.id === params.get("onglet")) ? params.get("onglet") as Tab : "xp";
-    const dailyGame = DAILY_GAMES.find(g => g.id === params.get("jeu"))?.id ?? "sudoku";
+    const tabParam = params.get("onglet");
+    // ancienne adresse : ?onglet=sudoku (un onglet par jeu) → « Par jeu » sur ce jeu
+    const legacyGame = isGameId(tabParam) ? tabParam : null;
+    const tab: Tab = legacyGame ? "jeu" : TABS.some(t => t.id === tabParam) ? tabParam as Tab : "xp";
+    const jeuParam = params.get("jeu");
+    const game: GameId = legacyGame ?? (isGameId(jeuParam) ? jeuParam : "sudoku");
 
     // ---------- Défi du jour : mois et jour choisis
     const dateParam = DATE_KEY.test(params.get("date") ?? "") ? params.get("date")! : undefined;
@@ -62,8 +90,8 @@ export default function Leaderboard() {
     const available = useMemo(() => new Set(month?.days.map(d => d.date) ?? []), [month]);
     // Point vert : jours où le joueur a réussi le défi de ce jeu
     const completed = useMemo(() => new Set(month?.days
-        .filter(d => d.games.some(g => g.code.toLowerCase() === dailyGame && g.result))
-        .map(d => d.date) ?? []), [month, dailyGame]);
+        .filter(d => d.games.some(g => g.code.toLowerCase() === game && g.result))
+        .map(d => d.date) ?? []), [month, game]);
     // Point doré : jours où le joueur a réussi tous les défis
     const allDone = useMemo(() => new Set(month?.days
         .filter(d => d.games.length > 0 && d.games.every(g => g.result))
@@ -94,11 +122,11 @@ export default function Leaderboard() {
         if (tab === "defi" && !selectedDate) return;
         const controller = new AbortController();
         const request = tab === "defi"
-            ? dailyService.leaderboard(dailyGame, controller.signal, selectedDate ?? undefined).then(d => {
+            ? dailyService.leaderboard(game, controller.signal, selectedDate ?? undefined).then(d => {
                 setDaily(d);
                 setBoard(null);
             })
-            : (tab === "xp" ? leaderboardService.xp(controller.signal) : leaderboardService.game(tab, controller.signal))
+            : (tab === "xp" ? leaderboardService.xp(controller.signal) : leaderboardService.game(game, controller.signal))
                 .then(b => {
                     setBoard(b);
                     setDaily(null);
@@ -110,14 +138,14 @@ export default function Leaderboard() {
             })
             .finally(() => setLoading(false));
         return () => controller.abort();
-    }, [tab, dailyGame, selectedDate, dayTick]);
+    }, [tab, game, selectedDate, dayTick]);
 
     const select = (next: Record<string, string>) => {
         setLoading(true);
         setParams(next, {replace: true});
     };
     const dailyParams = (extra: Record<string, string> = {}) => ({
-        onglet: "defi", jeu: dailyGame,
+        onglet: "defi", jeu: game,
         ...(selectedDate ? {mois: selectedDate.slice(0, 7), date: selectedDate} : {}),
         ...extra,
     });
@@ -154,30 +182,29 @@ export default function Leaderboard() {
                     {TABS.map(t => (
                         <button key={t.id} type="button" role="tab" aria-selected={tab === t.id}
                                 className={`${tab === t.id ? "selected" : ""} ${t.id === "defi" ? "daily" : ""}`}
-                                onClick={() => select(t.id === "defi" ? dailyParams() : {onglet: t.id})}>
+                                onClick={() => select(t.id === "defi" ? dailyParams() : t.id === "jeu" ? {onglet: "jeu", jeu: game} : {onglet: t.id})}>
                             <span className="tab-long">{t.label}</span>
                             <span className="tab-short" aria-hidden>{t.short}</span>
                         </button>
                     ))}
                 </div>
 
+                {tab === "jeu" && (
+                    <div className="leaderboard-daily">
+                        <GameSelector selected={game} onSelect={id => select({onglet: "jeu", jeu: id})}/>
+                    </div>
+                )}
+
                 {tab === "defi" && (
                     <div className="leaderboard-daily">
-                        <div className="leaderboard-subtabs">
-                            {DAILY_GAMES.map(g => (
-                                <button key={g.id} type="button" className={dailyGame === g.id ? "selected" : ""}
-                                        onClick={() => select(dailyParams({jeu: g.id}))}>
-                                    {g.label}
-                                </button>
-                            ))}
-                        </div>
+                        <GameSelector daily selected={game} onSelect={id => select(dailyParams({jeu: id}))}/>
                         {month && (
                             <>
                                 <MonthPicker month={month.month} firstMonth={month.firstMonth} currentMonth={month.currentMonth}
-                                             onChange={m => select({onglet: "defi", jeu: dailyGame, mois: m})}/>
+                                             onChange={m => select({onglet: "defi", jeu: game, mois: m})}/>
                                 <DayStrip days={days} available={available} completed={completed} allDone={allDone} today={month.today}
                                           selected={selectedDate}
-                                          onSelect={d => select({onglet: "defi", jeu: dailyGame, mois: d.slice(0, 7), date: d})}/>
+                                          onSelect={d => select({onglet: "defi", jeu: game, mois: d.slice(0, 7), date: d})}/>
                                 {selectedDate
                                     ? <p className="leaderboard-date">
                                         {longDate(selectedDate)}{selectedDate === month.today && " · aujourd'hui"}

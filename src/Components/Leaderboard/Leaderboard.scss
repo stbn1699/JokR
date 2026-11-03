@@ -67,13 +67,15 @@
 		}
 	}
 
-	// ---------- Défi du jour : jeu, mois, jour
+	// ---------- Par jeu / défi du jour : jeu (puis mois et jour pour le défi)
 	.leaderboard-daily {
 		margin-bottom : 1rem;
 	}
 
+	// Sélecteur de jeu (GameSelector), le même pour les deux vues ; passe à la ligne si besoin
 	.leaderboard-subtabs {
 		display         : flex;
+		flex-wrap       : wrap;
 		justify-content : center;
 		gap             : 0.5rem;
 
@@ -86,7 +88,21 @@
 			font-family   : inherit;
 			font-size     : 1.15rem;
 			cursor        : pointer;
+			transition    : border-color 0.15s ease, background 0.15s ease;
 
+			&:hover {
+				border-color : rgba(249, 250, 251, 0.7);
+			}
+
+			&.selected {
+				border-color : #f9fafb;
+				background   : rgba(249, 250, 251, 0.18);
+				font-weight  : 700;
+			}
+		}
+
+		// Défi du jour : en orange, comme l'onglet Daily
+		&.daily button {
 			&:hover {
 				border-color : #fbbf24;
 			}
@@ -94,7 +110,6 @@
 			&.selected {
 				border-color : #f59e0b;
 				background   : rgba(245, 158, 11, 0.25);
-				font-weight  : 700;
 			}
 		}
 	}
