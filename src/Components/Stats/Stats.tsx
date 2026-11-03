@@ -10,6 +10,7 @@ import {formatDuration} from "../../Services/format.ts";
 import BarChart from "./BarChart.tsx";
 import {downloadFile, toCsv} from "./exportData.ts";
 
+import Loader from "../Loader/Loader.tsx";
 // Une couleur fixe par jeu (vérifiée lisible et distincte, daltonisme compris) ; les autres jeux en gris
 const GAME_COLORS: Record<string, string> = {SUDOKU: "#3987e5", BINERO: "#e46f24", RIKUDO: "#1baf7a", TECTONIC: "#9085e9", GALAXIES: "#d55181", SHIKAKU: "#c98500", QUEENS: "#008300"};
 const OTHER_COLOR = "#94a3b8";
@@ -76,7 +77,7 @@ export default function Stats() {
 
     if (!isLoggedIn) return <Navigate to="/login" replace/>;
     // Profil pas encore chargé : on ne sait pas encore si le joueur est administrateur
-    if (!username) return <p className="stats-status">Chargement…</p>;
+    if (!username) return <Loader/>;
     if (!isAdmin) return <p className="stats-status">Cette page est réservée à l'administrateur.</p>;
 
     return (
@@ -102,8 +103,8 @@ export default function Stats() {
                 </div>
 
                 {error && <p className="stats-status stats-error" role="alert">{error}</p>}
-                {!data && !error && <p className="stats-status">Chargement…</p>}
-                {data && <StatsContent data={data}/>}
+                {!data && !error && <Loader label="Chargement des statistiques…"/>}
+                {data && <div className="fade-in"><StatsContent data={data}/></div>}
             </div>
         </div>
     );

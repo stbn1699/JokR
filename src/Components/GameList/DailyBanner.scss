@@ -10,6 +10,12 @@
 	padding         : 0.6rem 1rem;
 	box-sizing      : border-box;
 	border-bottom   : 2px solid rgba(245, 158, 11, 0.5);
+	// arrive en fondu (chargé à part de la liste des jeux)
+	animation       : daily-banner-in 0.4s ease backwards;
+
+	@media (prefers-reduced-motion: reduce) {
+		animation : none;
+	}
 	font-size       : 1.25rem;
 
 	a {
@@ -66,5 +72,12 @@
 		justify-content : center;
 		text-align      : center;
 		font-size       : 1.1rem;
+	}
+}
+
+@keyframes daily-banner-in {
+	from {
+		opacity   : 0;
+		transform : translateY(-0.5rem);
 	}
 }

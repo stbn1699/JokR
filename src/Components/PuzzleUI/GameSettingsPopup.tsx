@@ -5,6 +5,7 @@ import "../SuccessPopup/SuccessPopup.scss";
 import {useAuth} from "../../Context/authContext.ts";
 import {formatDuration} from "../../Services/format.ts";
 
+import Loader from "../Loader/Loader.tsx";
 type GameSettingsPopupProps = {
     open: boolean;
     loading: boolean;
@@ -67,7 +68,7 @@ export default function GameSettingsPopup(props: GameSettingsPopupProps) {
                 <h2 id="game-settings-title">Nouvelle partie</h2>
 
                 {error && <p className="game-settings-error">{error}</p>}
-                {loading && !error && <p>Chargement…</p>}
+                {loading && !error && <Loader size="small"/>}
 
                 {ready && (
                     <>

@@ -21,6 +21,7 @@ import {userService} from "../../../Services/user.service.ts";
 import {formatDuration} from "../../../Services/format.ts";
 import AccountSettings from "./AccountSettings.tsx";
 
+import Loader from "../../Loader/Loader.tsx";
 const PAGE_SIZE = 10;
 
 export default function Profile() {
@@ -100,10 +101,10 @@ export default function Profile() {
 
                 <h2>Mes jeux</h2>
                 {error && <p className="profile-error">{error}</p>}
-                {!error && stats === null && <p>Chargement…</p>}
+                {!error && stats === null && <Loader size="small"/>}
                 {stats?.length === 0 && <p>Aucune victoire pour l'instant. À toi de jouer !</p>}
                 {stats && stats.length > 0 && (
-                    <table className="profile-stats">
+                    <table className="profile-stats fade-in">
                         <thead>
                         <tr>
                             <th>Jeu</th>

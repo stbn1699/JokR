@@ -1,5 +1,5 @@
 import "./GameList.scss"
-import {useEffect, useRef, useState} from "react";
+import {type CSSProperties, useEffect, useRef, useState} from "react";
 import type {Game} from "../../Models/game.model.ts";
 import {gameService} from "../../Services/game.service.ts";
 import type {GameStats} from "../../Models/gameStats.model.ts";
@@ -12,6 +12,44 @@ import DailyBanner from "./DailyBanner.tsx";
 import {useDailyOverview} from "./useDailyOverview.ts";
 import {formatDuration} from "../../Services/format.ts";
 import {dailyGridLabel} from "../../Services/dailyGames.ts";
+
+// Nombre de jeux de la dernière visite : autant de cartes fantômes pendant le chargement (pas de saut de page)
+const GAME_COUNT_KEY = "gameListCount";
+
+function rememberGameCount(count: number) {
+    try {
+        localStorage.setItem(GAME_COUNT_KEY, String(count));
+    } catch {
+        // stockage indisponible (navigation privée...) : on garde la valeur par défaut
+    }
+}
+
+function lastGameCount(): number {
+    try {
+        const count = Number(localStorage.getItem(GAME_COUNT_KEY));
+        if (Number.isInteger(count) && count > 0 && count <= 30) return count;
+    } catch {
+        // idem
+    }
+    return 6;
+}
+
+// Cartes fantômes avec un reflet qui passe, le temps de récupérer les jeux
+function GameListSkeleton() {
+    return (
+        <div className="game-list loading" role="status" aria-label="Chargement des jeux…">
+            {Array.from({length: lastGameCount()}, (_, i) => (
+                <div className="game-card skeleton" key={i} aria-hidden style={{"--i": i} as CSSProperties}>
+                    <div className="game">
+                        <div className="skeleton-icon"/>
+                        <div className="skeleton-title"/>
+                    </div>
+                    <div className="skeleton-pill"/>
+                </div>
+            ))}
+        </div>
+    );
+}
 
 export default function GameList() {
     const [games, setGames] = useState<Game[]>([])
@@ -38,6 +76,7 @@ export default function GameList() {
             .then(([gamesResult, statsResult]) => {
                 setGames(gamesResult);
                 setUserStats(statsResult);
+                rememberGameCount(gamesResult.length);
             })
             .catch((err) => {
                 if (err.name !== "AbortError") {
@@ -55,7 +94,7 @@ export default function GameList() {
         };
     }, [userId]);
 
-    if (loading) return <p className="game-list-status">Chargement des jeux…</p>;
+    if (loading) return <GameListSkeleton/>;
     if (error) return <p className="game-list-status error" role="alert">{error}</p>;
 
     // petit effet visuel puis navigation vers le jeu
@@ -85,12 +124,13 @@ export default function GameList() {
             {daily && <DailyBanner overview={daily}/>}
 
             <div className="game-list">
-                {games.map((game) => {
+                {games.map((game, index) => {
                     const stat = userStats?.find(s => s.game_code === game.code);
                     const challenge = daily?.games.find(g => g.code === game.code);
 
                     return (
-                        <div className="game-card" key={game.code}>
+                        // --i : les cartes apparaissent l'une après l'autre
+                        <div className="game-card appear" key={game.code} style={{"--i": index} as CSSProperties}>
                             {userId && stat && (
                                 <div className="stats">
                                     <div>

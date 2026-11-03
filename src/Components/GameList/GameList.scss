@@ -190,6 +190,115 @@
 	}
 }
 
+// ---------- Chargement : cartes fantômes, puis apparition des vraies cartes ----------
+
+// Les vraies cartes montent en fondu, l'une après l'autre (--i = position).
+// `backwards` : une fois l'animation finie, le zoom au survol reprend la main.
+.game-list .game-card.appear {
+	animation : game-card-in 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.15) backwards;
+	animation-delay : calc(var(--i, 0) * 60ms);
+}
+
+@keyframes game-card-in {
+	from {
+		opacity   : 0;
+		transform : translateY(1.25rem) scale(0.94);
+	}
+}
+
+.game-list.loading {
+	.game-card.skeleton {
+		// apparition retardée : un chargement très court ne fait pas clignoter les fantômes
+		animation       : skeleton-in 0.3s ease 0.12s backwards;
+		pointer-events  : none;
+
+		&:hover {
+			transform : none;
+		}
+	}
+
+	.game {
+		position        : relative;
+		overflow        : hidden;
+		display         : flex;
+		flex-direction  : column;
+		align-items     : center;
+		justify-content : center;
+		gap             : 1.2rem;
+		cursor          : default;
+		border-color    : #333333;
+
+		// reflet qui balaie la carte, décalé d'une carte à l'autre
+		&::after {
+			content         : "";
+			position        : absolute;
+			inset           : 0;
+			background      : linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.07) 50%, transparent 70%);
+			transform       : translateX(-100%);
+			animation       : skeleton-shine 1.6s ease-in-out infinite;
+			animation-delay : calc(var(--i, 0) * 120ms);
+		}
+	}
+
+	.skeleton-icon,
+	.skeleton-title,
+	.skeleton-pill {
+		background : rgba(255, 255, 255, 0.07);
+		animation  : skeleton-pulse 1.6s ease-in-out infinite;
+		animation-delay : calc(var(--i, 0) * 120ms);
+	}
+
+	.skeleton-icon {
+		width         : 9rem;
+		height        : 9rem;
+		border-radius : 1.5rem;
+	}
+
+	.skeleton-title {
+		width         : 8rem;
+		height        : 1.6rem;
+		border-radius : 999px;
+	}
+
+	.skeleton-pill {
+		width         : 15rem;
+		height        : 2.5rem;
+		margin-top    : 0.75rem;
+		border-radius : 999px;
+		background    : rgba(245, 158, 11, 0.08);
+	}
+}
+
+@keyframes skeleton-in {
+	from {
+		opacity : 0;
+	}
+}
+
+@keyframes skeleton-shine {
+	to {
+		transform : translateX(100%);
+	}
+}
+
+@keyframes skeleton-pulse {
+	50% {
+		opacity : 0.45;
+	}
+}
+
+// Les joueurs qui demandent moins d'animations : pas de mouvement, juste l'affichage
+@media (prefers-reduced-motion: reduce) {
+	.game-list .game-card.appear,
+	.game-list.loading .game-card.skeleton,
+	.game-list.loading .game::after,
+	.game-list.loading .skeleton-icon,
+	.game-list.loading .skeleton-title,
+	.game-list.loading .skeleton-pill {
+		animation : none;
+	}
+}
+
 // Écrans tactiles (pas de survol) : les stats s'affichent sous la carte du jeu
 @media (hover: none) {
 	.game-list {
@@ -264,6 +373,25 @@
 
 		.stats {
 			font-size : 0.95rem;
+		}
+
+		&.loading {
+			.skeleton-icon {
+				width  : 70%;
+				height : auto;
+				aspect-ratio : 1;
+			}
+
+			.skeleton-title {
+				width  : 55%;
+				height : 1.2rem;
+			}
+
+			.skeleton-pill {
+				width      : 100%;
+				height     : 2.1rem;
+				margin-top : 0.5rem;
+			}
 		}
 	}
 }

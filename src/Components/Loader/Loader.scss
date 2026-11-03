@@ -1,0 +1,96 @@
+// Indicateur de chargement commun (voir Loader.tsx)
+.loader {
+	--cell          : 1.1rem;
+
+	display         : flex;
+	flex-direction  : column;
+	align-items     : center;
+	gap             : 0.9rem;
+	margin          : 3rem auto;
+	// retardé : rien ne clignote si le chargement est quasi instantané
+	animation       : loader-in 0.3s ease 0.15s backwards;
+
+	&.loader-small {
+		--cell : 0.75rem;
+		gap    : 0.6rem;
+		margin : 1.25rem auto;
+
+		.loader-label {
+			font-size : 1.05rem;
+		}
+	}
+}
+
+.loader-cells {
+	display     : flex;
+	align-items : flex-end;
+	gap         : calc(var(--cell) * 0.45);
+	height      : calc(var(--cell) * 2.2);
+
+	span {
+		width         : var(--cell);
+		height        : var(--cell);
+		border-radius : calc(var(--cell) * 0.28);
+		background    : #10b981;
+		animation     : loader-hop 1.05s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+
+		&:nth-child(2) {
+			background      : #f59e0b;
+			animation-delay : 0.15s;
+		}
+
+		&:nth-child(3) {
+			background      : #60a5fa;
+			animation-delay : 0.3s;
+		}
+	}
+}
+
+.loader-label {
+	margin    : 0;
+	font-size : 1.35rem;
+	color     : rgba(249, 250, 251, 0.7);
+}
+
+@keyframes loader-in {
+	from {
+		opacity : 0;
+	}
+}
+
+// saut avec un petit écrasement à l'atterrissage
+@keyframes loader-hop {
+	0%, 60%, 100% {
+		transform : translateY(0) scale(1, 1);
+	}
+	15% {
+		transform : translateY(0) scale(1.15, 0.85);
+	}
+	35% {
+		transform : translateY(calc(var(--cell) * -1.1)) scale(0.92, 1.08) rotate(8deg);
+	}
+	52% {
+		transform : translateY(0) scale(1.1, 0.9);
+	}
+}
+
+// Contenu qui arrive après un chargement : léger fondu vers le haut
+.fade-in {
+	animation : fade-in-up 0.35s ease backwards;
+}
+
+@keyframes fade-in-up {
+	from {
+		opacity   : 0;
+		transform : translateY(0.6rem);
+	}
+}
+
+// Moins d'animations demandées : cases immobiles, apparitions directes
+@media (prefers-reduced-motion: reduce) {
+	.loader,
+	.loader-cells span,
+	.fade-in {
+		animation : none;
+	}
+}

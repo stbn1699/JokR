@@ -19,6 +19,7 @@ import {daysOfMonth, longDate} from "./calendar.ts";
 import DayStrip from "./DayStrip.tsx";
 import MonthPicker from "./MonthPicker.tsx";
 import {useDailyMonth} from "./useDailyMonth.ts";
+import Loader from "../Loader/Loader.tsx";
 
 const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
 
@@ -78,10 +79,10 @@ export default function DailyHistory() {
                 )}
 
                 {error && <p className="daily-history-error" role="alert">{error}</p>}
-                {!error && !data && <p className="daily-history-status">Chargement…</p>}
+                {!error && !data && <Loader label="Chargement des défis…"/>}
 
                 {data && month && (
-                    <>
+                    <div className="fade-in">
                         <MonthPicker month={month} firstMonth={data.firstMonth} currentMonth={data.currentMonth}
                                      onChange={goToMonth}/>
 
@@ -128,7 +129,7 @@ export default function DailyHistory() {
                                 </div>
                             </div>
                         )}
-                    </>
+                    </div>
                 )}
             </section>
         </main>

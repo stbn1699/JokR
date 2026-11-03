@@ -5,6 +5,7 @@ import {useAuth} from "../../../Context/authContext.ts";
 import {oauthService, type Provider, PROVIDER_NAMES} from "../../../Services/oauth.service.ts";
 import type {LoggedUser} from "../../../Models/loggedUser.model.ts";
 
+import Loader from "../../Loader/Loader.tsx";
 /**
  * Page /auth/callback/:provider : Google ou Discord y renvoie le joueur après la connexion.
  * - compte connu : session ouverte, retour à la page demandée
@@ -96,7 +97,7 @@ export default function OAuthCallback() {
                 {step.kind === "loading" && (
                     <>
                         <header className="auth-header"><h1>Connexion</h1></header>
-                        <p className="auth-loading">Connexion avec {name}…</p>
+                        <Loader size="small" label={`Connexion avec ${name}…`}/>
                     </>
                 )}
 

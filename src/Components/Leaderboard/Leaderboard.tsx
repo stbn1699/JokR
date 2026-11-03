@@ -21,6 +21,7 @@ import DayStrip from "../DailyHistory/DayStrip.tsx";
 import {useDailyMonth} from "../DailyHistory/useDailyMonth.ts";
 import {daysOfMonth, longDate} from "../DailyHistory/calendar.ts";
 
+import Loader from "../Loader/Loader.tsx";
 // `short` : libellé sur téléphone
 const TABS = [
     {id: "xp", label: "XP globale", short: "XP"},
@@ -187,7 +188,7 @@ export default function Leaderboard() {
                 )}
 
                 {error && <p className="leaderboard-error" role="alert">{error}</p>}
-                {loading && !error && <p className="leaderboard-status">Chargement…</p>}
+                {loading && !error && <Loader label="Chargement du classement…"/>}
 
                 {!loading && !error && rows && rows.length === 0 && (
                     <p className="leaderboard-status">
@@ -200,7 +201,7 @@ export default function Leaderboard() {
                 )}
 
                 {!loading && !error && podium.length > 0 && (
-                    <ol className="podium">
+                    <ol className="podium fade-in">
                         {/* Ordre d'affichage : 2e, 1er, 3e (le 1er au centre, plus haut) */}
                         {[podium[1], podium[0], podium[2]].map((row, i) => row && (
                             <li key={row.rank + row.username} className={`podium-place place-${row.rank} ${isMe(row.username) ? "me" : ""}`}
@@ -217,7 +218,7 @@ export default function Leaderboard() {
                 )}
 
                 {!loading && !error && rest.length > 0 && (
-                    <ol className="leaderboard-list" start={4}>
+                    <ol className="leaderboard-list fade-in" start={4}>
                         {rest.map(row => (
                             <li key={row.rank + row.username} className={isMe(row.username) ? "me" : ""}>
                                 <span className="leaderboard-rank">{ordinal(row.rank)}</span>
