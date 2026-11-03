@@ -3,6 +3,8 @@ import {api} from "../api/api.ts";
 export interface LeaderboardEntry {
     rank: number;
     username: string;
+    // graine de l'icône de profil
+    avatar: string;
     level: number;
     xp: number;
     // Seulement pour le classement d'un jeu

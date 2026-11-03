@@ -17,14 +17,14 @@
 		display: block;
 	}
 
-	// Onglets Puzzle / Hasard, au centre du header
+	// Onglets Puzzle / Hasard, centrés dans l'espace entre le logo et la zone joueur
+	// (jamais par-dessus : ils passent sur une 2e ligne quand la place manque)
 	.header-tabs {
-		position  : absolute;
-		left      : 50%;
-		top       : 50%;
-		transform : translate(-50%, -50%);
-		display   : flex;
-		gap       : 0.4rem;
+		flex            : 1;
+		display         : flex;
+		justify-content : center;
+		gap             : 0.4rem;
+		margin          : 0 1rem;
 	}
 
 	.header-tab {
@@ -119,16 +119,84 @@
 			}
 		}
 
+		// Même vert que la barre de la popup de victoire
 		.xp-bar-fill {
-			background : linear-gradient(90deg, #F59E0B, #F97316);
+			background : linear-gradient(90deg, #22c55e, #16a34a);
 			height     : 100%;
 			width      : 0;
-			transition : width 300ms ease-in-out;
+			transition : width 800ms cubic-bezier(.25, .8, .3, 1);
+
+			// retour à 0 après une montée de niveau
+			&.instant {
+				transition : none;
+			}
+		}
+
+		// Crédits qui défilent après une victoire : ils s'illuminent
+		.credits {
+			transition : color 0.3s ease, text-shadow 0.3s ease;
+
+			&.bump {
+				color       : #ea580c;
+				text-shadow : 0 0 10px rgba(249, 115, 22, 0.55);
+			}
+		}
+
+		// Icône de profil (lien vers le profil) : liseré clair pour se détacher du fond beige
+		.header-avatar {
+			display       : flex;
+			padding       : 0;
+			border        : none;
+			background    : none;
+			border-radius : 18%;
+			cursor        : pointer;
+			box-shadow    : 0 0 0 2px #F4E5CB, 0 0 0 3px rgba(55, 65, 81, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
+			transition    : transform 0.15s ease, box-shadow 0.15s ease;
+
+			&:hover {
+				transform  : translateY(-1px) scale(1.06);
+				box-shadow : 0 0 0 2px #F4E5CB, 0 0 0 3px #374151, 0 4px 10px rgba(0, 0, 0, 0.3);
+			}
+
+			&:focus-visible {
+				outline        : 2px solid #374151;
+				outline-offset : 3px;
+			}
+		}
+
+		// Nouveau niveau atteint : l'icône apparaît avec un rebond
+		.level-icon.level-pop {
+			animation : header-level-pop 600ms cubic-bezier(.2, .9, .3, 1.5);
+		}
+	}
+}
+
+@keyframes header-level-pop {
+	0% {
+		transform : scale(0.4) rotate(-20deg);
+		filter    : brightness(1.6);
+	}
+	100% {
+		transform : scale(1) rotate(0);
+		filter    : none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.header .usersection {
+		.xp-bar-fill,
+		.credits {
+			transition : none;
+		}
+
+		.level-icon.level-pop {
+			animation : none;
 		}
 	}
 }
 // Écran moyen : les onglets passent sur une 2e ligne du header (plus de place au centre)
-@media (max-width: 1000px) {
+// (logo + onglets + zone joueur ne tiennent sur une ligne qu'au-delà d'environ 1150 px)
+@media (max-width: 1150px) {
 	.header {
 		flex-wrap  : wrap;
 		height     : auto;
@@ -136,15 +204,15 @@
 		row-gap    : 0.4rem;
 		padding    : 0.5rem 1rem;
 
+		// hauteur fixe : le header n'a plus de hauteur fixe sur laquelle se caler
 		.logo {
 			height : 2.8rem;
 		}
 
 		.header-tabs {
-			position        : static;
-			transform       : none;
 			order           : 3;
-			width           : 100%;
+			flex            : 0 0 100%;
+			margin          : 0;
 			justify-content : center;
 		}
 	}
@@ -189,6 +257,11 @@
 
 			.credits {
 				font-size : 1.1rem;
+			}
+
+			.header-avatar .avatar {
+				width  : 1.9rem;
+				height : 1.9rem;
 			}
 		}
 	}

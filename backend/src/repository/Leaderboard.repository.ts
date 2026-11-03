@@ -14,7 +14,7 @@ export class LeaderboardRepository {
     async topXp(limit: number) {
         return this.db
             .selectFrom("users")
-            .select(["username", "user_level as level", "user_xp as xp"])
+            .select(["username", "avatar", "user_level as level", "user_xp as xp"])
             .orderBy("user_level", "desc")
             .orderBy("user_xp", "desc")
             .orderBy("username", "asc")
@@ -50,6 +50,7 @@ export class LeaderboardRepository {
             .innerJoin("users", "users.id", "game_stats.user_id")
             .select([
                 "users.username",
+                "users.avatar",
                 "game_stats.game_level as level",
                 "game_stats.game_xp as xp",
                 "game_stats.games_won as gamesWon",

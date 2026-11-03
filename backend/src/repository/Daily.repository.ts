@@ -121,7 +121,7 @@ export class DailyRepository {
         return this.db
             .selectFrom("daily_results")
             .innerJoin("users", "users.id", "daily_results.user_id")
-            .select(["users.username", "daily_results.duration_ms"])
+            .select(["users.username", "users.avatar", "daily_results.duration_ms"])
             .where("daily_results.challenge_date", "=", date)
             .where("daily_results.game_code", "=", gameCode)
             .orderBy("daily_results.duration_ms", "asc")

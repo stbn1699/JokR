@@ -8,6 +8,7 @@
  * - user_xp : XP courante de l'utilisateur
  * - credits : crédits à miser sur les jeux de hasard
  * - is_admin : accès à la page Statistiques (jamais renvoyé dans un profil public)
+ * - avatar : graine de l'icône de profil (texte a-z0-9, l'icône est dessinée par le site)
  */
 export type User = {
 	id: string;
@@ -18,4 +19,5 @@ export type User = {
     user_xp: number;
     credits: number;
     is_admin: boolean;
+    avatar: string;
 };

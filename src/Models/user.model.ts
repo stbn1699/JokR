@@ -6,6 +6,8 @@ export interface User {
     user_xp: number;
     // Crédits à miser sur les jeux de hasard
     credits: number;
+    // Graine de l'icône de profil (voir Services/avatar.ts)
+    avatar: string;
     // Seulement dans GET /users/me : accès à la page Statistiques
     isAdmin?: boolean;
     // Seulement dans GET /users/me : false pour un compte créé avec Google / Discord sans mot de passe

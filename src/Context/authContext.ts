@@ -11,6 +11,8 @@ export type AuthState = {
     level: number;
     xp: number;
     credits: number;
+    // Graine de l'icône de profil (null tant que le profil n'est pas chargé)
+    avatar: string | null;
     // Administrateur : accès à la page Statistiques
     isAdmin: boolean;
 };
@@ -21,6 +23,8 @@ export type AuthContextValue = AuthState & {
     logout: () => void;
     // Recharge niveau, XP et crédits depuis le serveur (après une victoire par exemple)
     refresh: () => Promise<void>;
+    // Icône de profil changée : le header se met à jour tout de suite
+    setAvatar: (avatar: string) => void;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

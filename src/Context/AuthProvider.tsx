@@ -6,7 +6,7 @@ import {userService} from "../Services/user.service.ts";
 import {ApiError, AUTH_EXPIRED_EVENT} from "../api/api.ts";
 import type {LoggedUser} from "../Models/loggedUser.model.ts";
 
-const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0, credits: 0, isAdmin: false};
+const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0, credits: 0, avatar: null, isAdmin: false};
 
 /*
  * Fournit la session à toute l'app.
@@ -33,6 +33,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
             const user = await userService.getMe();
             setState({
                 userId: user.id, username: user.username, level: user.user_level, xp: user.user_xp, credits: user.credits,
+                avatar: user.avatar,
                 isAdmin: user.isAdmin === true,
             });
         } catch (err) {
@@ -45,7 +46,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
     const login = useCallback((user: LoggedUser) => {
         authService.saveSession(user.token, user.userId);
-        setState({userId: user.userId, username: null, level: user.userLevel, xp: user.userXp, credits: 0, isAdmin: false});
+        setState({userId: user.userId, username: null, level: user.userLevel, xp: user.userXp, credits: 0, avatar: null, isAdmin: false});
         void refresh(); // récupère le username et les crédits
     }, [refresh]);
 
@@ -71,13 +72,16 @@ export function AuthProvider({children}: { children: ReactNode }) {
         return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired);
     }, [logout, navigate]);
 
+    const setAvatar = useCallback((avatar: string) => setState(s => ({...s, avatar})), []);
+
     const value = useMemo<AuthContextValue>(() => ({
         ...state,
         isLoggedIn: state.userId !== null,
         login,
         logout,
         refresh,
-    }), [state, login, logout, refresh]);
+        setAvatar,
+    }), [state, login, logout, refresh, setAvatar]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

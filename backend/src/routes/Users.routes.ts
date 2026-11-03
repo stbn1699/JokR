@@ -20,6 +20,7 @@ import {GameResultsRepository} from '../repository/GameResults.repository.js';
  * - GET /me : profil du joueur connecté (JWT requis)
  * - GET /me/results : ses parties gagnées, par pages (JWT requis)
  * - PUT /me/password : change son mot de passe (JWT requis)
+ * - PUT /me/avatar : change son icône de profil (JWT requis)
  * - DELETE /me : supprime son compte (JWT + mot de passe requis)
  * - GET /:userId : profil public (sans email ni mot de passe)
  *
@@ -52,6 +53,7 @@ UsersRoutes.post('/oauth/:provider/callback', oauthLimiter, optionalAuth, contro
 // /me doit être déclarée avant /:userId
 UsersRoutes.get('/me', requireAuth, controller.me);
 UsersRoutes.get('/me/results', requireAuth, controller.myResults);
+UsersRoutes.put('/me/avatar', requireAuth, controller.changeAvatar);
 // ces deux routes vérifient le mot de passe : même limite de tentatives que la connexion
 UsersRoutes.put('/me/password', requireAuth, loginLimiter, controller.changePassword);
 UsersRoutes.delete('/me', requireAuth, loginLimiter, controller.deleteAccount);

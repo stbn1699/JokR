@@ -5,11 +5,12 @@ const TOKEN_KEY = "auth_token";
 const USER_ID_KEY = "userId";
 
 export const authService = {
-    async register(username: string, email: string, password: string) {
+    // avatar : graine de l'icône choisie (voir Services/avatar.ts)
+    async register(username: string, email: string, password: string, avatar?: string) {
         return api("/users/register", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({username, email, password}),
+            body: JSON.stringify({username, email, password, avatar}),
         });
     },
 

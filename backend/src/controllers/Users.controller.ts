@@ -39,11 +39,17 @@ import {
 
 const USERNAME_REGEX = /^[\p{L}\p{N}_.-]{3,30}$/u;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Graine de l'icône de profil (voir src/Services/avatar.ts côté front)
+const AVATAR_REGEX = /^[a-z0-9]{4,32}$/;
 const USERNAME_RULE = "Le nom d'utilisateur doit faire 3 à 30 caractères (lettres, chiffres, _ . -)";
 const PROVIDER_NAMES: Record<Provider, string> = {google: "Google", discord: "Discord"};
 
 function isNonEmptyString(v: unknown, maxLength: number): v is string {
     return typeof v === 'string' && v.length > 0 && v.length <= maxLength;
+}
+
+function isAvatar(v: unknown): v is string {
+    return typeof v === 'string' && AVATAR_REGEX.test(v);
 }
 
 // Réponse de connexion : JWT minimal, subject (sub) = id utilisateur
@@ -66,7 +72,7 @@ export function createUsersController(service: UsersService, results: GameResult
     return {
         // Handler pour l'inscription d'un nouvel utilisateur
         register: asyncHandler(async (req: Request, res: Response) => {
-            const {username, email, password} = req.body ?? {};
+            const {username, email, password, avatar} = req.body ?? {};
 
             if (!isNonEmptyString(username, 30) || !USERNAME_REGEX.test(username)) {
                 return res.status(400).json({status: 'error', message: USERNAME_RULE});
@@ -78,9 +84,12 @@ export function createUsersController(service: UsersService, results: GameResult
             if (!isNonEmptyString(password, 200)) {
                 return res.status(400).json({status: 'error', message: 'Mot de passe invalide'});
             }
+            if (avatar !== undefined && !isAvatar(avatar)) {
+                return res.status(400).json({status: 'error', message: 'Icône de profil invalide'});
+            }
 
             try {
-                const user = await service.register({username, email, password});
+                const user = await service.register({username, email, password, avatar});
                 res.status(201).json({status: 'ok', data: user});
             } catch (err) {
                 if (err instanceof UserAlreadyExistsError) {
@@ -178,14 +187,17 @@ export function createUsersController(service: UsersService, results: GameResult
 
         // Fin de la première connexion avec Google / Discord : { signupToken, username }
         oauthComplete: asyncHandler(async (req: Request, res: Response) => {
-            const {signupToken, username} = req.body ?? {};
+            const {signupToken, username, avatar} = req.body ?? {};
             const profile = isNonEmptyString(signupToken, 2000) ? readSignupToken(signupToken) : null;
             if (!profile) return res.status(400).json({status: 'error', message: 'Inscription expirée, recommence'});
             if (!isNonEmptyString(username, 30) || !USERNAME_REGEX.test(username)) {
                 return res.status(400).json({status: 'error', message: USERNAME_RULE});
             }
+            if (avatar !== undefined && !isAvatar(avatar)) {
+                return res.status(400).json({status: 'error', message: 'Icône de profil invalide'});
+            }
             try {
-                const user = await service.registerWithProfile(username, profile);
+                const user = await service.registerWithProfile(username, profile, avatar);
                 res.status(201).json({status: 'ok', data: sessionFor(user)});
             } catch (err) {
                 if (err instanceof UserAlreadyExistsError) {
@@ -219,6 +231,14 @@ export function createUsersController(service: UsersService, results: GameResult
             const user = await service.getMe(res.locals.userId!);
             if (!user) return res.status(404).json({status: 'error', message: 'Utilisateur introuvable'});
             res.status(200).json({status: 'ok', data: user});
+        }),
+
+        // Change l'icône de profil : { avatar }
+        changeAvatar: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const {avatar} = req.body ?? {};
+            if (!isAvatar(avatar)) return res.status(400).json({status: 'error', message: 'Icône de profil invalide'});
+            await service.changeAvatar(res.locals.userId!, avatar);
+            res.status(200).json({status: 'ok', data: {avatar}});
         }),
 
         // Parties gagnées par le joueur connecté, par pages : ?limit=10&offset=0 (limit ≤ 50)

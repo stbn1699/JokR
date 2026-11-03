@@ -12,5 +12,6 @@ export function toPublicUser(user: User): PublicUser {
         user_level: user.user_level,
         user_xp: user.user_xp,
         credits: user.credits,
+        avatar: user.avatar,
     };
 }

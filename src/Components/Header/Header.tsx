@@ -13,11 +13,13 @@
  */
 
 import "./Header.scss"
-import {FaChartBar, FaCoins, FaSignOutAlt, FaUser, FaUserCircle} from "react-icons/fa";
+import {FaChartBar, FaCoins, FaSignOutAlt, FaUser} from "react-icons/fa";
+import Avatar from "../Avatar/Avatar.tsx";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {levelIconSrc, xpToNextLevel} from "../../Services/leveling.ts";
 import {isGameRoute} from "../../Services/routes.ts";
+import {useHeaderProgress} from "./useHeaderProgress.ts";
 
 // Onglets du header ; `match` dit si une adresse appartient à l'onglet, `highlight` le met en orange
 const TABS = [
@@ -30,7 +32,11 @@ const TABS = [
 export default function Header() {
     const navigate = useNavigate();
     const {pathname} = useLocation();
-    const {isLoggedIn, isAdmin, level, xp, credits, logout} = useAuth();
+    const auth = useAuth();
+    const {isLoggedIn, isAdmin, logout} = auth;
+    // Après une victoire : valeurs d'avant jusqu'à l'arrivée des particules, puis changement animé
+    const shown = useHeaderProgress({level: auth.level, xp: auth.xp, credits: auth.credits});
+    const {level, xp, credits} = shown;
 
     const xpNextLevel = xpToNextLevel(level);
     const xpPercent = Math.min(100, (xp / xpNextLevel) * 100);
@@ -65,21 +71,26 @@ export default function Header() {
             <div className="usersection">
                 {isLoggedIn ? (
                     <div className="user-section">
-                        <img src={levelIconSrc(level)} alt={`Niveau ${level}`} className="level-icon"/>
+                        <img src={levelIconSrc(level)} alt={`Niveau ${level}`}
+                             className={`level-icon ${shown.levelPop ? "level-pop" : ""}`}/>
 
                         <div className="xp-bar" aria-hidden>
                             <div className="xp-bar-track" title={`${xp} / ${xpNextLevel} xp`}>
-                                <div className="xp-bar-fill" style={{width: `${xpPercent}%`}}/>
+                                <div className={`xp-bar-fill ${shown.instant ? "instant" : ""}`} style={{width: `${xpPercent}%`}}/>
                             </div>
                         </div>
 
-                        <span className="credits" title="Crédits (à miser sur les jeux de hasard)">
+                        <span className={`credits ${shown.creditsBump ? "bump" : ""}`}
+                              title="Crédits (à miser sur les jeux de hasard)">
                             <FaCoins aria-hidden/>
                             <span>{credits}</span>
                         </span>
 
                         {isAdmin && <FaChartBar title="Statistiques" onClick={() => navigate("/stats")}/>}
-                        <FaUserCircle title="Mon profil" onClick={() => navigate("/profile")}/>
+                        <button type="button" className="header-avatar" title="Mon profil" onClick={() => navigate("/profile")}>
+                            <Avatar seed={auth.avatar} fallback={auth.username ?? auth.userId ?? undefined} size={2.3}
+                                    title="Mon profil"/>
+                        </button>
                         <FaSignOutAlt title="Se déconnecter" onClick={handleLogout}/>
                     </div>
                 ) : (

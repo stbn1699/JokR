@@ -6,6 +6,8 @@ import {oauthService, type Provider, PROVIDER_NAMES} from "../../../Services/oau
 import type {LoggedUser} from "../../../Models/loggedUser.model.ts";
 
 import Loader from "../../Loader/Loader.tsx";
+import AvatarField from "../../Avatar/AvatarField.tsx";
+import {randomAvatarSeed} from "../../../Services/avatar.ts";
 /**
  * Page /auth/callback/:provider : Google ou Discord y renvoie le joueur après la connexion.
  * - compte connu : session ouverte, retour à la page demandée
@@ -29,6 +31,8 @@ export default function OAuthCallback() {
     const {login} = useAuth();
     const [step, setStep] = useState<Step>({kind: "loading"});
     const [username, setUsername] = useState("");
+    // Icône de profil : tirée au hasard, le joueur peut en changer
+    const [avatar, setAvatar] = useState(randomAvatarSeed);
     const [saving, setSaving] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     // En développement, React lance les effets deux fois : le code ne doit être utilisé qu'une fois
@@ -82,7 +86,7 @@ export default function OAuthCallback() {
         }
         setSaving(true);
         try {
-            const user: LoggedUser = await oauthService.complete(step.signupToken, username);
+            const user: LoggedUser = await oauthService.complete(step.signupToken, username, avatar);
             login(user);
             navigate(step.from ?? "/", {replace: true});
         } catch (err) {
@@ -115,9 +119,10 @@ export default function OAuthCallback() {
                     <>
                         <header className="auth-header">
                             <h1>Bienvenue !</h1>
-                            <p>Dernière étape : choisis ton pseudo. C'est lui qui apparaîtra dans les classements.</p>
+                            <p>Dernière étape : choisis ton pseudo et ton icône. Ils apparaîtront dans les classements.</p>
                         </header>
                         <form className="auth-form" onSubmit={submitUsername}>
+                            <AvatarField value={avatar} onChange={setAvatar}/>
                             <label>
                                 <span>Pseudo</span>
                                 <input

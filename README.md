@@ -244,6 +244,7 @@ update users set is_admin = false where username = 'pseudo';  -- retirer
 | GET     | `/users/me`                | requise   | profil du joueur connecté                 |
 | GET     | `/users/me/results`        | requise   | ses parties gagnées (`?limit=&offset=`)   |
 | PUT     | `/users/me/password`       | requise   | change son mot de passe                   |
+| PUT     | `/users/me/avatar`         | requise   | `{ avatar }` : change son icône de profil |
 | DELETE  | `/users/me`                | requise   | supprime son compte (mot de passe ou pseudo requis) |
 | GET     | `/users/oauth/providers`   | –         | fournisseurs configurés (`google`, `discord`) |
 | POST    | `/users/oauth/:provider/start` | optionnel | `{ mode: "login" \| "link" }` → `{ url, state }` |

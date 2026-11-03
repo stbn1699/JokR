@@ -60,9 +60,9 @@ export const oauthService = {
     },
 
     // Première connexion : crée le compte avec le pseudo choisi
-    complete(signupToken: string, username: string): Promise<LoggedUser> {
+    complete(signupToken: string, username: string, avatar?: string): Promise<LoggedUser> {
         return api<LoggedUser>("/users/oauth/complete", {
-            method: "POST", headers: json, body: JSON.stringify({signupToken, username}),
+            method: "POST", headers: json, body: JSON.stringify({signupToken, username, avatar}),
         });
     },
 

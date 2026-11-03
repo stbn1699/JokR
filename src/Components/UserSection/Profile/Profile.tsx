@@ -6,7 +6,7 @@
  * Redirige vers /login si personne n'est connecté.
  */
 
-import {FaCoins} from "react-icons/fa";
+import {FaCoins, FaPen} from "react-icons/fa";
 import "./Profile.scss";
 import {useEffect, useState} from "react";
 import {Navigate} from "react-router-dom";
@@ -22,10 +22,13 @@ import {formatDuration} from "../../../Services/format.ts";
 import AccountSettings from "./AccountSettings.tsx";
 
 import Loader from "../../Loader/Loader.tsx";
+import Avatar from "../../Avatar/Avatar.tsx";
+import AvatarPicker from "../../Avatar/AvatarPicker.tsx";
 const PAGE_SIZE = 10;
 
 export default function Profile() {
-    const {isLoggedIn, userId, username, level, xp, credits, logout} = useAuth();
+    const {isLoggedIn, userId, username, level, xp, credits, avatar, setAvatar, logout} = useAuth();
+    const [pickingAvatar, setPickingAvatar] = useState(false);
     // Vrai quand le joueur quitte volontairement (déconnexion, compte supprimé) : retour à l'accueil
     const [leaving, setLeaving] = useState(false);
     const [stats, setStats] = useState<GameStats[] | null>(null);
@@ -84,9 +87,23 @@ export default function Profile() {
     return (
         <main className="profile">
             <section className="profile-card">
-                {/* Icône de niveau puis infos : en colonne sur grand écran, côte à côte sur téléphone */}
+                {/* Icône de profil (niveau en badge) puis infos : en colonne sur grand écran, côte à côte sur téléphone */}
                 <div className="profile-head">
-                    <img src={levelIconSrc(level)} alt={`Niveau ${level}`} className="profile-level-icon"/>
+                    <div className="profile-avatar">
+                        <button type="button" className="profile-avatar-button" title="Changer d'icône"
+                                onClick={() => setPickingAvatar(true)}>
+                            <Avatar seed={avatar} fallback={username ?? userId ?? undefined} size={7}/>
+                            <span className="profile-avatar-edit" aria-hidden><FaPen/></span>
+                        </button>
+                        <img src={levelIconSrc(level)} alt={`Niveau ${level}`} className="profile-level-icon"/>
+                    </div>
+                    {pickingAvatar && (
+                        <AvatarPicker value={avatar ?? username ?? "jokr"} onClose={() => setPickingAvatar(false)}
+                                      onConfirm={async seed => {
+                                          await userService.changeAvatar(seed);
+                                          setAvatar(seed);
+                                      }}/>
+                    )}
                     <div className="profile-head-info">
                         <h1>{username ?? "…"}</h1>
                         <p className="profile-level">Niveau {level}</p>

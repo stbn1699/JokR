@@ -26,6 +26,8 @@ export type UsersTable = {
     last_seen_at: Date | null;
     // Administrateur (page Statistiques) : modifié directement en base, sans redémarrage
     is_admin: Generated<boolean>;
+    // Icône de profil : graine texte (a-z0-9), dessinée par le site
+    avatar: Generated<string>;
 };
 
 // Comptes Google / Discord liés à un joueur

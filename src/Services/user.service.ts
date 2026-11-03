@@ -14,6 +14,15 @@ export const userService = {
         return api<RecentResult[]>(`/users/me/results?limit=${limit}&offset=${offset}`, {method: "GET"}, signal);
     },
 
+    // Nouvelle icône de profil (graine)
+    async changeAvatar(avatar: string): Promise<void> {
+        await api(`/users/me/avatar`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({avatar}),
+        });
+    },
+
     // Les mots de passe sont hachés dans le navigateur, comme à la connexion
     // currentPassword = null : compte Google / Discord qui n'a pas encore de mot de passe
     async changePassword(currentPassword: string | null, newPassword: string): Promise<void> {

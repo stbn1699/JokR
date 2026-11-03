@@ -1,6 +1,7 @@
 /**
  * Page Classements : XP globale, par jeu, et défi du jour.
- * - Podium (médailles) pour les trois premiers, puis le reste du classement
+ * - Podium (médailles) des trois premiers, en bref (icône, pseudo, score), puis le classement complet
+ *   en dessous (trois premiers compris, avec niveau et détails)
  * - Défi du jour : jeu, puis date choisie comme sur la page Daily (mois avec flèches, bandeau des jours)
  * L'onglet est dans l'adresse (?onglet=xp|sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens
  * [&mois=AAAA-MM][&date=AAAA-MM-JJ]) pour pouvoir y renvoyer (ex. classement d'un défi passé).
@@ -22,6 +23,7 @@ import {useDailyMonth} from "../DailyHistory/useDailyMonth.ts";
 import {daysOfMonth, longDate} from "../DailyHistory/calendar.ts";
 
 import Loader from "../Loader/Loader.tsx";
+import Avatar from "../Avatar/Avatar.tsx";
 // `short` : libellé sur téléphone
 const TABS = [
     {id: "xp", label: "XP globale", short: "XP"},
@@ -43,7 +45,7 @@ const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const ordinal = (rank: number) => <>{rank}<sup>{rank === 1 ? "er" : "e"}</sup></>;
 
 // Une ligne de classement, prête à afficher (XP, jeu ou défi)
-type Row = { rank: number; username: string; level?: number; main: ReactNode; detail?: ReactNode };
+type Row = { rank: number; username: string; avatar: string; level?: number; main: ReactNode; detail?: ReactNode };
 
 export default function Leaderboard() {
     const {username} = useAuth();
@@ -125,7 +127,7 @@ export default function Leaderboard() {
     // Lignes à afficher, quel que soit l'onglet
     const rows: Row[] | null = board
         ? board.entries.map(e => ({
-            rank: e.rank, username: e.username, level: e.level,
+            rank: e.rank, username: e.username, avatar: e.avatar, level: e.level,
             // Classé par niveau puis par XP dans le niveau
             main: <>Niveau {e.level}</>,
             detail: <>
@@ -134,10 +136,9 @@ export default function Leaderboard() {
             </>,
         }))
         : daily
-            ? daily.entries.map(e => ({rank: e.rank, username: e.username, main: formatDuration(e.durationMs)}))
+            ? daily.entries.map(e => ({rank: e.rank, username: e.username, avatar: e.avatar, main: formatDuration(e.durationMs)}))
             : null;
     const podium = rows?.slice(0, 3) ?? [];
-    const rest = rows?.slice(3) ?? [];
     const me = board?.me
         ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · niveau {board.me.level}</>
         : daily?.me
@@ -207,22 +208,25 @@ export default function Leaderboard() {
                             <li key={row.rank + row.username} className={`podium-place place-${row.rank} ${isMe(row.username) ? "me" : ""}`}
                                 style={{order: i}}>
                                 <FaMedal className="podium-medal" aria-label={`${row.rank}e place`}/>
-                                {row.level !== undefined && <img src={levelIconSrc(row.level)} alt={`Niveau ${row.level}`} className="podium-level"/>}
+                                <Avatar seed={row.avatar} fallback={row.username} size={row.rank === 1 ? 4.2 : 3.4}
+                                        className="podium-avatar"/>
                                 <span className="podium-name">{row.username}</span>
                                 <span className="podium-main">{row.main}</span>
-                                {row.detail && <span className="podium-detail">{row.detail}</span>}
                                 <span className="podium-step">{ordinal(row.rank)}</span>
                             </li>
                         ))}
                     </ol>
                 )}
 
-                {!loading && !error && rest.length > 0 && (
-                    <ol className="leaderboard-list fade-in" start={4}>
-                        {rest.map(row => (
+                {/* Classement complet, trois premiers compris (le podium n'en montre que l'essentiel) */}
+                {!loading && !error && rows && rows.length > 0 && (
+                    <ol className="leaderboard-list fade-in">
+                        {rows.map(row => (
                             <li key={row.rank + row.username} className={isMe(row.username) ? "me" : ""}>
                                 <span className="leaderboard-rank">{ordinal(row.rank)}</span>
-                                {row.level !== undefined && <img src={levelIconSrc(row.level)} alt="" className="leaderboard-level"/>}
+                                <Avatar seed={row.avatar} fallback={row.username} size={2} className="leaderboard-avatar"/>
+                                {row.level !== undefined && <img src={levelIconSrc(row.level)} alt={`Niveau ${row.level}`}
+                                                                 title={`Niveau ${row.level}`} className="leaderboard-level"/>}
                                 <span className="leaderboard-name">{row.username}</span>
                                 {row.detail && <span className="leaderboard-detail">{row.detail}</span>}
                                 <span className="leaderboard-main">{row.main}</span>

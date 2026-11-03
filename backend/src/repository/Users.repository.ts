@@ -40,6 +40,11 @@ export class UsersRepository {
             .executeTakeFirst();
     }
 
+    // Change l'icône de profil
+    async updateAvatar(id: string, avatar: string): Promise<void> {
+        await this.db.updateTable('users').set({avatar}).where('id', '=', id).execute();
+    }
+
     // Remplace le mot de passe (déjà hashé)
     async updatePassword(id: string, passwordHash: string): Promise<void> {
         await this.db.updateTable('users').set({password: passwordHash}).where('id', '=', id).execute();
@@ -97,10 +102,10 @@ export class UsersRepository {
     }
 
     // Crée un joueur sans mot de passe et lui lie son compte externe, en une seule transaction
-    async createWithIdentity(username: string, email: string | null, profile: ExternalProfile): Promise<User> {
+    async createWithIdentity(username: string, email: string | null, profile: ExternalProfile, avatar?: string): Promise<User> {
         return this.db.transaction().execute(async trx => {
             const user = await trx.insertInto('users')
-                .values({username, email, password: null, user_xp: 0, user_level: 1})
+                .values({username, email, password: null, user_xp: 0, user_level: 1, ...(avatar ? {avatar} : {})})
                 .returningAll()
                 .executeTakeFirstOrThrow();
             await this.addIdentity(user.id, profile, trx);
@@ -117,7 +122,8 @@ export class UsersRepository {
                 email: user.email,
                 password: user.password,
                 user_xp: 0,
-                user_level: 1
+                user_level: 1,
+                ...(user.avatar ? {avatar: user.avatar} : {}),
             })
             .returningAll()
             .executeTakeFirstOrThrow();

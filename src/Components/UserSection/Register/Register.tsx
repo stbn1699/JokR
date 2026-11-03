@@ -7,6 +7,8 @@ import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../../Context/authContext.ts";
 import AuthCard from "../Login/AuthCard.tsx";
 import PasswordInput from "../Login/PasswordInput.tsx";
+import AvatarField from "../../Avatar/AvatarField.tsx";
+import {randomAvatarSeed} from "../../../Services/avatar.ts";
 
 /**
  * Page d'inscription : Google / Discord (AuthCard) ou pseudo + email + mot de passe.
@@ -17,6 +19,8 @@ export default function Register() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    // Icône de profil : tirée au hasard, le joueur peut en changer
+    const [avatar, setAvatar] = useState(randomAvatarSeed);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
@@ -36,7 +40,7 @@ export default function Register() {
         try {
             setLoading(true);
             const hash = await clientHash(password);
-            await authService.register(username.trim(), email.trim(), hash);
+            await authService.register(username.trim(), email.trim(), hash, avatar);
             // Compte créé : on ouvre directement la session
             login(await authService.login(username.trim(), hash));
             navigate(from ?? "/");
@@ -55,6 +59,8 @@ export default function Register() {
             footer={<>Déjà un compte ? <Link to="/login" state={{from}}>Se connecter</Link></>}
         >
             <form onSubmit={handleSubmit} className="auth-form">
+                <AvatarField value={avatar} onChange={setAvatar}/>
+
                 <label>
                     <span>Pseudo</span>
                     <input

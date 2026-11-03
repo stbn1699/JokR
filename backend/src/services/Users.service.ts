@@ -84,11 +84,11 @@ export class UsersService {
     }
 
     // Première connexion : crée le compte avec le pseudo choisi
-    async registerWithProfile(username: string, profile: ExternalProfile): Promise<User> {
+    async registerWithProfile(username: string, profile: ExternalProfile, avatar?: string): Promise<User> {
         // l'email n'est gardé que s'il n'appartient à personne (il sert aussi à se connecter)
         const email = profile.email && !await this.repo.findByEmail(profile.email) ? profile.email : null;
         try {
-            return await this.repo.createWithIdentity(username, email, profile);
+            return await this.repo.createWithIdentity(username, email, profile, avatar);
         } catch (err) {
             const constraint = uniqueViolation(err);
             if (constraint === null) throw err;
@@ -145,6 +145,10 @@ export class UsersService {
     // Vérifie le mot de passe d'un joueur connecté
     private async checkPassword(user: User, password: string): Promise<boolean> {
         return !!user.password && await bcrypt.compare(password, user.password);
+    }
+
+    async changeAvatar(userId: string, avatar: string): Promise<void> {
+        await this.repo.updateAvatar(userId, avatar);
     }
 
     // false si le mot de passe actuel est incorrect.
