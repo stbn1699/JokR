@@ -5,7 +5,7 @@ import {gameService} from "../../Services/game.service.ts";
 import type {GameStats} from "../../Models/gameStats.model.ts";
 import {gameStatsService} from "../../Services/gameStats.service.ts";
 import {Link, useNavigate} from "react-router-dom";
-import {FaCalendarDay, FaLock} from "react-icons/fa";
+import {FaCalendarDay, FaLock, FaPlay, FaStar, FaTrophy} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
 import DailyBanner from "./DailyBanner.tsx";
@@ -47,6 +47,48 @@ function GameListSkeleton() {
                     <div className="skeleton-pill"/>
                 </div>
             ))}
+        </div>
+    );
+}
+
+/**
+ * Stats du joueur sur un jeu : niveau, barre d'XP, victoires.
+ * Souris : panneau qui recouvre exactement la carte au survol (la barre se remplit, les lignes arrivent
+ * l'une après l'autre). Écran tactile : petite ligne sous la carte.
+ * Sans stat (aucune victoire sur ce jeu) : « Pas encore joué ».
+ */
+function GameStatsPanel({stat}: { stat?: GameStats }) {
+    if (!stat || !stat.games_won) {
+        return (
+            <div className="game-stats empty">
+                <div className="game-stats-row" style={{"--k": 0} as CSSProperties}>
+                    <span className="game-stats-play" aria-hidden><FaPlay/></span>
+                </div>
+                <div className="game-stats-row" style={{"--k": 1} as CSSProperties}>
+                    <span className="game-stats-empty-title">Pas encore joué</span>
+                    <span className="game-stats-xp">Lance ta première partie !</span>
+                </div>
+            </div>
+        );
+    }
+    const level = stat.game_level ?? 0;
+    const xp = stat.game_xp ?? 0;
+    const next = xpToNextLevel(level);
+    const won = stat.games_won ?? 0;
+    return (
+        <div className="game-stats" style={{"--xp": Math.min(1, xp / next)} as CSSProperties}>
+            <div className="game-stats-row" style={{"--k": 0} as CSSProperties}>
+                <span className="game-stats-label">Niveau</span>
+                <span className="game-stats-value level"><FaStar aria-hidden/> {level}</span>
+            </div>
+            <div className="game-stats-row xp" style={{"--k": 1} as CSSProperties}>
+                <span className="game-stats-bar" aria-hidden><span className="game-stats-bar-fill"/></span>
+                <span className="game-stats-xp">{xp} / {next} XP</span>
+            </div>
+            <div className="game-stats-row" style={{"--k": 2} as CSSProperties}>
+                <span className="game-stats-label">{won > 1 ? "Victoires" : "Victoire"}</span>
+                <span className="game-stats-value won"><FaTrophy aria-hidden/> {won}</span>
+            </div>
         </div>
     );
 }
@@ -131,27 +173,18 @@ export default function GameList() {
                     return (
                         // --i : les cartes apparaissent l'une après l'autre
                         <div className="game-card appear" key={game.code} style={{"--i": index} as CSSProperties}>
-                            {userId && stat && (
-                                <div className="stats">
-                                    <div>
-                                        <p>Niveau {stat.game_level ?? 0}</p>
-                                        <p>
-                                            ({stat.game_xp ?? 0} / {xpToNextLevel(stat.game_level)} xp)
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p>Victoires:</p>
-                                        <p>{stat.games_won ?? 0}</p>
-                                    </div>
+                            {/* Carte du jeu, et par-dessus (au survol) les stats du joueur sur ce jeu */}
+                            <div className="game-tile">
+                                <div
+                                    className="game"
+                                    onClick={handleGameSelection(game.code)}
+                                >
+                                    <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
+                                    <h1>{game.code}</h1>
                                 </div>
-                            )}
 
-                            <div
-                                className="game"
-                                onClick={handleGameSelection(game.code)}
-                            >
-                                <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
-                                <h1>{game.code}</h1>
+                                {/* stats chargées : celles du jeu, ou « pas encore joué » */}
+                                {userId && userStats && <GameStatsPanel stat={stat}/>}
                             </div>
 
                             {/* Défi du jour de ce jeu (invité : ouvre l'invitation à créer un compte) */}

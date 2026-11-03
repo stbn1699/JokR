@@ -60,38 +60,139 @@
 		width      : 100%;
 	}
 
-	.stats {
-		--s              : 15rem; /* the size of the div */
+	// Carte du jeu + panneau des stats par-dessus
+	.game-tile {
+		position : relative;
+	}
 
-		position         : absolute;
-		width            : var(--s);
-		aspect-ratio     : 1;
-		cursor           : pointer;
-		height           : 18rem;
-		border-radius    : 2rem;
-		align-items      : center;
-		background-color : #222222AA;
-		justify-content  : center;
-		transition       : all 0.3s ease-in-out;
-		color            : white;
-		border           : 1px solid #444444;
-		z-index          : 10;
-		opacity          : 0;
-		visibility       : hidden;
-		pointer-events   : none;
-		align-self       : center;
-		text-align       : center;
-		display          : flex;
-		flex-direction   : column;
-		font-weight      : bold;
-		font-size        : 2rem;
+	// ---------- Stats du joueur, au survol : le panneau recouvre exactement la carte
+	.game-stats {
+		position        : absolute;
+		inset           : 0;
+		z-index         : 2;
+		display         : flex;
+		flex-direction  : column;
+		justify-content : center;
+		gap             : 1.1rem;
+		padding         : 0 1.6rem;
+		box-sizing      : border-box;
+		border-radius   : 2rem;
+		border          : 1px solid #29a615;
+		background      : linear-gradient(160deg, rgba(20, 24, 33, 0.9), rgba(8, 10, 16, 0.94));
+		backdrop-filter : blur(6px);
+		color           : #f9fafb;
+		// le clic passe à la carte en dessous
+		pointer-events  : none;
+		opacity         : 0;
+		transform       : translateY(0.8rem);
+		transition      : opacity 0.25s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+	}
 
-		div {
-			Margin : auto;
+	.game-stats-row {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 0.35rem;
+		opacity        : 0;
+		transform      : translateY(0.6rem);
+		transition     : opacity 0.25s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1.3);
+	}
+
+	.game-stats-label {
+		font-size      : 1rem;
+		letter-spacing : 0.12em;
+		text-transform : uppercase;
+		opacity        : 0.6;
+	}
+
+	.game-stats-value {
+		display     : flex;
+		align-items : center;
+		gap         : 0.5rem;
+		font-size   : 2.4rem;
+		font-weight : 700;
+		line-height : 1;
+
+		svg {
+			font-size : 0.7em;
 		}
 
-		p {
-			margin : 0.15rem 0;
+		&.level svg {
+			color : #3b82f6;
+		}
+
+		&.won svg {
+			color : #fbbf24;
+		}
+	}
+
+	// Barre d'XP du jeu : se remplit à l'ouverture du panneau
+	.game-stats-bar {
+		display       : block;
+		width         : 100%;
+		height        : 0.5rem;
+		border-radius : 999px;
+		overflow      : hidden;
+		background    : rgba(59, 130, 246, 0.2);
+	}
+
+	.game-stats-bar-fill {
+		display          : block;
+		height           : 100%;
+		border-radius    : inherit;
+		background       : linear-gradient(90deg, #3b82f6, #60a5fa);
+		transform        : scaleX(0);
+		transform-origin : left;
+		transition       : transform 0.7s cubic-bezier(0.25, 0.8, 0.3, 1) 0.15s;
+	}
+
+	.game-stats-xp {
+		font-size : 1.05rem;
+		opacity   : 0.75;
+	}
+
+	// Jeu jamais gagné : invitation à jouer
+	.game-stats.empty {
+		gap        : 1.2rem;
+		text-align : center;
+	}
+
+	.game-stats-play {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		width           : 4.2rem;
+		height          : 4.2rem;
+		padding-left    : 0.25rem;
+		box-sizing      : border-box;
+		border-radius   : 50%;
+		background      : #29a615;
+		color           : #ffffff;
+		font-size       : 1.6rem;
+		box-shadow      : 0 0 0 0.45rem rgba(41, 166, 21, 0.2);
+	}
+
+	.game-card:hover .game-stats-play {
+		animation : game-stats-pulse 1.6s ease-out 0.4s infinite;
+	}
+
+	.game-stats-empty-title {
+		font-size   : 1.8rem;
+		font-weight : 700;
+	}
+
+	.game-card:hover .game-stats {
+		opacity   : 1;
+		transform : none;
+
+		.game-stats-row {
+			opacity          : 1;
+			transform        : none;
+			transition-delay : calc(0.06s + var(--k, 0) * 0.07s);
+		}
+
+		.game-stats-bar-fill {
+			transform : scaleX(var(--xp, 0));
 		}
 	}
 
@@ -150,10 +251,6 @@
 		}
 	}
 
-	.game-card:hover .stats {
-		opacity    : 1;
-		visibility : visible;
-	}
 }
 
 /* overlay that appears when clicking a game */
@@ -269,6 +366,16 @@
 	}
 }
 
+// Bouton lecture du « Pas encore joué » : une onde qui part du cercle
+@keyframes game-stats-pulse {
+	0% {
+		box-shadow : 0 0 0 0 rgba(41, 166, 21, 0.55);
+	}
+	100% {
+		box-shadow : 0 0 0 1.1rem rgba(41, 166, 21, 0);
+	}
+}
+
 @keyframes skeleton-in {
 	from {
 		opacity : 0;
@@ -297,6 +404,16 @@
 	.game-list.loading .skeleton-pill {
 		animation : none;
 	}
+
+	.game-list .game-stats,
+	.game-list .game-stats-row,
+	.game-list .game-stats-bar-fill {
+		transition : none !important;
+	}
+
+	.game-list .game-card:hover .game-stats-play {
+		animation : none;
+	}
 }
 
 // Écrans tactiles (pas de survol) : les stats s'affichent sous la carte du jeu
@@ -306,29 +423,54 @@
 			transform : none;
 		}
 
-		.stats {
-			position         : static;
-			order            : 2;
-			opacity          : 1;
-			visibility       : visible;
-			height           : auto;
-			aspect-ratio     : auto;
-			margin-top       : 0.5rem;
-			padding          : 0.4rem 0;
-			flex-direction   : row;
-			justify-content  : space-around;
-			font-size        : 1.1rem;
-			background-color : transparent;
-			border           : none;
+		// Pas de survol : les stats en petite ligne sous la carte (niveau et victoires)
+		.game-stats {
+			position        : static;
+			flex-direction  : row;
+			justify-content : center;
+			gap             : 1rem;
+			margin-top      : 0.5rem;
+			padding         : 0;
+			border          : none;
+			background      : none;
+			backdrop-filter : none;
+			opacity         : 1;
+			transform       : none;
+		}
 
-			div {
-				margin : 0;
+		.game-stats-row {
+			flex-direction : row;
+			gap            : 0.3rem;
+			opacity        : 1;
+			transform      : none;
+
+			// la barre d'XP prend trop de place ici
+			&.xp {
+				display : none;
 			}
 		}
 
-		.daily-button {
-			order : 3;
+		.game-stats-label {
+			display : none;
 		}
+
+		.game-stats-value {
+			font-size : 1.15rem;
+		}
+
+		.game-stats.empty {
+			.game-stats-row:first-child,
+			.game-stats-xp {
+				display : none;
+			}
+		}
+
+		.game-stats-empty-title {
+			font-size   : 1.05rem;
+			font-weight : 400;
+			opacity     : 0.65;
+		}
+
 	}
 }
 
@@ -371,8 +513,8 @@
 			font-size : 1.05rem;
 		}
 
-		.stats {
-			font-size : 0.95rem;
+		.game-tile {
+			width : 100%;
 		}
 
 		&.loading {
