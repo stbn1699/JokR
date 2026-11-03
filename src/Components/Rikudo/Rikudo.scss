@@ -47,11 +47,28 @@
 				transform  : translate(-50%, -50%) scale(1);
 			}
 
-			&:focus {
-				background : #f9fafb;
+			// Case sélectionnée : hexagone blanc cerclé de vert, un peu plus grand que les autres
+			// (le contour est le fond vert, recouvert par un hexagone blanc plus petit : clip-path empêche
+			// bordure et ombre). Reste ainsi sous la souris (le survol ne la remplace pas).
+			&:focus,
+			&:focus:not(:disabled):hover {
+				background : #3bf644;
 				color      : #020617;
-				transform  : translate(-50%, -50%) scale(1.02);
-				z-index    : 1;
+				font-weight : 800;
+				transform  : translate(-50%, -50%) scale(1.1);
+				z-index    : 2;
+
+				&::before {
+					content    : "";
+					position   : absolute;
+					inset      : 9%;
+					clip-path  : polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+					background : #f9fafb;
+				}
+
+				span {
+					position : relative;
+				}
 			}
 
 			&:disabled {

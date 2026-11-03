@@ -1,4 +1,4 @@
-import {type CSSProperties, type MouseEvent, useEffect, useRef} from "react";
+import {type CSSProperties, type MouseEvent} from "react";
 
 type RikudoNumberPanelProps = {
     // Nombre de cases du plateau (0 = pas encore de grille)
@@ -9,8 +9,6 @@ type RikudoNumberPanelProps = {
     selected: number | null;
     onSelect: (n: number) => void;
     onErase: () => void;
-    // Nombre à rendre visible (téléphone : la bande de nombres défile jusqu'à lui)
-    focusNumber?: number | null;
 };
 
 // Les boutons du panneau ne prennent pas le focus : la case sélectionnée sur le plateau le garde
@@ -22,17 +20,7 @@ const keepBoardFocus = (e: MouseEvent<HTMLButtonElement>) => e.preventDefault();
  * - Avec une case sélectionnée, un nombre la remplit ; sans case sélectionnée, il est surligné sur le plateau
  * Indispensable sur téléphone (pas de clavier physique).
  */
-export default function RikudoNumberPanel({size, placed, selected, onSelect, onErase, focusNumber}: RikudoNumberPanelProps) {
-    const padRef = useRef<HTMLDivElement>(null);
-
-    // Sur téléphone, les nombres forment une bande qui défile : on amène le nombre utile au centre
-    useEffect(() => {
-        const pad = padRef.current;
-        if (!pad || !focusNumber || pad.scrollWidth <= pad.clientWidth) return;
-        const button = pad.querySelector<HTMLElement>(`[data-number="${focusNumber}"]`);
-        if (!button) return;
-        pad.scrollTo({left: button.offsetLeft - (pad.clientWidth - button.clientWidth) / 2, behavior: "smooth"});
-    }, [focusNumber]);
+export default function RikudoNumberPanel({size, placed, selected, onSelect, onErase}: RikudoNumberPanelProps) {
 
     const numbers = Array.from({length: size}, (_, i) => i + 1);
     const columns = size > 60 ? 10 : size > 36 ? 8 : 6;
@@ -42,7 +30,7 @@ export default function RikudoNumberPanel({size, placed, selected, onSelect, onE
         <div className="options">
             <h2 className="title">Nombres</h2>
 
-            <div className="number-pad" ref={padRef} style={{"--number-columns": columns} as CSSProperties}>
+            <div className="number-pad" style={{"--number-columns": columns} as CSSProperties}>
                 {numbers.map(n => {
                     const count = placed[n] ?? 0;
                     const state = count === 1 ? "complete" : count > 1 ? "overflow" : "";

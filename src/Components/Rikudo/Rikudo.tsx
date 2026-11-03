@@ -90,20 +90,6 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
     });
     useUndoShortcuts(game.undo, game.redo, playing);
 
-    // Nombre probablement attendu dans la case choisie (un voisin ± 1, pas encore posé) : la bande de nombres
-    // du téléphone défile jusqu'à lui
-    const focusNumber = useMemo(() => {
-        if (selectedCell === null || !game.board) return null;
-        for (const neighbor of game.board.neighbors[selectedCell] ?? []) {
-            const v = game.values[neighbor];
-            if (v === null || v === undefined) continue;
-            for (const candidate of [v + 1, v - 1]) {
-                if (candidate >= 1 && candidate <= game.board.size && !placed[candidate]) return candidate;
-            }
-        }
-        return null;
-    }, [selectedCell, game.board, game.values, placed]);
-
     // Case sélectionnée modifiable (pas un nombre donné)
     const editableSelection = selectedCell !== null && !game.isClue(selectedCell) ? selectedCell : null;
 
@@ -153,7 +139,6 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
                 selected={selectedNumber}
                 onSelect={handleNumber}
                 onErase={() => editableSelection !== null && game.setCell(editableSelection, null)}
-                focusNumber={focusNumber}
             />
 
             <div className="game">
