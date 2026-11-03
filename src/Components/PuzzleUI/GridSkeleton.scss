@@ -1,0 +1,139 @@
+// Grille vide pendant la génération (GridSkeleton) : même place que la vraie grille
+.grid-skeleton {
+	position              : relative;
+	display               : grid;
+	grid-template-columns : repeat(var(--size), 1fr);
+	grid-template-rows    : repeat(var(--size), 1fr);
+	width                 : var(--grid-width, min(40.5rem, calc(100vw - 2rem)));
+	aspect-ratio          : 1;
+	overflow              : hidden;
+	border                : 3px solid #e5e7eb;
+	border-radius         : 10px;
+	background            : #02061735;
+	animation             : grid-skeleton-in 0.25s ease both;
+}
+
+.grid-skeleton-cell {
+	border          : 1px solid rgba(229, 231, 235, 0.18);
+	background      : rgba(255, 255, 255, 0.03);
+	// vague en diagonale : chaque case s'éclaire un peu après sa voisine (--d = ligne + colonne)
+	animation       : grid-skeleton-wave 1.6s ease-in-out infinite;
+	animation-delay : calc(var(--d, 0) * 70ms);
+}
+
+// Plateau de Rikudo vide (HexSkeleton) : hexagones placés comme les vrais
+.hex-skeleton {
+	position  : relative;
+	animation : grid-skeleton-in 0.25s ease both;
+
+	.hex-skeleton-cell {
+		position        : absolute;
+		transform       : translate(-50%, -50%) scale(0.93);
+		clip-path       : polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+		background      : rgba(229, 231, 235, 0.08);
+		animation       : grid-skeleton-wave 1.6s ease-in-out infinite;
+		animation-delay : calc(var(--d, 0) * 70ms);
+
+		&.hole {
+			background : rgba(2, 6, 23, 0.6);
+			animation  : none;
+		}
+	}
+}
+
+// « Génération… » au centre, sur une pastille
+.grid-skeleton-label {
+	position        : absolute;
+	top             : 50%;
+	left            : 50%;
+	z-index         : 1;
+	display         : flex;
+	align-items     : center;
+	gap             : 0.6rem;
+	padding         : 0.5rem 1.1rem;
+	border-radius   : 999px;
+	background      : rgba(2, 6, 23, 0.8);
+	box-shadow      : 0 0.4rem 1.2rem rgba(0, 0, 0, 0.35);
+	color           : #f9fafb;
+	font-size       : 1.25rem;
+	white-space     : nowrap;
+	transform       : translate(-50%, -50%);
+	// apparaît avec un léger retard : rien ne clignote si la grille arrive tout de suite
+	animation       : grid-skeleton-in 0.3s ease 0.35s both;
+}
+
+.grid-skeleton-dots {
+	display : flex;
+	gap     : 0.25rem;
+
+	span {
+		width         : 0.45rem;
+		height        : 0.45rem;
+		border-radius : 2px;
+		background    : #3bf644;
+		animation     : grid-skeleton-dot 0.9s ease-in-out infinite;
+
+		&:nth-child(2) {
+			animation-delay : 0.15s;
+		}
+
+		&:nth-child(3) {
+			animation-delay : 0.3s;
+		}
+	}
+}
+
+@keyframes grid-skeleton-in {
+	from {
+		opacity : 0;
+	}
+}
+
+@keyframes grid-skeleton-wave {
+	0%, 100% {
+		background-color : rgba(255, 255, 255, 0.03);
+	}
+	35% {
+		background-color : rgba(255, 255, 255, 0.16);
+	}
+}
+
+@keyframes grid-skeleton-dot {
+	0%, 100% {
+		transform : translateY(0);
+		opacity   : 0.5;
+	}
+	40% {
+		transform : translateY(-0.3rem);
+		opacity   : 1;
+	}
+}
+
+// Sudoku : la grille reste en place, ses cases vides font la même vague pendant la génération
+.sudoku .game .grid.is-loading {
+	position : relative;
+
+	.cell-box::after {
+		content         : "";
+		position        : absolute;
+		inset           : 0;
+		pointer-events  : none;
+		animation       : grid-skeleton-wave 1.6s ease-in-out infinite;
+		animation-delay : calc(var(--d, 0) * 70ms);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.grid-skeleton-cell,
+	.hex-skeleton .hex-skeleton-cell,
+	.grid-skeleton-dots span,
+	.sudoku .game .grid.is-loading .cell-box::after {
+		animation : none;
+	}
+}
+
+// Galaxies et Shikaku : leur plateau (SVG) fait exactement --grid-width, bordure comprise
+.galaxies .grid-skeleton,
+.shikaku .grid-skeleton {
+	box-sizing : border-box;
+}

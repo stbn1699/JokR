@@ -26,6 +26,8 @@ export function useShikakuGame(saveKey = "SHIKAKU") {
     // Rectangles posés par le joueur
     const [placed, setPlaced] = useState<Rect[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    // Taille choisie, tant que la grille demandée n'est pas arrivée (grille vide affichée à la place)
+    const [loadingSize, setLoadingSize] = useState<number | null>(null);
 
     const gameIdRef = useRef<string | null>(null);
     // Un coup = l'ensemble des rectangles posés avant / après (index inutilisé)
@@ -43,8 +45,10 @@ export function useShikakuGame(saveKey = "SHIKAKU") {
 
     const generate = async (size: number, hintCount: number): Promise<string | null> => {
         setIsGenerating(true);
+        setLoadingSize(size);
         try {
             const {gameId, puzzle: next} = await shikakuService.generate(size, hintCount);
+            setLoadingSize(null);
             gameIdRef.current = gameId;
             setPuzzle(next);
             setPlaced([]);
@@ -52,6 +56,7 @@ export function useShikakuGame(saveKey = "SHIKAKU") {
             return null;
         } catch (err) {
             console.error("Failed to generate shikaku from server", err);
+            setLoadingSize(null);
             return (err as Error).message || "Erreur lors de la génération de la grille. Réessaie plus tard.";
         } finally {
             setIsGenerating(false);
@@ -111,6 +116,7 @@ export function useShikakuGame(saveKey = "SHIKAKU") {
     };
 
     return {
+        loadingSize,
         puzzle, rects, hintCount: hints.length, analysis, isGenerating, generate, drawRect, eraseAt, validate,
         undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
     };

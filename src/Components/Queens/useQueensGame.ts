@@ -24,6 +24,8 @@ export function useQueensGame(saveKey = "QUEENS") {
     const [puzzle, setPuzzle] = useState<QueensPuzzle | null>(null);
     const [marks, setMarks] = useState<Mark[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    // Taille choisie, tant que la grille demandée n'est pas arrivée (grille vide affichée à la place)
+    const [loadingSize, setLoadingSize] = useState<number | null>(null);
 
     const gameIdRef = useRef<string | null>(null);
     const history = useMoveHistory<Mark>();
@@ -43,8 +45,10 @@ export function useQueensGame(saveKey = "QUEENS") {
 
     const generate = async (size: number, hints: number): Promise<string | null> => {
         setIsGenerating(true);
+        setLoadingSize(size);
         try {
             const {gameId, puzzle: next} = await queensService.generate(size, hints);
+            setLoadingSize(null);
             gameIdRef.current = gameId;
             setPuzzle(next);
             setMarks(startMarks(next));
@@ -52,6 +56,7 @@ export function useQueensGame(saveKey = "QUEENS") {
             return null;
         } catch (err) {
             console.error("Failed to generate queens from server", err);
+            setLoadingSize(null);
             return (err as Error).message || "Erreur lors de la génération de la grille. Réessaie plus tard.";
         } finally {
             setIsGenerating(false);
@@ -109,6 +114,7 @@ export function useQueensGame(saveKey = "QUEENS") {
     };
 
     return {
+        loadingSize,
         puzzle, marks, isHint, solution, isGenerating, generate, cycle, setMark, crossIfEmpty, validate,
         undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
     };

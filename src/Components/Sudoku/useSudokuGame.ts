@@ -73,6 +73,8 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
     const gameIdRef = useRef<string | null>(null);
 
     const [isGenerating, setIsGenerating] = useState(false);
+    // Grille demandée au serveur, pas encore arrivée : cases vides avec la vague de chargement
+    const [isLoading, setIsLoading] = useState(false);
     const [digitCounts, setDigitCounts] = useState<number[]>(EMPTY_COUNTS);
     // Contenu de la grille quand elle est entièrement remplie (validation automatique), null sinon
     const [filledKey, setFilledKey] = useState<string | null>(null);
@@ -195,23 +197,27 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
         setSelectedDigit(null);
         setDigitCounts(EMPTY_COUNTS);
         setIsGenerating(true);
+        setIsLoading(true);
 
         generationRef.current += 1;
         const genId = generationRef.current;
 
+        // Vide et bloque toutes les cases tout de suite : l'ancienne grille ne reste pas affichée
+        // pendant la génération
+        inputs.current.forEach((el) => {
+            if (!el) return;
+            el.value = "";
+            el.readOnly = true;
+            el.disabled = true;
+            el.tabIndex = -1;
+            el.classList.remove('prefilled', 'same-number-highlight');
+        });
+        setNotes(Array<number>(81).fill(0));
+
         try {
             const {gameId, grid} = await gameService.generateSudoku(cluesCount);
+            if (genId === generationRef.current) setIsLoading(false);
             gameIdRef.current = gameId;
-
-            // Vide et bloque toutes les cases pendant l'animation
-            inputs.current.forEach((el) => {
-                if (!el) return;
-                el.value = "";
-                el.readOnly = true;
-                el.disabled = true;
-                el.tabIndex = -1;
-                el.classList.remove('prefilled', 'same-number-highlight');
-            });
 
             // Remplit les cases une par une (ligne par ligne)
             const values = grid.flat();
@@ -241,6 +247,7 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
             return null;
         } catch (err) {
             console.error('Failed to generate sudoku from server', err);
+            if (genId === generationRef.current) setIsLoading(false);
             return (err as Error).message || 'Erreur lors de la génération de la grille. Réessaie plus tard.';
         } finally {
             if (generationRef.current === genId) setIsGenerating(false);
@@ -289,6 +296,7 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
     return {
         inputs,
         isGenerating,
+        isLoading,
         generate,
         validate,
         filledKey,

@@ -10,6 +10,8 @@
  */
 
 import "../PuzzleUI/PuzzleLayout.scss";
+import {GridSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import Loader from "../Loader/Loader.tsx";
 import "./Queens.scss";
 import {useMemo} from "react";
 import {FaTimes} from "react-icons/fa";
@@ -65,6 +67,8 @@ export default function Queens({daily = false, replayDate}: QueensProps) {
             flow.resume(elapsedMs);
         },
     });
+    // Grille vide à la taille choisie (ou celle du défi du jour), le temps que la vraie arrive
+    const skeletonSize = game.loadingSize ?? dailyGame.loadingSize;
     const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
     const [showErrors, setShowErrors] = useShowErrors();
     const conflicts = useMemo(() => queensConflicts(game.marks, game.puzzle), [game.marks, game.puzzle]);
@@ -143,7 +147,9 @@ export default function Queens({daily = false, replayDate}: QueensProps) {
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
                 <h1 className="title">Queens</h1>
-                {game.puzzle && (
+                {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
+                    : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
+                    : game.puzzle && (
                     <QueensBoard
                         puzzle={game.puzzle}
                         marks={game.marks}

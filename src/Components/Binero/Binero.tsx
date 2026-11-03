@@ -10,6 +10,8 @@
 
 import {useMemo, useState} from "react";
 import "../PuzzleUI/PuzzleLayout.scss";
+import {GridSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import Loader from "../Loader/Loader.tsx";
 import "./Binero.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
@@ -67,6 +69,8 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
     });
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
+    // Grille vide à la taille choisie (ou celle du défi du jour), le temps que la vraie arrive
+    const skeletonSize = game.loadingSize ?? dailyGame.loadingSize;
     const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
     const [showErrors, setShowErrors] = useShowErrors();
     const conflicts = useMemo(() => bineroConflicts(game.values, game.size), [game.values, game.size]);
@@ -142,7 +146,9 @@ export default function Binero({daily = false, replayDate}: BineroProps) {
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
                 <h1 className="title">Binero</h1>
-                {game.size > 0 && (
+                {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
+                    : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
+                    : game.size > 0 && (
                     <BineroGrid
                         size={game.size}
                         values={game.values}

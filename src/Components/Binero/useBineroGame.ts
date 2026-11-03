@@ -33,6 +33,8 @@ export function useBineroGame(saveKey: string = GAME_CODE) {
     // Nombre de cases déjà "apparues" pendant l'animation
     const [revealed, setRevealed] = useState(0);
     const [isGenerating, setIsGenerating] = useState(false);
+    // Taille choisie, tant que la grille demandée n'est pas arrivée (grille vide affichée à la place)
+    const [loadingSize, setLoadingSize] = useState<number | null>(null);
 
     const gameIdRef = useRef<string | null>(null);
     const history = useMoveHistory<BineroCell>();
@@ -61,8 +63,10 @@ export function useBineroGame(saveKey: string = GAME_CODE) {
     const generate = async (newSize: number, emptyCells: number): Promise<string | null> => {
         stopAnimation();
         setIsGenerating(true);
+        setLoadingSize(newSize);
         try {
             const {gameId, grid} = await bineroService.generate(newSize, emptyCells);
+            setLoadingSize(null);
             gameIdRef.current = gameId;
             const flat = grid.flat();
             setSize(newSize);
@@ -85,6 +89,7 @@ export function useBineroGame(saveKey: string = GAME_CODE) {
             return null;
         } catch (err) {
             console.error("Failed to generate binero from server", err);
+            setLoadingSize(null);
             setIsGenerating(false);
             return (err as Error).message || "Erreur lors de la génération de la grille. Réessaie plus tard.";
         }
@@ -144,6 +149,7 @@ export function useBineroGame(saveKey: string = GAME_CODE) {
     };
 
     return {
+        loadingSize,
         size, clues, values, revealed, isGenerating, counts, isClue, generate, setCell, validate,
         undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
     };

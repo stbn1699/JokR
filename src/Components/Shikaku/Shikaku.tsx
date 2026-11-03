@@ -10,6 +10,8 @@
  */
 
 import "../PuzzleUI/PuzzleLayout.scss";
+import {GridSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import Loader from "../Loader/Loader.tsx";
 import "./Shikaku.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
@@ -61,6 +63,8 @@ export default function Shikaku({daily = false, replayDate}: ShikakuProps) {
             flow.resume(elapsedMs);
         },
     });
+    // Grille vide à la taille choisie (ou celle du défi du jour), le temps que la vraie arrive
+    const skeletonSize = game.loadingSize ?? dailyGame.loadingSize;
     const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
     const [showErrors, setShowErrors] = useShowErrors();
     const analysis = game.analysis;
@@ -131,7 +135,9 @@ export default function Shikaku({daily = false, replayDate}: ShikakuProps) {
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
                 <h1 className="title">Shikaku</h1>
-                {game.puzzle && analysis && (
+                {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
+                    : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
+                    : game.puzzle && analysis && (
                     <ShikakuBoard
                         puzzle={game.puzzle}
                         rects={game.rects}

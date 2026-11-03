@@ -11,6 +11,8 @@
 
 import {useMemo, useState} from "react";
 import "../PuzzleUI/PuzzleLayout.scss";
+import {HexSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import Loader from "../Loader/Loader.tsx";
 import "./Rikudo.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
@@ -76,6 +78,8 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
         for (const v of settledValues) if (v !== null) counts[v] = (counts[v] ?? 0) + 1;
         return counts;
     }, [settledValues]);
+    // Grille vide à la taille choisie (ou celle du défi du jour), le temps que la vraie arrive
+    const skeletonSize = game.loadingSize ?? dailyGame.loadingSize;
     const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
     const [showErrors, setShowErrors] = useShowErrors();
     const conflicts = useMemo(
@@ -152,7 +156,9 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
                 <h1 className="title">Rikudo</h1>
-                {game.board && game.puzzle && (
+                {skeletonSize !== null ? <HexSkeleton cells={skeletonSize}/>
+                    : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
+                    : game.board && game.puzzle && (
                     <RikudoBoard
                         board={game.board}
                         values={game.values}

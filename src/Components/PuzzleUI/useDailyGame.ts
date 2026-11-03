@@ -10,6 +10,8 @@ import {loadGame, clearSavedGame} from "./savedGame.ts";
  * - ou signale qu'il est déjà réussi aujourd'hui (`done`).
  * `onLoad` reçoit la grille de départ, la sauvegarde (saisies) et le temps déjà écoulé.
  * `start` permet de charger autre chose que le défi du jour (ex. rejouer un jour passé).
+ * Pendant le chargement, `loading` est vrai et `loadingSize` donne la taille de la grille du jour quand
+ * elle est connue (liste des défis du jour, demandée en parallèle) : de quoi afficher une grille vide.
  */
 export function useDailyGame<Saved extends { gameId: string }, Grid>(options: {
     enabled: boolean;
@@ -23,10 +25,22 @@ export function useDailyGame<Saved extends { gameId: string }, Grid>(options: {
     const [date, setDate] = useState<string | null>(null);
     const [done, setDone] = useState<DailyResult | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(options.enabled);
+    const [loadingSize, setLoadingSize] = useState<number | null>(null);
 
     useEffect(() => {
         if (!options.enabled) return;
         let cancelled = false;
+
+        // Taille de la grille du jour (pas pour un jour passé rejoué)
+        if (!options.start) {
+            dailyService.overview()
+                .then(overview => {
+                    const size = overview.games.find(g => g.code === options.gameCode)?.size;
+                    if (!cancelled && size) setLoadingSize(size);
+                })
+                .catch(() => undefined);
+        }
 
         const start = async () => {
             // Défi déjà commencé sur ce navigateur ?
@@ -48,9 +62,13 @@ export function useDailyGame<Saved extends { gameId: string }, Grid>(options: {
             else options.onLoad(started.grid, options.emptySave(started.gameId), 0);
         };
 
-        start().catch((err: Error) => {
-            if (!cancelled) setError(err.message || "Impossible de charger le défi du jour.");
-        });
+        start()
+            .catch((err: Error) => {
+                if (!cancelled) setError(err.message || "Impossible de charger le défi du jour.");
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
         return () => {
             cancelled = true;
         };
@@ -58,5 +76,5 @@ export function useDailyGame<Saved extends { gameId: string }, Grid>(options: {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [options.enabled]);
 
-    return {date, done, error};
+    return {date, done, error, loading, loadingSize: loading ? loadingSize : null};
 }

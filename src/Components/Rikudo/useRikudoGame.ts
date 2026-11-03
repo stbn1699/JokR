@@ -27,6 +27,8 @@ export function useRikudoGame(saveKey = "RIKUDO") {
     const [values, setValues] = useState<RikudoCell[]>([]);
     const [revealed, setRevealed] = useState(0);
     const [isGenerating, setIsGenerating] = useState(false);
+    // Taille choisie, tant que la grille demandée n'est pas arrivée (grille vide affichée à la place)
+    const [loadingSize, setLoadingSize] = useState<number | null>(null);
 
     const gameIdRef = useRef<string | null>(null);
     const history = useMoveHistory<RikudoCell>();
@@ -51,8 +53,10 @@ export function useRikudoGame(saveKey = "RIKUDO") {
     const generate = async (size: number, emptyCells: number): Promise<string | null> => {
         stopAnimation();
         setIsGenerating(true);
+        setLoadingSize(size);
         try {
             const {gameId, puzzle: next} = await rikudoService.generate(size, emptyCells);
+            setLoadingSize(null);
             gameIdRef.current = gameId;
             setPuzzle(next);
             setValues(next.cells);
@@ -72,6 +76,7 @@ export function useRikudoGame(saveKey = "RIKUDO") {
             return null;
         } catch (err) {
             console.error("Failed to generate rikudo from server", err);
+            setLoadingSize(null);
             setIsGenerating(false);
             return (err as Error).message || "Erreur lors de la génération de la grille. Réessaie plus tard.";
         }
@@ -125,6 +130,7 @@ export function useRikudoGame(saveKey = "RIKUDO") {
     };
 
     return {
+        loadingSize,
         puzzle, board, values, revealed, isGenerating, isClue, generate, setCell, validate,
         undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
     };

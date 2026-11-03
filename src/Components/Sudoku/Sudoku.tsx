@@ -54,7 +54,7 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
     const saveKey = replayDate ? `SUDOKU:replay:${replayDate}` : daily ? "SUDOKU:daily" : "SUDOKU";
     const [showErrors, setShowErrors] = useShowErrors();
     const {
-        inputs, isGenerating, generate, validate, filledKey,
+        inputs, isGenerating, isLoading, generate, validate, filledKey,
         digitCounts, selectedDigit, toggleDigit, fillSelected, pressDigit, setHoverDigit, setSelectedCell,
         onCellInput, undo, redo, canUndo, canRedo, conflicts, notes, notesMode, setNotesMode, toggleNoteAt,
         restore,
@@ -141,7 +141,7 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
                 <h1 className="title">Sudoku</h1>
                 <SudokuGrid inputs={inputs} onHover={setHoverDigit} onCellInput={onCellInput}
                             onSelectCell={setSelectedCell} notes={notes} notesMode={notesMode}
-                            onToggleNote={toggleNoteAt}/>
+                            onToggleNote={toggleNoteAt} loading={isLoading || dailyGame.loading}/>
             </div>
 
             <div className="actions">

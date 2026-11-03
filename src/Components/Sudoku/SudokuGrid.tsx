@@ -1,7 +1,8 @@
-import type {FormEvent, KeyboardEvent, RefObject} from "react";
+import type {CSSProperties, FormEvent, KeyboardEvent, RefObject} from "react";
 import {handleKeyDown} from "./keyboardNavigation";
 import {sanitizeInput} from "./sanitizeInput";
 import {hasNote} from "./gridValues.ts";
+import {SkeletonLabel} from "../PuzzleUI/GridSkeleton.tsx";
 
 // Touches qui modifieraient une case pré-remplie
 const BLOCKED_ON_CLUES = new Set(["Backspace", "Delete", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
@@ -20,6 +21,8 @@ type SudokuGridProps = {
     notes: number[];
     notesMode: boolean;
     onToggleNote: (index: number, digit: number) => void;
+    // Grille en cours de génération : vague de chargement sur les cases vides
+    loading?: boolean;
 };
 
 const valueOf = (el: HTMLInputElement) => (el.value === '' ? null : Number(el.value));
@@ -54,9 +57,10 @@ export default function SudokuGrid(props: SudokuGridProps) {
     };
 
     return (
-        <div className={`grid ${notesMode ? "notes-mode" : ""}`}>
+        <div className={`grid ${notesMode ? "notes-mode" : ""} ${props.loading ? "is-loading" : ""}`}>
             {Array.from({length: 81}, (_, i) => (
-                <div className="cell-box" key={i}>
+                // --d : ligne + colonne, pour la vague en diagonale du chargement
+                <div className="cell-box" key={i} style={{"--d": Math.floor(i / 9) + (i % 9)} as CSSProperties}>
                     <input
                         data-index={i}
                         ref={(el) => {
@@ -99,6 +103,7 @@ export default function SudokuGrid(props: SudokuGridProps) {
                     ) : null}
                 </div>
             ))}
+            {props.loading && <SkeletonLabel label="Génération…"/>}
         </div>
     );
 }

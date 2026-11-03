@@ -10,6 +10,8 @@
  */
 
 import "../PuzzleUI/PuzzleLayout.scss";
+import {GridSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import Loader from "../Loader/Loader.tsx";
 import "./Galaxies.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
@@ -61,6 +63,8 @@ export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
             flow.resume(elapsedMs);
         },
     });
+    // Grille vide à la taille choisie (ou celle du défi du jour), le temps que la vraie arrive
+    const skeletonSize = game.loadingSize ?? dailyGame.loadingSize;
     const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
     const [showErrors, setShowErrors] = useShowErrors();
     const analysis = game.analysis;
@@ -133,7 +137,9 @@ export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
                 <h1 className="title">Galaxies</h1>
-                {game.puzzle && analysis && (
+                {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
+                    : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
+                    : game.puzzle && analysis && (
                     <GalaxiesBoard
                         puzzle={game.puzzle}
                         walls={game.walls}

@@ -12,6 +12,8 @@
 
 import {useEffect, useMemo, useState} from "react";
 import "../PuzzleUI/PuzzleLayout.scss";
+import {GridSkeleton} from "../PuzzleUI/GridSkeleton.tsx";
+import Loader from "../Loader/Loader.tsx";
 import "./Tectonic.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
@@ -68,6 +70,8 @@ export default function Tectonic({daily = false, replayDate}: TectonicProps) {
     const [selectedCell, setSelectedCell] = useState<number | null>(null);
     const [selectedDigit, setSelectedDigit] = useState<number | null>(null);
     const [notesMode, setNotesMode] = useState(false);
+    // Grille vide à la taille choisie (ou celle du défi du jour), le temps que la vraie arrive
+    const skeletonSize = game.loadingSize ?? dailyGame.loadingSize;
     const playing = !flow.showSettings && !flow.victory && !game.isGenerating;
     const [showErrors, setShowErrors] = useShowErrors();
     const conflicts = useMemo(() => tectonicConflicts(game.values, game.puzzle), [game.values, game.puzzle]);
@@ -168,7 +172,9 @@ export default function Tectonic({daily = false, replayDate}: TectonicProps) {
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
                 <h1 className="title">Tectonic</h1>
-                {game.puzzle && (
+                {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
+                    : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
+                    : game.puzzle && (
                     <TectonicGrid
                         puzzle={game.puzzle}
                         values={game.values}

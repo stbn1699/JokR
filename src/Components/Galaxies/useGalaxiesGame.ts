@@ -24,6 +24,8 @@ export function useGalaxiesGame(saveKey = "GALAXIES") {
     // Murs posés par le joueur (un booléen par côté intérieur)
     const [placed, setPlaced] = useState<boolean[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    // Taille choisie, tant que la grille demandée n'est pas arrivée (grille vide affichée à la place)
+    const [loadingSize, setLoadingSize] = useState<number | null>(null);
 
     const gameIdRef = useRef<string | null>(null);
     const history = useMoveHistory<boolean>();
@@ -44,8 +46,10 @@ export function useGalaxiesGame(saveKey = "GALAXIES") {
 
     const generate = async (size: number, hints: number): Promise<string | null> => {
         setIsGenerating(true);
+        setLoadingSize(size);
         try {
             const {gameId, puzzle: next} = await galaxiesService.generate(size, hints);
+            setLoadingSize(null);
             gameIdRef.current = gameId;
             setPuzzle(next);
             setPlaced(Array<boolean>(wallCount(next.width, next.height)).fill(false));
@@ -53,6 +57,7 @@ export function useGalaxiesGame(saveKey = "GALAXIES") {
             return null;
         } catch (err) {
             console.error("Failed to generate galaxies from server", err);
+            setLoadingSize(null);
             return (err as Error).message || "Erreur lors de la génération de la grille. Réessaie plus tard.";
         } finally {
             setIsGenerating(false);
@@ -104,6 +109,7 @@ export function useGalaxiesGame(saveKey = "GALAXIES") {
     };
 
     return {
+        loadingSize,
         puzzle, walls, hintWalls, analysis, isGenerating, generate, toggleWall, validate,
         undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
     };

@@ -30,6 +30,8 @@ export function useTectonicGame(saveKey = "TECTONIC") {
     const [notes, setNotes] = useState<number[]>([]);
     const [revealed, setRevealed] = useState(0);
     const [isGenerating, setIsGenerating] = useState(false);
+    // Taille choisie, tant que la grille demandée n'est pas arrivée (grille vide affichée à la place)
+    const [loadingSize, setLoadingSize] = useState<number | null>(null);
 
     const gameIdRef = useRef<string | null>(null);
     const history = useMoveHistory<TectonicCell>();
@@ -52,8 +54,10 @@ export function useTectonicGame(saveKey = "TECTONIC") {
     const generate = async (size: number, emptyCells: number): Promise<string | null> => {
         stopAnimation();
         setIsGenerating(true);
+        setLoadingSize(size);
         try {
             const {gameId, puzzle: next} = await tectonicService.generate(size, emptyCells);
+            setLoadingSize(null);
             gameIdRef.current = gameId;
             setPuzzle(next);
             setValues(next.cells);
@@ -74,6 +78,7 @@ export function useTectonicGame(saveKey = "TECTONIC") {
             return null;
         } catch (err) {
             console.error("Failed to generate tectonic from server", err);
+            setLoadingSize(null);
             setIsGenerating(false);
             return (err as Error).message || "Erreur lors de la génération de la grille. Réessaie plus tard.";
         }
@@ -137,6 +142,7 @@ export function useTectonicGame(saveKey = "TECTONIC") {
     };
 
     return {
+        loadingSize,
         puzzle, values, notes, toggleNoteAt, revealed, isGenerating, isClue, generate, setCell, validate,
         undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
     };
