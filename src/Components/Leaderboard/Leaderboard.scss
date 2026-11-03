@@ -260,6 +260,15 @@
 		}
 	}
 
+	// Crédits (onglet Crédits) : même orange que dans le header
+	.leaderboard-credits {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.35rem;
+		color       : #fbbf24;
+		font-weight : 700;
+	}
+
 	.leaderboard-me {
 		display       : inline-block;
 		margin        : 1.25rem 0 0;

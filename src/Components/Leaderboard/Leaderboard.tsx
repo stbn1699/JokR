@@ -1,10 +1,10 @@
 /**
- * Page Classements : XP globale, par jeu, et défi du jour.
+ * Page Classements : XP globale, crédits, par jeu, et défi du jour.
  * - Podium (médailles) des trois premiers, en bref (icône, pseudo, score), puis le classement complet
  *   en dessous (trois premiers compris, avec niveau et détails)
  * - Par jeu et défi du jour : même sélecteur de jeu (GameSelector) ; pour le défi, date choisie
  *   comme sur la page Daily (mois avec flèches, bandeau des jours)
- * L'onglet est dans l'adresse (?onglet=xp|jeu|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens
+ * L'onglet est dans l'adresse (?onglet=xp|credits|jeu|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens
  * [&mois=AAAA-MM][&date=AAAA-MM-JJ]) pour pouvoir y renvoyer (ex. classement d'un défi passé).
  * Anciennes adresses (?onglet=sudoku...) : ouvrent l'onglet « Par jeu » sur ce jeu.
  */
@@ -12,7 +12,7 @@
 import "./Leaderboard.scss";
 import {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import {useSearchParams} from "react-router-dom";
-import {FaMedal} from "react-icons/fa";
+import {FaCoins, FaMedal} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {type Leaderboard as Board, leaderboardService} from "../../Services/leaderboard.service.ts";
 import {dailyService} from "../../Services/daily.service.ts";
@@ -28,6 +28,7 @@ import Avatar from "../Avatar/Avatar.tsx";
 // `short` : libellé sur téléphone
 const TABS = [
     {id: "xp", label: "XP globale", short: "XP"},
+    {id: "credits", label: "Crédits", short: "Crédits"},
     {id: "jeu", label: "Par jeu", short: "Par jeu"},
     {id: "defi", label: "Défi du jour", short: "Défi"},
 ] as const;
@@ -126,7 +127,9 @@ export default function Leaderboard() {
                 setDaily(d);
                 setBoard(null);
             })
-            : (tab === "xp" ? leaderboardService.xp(controller.signal) : leaderboardService.game(game, controller.signal))
+            : (tab === "xp" ? leaderboardService.xp(controller.signal)
+                : tab === "credits" ? leaderboardService.credits(controller.signal)
+                    : leaderboardService.game(game, controller.signal))
                 .then(b => {
                     setBoard(b);
                     setDaily(null);
@@ -153,7 +156,13 @@ export default function Leaderboard() {
     const isMe = (name: string) => username !== null && name === username;
 
     // Lignes à afficher, quel que soit l'onglet
-    const rows: Row[] | null = board
+    const rows: Row[] | null = board && tab === "credits"
+        ? board.entries.map(e => ({
+            rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel,
+            main: <span className="leaderboard-credits"><FaCoins aria-hidden/> {(e.credits ?? 0).toLocaleString("fr-FR")}</span>,
+            detail: <>Niveau {e.level}</>,
+        }))
+        : board
         ? board.entries.map(e => ({
             rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel,
             // Classé par niveau puis par XP dans le niveau
@@ -167,7 +176,9 @@ export default function Leaderboard() {
             ? daily.entries.map(e => ({rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel, main: formatDuration(e.durationMs)}))
             : null;
     const podium = rows?.slice(0, 3) ?? [];
-    const me = board?.me
+    const me = board?.me && tab === "credits"
+        ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · {(board.me.credits ?? 0).toLocaleString("fr-FR")} crédit{(board.me.credits ?? 0) > 1 ? "s" : ""}</>
+        : board?.me
         ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · niveau {board.me.level}</>
         : daily?.me
             ? <>Ta place : <strong>{ordinal(daily.me.rank)}</strong> sur {daily.me.total} · {formatDuration(daily.me.durationMs)}</>

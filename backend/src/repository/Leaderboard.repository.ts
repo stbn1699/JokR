@@ -4,8 +4,8 @@ import type {DB} from "../db/schema.js";
 export type Ranking = { rank: number; total: number };
 
 /*
- * Classements : XP globale (users) et par jeu (game_stats).
- * Ordre : niveau puis XP décroissants (puis nom, pour départager).
+ * Classements : XP globale (users), crédits (users) et par jeu (game_stats).
+ * Ordre : niveau puis XP décroissants (puis nom, pour départager) ; crédits décroissants pour les crédits.
  */
 export class LeaderboardRepository {
     constructor(private db: Kysely<DB>) {
@@ -42,6 +42,35 @@ export class LeaderboardRepository {
             ])
             .executeTakeFirstOrThrow();
         return {rank: Number(row.ahead) + 1, total: Number(row.total), level: me.user_level, xp: me.user_xp};
+    }
+
+    async topCredits(limit: number) {
+        return this.db
+            .selectFrom("users")
+            .select(["username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp", "credits"])
+            .orderBy("credits", "desc")
+            .orderBy("username", "asc")
+            .limit(limit)
+            .execute();
+    }
+
+    // Place d'un joueur au classement des crédits (null s'il n'existe pas)
+    async creditsRankOf(userId: string): Promise<(Ranking & { level: number; credits: number }) | null> {
+        const me = await this.db
+            .selectFrom("users")
+            .select(["user_level", "credits"])
+            .where("id", "=", userId)
+            .executeTakeFirst();
+        if (!me) return null;
+
+        const row = await this.db
+            .selectFrom("users")
+            .select(eb => [
+                eb.fn.countAll<string>().as("total"),
+                eb.fn.count<string>("id").filterWhere("credits", ">", me.credits).as("ahead"),
+            ])
+            .executeTakeFirstOrThrow();
+        return {rank: Number(row.ahead) + 1, total: Number(row.total), level: me.user_level, credits: me.credits};
     }
 
     async topGame(gameCode: string, limit: number) {
