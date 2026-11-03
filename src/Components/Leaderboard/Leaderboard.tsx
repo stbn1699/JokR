@@ -15,7 +15,6 @@ import {useAuth} from "../../Context/authContext.ts";
 import {type Leaderboard as Board, leaderboardService} from "../../Services/leaderboard.service.ts";
 import {dailyService} from "../../Services/daily.service.ts";
 import {formatDuration} from "../../Services/format.ts";
-import {levelIconSrc} from "../../Services/leveling.ts";
 import type {DailyLeaderboard} from "../../Models/daily.model.ts";
 import MonthPicker from "../DailyHistory/MonthPicker.tsx";
 import DayStrip from "../DailyHistory/DayStrip.tsx";
@@ -45,7 +44,8 @@ const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const ordinal = (rank: number) => <>{rank}<sup>{rank === 1 ? "er" : "e"}</sup></>;
 
 // Une ligne de classement, prête à afficher (XP, jeu ou défi)
-type Row = { rank: number; username: string; avatar: string; level?: number; main: ReactNode; detail?: ReactNode };
+// userLevel : niveau global du joueur (contour et numéro sur son icône)
+type Row = { rank: number; username: string; avatar: string; userLevel: number; main: ReactNode; detail?: ReactNode };
 
 export default function Leaderboard() {
     const {username} = useAuth();
@@ -127,7 +127,7 @@ export default function Leaderboard() {
     // Lignes à afficher, quel que soit l'onglet
     const rows: Row[] | null = board
         ? board.entries.map(e => ({
-            rank: e.rank, username: e.username, avatar: e.avatar, level: e.level,
+            rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel,
             // Classé par niveau puis par XP dans le niveau
             main: <>Niveau {e.level}</>,
             detail: <>
@@ -136,7 +136,7 @@ export default function Leaderboard() {
             </>,
         }))
         : daily
-            ? daily.entries.map(e => ({rank: e.rank, username: e.username, avatar: e.avatar, main: formatDuration(e.durationMs)}))
+            ? daily.entries.map(e => ({rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel, main: formatDuration(e.durationMs)}))
             : null;
     const podium = rows?.slice(0, 3) ?? [];
     const me = board?.me
@@ -208,8 +208,8 @@ export default function Leaderboard() {
                             <li key={row.rank + row.username} className={`podium-place place-${row.rank} ${isMe(row.username) ? "me" : ""}`}
                                 style={{order: i}}>
                                 <FaMedal className="podium-medal" aria-label={`${row.rank}e place`}/>
-                                <Avatar seed={row.avatar} fallback={row.username} size={row.rank === 1 ? 4.2 : 3.4}
-                                        className="podium-avatar"/>
+                                <Avatar seed={row.avatar} fallback={row.username} size={row.rank === 1 ? 4.6 : 3.8}
+                                        level={row.userLevel} showLevel className="podium-avatar"/>
                                 <span className="podium-name">{row.username}</span>
                                 <span className="podium-main">{row.main}</span>
                                 <span className="podium-step">{ordinal(row.rank)}</span>
@@ -224,9 +224,8 @@ export default function Leaderboard() {
                         {rows.map(row => (
                             <li key={row.rank + row.username} className={isMe(row.username) ? "me" : ""}>
                                 <span className="leaderboard-rank">{ordinal(row.rank)}</span>
-                                <Avatar seed={row.avatar} fallback={row.username} size={2} className="leaderboard-avatar"/>
-                                {row.level !== undefined && <img src={levelIconSrc(row.level)} alt={`Niveau ${row.level}`}
-                                                                 title={`Niveau ${row.level}`} className="leaderboard-level"/>}
+                                <Avatar seed={row.avatar} fallback={row.username} size={2.7}
+                                        level={row.userLevel} showLevel className="leaderboard-avatar"/>
                                 <span className="leaderboard-name">{row.username}</span>
                                 {row.detail && <span className="leaderboard-detail">{row.detail}</span>}
                                 <span className="leaderboard-main">{row.main}</span>

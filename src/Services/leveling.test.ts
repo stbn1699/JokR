@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {levelIconSrc, xpSteps, xpToNextLevel} from "./leveling.ts";
+import {levelTier, xpSteps, xpToNextLevel} from "./leveling.ts";
 
 describe("xpToNextLevel", () => {
     it("utilise la même formule que le backend", () => {
@@ -9,14 +9,16 @@ describe("xpToNextLevel", () => {
     });
 });
 
-describe("levelIconSrc", () => {
-    it("pointe vers l'icône du niveau", () => {
-        expect(levelIconSrc(12)).toBe("/Icons/level_12.png");
-    });
-
-    it("réutilise la dernière icône au-delà du niveau 50", () => {
-        expect(levelIconSrc(50)).toBe("/Icons/level_50.png");
-        expect(levelIconSrc(120)).toBe("/Icons/level_50.png");
+describe("levelTier", () => {
+    it("cuivre, argent, or puis diamant (comme les anciennes icônes de niveau)", () => {
+        expect(levelTier(0)).toBe("copper");
+        expect(levelTier(9)).toBe("copper");
+        expect(levelTier(10)).toBe("silver");
+        expect(levelTier(24)).toBe("silver");
+        expect(levelTier(25)).toBe("gold");
+        expect(levelTier(49)).toBe("gold");
+        expect(levelTier(50)).toBe("diamond");
+        expect(levelTier(120)).toBe("diamond");
     });
 });
 

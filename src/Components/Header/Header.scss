@@ -81,37 +81,14 @@
 			gap         : 0.75rem;
 		}
 
-		.level-icon {
-			width  : 3rem;
-			height : 3rem;
-			object-fit: contain;
-			display: block;
-		}
-
-		.xp-bar {
-			display     : flex;
-			align-items : center;
-			width       : 9rem;
-			height      : 0.9rem;
-		}
-
-		.xp-bar-track {
-			background    : #EDE7DB;
-			border-radius : 999px;
-			overflow      : hidden;
-			height        : 100%;
-			width         : 100%;
-			border        : 1px solid rgba(0, 0, 0, 0.06);
-		}
-
-		// Crédits du joueur, à côté de la barre d'XP
-		.credits {
+		// Niveau : étoile bleue à gauche, puis le numéro avec une petite barre d'XP dessous
+		// (même taille que l'icône des crédits)
+		.level-badge {
 			display     : flex;
 			align-items : center;
 			gap         : 0.35rem;
-			color       : #b45309;
+			color       : #2563eb;
 			font-size   : 1.35rem;
-			font-weight : 700;
 			cursor      : default;
 
 			svg {
@@ -119,11 +96,37 @@
 			}
 		}
 
-		// Même vert que la barre de la popup de victoire
-		.xp-bar-fill {
-			background : linear-gradient(90deg, #22c55e, #16a34a);
+		.level-badge-stack {
+			display        : flex;
+			flex-direction : column;
+			align-items    : stretch;
+			gap            : 0.15rem;
+		}
+
+		.level-badge-value {
+			font-weight : 700;
+			line-height : 1;
+			text-align  : center;
+		}
+
+		.level-badge-star {
+			flex : none;
+		}
+
+		.level-progress {
+			display       : block;
+			height        : 4px;
+			min-width     : 2.6rem;
+			border-radius : 999px;
+			overflow      : hidden;
+			background    : rgba(37, 99, 235, 0.18);
+		}
+
+		.level-progress-fill {
+			display    : block;
 			height     : 100%;
 			width      : 0;
+			background : linear-gradient(90deg, #3b82f6, #60a5fa);
 			transition : width 800ms cubic-bezier(.25, .8, .3, 1);
 
 			// retour à 0 après une montée de niveau
@@ -132,40 +135,63 @@
 			}
 		}
 
-		// Crédits qui défilent après une victoire : ils s'illuminent
+		// Crédits du joueur, à côté du niveau
 		.credits {
-			transition : color 0.3s ease, text-shadow 0.3s ease;
+			display     : flex;
+			align-items : center;
+			gap         : 0.35rem;
+			color       : #b45309;
+			font-size   : 1.35rem;
+			font-weight : 700;
+			cursor      : default;
+			transition  : color 0.3s ease, text-shadow 0.3s ease;
 
+			svg {
+				cursor : default;
+			}
+
+			// Crédits qui défilent après une victoire : ils s'illuminent
 			&.bump {
 				color       : #ea580c;
 				text-shadow : 0 0 10px rgba(249, 115, 22, 0.55);
 			}
 		}
 
-		// Icône de profil (lien vers le profil) : liseré clair pour se détacher du fond beige
+		// Icône de profil (lien vers le profil), avec son contour de niveau
 		.header-avatar {
 			display       : flex;
 			padding       : 0;
 			border        : none;
 			background    : none;
-			border-radius : 18%;
+			border-radius : 22%;
 			cursor        : pointer;
-			box-shadow    : 0 0 0 2px #F4E5CB, 0 0 0 3px rgba(55, 65, 81, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
-			transition    : transform 0.15s ease, box-shadow 0.15s ease;
+			transition    : transform 0.15s ease;
 
 			&:hover {
-				transform  : translateY(-1px) scale(1.06);
-				box-shadow : 0 0 0 2px #F4E5CB, 0 0 0 3px #374151, 0 4px 10px rgba(0, 0, 0, 0.3);
+				transform : translateY(-1px) scale(1.06);
 			}
 
 			&:focus-visible {
 				outline        : 2px solid #374151;
 				outline-offset : 3px;
 			}
+
+			// Sur le fond beige, un fin liseré sombre fait ressortir le contour (surtout l'or)
+			.avatar-frame {
+				box-shadow : 0 0 0 1.5px #3b2a12, 0 2px 5px rgba(0, 0, 0, 0.35);
+			}
+
+			.avatar-frame.tier-gold {
+				--metal : linear-gradient(135deg, #ffe680 0%, #e6b000 30%, #9a6b00 55%, #f7cc33 78%, #c18f00 100%);
+			}
+
+			.avatar-frame.tier-diamond {
+				box-shadow : 0 0 0 1.5px #0c2a3d, 0 0 8px rgba(56, 189, 248, 0.7);
+			}
 		}
 
-		// Nouveau niveau atteint : l'icône apparaît avec un rebond
-		.level-icon.level-pop {
+		// Nouveau niveau atteint : le numéro rebondit
+		.level-badge.level-pop .level-badge-value {
 			animation : header-level-pop 600ms cubic-bezier(.2, .9, .3, 1.5);
 		}
 	}
@@ -184,12 +210,12 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.header .usersection {
-		.xp-bar-fill,
+		.level-progress-fill,
 		.credits {
 			transition : none;
 		}
 
-		.level-icon.level-pop {
+		.level-badge.level-pop .level-badge-value {
 			animation : none;
 		}
 	}
@@ -218,7 +244,7 @@
 	}
 }
 
-// Téléphone : tout doit tenir sur une ligne (logo, trophée, niveau, barre d'XP, profil, déconnexion)
+// Téléphone : tout doit tenir sur une ligne (logo, niveau, crédits, profil, déconnexion)
 @media (max-width: 600px) {
 	.header {
 		margin     : 0.5rem;
@@ -246,31 +272,19 @@
 				gap : 0.5rem;
 			}
 
-			.level-icon {
-				width  : 2.2rem;
-				height : 2.2rem;
-			}
-
-			.xp-bar {
-				width : 4.5rem;
-			}
-
+			.level-badge,
 			.credits {
 				font-size : 1.1rem;
 			}
 
-			.header-avatar .avatar {
-				width  : 1.9rem;
-				height : 1.9rem;
+			.level-progress {
+				min-width : 2.1rem;
+			}
+
+			.header-avatar .avatar-frame {
+				--avatar-size : 2.1rem;
 			}
 		}
-	}
-}
-
-// Très petit écran : la barre d'XP laisse la place (le niveau reste affiché, l'XP est sur le profil)
-@media (max-width: 420px) {
-	.header .usersection .xp-bar {
-		display : none;
 	}
 }
 

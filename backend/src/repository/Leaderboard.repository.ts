@@ -14,7 +14,7 @@ export class LeaderboardRepository {
     async topXp(limit: number) {
         return this.db
             .selectFrom("users")
-            .select(["username", "avatar", "user_level as level", "user_xp as xp"])
+            .select(["username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp"])
             .orderBy("user_level", "desc")
             .orderBy("user_xp", "desc")
             .orderBy("username", "asc")
@@ -51,6 +51,8 @@ export class LeaderboardRepository {
             .select([
                 "users.username",
                 "users.avatar",
+                // niveau global (contour de l'icône), à côté du niveau sur ce jeu
+                "users.user_level as userLevel",
                 "game_stats.game_level as level",
                 "game_stats.game_xp as xp",
                 "game_stats.games_won as gamesWon",

@@ -143,10 +143,9 @@
 		color     : var(--medal);
 	}
 
-	// Icône de profil, entourée de la couleur de la médaille
+	// Icône de profil (contour et numéro selon le niveau)
 	.podium-avatar {
-		margin     : 0.2rem 0;
-		box-shadow : 0 0 0 3px #0b1220, 0 0 0 5px var(--medal), 0 0.4rem 1rem rgba(0, 0, 0, 0.45);
+		margin : 0.2rem 0 0.5rem;
 	}
 
 	.podium-name {
@@ -219,13 +218,9 @@
 		opacity   : 0.8;
 	}
 
+	// la pastille du niveau dépasse en bas à droite : un peu d'air autour
 	.leaderboard-avatar {
-		box-shadow : 0 1px 3px rgba(0, 0, 0, 0.4);
-	}
-
-	.leaderboard-level {
-		width  : 2rem;
-		height : 2rem;
+		margin : 0.15rem 0.45rem 0.15rem 0;
 	}
 
 	.leaderboard-name {

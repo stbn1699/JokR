@@ -7,6 +7,106 @@
 	overflow      : hidden;
 }
 
+// ---------- Contour selon le niveau (cuivre 0-9, argent 10-24, or 25-49, diamant 50+)
+.avatar-frame {
+	--avatar-size : 2.5rem;
+	--ring        : calc(var(--avatar-size) * 0.075);
+
+	position      : relative;
+	display       : block;
+	flex-shrink   : 0;
+	box-sizing    : border-box;
+	width         : var(--avatar-size);
+	height        : var(--avatar-size);
+	padding       : max(3px, var(--ring));
+	border-radius : 22%;
+	background    : var(--metal);
+	box-shadow    : 0 1px 3px rgba(0, 0, 0, 0.45);
+
+	.avatar {
+		border-radius : 14%;
+	}
+
+	// Ombre intérieure sur le bord de l'icône : elle paraît enchâssée dans le contour
+	// (calque par-dessus l'icône : une ombre « inset » sur le SVG serait cachée par son contenu)
+	&::after {
+		content        : "";
+		position       : absolute;
+		inset          : max(3px, var(--ring));
+		border-radius  : 14%;
+		box-shadow     : inset 0 0 0 1px rgba(0, 0, 0, 0.35),
+		                 inset 0 calc(var(--avatar-size) * 0.04) calc(var(--avatar-size) * 0.08) rgba(0, 0, 0, 0.4);
+		pointer-events : none;
+	}
+
+	&.tier-copper {
+		--metal : linear-gradient(135deg, #f6c092 0%, #c47c42 35%, #8a4f24 55%, #e3a46d 78%, #b06b35 100%);
+		--plate : #c98149;
+		--ink   : #2b1406;
+	}
+
+	&.tier-silver {
+		--metal : linear-gradient(135deg, #ffffff 0%, #cfd4db 32%, #8b929c 55%, #f1f4f7 78%, #a7aeb8 100%);
+		--plate : #c7ccd3;
+		--ink   : #1f2937;
+	}
+
+	&.tier-gold {
+		--metal : linear-gradient(135deg, #fff6c2 0%, #f5c518 33%, #b8860b 55%, #ffe36e 78%, #d6a300 100%);
+		--plate : #f2c200;
+		--ink   : #3a2600;
+	}
+
+	// Diamant : bleu glacé, avec un léger scintillement
+	&.tier-diamond {
+		--metal : linear-gradient(135deg, #f2fcff 0%, #a8e6fc 25%, #4fb3e6 45%, #eafaff 62%, #8fd3f7 80%, #c8f0ff 100%);
+		--plate : #9ddcfa;
+		--ink   : #0c2a3d;
+
+		background-size : 250% 250%;
+		box-shadow      : 0 1px 3px rgba(0, 0, 0, 0.45), 0 0 calc(var(--avatar-size) * 0.18) rgba(125, 211, 252, 0.65);
+		animation       : avatar-diamond 4s ease-in-out infinite;
+	}
+}
+
+// Numéro du niveau, en pastille en bas à droite
+.avatar-level {
+	position      : absolute;
+	// au-dessus de l'ombre intérieure
+	z-index       : 1;
+	right         : calc(var(--avatar-size) * -0.12);
+	bottom        : calc(var(--avatar-size) * -0.12);
+	min-width     : calc(var(--avatar-size) * 0.42);
+	padding       : 0 calc(var(--avatar-size) * 0.06);
+	box-sizing    : border-box;
+	border        : max(2px, calc(var(--avatar-size) * 0.04)) solid #0b1220;
+	border-radius : 999px;
+	background    : var(--plate);
+	color         : var(--ink);
+	font-family   : 'Josefin Slab', serif;
+	font-size     : max(0.78rem, calc(var(--avatar-size) * 0.24));
+	font-weight   : 700;
+	line-height   : 1.35;
+	text-align    : center;
+	box-shadow    : 0 1px 3px rgba(0, 0, 0, 0.5);
+	pointer-events : none;
+}
+
+@keyframes avatar-diamond {
+	0%, 100% {
+		background-position : 0% 50%;
+	}
+	50% {
+		background-position : 100% 50%;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.avatar-frame.tier-diamond {
+		animation : none;
+	}
+}
+
 // ---------- Popup de choix
 .avatar-picker-overlay {
 	z-index : 200;

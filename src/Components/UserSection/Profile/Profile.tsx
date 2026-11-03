@@ -13,7 +13,7 @@ import {Navigate} from "react-router-dom";
 import {useAuth} from "../../../Context/authContext.ts";
 import {gameStatsService} from "../../../Services/gameStats.service.ts";
 import {gameService} from "../../../Services/game.service.ts";
-import {levelIconSrc, xpToNextLevel} from "../../../Services/leveling.ts";
+import {xpToNextLevel} from "../../../Services/leveling.ts";
 import type {GameStats} from "../../../Models/gameStats.model.ts";
 import type {Game} from "../../../Models/game.model.ts";
 import type {RecentResult} from "../../../Models/gameResult.model.ts";
@@ -87,15 +87,15 @@ export default function Profile() {
     return (
         <main className="profile">
             <section className="profile-card">
-                {/* Icône de profil (niveau en badge) puis infos : en colonne sur grand écran, côte à côte sur téléphone */}
+                {/* Icône de profil (contour et numéro selon le niveau) puis infos : en colonne sur grand écran, côte à côte sur téléphone */}
                 <div className="profile-head">
                     <div className="profile-avatar">
                         <button type="button" className="profile-avatar-button" title="Changer d'icône"
                                 onClick={() => setPickingAvatar(true)}>
-                            <Avatar seed={avatar} fallback={username ?? userId ?? undefined} size={7}/>
+                            <Avatar seed={avatar} fallback={username ?? userId ?? undefined} size={7.5}
+                                    level={level} showLevel/>
                             <span className="profile-avatar-edit" aria-hidden><FaPen/></span>
                         </button>
-                        <img src={levelIconSrc(level)} alt={`Niveau ${level}`} className="profile-level-icon"/>
                     </div>
                     {pickingAvatar && (
                         <AvatarPicker value={avatar ?? username ?? "jokr"} onClose={() => setPickingAvatar(false)}

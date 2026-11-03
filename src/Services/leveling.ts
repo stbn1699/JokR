@@ -6,14 +6,19 @@ export function xpToNextLevel(level: number): number {
     return Math.ceil(LEVEL_XP_CAP * (1 - Math.exp(-level / LEVEL_XP_RAMP)));
 }
 
-// Icônes disponibles : public/Icons/level_0.png à level_50.png.
-// Au-delà, on réutilise la dernière en attendant les nouvelles icônes.
-const MAX_LEVEL_ICON = 50;
+// Palier de niveau : couleur du contour de l'icône de profil (reprend les anciennes icônes de niveau)
+export type LevelTier = "copper" | "silver" | "gold" | "diamond";
 
-export function levelIconSrc(level: number): string {
-    const icon = Math.max(0, Math.min(level, MAX_LEVEL_ICON));
-    return `/Icons/level_${icon}.png`;
+export function levelTier(level: number): LevelTier {
+    if (level >= 50) return "diamond";
+    if (level >= 25) return "gold";
+    if (level >= 10) return "silver";
+    return "copper";
 }
+
+export const LEVEL_TIER_NAMES: Record<LevelTier, string> = {
+    copper: "Cuivre", silver: "Argent", gold: "Or", diamond: "Diamant",
+};
 
 /**
  * Une étape de remplissage de la barre d'XP, sur un niveau donné :

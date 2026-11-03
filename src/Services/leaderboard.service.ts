@@ -5,6 +5,9 @@ export interface LeaderboardEntry {
     username: string;
     // graine de l'icône de profil
     avatar: string;
+    // niveau global du joueur (contour de son icône)
+    userLevel: number;
+    // niveau sur ce classement : global (XP) ou sur le jeu
     level: number;
     xp: number;
     // Seulement pour le classement d'un jeu

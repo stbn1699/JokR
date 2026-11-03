@@ -5,7 +5,8 @@
  * - Le logo JokR (cliquable pour retourner à l'accueil)
  * - Les onglets Daily (défis du jour, en orange), Puzzle (accueil : Sudoku, Binero, Rikudo, Tectonic, Galaxies, Shikaku, Queens…),
  *   Hasard (jeux de hasard, à venir) et Classement
- * - Connecté : icône de niveau, barre d'XP, crédits, accès au profil et déconnexion
+ * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits, icône de profil (contour selon le niveau)
+ *   vers le profil, et déconnexion
  *   (et aux statistiques pour l'administrateur)
  * - Invité : icône pour aller à la page de connexion
  *
@@ -13,11 +14,11 @@
  */
 
 import "./Header.scss"
-import {FaChartBar, FaCoins, FaSignOutAlt, FaUser} from "react-icons/fa";
+import {FaChartBar, FaCoins, FaSignOutAlt, FaStar, FaUser} from "react-icons/fa";
 import Avatar from "../Avatar/Avatar.tsx";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
-import {levelIconSrc, xpToNextLevel} from "../../Services/leveling.ts";
+import {xpToNextLevel} from "../../Services/leveling.ts";
 import {isGameRoute} from "../../Services/routes.ts";
 import {useHeaderProgress} from "./useHeaderProgress.ts";
 
@@ -71,14 +72,18 @@ export default function Header() {
             <div className="usersection">
                 {isLoggedIn ? (
                     <div className="user-section">
-                        <img src={levelIconSrc(level)} alt={`Niveau ${level}`}
-                             className={`level-icon ${shown.levelPop ? "level-pop" : ""}`}/>
-
-                        <div className="xp-bar" aria-hidden>
-                            <div className="xp-bar-track" title={`${xp} / ${xpNextLevel} xp`}>
-                                <div className={`xp-bar-fill ${shown.instant ? "instant" : ""}`} style={{width: `${xpPercent}%`}}/>
-                            </div>
-                        </div>
+                        {/* Niveau : étoile bleue à gauche, puis le numéro avec une petite barre d'XP dessous */}
+                        <span className={`level-badge ${shown.levelPop ? "level-pop" : ""}`}
+                              title={`Niveau ${level} · ${xp} / ${xpNextLevel} XP`}>
+                            <FaStar className="level-badge-star" aria-hidden/>
+                            <span className="level-badge-stack">
+                                <span className="level-badge-value">{level}</span>
+                                <span className="level-progress" aria-hidden>
+                                    <span className={`level-progress-fill ${shown.instant ? "instant" : ""}`}
+                                          style={{width: `${xpPercent}%`}}/>
+                                </span>
+                            </span>
+                        </span>
 
                         <span className={`credits ${shown.creditsBump ? "bump" : ""}`}
                               title="Crédits (à miser sur les jeux de hasard)">
@@ -88,8 +93,8 @@ export default function Header() {
 
                         {isAdmin && <FaChartBar title="Statistiques" onClick={() => navigate("/stats")}/>}
                         <button type="button" className="header-avatar" title="Mon profil" onClick={() => navigate("/profile")}>
-                            <Avatar seed={auth.avatar} fallback={auth.username ?? auth.userId ?? undefined} size={2.3}
-                                    title="Mon profil"/>
+                            <Avatar seed={auth.avatar} fallback={auth.username ?? auth.userId ?? undefined} size={2.5}
+                                    level={level} title="Mon profil"/>
                         </button>
                         <FaSignOutAlt title="Se déconnecter" onClick={handleLogout}/>
                     </div>

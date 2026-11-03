@@ -4,7 +4,7 @@ import "./rewardFx.scss";
  * Effets de récompense après une victoire, partagés entre la popup de victoire et le header.
  *
  * 1. À la victoire, hold() fige le header sur la progression d'avant (le serveur a déjà donné la nouvelle)
- * 2. À la fermeture de la popup, fly() lance des particules (bleues vers la barre d'XP, orange vers
+ * 2. À la fermeture de la popup, fly() lance des particules (bleues vers le niveau, orange vers
  *    les crédits) ; quand les premières arrivent, le header est libéré et anime le changement
  * 3. release() libère le header sans particules (popup fermée autrement, animations réduites...)
  */
@@ -60,7 +60,7 @@ export const rewardFx = {
             rewardFx.release();
             return;
         }
-        const xpTarget = visibleTarget(".header .xp-bar", ".header .level-icon");
+        const xpTarget = visibleTarget(".header .level-badge");
         const creditsTarget = visibleTarget(".header .credits");
         const flights = [
             xpFrom && xpTarget ? burst(xpFrom, xpTarget, "xp", 22) : null,
@@ -76,7 +76,7 @@ export const rewardFx = {
     },
 };
 
-// Premier élément visible parmi les sélecteurs (la barre d'XP est masquée sur les très petits écrans)
+// Premier élément visible parmi les sélecteurs
 function visibleTarget(...selectors: string[]): Element | null {
     for (const selector of selectors) {
         const el = document.querySelector(selector);

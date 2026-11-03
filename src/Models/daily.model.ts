@@ -36,7 +36,7 @@ export type DailyStart<Grid> =
 export interface DailyLeaderboard {
     date: string;
     nextInMs: number;
-    entries: { rank: number; username: string; avatar: string; durationMs: number }[];
+    entries: { rank: number; username: string; avatar: string; userLevel: number; durationMs: number }[];
     me: DailyResult | null;
 }
 
