@@ -1,0 +1,34 @@
+// Particules de récompense (voir rewardFx.ts)
+.reward-fx-layer {
+	position       : fixed;
+	inset          : 0;
+	pointer-events : none;
+	// au-dessus des popups
+	z-index        : 3000;
+}
+
+.reward-fx-particle {
+	position      : fixed;
+	border-radius : 50%;
+	will-change   : transform, opacity;
+
+	&.xp {
+		box-shadow : 0 0 8px 2px rgba(96, 165, 250, 0.75);
+	}
+
+	&.credits {
+		box-shadow : 0 0 8px 2px rgba(245, 158, 11, 0.75);
+	}
+}
+
+// Cible du header qui reçoit une particule : petit sursaut lumineux
+.reward-fx-hit {
+	animation : reward-fx-hit 260ms ease-out;
+}
+
+@keyframes reward-fx-hit {
+	40% {
+		transform : scale(1.12);
+		filter    : brightness(1.25) drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+	}
+}

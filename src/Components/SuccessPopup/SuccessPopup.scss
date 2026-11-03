@@ -128,6 +128,19 @@
 		font-weight : 700;
 	}
 
+	// Gains qui défilent en grossissant (CountUp), puis rebondissent
+	.count-up {
+		display          : inline-block;
+		min-width        : 1ch;
+		text-align       : center;
+		transform-origin : 50% 70%;
+		font-variant-numeric : tabular-nums;
+
+		&.done {
+			animation : count-up-pop 420ms cubic-bezier(.2, .9, .3, 1.4);
+		}
+	}
+
 	.xp-progress-gain-label {
 		color       : #60a5fa;
 		font-weight : 700;
@@ -159,6 +172,42 @@
 		box-shadow                 : 0 0 0.6rem rgba(96, 165, 250, 0.7);
 		transition-property        : width;
 		transition-timing-function : cubic-bezier(.25, .8, .3, 1);
+	}
+
+	// Bonus du multiplicateur : doré (même orange que le défi du jour), avant d'être recouvert par le bleu
+	.xp-progress-bonus {
+		position                   : absolute;
+		top                        : 0;
+		bottom                     : 0;
+		background                 : linear-gradient(90deg, #f59e0b, #fbbf24);
+		box-shadow                 : 0 0 0.7rem rgba(251, 191, 36, 0.85);
+		transition-property        : width;
+		transition-timing-function : cubic-bezier(.25, .8, .3, 1);
+	}
+
+	// La barre bleue qui recouvre le doré, avec un bord lumineux qui avance
+	.xp-progress-gain {
+		&.sweeping::after {
+			content    : "";
+			position   : absolute;
+			top        : 0;
+			right      : 0;
+			bottom     : 0;
+			width      : 4px;
+			background : rgba(255, 255, 255, 0.85);
+			box-shadow : 0 0 0.6rem 0.2rem rgba(255, 255, 255, 0.6);
+			// s'éteint une fois le doré recouvert
+			animation  : sweep-edge 900ms ease forwards;
+		}
+	}
+
+	@keyframes sweep-edge {
+		0%, 75% {
+			opacity : 1;
+		}
+		100% {
+			opacity : 0;
+		}
 	}
 
 	.xp-progress-numbers {
@@ -246,4 +295,193 @@
 	font-size      : 0.85em;
 	font-weight    : 800;
 	vertical-align : 0.1em;
+}
+
+@keyframes count-up-pop {
+	0% {
+		transform : scale(1.35);
+		filter    : brightness(1.4);
+	}
+	100% {
+		transform : scale(1);
+		filter    : none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.success-modal .count-up.done {
+		animation : none;
+	}
+}
+
+// ---------- Gains multipliés (défi du jour) ----------
+
+// Calque où le gros « ×2 » apparaît, au centre de la popup
+// (en haut de la popup, pour qu'on le voie plonger sur les gains)
+.success-modal .multiplier-slam-layer {
+	position        : absolute;
+	inset           : 0;
+	display         : flex;
+	align-items     : flex-start;
+	justify-content : center;
+	padding-top     : 0.5rem;
+	pointer-events  : none;
+	z-index         : 5;
+	// halo doré qui illumine la popup pendant l'apparition du « ×2 »
+	background      : radial-gradient(ellipse at 50% 28%, rgba(253, 224, 71, 0.22), rgba(251, 191, 36, 0.08) 45%, transparent 70%);
+	animation       : slam-backdrop 1150ms ease forwards;
+}
+
+@keyframes slam-backdrop {
+	0% {
+		opacity : 0;
+	}
+	25%, 80% {
+		opacity : 1;
+	}
+	100% {
+		opacity : 0;
+	}
+}
+
+// Le « ×2 » : doré lumineux, avec un reflet qui le traverse et des rayons qui tournent derrière
+.success-modal .multiplier-slam {
+	position    : relative;
+	display     : flex;
+	align-items : center;
+	justify-content : center;
+	opacity     : 0;
+	will-change : transform, opacity;
+}
+
+.success-modal .multiplier-slam-text {
+	position       : relative;
+	// même typo que le reste du site, en gras
+	font-family    : 'Josefin Slab', serif;
+	font-size      : 10rem;
+	font-weight    : 700;
+	line-height    : 1;
+	padding        : 0 0.12em;
+	// doré clair : blanc chaud en haut, or au milieu, ambre en bas
+	background     : linear-gradient(180deg, #fffbea 0%, #fde68a 30%, #fcd34d 52%, #f59e0b 78%, #fbbf24 100%);
+	-webkit-background-clip : text;
+	background-clip : text;
+	color          : transparent;
+	// contour doré clair : épaissit les traits fins de la Josefin Slab
+	-webkit-text-stroke : 0.035em #fcd34d;
+	filter         : drop-shadow(0 0 0.6rem rgba(253, 224, 71, 0.85)) drop-shadow(0 0 2rem rgba(251, 191, 36, 0.55));
+
+	// reflet blanc qui balaie le texte
+	&::after {
+		content        : attr(data-text);
+		position       : absolute;
+		inset          : 0;
+		padding        : inherit;
+		background     : linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.95) 50%, transparent 65%);
+		background-size : 250% 100%;
+		-webkit-background-clip : text;
+		background-clip : text;
+		color          : transparent;
+		animation      : slam-shine 900ms ease-in-out 200ms both;
+	}
+}
+
+.success-modal .multiplier-slam-rays {
+	position       : absolute;
+	width          : 18rem;
+	height         : 18rem;
+	border-radius  : 50%;
+	background     : repeating-conic-gradient(from 0deg, rgba(253, 224, 71, 0.4) 0deg 7deg, transparent 7deg 22deg);
+	// les rayons s'estompent vers l'extérieur
+	-webkit-mask   : radial-gradient(circle, #000 15%, transparent 68%);
+	mask           : radial-gradient(circle, #000 15%, transparent 68%);
+	animation      : slam-rays 2.4s linear infinite;
+}
+
+@keyframes slam-shine {
+	from {
+		background-position : 120% 0;
+	}
+	to {
+		background-position : -20% 0;
+	}
+}
+
+@keyframes slam-rays {
+	to {
+		transform : rotate(360deg);
+	}
+}
+
+// Impact du « ×2 » sur les gains : secousse, flash et onde de choc
+.success-modal .xp-progress-gain-label.impact {
+	position  : relative;
+	animation : gain-impact 450ms cubic-bezier(.3, 1.6, .5, 1);
+
+	&::after {
+		content        : "";
+		position       : absolute;
+		left           : 50%;
+		top            : 50%;
+		width          : 1rem;
+		height         : 1rem;
+		margin         : -0.5rem 0 0 -0.5rem;
+		border-radius  : 50%;
+		border         : 3px solid rgba(251, 191, 36, 0.9);
+		opacity        : 0;
+		pointer-events : none;
+		animation      : gain-shockwave 600ms ease-out;
+	}
+}
+
+// Petit badge ×2 qui tombe à sa place après l'impact
+.reward-multiplier.landed {
+	animation : badge-land 500ms cubic-bezier(.2, .9, .3, 1.6);
+}
+
+@keyframes gain-impact {
+	0% {
+		transform : scale(1.25) rotate(-3deg);
+		filter    : brightness(2.2);
+	}
+	30% {
+		transform : scale(0.92) translateX(-4px) rotate(2deg);
+	}
+	55% {
+		transform : scale(1.05) translateX(3px);
+	}
+	100% {
+		transform : none;
+		filter    : none;
+	}
+}
+
+@keyframes gain-shockwave {
+	0% {
+		opacity   : 1;
+		transform : scale(1);
+	}
+	100% {
+		opacity   : 0;
+		transform : scale(14, 5);
+	}
+}
+
+@keyframes badge-land {
+	0% {
+		transform : scale(2.4) rotate(-25deg);
+		opacity   : 0;
+	}
+	100% {
+		transform : none;
+		opacity   : 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.success-modal .xp-progress-gain-label.impact,
+	.success-modal .xp-progress-gain-label.impact::after,
+	.reward-multiplier.landed {
+		animation : none;
+	}
 }

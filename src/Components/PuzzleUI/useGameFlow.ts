@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useAuth} from "../../Context/authContext.ts";
 import type {Progress} from "../SuccessPopup/SuccessPopup.tsx";
 import type {WinResult} from "../../Models/gameResult.model.ts";
+import {rewardFx} from "../../Services/rewardFx.ts";
 
 export type ValidationResult =
     | { ok: true; result: WinResult }
@@ -32,7 +33,7 @@ export type Clock = { startedAt: number | null; finalMs: number | null };
  * - newGame() : rouvre la popup de paramètres, sans recharger la page
  */
 export function useGameFlow() {
-    const {isLoggedIn, level, xp, refresh} = useAuth();
+    const {isLoggedIn, level, xp, credits, refresh} = useAuth();
 
     const [showSettings, setShowSettings] = useState(true);
     const [notice, setNotice] = useState<string | null>(null);
@@ -70,8 +71,12 @@ export function useGameFlow() {
         const {result} = outcome;
         // Le temps officiel est celui mesuré par le serveur
         setClock(c => ({...c, finalMs: result.durationMs}));
-        // Met à jour niveau / XP dans le header
-        if (result.xp !== undefined) void refresh();
+        // Met à jour niveau / XP dans le header, qui garde les anciennes valeurs jusqu'à
+        // l'arrivée des particules (fermeture de la popup de victoire)
+        if (result.xp !== undefined) {
+            rewardFx.hold({level, xp, credits});
+            void refresh();
+        }
         setVictory({
             xpAwarded: result.xp ?? null,
             creditsAwarded: result.credits ?? null,
