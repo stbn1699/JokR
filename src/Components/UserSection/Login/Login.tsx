@@ -2,10 +2,11 @@
  * Composant Login - Page de connexion utilisateur
  *
  * Gère l'authentification des utilisateurs avec :
- * - Identification par nom d'utilisateur OU email
+ * - Google / Discord (boutons de AuthCard, si configurés sur le serveur)
+ * - Identification par nom d'utilisateur OU email + mot de passe
  * - Hashage côté client du mot de passe (SHA-256) avant envoi au serveur
  * - Ouverture de la session via l'AuthContext (token + userId gardés dans localStorage)
- * - Redirection vers l'accueil après connexion réussie
+ * - Redirection vers la page demandée (ou l'accueil) après connexion réussie
  *
  * Sécurité :
  * - Double hashage : SHA-256 côté client + bcrypt côté serveur
@@ -17,25 +18,15 @@ import {useState} from "react";
 import "./Login.scss";
 import {clientHash} from "../../../Services/hash";
 import {authService} from "../../../Services/auth.service";
-import type {LoggedUser} from "../../../Models/loggedUser.model.ts";
-import {useLocation, useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../../Context/authContext.ts";
+import AuthCard from "./AuthCard.tsx";
+import PasswordInput from "./PasswordInput.tsx";
 
-/**
- * Composant de la page de connexion
- * @returns JSX du formulaire de connexion avec gestion des états
- */
 export default function Login() {
-    // État : identifiant saisi (nom d'utilisateur ou email)
     const [identifier, setIdentifier] = useState("");
-
-    // État : mot de passe saisi
     const [password, setPassword] = useState("");
-
-    // État : indicateur de chargement pendant la requête API
     const [loading, setLoading] = useState(false);
-
-    // État : message d'erreur à afficher (null si pas d'erreur)
     const [error, setError] = useState<string | null>(null);
 
     const navigate = useNavigate();
@@ -43,103 +34,62 @@ export default function Login() {
     const from = (useLocation().state as { from?: string } | null)?.from;
     const {login} = useAuth();
 
-    /**
-     * Gère la soumission du formulaire de connexion
-     *
-     * Processus :
-     * 1. Valide que tous les champs sont remplis
-     * 2. Hash le mot de passe côté client (SHA-256)
-     * 3. Envoie les credentials au serveur
-     * 4. Ouvre la session (AuthContext)
-     * 5. Redirige vers la page d'accueil
-     *
-     * @param e - Événement de soumission du formulaire
-     */
     const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault(); // Empêche le rechargement de la page
-        setError(null); // Réinitialise les erreurs précédentes
-
-        // Validation : vérifier que tous les champs sont remplis
+        e.preventDefault();
+        setError(null);
         if (!identifier || !password) return setError("Tous les champs sont requis");
 
         try {
-            setLoading(true); // Désactive les boutons pendant le chargement
-
-            // Étape 1 : Premier hashage côté client (SHA-256)
-            // Permet d'éviter l'envoi du mot de passe en clair
-            const Hash = await clientHash(password);
-
-            // Étape 2 : Envoyer la requête de connexion au backend
-            // Le backend va comparer avec le hash bcrypt stocké en base
-            const loggedUser: LoggedUser = await authService.login(identifier, Hash)
-
-            // Étape 3 : Ouvrir la session (le header se met à jour tout seul)
+            setLoading(true);
+            // Le mot de passe ne part jamais en clair : SHA-256 ici, bcrypt sur le serveur
+            const loggedUser = await authService.login(identifier.trim(), await clientHash(password));
             login(loggedUser);
-
-            // Étape 4 : Rediriger vers la page demandée, ou l'accueil
             navigate(from ?? "/");
         } catch (err: unknown) {
-            // Gestion des erreurs : convertir en message lisible
-            if (err instanceof Error) {
-                setError(err.message || "Erreur lors de la connexion");
-            } else {
-                setError(typeof err === 'string' ? err : "Erreur lors de la connexion");
-            }
+            setError(err instanceof Error && err.message ? err.message : "Erreur lors de la connexion");
         } finally {
-            // Toujours arrêter le chargement à la fin
             setLoading(false);
         }
     };
 
     return (
-        <>
-            <main className="login">
-                <form onSubmit={handleSubmit} className="form">
-                    <h1>Connexion</h1>
-
-                    {/* Champ identifiant : accepte nom d'utilisateur OU email */}
+        <AuthCard
+            title="Connexion"
+            subtitle="Content de te revoir !"
+            from={from}
+            footer={<>Pas encore de compte ? <Link to="/register" state={{from}}>Créer un compte</Link></>}
+        >
+            <form onSubmit={handleSubmit} className="auth-form">
+                <label>
+                    <span>Pseudo ou email</span>
                     <input
                         id="identifier"
                         name="identifier"
                         autoComplete="username"
                         autoCapitalize="none"
                         spellCheck={false}
-                        placeholder="Nom d'utilisateur ou email"
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
                     />
+                </label>
 
-                    {/* Champ mot de passe (masqué) */}
-                    <input
+                <label>
+                    <span>Mot de passe</span>
+                    <PasswordInput
                         id="password"
                         name="password"
-                        type="password"
                         autoComplete="current-password"
-                        placeholder="Mot de passe"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                </label>
 
-                    {/* Boutons d'action */}
-                    <div className="buttons">
-                        {/* Bouton secondaire : redirection vers l'inscription */}
-                        <button
-                            type="button"
-                            className="secondary"
-                            onClick={() => navigate("/register", {state: {from}})}
-                            disabled={loading}
-                        >
-                            s'inscrire
-                        </button>
+                {error && <div className="auth-error" role="alert">{error}</div>}
 
-                        {/* Bouton principal : soumission du formulaire */}
-                        <button type="submit" disabled={loading}>Se connecter</button>
-                    </div>
-
-                    {/* Affichage des erreurs si présentes */}
-                    {error && <div className="error">{error}</div>}
-                </form>
-            </main>
-        </>
+                <button type="submit" className="auth-submit" disabled={loading}>
+                    {loading ? "Connexion…" : "Se connecter"}
+                </button>
+            </form>
+        </AuthCard>
     );
 }

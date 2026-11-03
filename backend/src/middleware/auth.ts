@@ -19,7 +19,8 @@ function readUserId(req: Request): string | null {
     if (scheme !== "Bearer" || !token) throw new Error("Malformed Authorization header");
 
     const payload = jwt.verify(token, config.jwtSecret);
-    if (typeof payload === "string" || typeof payload.sub !== "string") {
+    // `purpose` : jetons temporaires de connexion Google / Discord, qui n'ouvrent pas de session
+    if (typeof payload === "string" || typeof payload.sub !== "string" || "purpose" in payload) {
         throw new Error("Invalid token payload");
     }
     return payload.sub;

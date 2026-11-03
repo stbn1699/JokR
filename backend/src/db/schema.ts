@@ -13,8 +13,10 @@ export type GamesTable = {
 export type UsersTable = {
 	id: Generated<string>;
 	username: string;
-	email: string;
-	password: string;
+	// null : inscrit avec Google / Discord sans email vérifié
+	email: string | null;
+	// null : inscrit avec Google / Discord, sans mot de passe
+	password: string | null;
     user_level: number;
     user_xp: number;
     // Crédits à miser sur les jeux de hasard (gagnés en finissant des puzzles)
@@ -24,6 +26,16 @@ export type UsersTable = {
     last_seen_at: Date | null;
     // Administrateur (page Statistiques) : modifié directement en base, sans redémarrage
     is_admin: Generated<boolean>;
+};
+
+// Comptes Google / Discord liés à un joueur
+export type UserIdentitiesTable = {
+    provider: string;
+    provider_user_id: string;
+    user_id: string;
+    email: string | null;
+    display_name: string | null;
+    created_at: Generated<Date>;
 };
 
 export type GameStatsTable = {
@@ -90,6 +102,7 @@ export type Device = "mobile" | "tablet" | "desktop";
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
+    user_identities: UserIdentitiesTable;
     game_stats: GameStatsTable;
     game_results: GameResultsTable;
     daily_challenges: DailyChallengesTable;

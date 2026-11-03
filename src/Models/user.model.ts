@@ -8,4 +8,8 @@ export interface User {
     credits: number;
     // Seulement dans GET /users/me : accès à la page Statistiques
     isAdmin?: boolean;
+    // Seulement dans GET /users/me : false pour un compte créé avec Google / Discord sans mot de passe
+    hasPassword?: boolean;
+    // Seulement dans GET /users/me : comptes Google / Discord liés
+    linkedAccounts?: { provider: string; displayName: string | null }[];
 }

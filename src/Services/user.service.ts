@@ -15,23 +15,27 @@ export const userService = {
     },
 
     // Les mots de passe sont hachés dans le navigateur, comme à la connexion
-    async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    // currentPassword = null : compte Google / Discord qui n'a pas encore de mot de passe
+    async changePassword(currentPassword: string | null, newPassword: string): Promise<void> {
         await api(`/users/me/password`, {
             method: "PUT",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
-                currentPassword: await clientHash(currentPassword),
+                ...(currentPassword !== null ? {currentPassword: await clientHash(currentPassword)} : {}),
                 newPassword: await clientHash(newPassword),
             }),
         });
     },
 
-    // Suppression définitive du compte (mot de passe requis)
-    async deleteAccount(password: string): Promise<void> {
+    // Suppression définitive du compte : confirmée par le mot de passe, ou par le pseudo s'il n'y en a pas
+    async deleteAccount(confirmation: { password: string } | { username: string }): Promise<void> {
+        const body = "password" in confirmation
+            ? {password: await clientHash(confirmation.password)}
+            : {username: confirmation.username};
         await api(`/users/me`, {
             method: "DELETE",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({password: await clientHash(password)}),
+            body: JSON.stringify(body),
         });
     },
 

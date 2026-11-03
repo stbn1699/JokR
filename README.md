@@ -184,6 +184,25 @@ Celles de `backend/.env.example`, plus quelques-unes déjà réglées dans l'ima
 | `MIGRATIONS_DIR` | `/app/migrations`   | migrations appliquées au démarrage                     |
 | `TRUST_PROXY`    | (compose : `1`)     | nombre de proxys devant le serveur, pour la vraie IP    |
 
+### Connexion avec Google et Discord
+
+Facultative : un bouton n'apparaît que si ses deux identifiants sont définis. `APP_URL` (adresse publique
+du site, ex. `https://jokr.ton-domaine`, ou `http://localhost:5173` en dev) devient alors obligatoire.
+
+- **Google** : [console.cloud.google.com](https://console.cloud.google.com/apis/credentials) → Créer des
+  identifiants → ID client OAuth → « Application Web ». URI de redirection autorisée :
+  `<APP_URL>/auth/callback/google`. Copier l'ID et le code secret dans `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+  Configurer aussi l'écran de consentement (nom JokR, champs `email` et `profile`) et le publier.
+- **Discord** : [discord.com/developers/applications](https://discord.com/developers/applications) →
+  New Application → OAuth2. Ajouter la redirection `<APP_URL>/auth/callback/discord`, puis copier
+  Client ID et Client Secret dans `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`.
+
+Fonctionnement :
+- première connexion : si l'email (vérifié chez Google / Discord) correspond à un compte JokR, le compte
+  externe y est lié ; sinon le joueur choisit son pseudo et un compte sans mot de passe est créé ;
+- depuis le profil, un joueur peut lier ou retirer ses comptes, et créer un mot de passe ;
+- les comptes liés sont dans la table `user_identities` (pour Discord, `provider_user_id` = id Discord).
+
 Administrateurs : colonne `users.is_admin` en base, effet immédiat (sans redémarrer). Ils voient l'icône
 Statistiques dans le header et la page `/stats`.
 
@@ -225,7 +244,12 @@ update users set is_admin = false where username = 'pseudo';  -- retirer
 | GET     | `/users/me`                | requise   | profil du joueur connecté                 |
 | GET     | `/users/me/results`        | requise   | ses parties gagnées (`?limit=&offset=`)   |
 | PUT     | `/users/me/password`       | requise   | change son mot de passe                   |
-| DELETE  | `/users/me`                | requise   | supprime son compte (mot de passe requis) |
+| DELETE  | `/users/me`                | requise   | supprime son compte (mot de passe ou pseudo requis) |
+| GET     | `/users/oauth/providers`   | –         | fournisseurs configurés (`google`, `discord`) |
+| POST    | `/users/oauth/:provider/start` | optionnel | `{ mode: "login" \| "link" }` → `{ url, state }` |
+| POST    | `/users/oauth/:provider/callback` | optionnel | `{ code, state }` → connexion, choix du pseudo ou liaison |
+| POST    | `/users/oauth/complete`    | –         | `{ signupToken, username }` → crée le compte |
+| DELETE  | `/users/me/identities/:provider` | requise | retire un compte lié              |
 | GET     | `/users/:userId`           | –         | profil public (sans email)                |
 | GET     | `/gameStats/user/:userId`  | –         | stats par jeu d'un joueur                 |
 | GET     | `/sudoku/settings`         | –         | plage de cases à remplir et XP proposées  |

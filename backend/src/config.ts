@@ -35,6 +35,22 @@ if (staticDir && !apiPrefix) {
 // Nombre de proxys devant le serveur (reverse proxy du NAS = 1), pour lire la vraie IP du client
 const trustProxy = /^\d+$/.test(process.env.TRUST_PROXY ?? "") ? Number(process.env.TRUST_PROXY) : 0;
 
+// Connexion avec Google / Discord : un fournisseur est activé quand ses deux identifiants sont définis
+function oauthCredentials(prefix: string): { clientId: string; clientSecret: string } | undefined {
+    const clientId = process.env[`${prefix}_CLIENT_ID`];
+    const clientSecret = process.env[`${prefix}_CLIENT_SECRET`];
+    if (!clientId && !clientSecret) return undefined;
+    if (!clientId || !clientSecret) throw new Error(`${prefix}_CLIENT_ID et ${prefix}_CLIENT_SECRET vont ensemble`);
+    return {clientId, clientSecret};
+}
+const oauth = {google: oauthCredentials("GOOGLE"), discord: oauthCredentials("DISCORD")};
+
+// Adresse publique du site : Google et Discord y renvoient le joueur après la connexion
+const appUrl = (process.env.APP_URL ?? "").replace(/\/+$/, "");
+if ((oauth.google || oauth.discord) && !/^https?:\/\/[^/]+$/.test(appUrl)) {
+    throw new Error("APP_URL (ex: https://jokr.example.com) est obligatoire avec la connexion Google ou Discord");
+}
+
 export const config = {
     port: Number(process.env.PORT ?? 3000),
     // Front servi par le même serveur : pas besoin d'autoriser d'autres origines
@@ -47,4 +63,6 @@ export const config = {
     trustProxy,
     // Dossier des migrations SQL à appliquer au démarrage (image Docker). Vide = rien (en dev : pnpm migrate)
     migrationsDir: process.env.MIGRATIONS_DIR || undefined,
+    oauth,
+    appUrl,
 } as const;

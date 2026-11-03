@@ -6,6 +6,7 @@
  * - /playgame/:gameCode : Page de jeu (dynamique selon le code du jeu)
  * - /login : Page de connexion
  * - /register : Page d'inscription
+ * - /auth/callback/:provider : Retour de Google / Discord (connexion, choix du pseudo, liaison)
  * - /profile : Profil du joueur connecté
  * - /hasard : Onglet des jeux de hasard (à venir)
  * - /nouveautes : Nouveautés (CHANGELOG.md) ; le numéro de version est en bas à droite
@@ -20,6 +21,7 @@ import {isGameRoute} from "./Services/routes.ts";
 import PlayGame from "./Components/PlayGame/PlayGame.tsx";
 import Login from "./Components/UserSection/Login/Login.tsx";
 import Register from "./Components/UserSection/Register/Register.tsx";
+import OAuthCallback from "./Components/UserSection/OAuthCallback/OAuthCallback.tsx";
 import Header from "./Components/Header/Header.tsx";
 import Profile from "./Components/UserSection/Profile/Profile.tsx";
 import NotFound from "./Components/NotFound/NotFound.tsx";
@@ -59,6 +61,7 @@ function App() {
                 <Route path="/defi/:gameCode/:date" element={<PlayGame daily key="defi-rejoue"/>}/>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/register" element={<Register/>}/>
+                <Route path="/auth/callback/:provider" element={<OAuthCallback/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/classements" element={<Leaderboard/>}/>
                 <Route path="/nouveautes" element={<Changelog/>}/>
