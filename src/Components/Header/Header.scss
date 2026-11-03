@@ -78,7 +78,20 @@
 		.user-section {
 			display     : flex;
 			align-items : center;
-			gap         : 0.75rem;
+			gap         : 1.1rem;
+		}
+
+		// Petite barre verticale entre le niveau et les crédits
+		.user-divider {
+			width         : 2px;
+			height        : 1.3rem;
+			border-radius : 999px;
+			background    : rgba(55, 65, 81, 0.25);
+		}
+
+		// Un peu plus d'air avant l'icône de profil
+		.header-avatar {
+			margin-left : 0.4rem;
 		}
 
 		// Niveau : étoile bleue à gauche, puis le numéro avec une petite barre d'XP dessous
@@ -244,7 +257,7 @@
 	}
 }
 
-// Téléphone : tout doit tenir sur une ligne (logo, niveau, crédits, profil, déconnexion)
+// Téléphone : tout doit tenir sur une ligne (logo, niveau, crédits, profil)
 @media (max-width: 600px) {
 	.header {
 		margin     : 0.5rem;
@@ -269,7 +282,15 @@
 			font-size : 1.3rem;
 
 			.user-section {
-				gap : 0.5rem;
+				gap : 0.7rem;
+			}
+
+			.user-divider {
+				height : 1.1rem;
+			}
+
+			.header-avatar {
+				margin-left : 0.2rem;
 			}
 
 			.level-badge,

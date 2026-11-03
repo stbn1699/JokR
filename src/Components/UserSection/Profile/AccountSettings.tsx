@@ -10,16 +10,17 @@ import type {User} from "../../../Models/user.model.ts";
  * Section "Mon compte" du profil :
  * - comptes Google / Discord liés (lier, retirer)
  * - changement de mot de passe (mot de passe actuel requis), ou création pour un compte Google / Discord
- * - suppression définitive du compte (mot de passe, ou pseudo s'il n'y en a pas ; avertissement clair)
+ * - zone de danger : déconnexion, et suppression définitive du compte (mot de passe, ou pseudo s'il n'y en a pas ;
+ *   avertissement clair)
  */
 type AccountSettingsProps = {
-    // Compte supprimé : le profil ferme la session et renvoie à l'accueil
-    onDeleted: () => void;
+    // Déconnexion ou compte supprimé : le profil ferme la session et renvoie à l'accueil
+    onLogout: () => void;
 };
 
 const ICONS: Record<Provider, ReactNode> = {google: <FcGoogle/>, discord: <FaDiscord/>};
 
-export default function AccountSettings({onDeleted}: AccountSettingsProps) {
+export default function AccountSettings({onLogout}: AccountSettingsProps) {
     const [me, setMe] = useState<User | null>(null);
     const [providers, setProviders] = useState<Provider[]>([]);
     // Message affiché en revenant de Google / Discord après une liaison
@@ -104,7 +105,7 @@ export default function AccountSettings({onDeleted}: AccountSettingsProps) {
         setDeleting(true);
         try {
             await userService.deleteAccount(hasPassword ? {password: deleteConfirm} : {username: deleteConfirm});
-            onDeleted();
+            onLogout();
         } catch (err) {
             setDeleteError((err as Error).message);
             setDeleting(false);
@@ -178,9 +179,14 @@ export default function AccountSettings({onDeleted}: AccountSettingsProps) {
             <div className="account-danger">
                 <h3>Zone de danger</h3>
                 {!deleteOpen ? (
-                    <button type="button" className="danger" onClick={() => setDeleteOpen(true)}>
-                        Supprimer mon compte
-                    </button>
+                    <div className="account-buttons">
+                        <button type="button" className="secondary" onClick={onLogout}>
+                            Se déconnecter
+                        </button>
+                        <button type="button" className="danger" onClick={() => setDeleteOpen(true)}>
+                            Supprimer mon compte
+                        </button>
+                    </div>
                 ) : (
                     <form className="account-form" onSubmit={deleteAccount}>
                         <p className="account-warning">

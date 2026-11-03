@@ -4,17 +4,16 @@
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
  * - Les onglets Daily (défis du jour, en orange), Puzzle (accueil : Sudoku, Binero, Rikudo, Tectonic, Galaxies, Shikaku, Queens…),
- *   Hasard (jeux de hasard, à venir) et Classement
- * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits, icône de profil (contour selon le niveau)
- *   vers le profil, et déconnexion
- *   (et aux statistiques pour l'administrateur)
+ *   Hasard (jeux de hasard, à venir), Classement, et Stats pour l'administrateur
+ * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits, puis icône de profil (contour selon le niveau)
+ *   vers le profil (la déconnexion est dans le profil)
  * - Invité : icône pour aller à la page de connexion
  *
  * Les infos viennent de l'AuthContext : le header se met à jour dès qu'elles changent.
  */
 
 import "./Header.scss"
-import {FaChartBar, FaCoins, FaSignOutAlt, FaStar, FaUser} from "react-icons/fa";
+import {FaCoins, FaStar, FaUser} from "react-icons/fa";
 import Avatar from "../Avatar/Avatar.tsx";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
@@ -28,24 +27,20 @@ const TABS = [
     {label: "Puzzle", to: "/", match: (path: string) => path === "/" || path.startsWith("/playgame")},
     {label: "Hasard", to: "/hasard", match: (path: string) => path.startsWith("/hasard")},
     {label: "Classement", to: "/classements", match: (path: string) => path.startsWith("/classements")},
+    {label: "Stats", to: "/stats", match: (path: string) => path.startsWith("/stats"), adminOnly: true},
 ];
 
 export default function Header() {
     const navigate = useNavigate();
     const {pathname} = useLocation();
     const auth = useAuth();
-    const {isLoggedIn, isAdmin, logout} = auth;
+    const {isLoggedIn, isAdmin} = auth;
     // Après une victoire : valeurs d'avant jusqu'à l'arrivée des particules, puis changement animé
     const shown = useHeaderProgress({level: auth.level, xp: auth.xp, credits: auth.credits});
     const {level, xp, credits} = shown;
 
     const xpNextLevel = xpToNextLevel(level);
     const xpPercent = Math.min(100, (xp / xpNextLevel) * 100);
-
-    const handleLogout = () => {
-        logout();
-        navigate("/");
-    };
 
     return (
         <div className={`header ${isGameRoute(pathname) ? "in-game" : ""}`}>
@@ -57,7 +52,7 @@ export default function Header() {
             />
 
             <nav className="header-tabs" aria-label="Catégories de jeux">
-                {TABS.map(tab => {
+                {TABS.filter(tab => !("adminOnly" in tab) || isAdmin).map(tab => {
                     const active = tab.match(pathname);
                     return (
                         <Link key={tab.to} to={tab.to}
@@ -85,18 +80,18 @@ export default function Header() {
                             </span>
                         </span>
 
+                        <span className="user-divider" aria-hidden/>
+
                         <span className={`credits ${shown.creditsBump ? "bump" : ""}`}
                               title="Crédits (à miser sur les jeux de hasard)">
                             <FaCoins aria-hidden/>
                             <span>{credits}</span>
                         </span>
 
-                        {isAdmin && <FaChartBar title="Statistiques" onClick={() => navigate("/stats")}/>}
                         <button type="button" className="header-avatar" title="Mon profil" onClick={() => navigate("/profile")}>
                             <Avatar seed={auth.avatar} fallback={auth.username ?? auth.userId ?? undefined} size={2.5}
                                     level={level} title="Mon profil"/>
                         </button>
-                        <FaSignOutAlt title="Se déconnecter" onClick={handleLogout}/>
                     </div>
                 ) : (
                     <FaUser title="Se connecter" onClick={() => navigate("/login")}/>

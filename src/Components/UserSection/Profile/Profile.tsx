@@ -178,11 +178,7 @@ export default function Profile() {
                     </>
                 )}
 
-                <AccountSettings onDeleted={handleLogout}/>
-
-                <button type="button" className="profile-logout" onClick={handleLogout}>
-                    Se déconnecter
-                </button>
+                <AccountSettings onLogout={handleLogout}/>
             </section>
         </main>
     );
