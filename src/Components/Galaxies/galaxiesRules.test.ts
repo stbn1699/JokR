@@ -31,6 +31,17 @@ describe("galaxiesRules", () => {
         expect(a.solution).toEqual([0, 0, 1, 1]);
     });
 
+    it("refuse un mur qui ne sépare rien (même zone des deux côtés)", () => {
+        // 3×3, un seul point au centre : toute la grille est une galaxie ; mur sous la case du centre
+        const one: GalaxiesPuzzle = {width: 3, height: 3, dots: [[3, 3]], walls: []};
+        const a = analyzeBoard(one, new Set([4]));
+        expect(a.regions.map(r => r.status)).toEqual(["valid"]);
+        expect(a.strayWalls).toEqual(new Set([4]));
+        expect(a.complete).toBe(true);
+        expect(a.solution).toBeNull();
+        expect(analyzeBoard(one, new Set()).solution).toEqual(Array(9).fill(0));
+    });
+
     it("signale un mur à travers un point et les zones impossibles", () => {
         const a = analyzeBoard(puzzle, new Set([0, 1, 2]));
         expect(a.badWalls).toEqual(new Set([2]));

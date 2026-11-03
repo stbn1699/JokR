@@ -14,6 +14,7 @@ export type SavedGalaxies = { gameId: string; walls: number[] };
  *
  * - generate(size, hints) : demande une grille au serveur (renvoie un message d'erreur, ou null)
  * - toggleWall(w) : pose ou retire un mur (sans effet sur un mur donné au départ)
+ * - paintWall(w, on) puis endStroke() : trait glissé sur plusieurs murs (un seul coup pour annuler)
  * - walls : tous les murs tracés (donnés + posés), analysis : zones, couleurs, erreurs et solution
  * - validate() : envoie le découpage au serveur (qui calcule l'XP si le joueur est connecté)
  * - undo() / redo() : annule / rétablit le dernier mur posé ou retiré
@@ -22,13 +23,21 @@ export type SavedGalaxies = { gameId: string; walls: number[] };
 export function useGalaxiesGame(saveKey = "GALAXIES") {
     const [puzzle, setPuzzle] = useState<GalaxiesPuzzle | null>(null);
     // Murs posés par le joueur (un booléen par côté intérieur)
-    const [placed, setPlaced] = useState<boolean[]>([]);
+    const [placed, setPlacedState] = useState<boolean[]>([]);
+    // Valeur à jour tout de suite (un trait glissé enchaîne les murs plus vite que les rendus)
+    const placedRef = useRef<boolean[]>([]);
+    const setPlaced = (next: boolean[]) => {
+        placedRef.current = next;
+        setPlacedState(next);
+    };
+    // Murs avant le début du trait en cours
+    const strokeRef = useRef<boolean[] | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     // Taille choisie, tant que la grille demandée n'est pas arrivée (grille vide affichée à la place)
     const [loadingSize, setLoadingSize] = useState<number | null>(null);
 
     const gameIdRef = useRef<string | null>(null);
-    const history = useMoveHistory<boolean>();
+    const history = useMoveHistory<boolean[]>();
 
     const hintWalls = useMemo(() => new Set(puzzle?.walls ?? []), [puzzle]);
     const walls = useMemo(() => {
@@ -64,24 +73,38 @@ export function useGalaxiesGame(saveKey = "GALAXIES") {
         }
     };
 
-    const writeWall = (w: number, on: boolean) => setPlaced(current => current.map((old, k) => (k === w ? on : old)));
+    const canEdit = (w: number) => puzzle !== null && !isGenerating && !hintWalls.has(w) && w >= 0 && w < placedRef.current.length;
+    const withWall = (w: number, on: boolean) => placedRef.current.map((old, k) => (k === w ? on : old));
 
     const toggleWall = (w: number) => {
-        if (!puzzle || isGenerating || hintWalls.has(w) || w < 0 || w >= placed.length) return;
-        const before = placed[w] ?? false;
-        history.record({index: w, before, after: !before});
-        writeWall(w, !before);
+        if (!canEdit(w)) return;
+        const before = placedRef.current;
+        const after = withWall(w, !before[w]);
+        history.record({index: w, before, after});
+        setPlaced(after);
+    };
+
+    const paintWall = (w: number, on: boolean) => {
+        if (!canEdit(w) || placedRef.current[w] === on) return;
+        if (strokeRef.current === null) strokeRef.current = placedRef.current;
+        setPlaced(withWall(w, on));
+    };
+
+    const endStroke = () => {
+        const before = strokeRef.current;
+        strokeRef.current = null;
+        if (before) history.record({index: -1, before, after: placedRef.current});
     };
 
     const undo = () => {
         const move = history.undo();
-        if (move) writeWall(move.index, move.before);
+        if (move) setPlaced(move.before);
         return move?.index ?? null;
     };
 
     const redo = () => {
         const move = history.redo();
-        if (move) writeWall(move.index, move.after);
+        if (move) setPlaced(move.after);
         return move?.index ?? null;
     };
 
@@ -110,7 +133,7 @@ export function useGalaxiesGame(saveKey = "GALAXIES") {
 
     return {
         loadingSize,
-        puzzle, walls, hintWalls, analysis, isGenerating, generate, toggleWall, validate,
+        puzzle, walls, hintWalls, analysis, isGenerating, generate, toggleWall, paintWall, endStroke, validate,
         undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
     };
 }

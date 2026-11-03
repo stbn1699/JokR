@@ -10,7 +10,8 @@
 		border-radius : 10px;
 		background    : #02061760;
 		outline       : none;
-		touch-action  : manipulation;
+		// glisser trace des murs : pas de défilement ni de zoom sous le doigt
+		touch-action  : none;
 
 		&:focus-visible {
 			box-shadow : 0 0 0 3px rgba(147, 197, 253, 0.6);

@@ -69,15 +69,16 @@ export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
     const [showErrors, setShowErrors] = useShowErrors();
     const analysis = game.analysis;
     const errorCount = analysis
-        ? analysis.badWalls.size + analysis.regions.filter(r => r.status === "error").length
+        ? analysis.badWalls.size + analysis.strayWalls.size + analysis.regions.filter(r => r.status === "error").length
         : 0;
     const doneCount = analysis ? analysis.regions.filter(r => r.status === "valid").length : 0;
     const total = game.puzzle?.dots.length ?? 0;
 
-    // Découpage terminé (chaque zone a un point et est symétrique) : validé tout seul
-    const filledKey = analysis?.solution ? analysis.solution.join(",") : null;
+    // Découpage terminé (chaque zone a un point et est symétrique) : validé tout seul,
+    // sauf s'il reste un mur qui ne sépare rien (message d'erreur)
+    const filledKey = analysis?.complete ? analysis.regionOf.join(",") + "|" + [...game.walls].sort((a, b) => a - b).join(",") : null;
     useAutoValidate({
-        filledKey, playing, hasErrors: false,
+        filledKey, playing, hasErrors: (analysis?.strayWalls.size ?? 0) > 0,
         submit: () => flow.submit(game.validate), setNotice: flow.setNotice,
     });
     useUndoShortcuts(game.undo, game.redo, playing);
@@ -147,6 +148,8 @@ export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
                         analysis={analysis}
                         disabled={!playing}
                         onToggleWall={game.toggleWall}
+                        onPaintWall={game.paintWall}
+                        onEndStroke={game.endStroke}
                         showErrors={showErrors}
                     />
                 )}

@@ -71,7 +71,13 @@ export type BoardAnalysis = {
     regions: { cells: number[]; dots: number[]; status: RegionStatus }[];
     // Murs posés à tort (à travers un point)
     badWalls: Set<number>;
-    // Numéro de point de chaque case si le découpage est une solution, sinon null
+    // Murs qui ne séparent rien : la même zone des deux côtés (bout de mur qui ne ferme aucune galaxie),
+    // dans une zone terminée ou impossible
+    strayWalls: Set<number>;
+    // Toutes les galaxies sont bonnes, sans compter les murs qui ne séparent rien
+    // (la grille paraît finie : on peut signaler l'erreur)
+    complete: boolean;
+    // Numéro de point de chaque case si le découpage est une solution (aucun mur en trop), sinon null
     solution: number[] | null;
 };
 
@@ -80,6 +86,7 @@ export type BoardAnalysis = {
  * - valid : un seul point, zone symétrique autour de lui → colorée
  * - error : aucun point, ou un seul point mais zone pas symétrique (aucun mur ajouté ne pourra la sauver)
  * - open : plusieurs points, il reste des murs à tracer
+ * Un mur avec la même zone des deux côtés ne sépare rien : la grille n'est alors pas une solution.
  */
 export function analyzeBoard(puzzle: GalaxiesPuzzle, walls: Set<number>): BoardAnalysis {
     const {width, height, dots} = puzzle;
@@ -126,7 +133,12 @@ export function analyzeBoard(puzzle: GalaxiesPuzzle, walls: Set<number>): BoardA
 
     const through = wallsThroughDots(puzzle);
     const badWalls = new Set([...walls].filter(w => through.has(w)));
-    const solved = badWalls.size === 0 && regions.every(r => r.status === "valid");
-    const solution = solved ? regionOf.map(id => regions[id]!.dots[0]!) : null;
-    return {regionOf, regions, badWalls, solution};
+    // (dans une zone encore ouverte, c'est peut-être un mur en cours de tracé : pas compté)
+    const strayWalls = new Set([...walls].filter(w => {
+        const [a, b] = wallCells(w, width, height);
+        return regionOf[a] === regionOf[b] && regions[regionOf[a]!]!.status !== "open";
+    }));
+    const complete = badWalls.size === 0 && regions.every(r => r.status === "valid");
+    const solution = complete && strayWalls.size === 0 ? regionOf.map(id => regions[id]!.dots[0]!) : null;
+    return {regionOf, regions, badWalls, strayWalls, complete, solution};
 }
