@@ -2,12 +2,7 @@ import {type CSSProperties, type KeyboardEvent, type PointerEvent, useMemo, useR
 import {FaCrown, FaTimes} from "react-icons/fa";
 import type {QueensPuzzle} from "../../Models/queens.model.ts";
 import {CROSS, EMPTY, type Mark, QUEEN, regionBorders} from "./queensRules.ts";
-
-// Couleurs des zones (pastel, texte sombre lisible dessus)
-const REGION_COLORS = [
-    "#f4a582", "#92c5de", "#f6d55c", "#a6d96a", "#c2a5cf",
-    "#f4b6c2", "#80cdc1", "#fdb863", "#b8b8e8", "#d9c39a",
-];
+import {REGION_COLORS} from "../PuzzleUI/regionColors.ts";
 
 // Cases traversées en allant de la case a à la case b (b comprise, a non), en ligne droite
 function cellsBetween(a: number, b: number, size: number): number[] {
