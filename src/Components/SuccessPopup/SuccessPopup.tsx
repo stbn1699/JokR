@@ -1,4 +1,4 @@
-import {FaCoins} from "react-icons/fa";
+import {FaCheck, FaCoins} from "react-icons/fa";
 import {useEffect, useMemo, useRef, useState} from "react";
 import "./SuccessPopup.scss";
 import {Link, useNavigate} from "react-router-dom";
@@ -61,6 +61,8 @@ const SWEEP_MS = 700;
  * puis elle repart sur le niveau suivant.
  * Gains multipliés : la barre se remplit d'abord du gain de base ; à l'impact du « ×2 », le bonus
  * arrive en doré, puis le bleu le recouvre de gauche à droite.
+ * « Voir la grille » : la popup se ferme (les gains partent vers le header) et laisse la grille résolue
+ * à l'écran, avec une petite barre en bas pour relancer une partie ou revenir à l'accueil.
  */
 export function SuccessPopup(props: SuccessPopupProps) {
     const {gameName, xpAwarded, creditsAwarded, rewardMultiplier = 1, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie"} = props;
@@ -70,6 +72,15 @@ export function SuccessPopup(props: SuccessPopupProps) {
     const creditsGainRef = useRef<HTMLSpanElement | null>(null);
     const flewRef = useRef(false);
     const navigate = useNavigate();
+    // Popup fermée par « Voir la grille » : la grille résolue reste visible
+    const [reviewing, setReviewing] = useState(false);
+
+    // Grille affichée après la victoire : on la regarde, on n'y touche plus
+    useEffect(() => {
+        if (!reviewing) return;
+        document.body.classList.add("game-review");
+        return () => document.body.classList.remove("game-review");
+    }, [reviewing]);
 
     // Étapes de la barre (une par niveau traversé), avec la limite entre gain de base et bonus
     const steps = useMemo(() => {
@@ -179,6 +190,20 @@ export function SuccessPopup(props: SuccessPopupProps) {
     const sweepShown = hasBonus && rank >= PHASE_RANK.sweep;
     const levelsGained = steps.slice(0, stepIndex + (phase === "levelUp" ? 1 : 0)).filter(s => s.levelUp).length;
 
+    if (reviewing) {
+        return (
+            <div className="game-review-bar" role="status">
+                <span className="game-review-text">
+                    <FaCheck aria-hidden/> {gameName} résolu en <strong>{formatDuration(durationMs)}</strong>
+                </span>
+                <span className="game-review-buttons">
+                    <button type="button" className="modal-button" onClick={onNewGame}>{newGameLabel}</button>
+                    <button type="button" className="modal-button secondary" onClick={() => navigate('/')}>Accueil</button>
+                </span>
+            </div>
+        );
+    }
+
     return (
         <div className="modal-overlay success-overlay" role="dialog" aria-modal="true" aria-labelledby="success-title">
             <div ref={modalRef} className="modal success-modal" tabIndex={-1}>
@@ -284,6 +309,9 @@ export function SuccessPopup(props: SuccessPopupProps) {
                 <div className="modal-buttons">
                     <button type="button" className="modal-button" onClick={() => closeWith(onNewGame)}>
                         {newGameLabel}
+                    </button>
+                    <button type="button" className="modal-button secondary" onClick={() => closeWith(() => setReviewing(true))}>
+                        Voir la grille
                     </button>
                     <button type="button" className="modal-button secondary" onClick={() => closeWith(() => navigate('/'))}>
                         Retour à l'accueil

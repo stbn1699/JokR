@@ -36,14 +36,17 @@
 		color     : rgba(248, 250, 252, 0.9);
 	}
 
+	// Trois boutons : ils passent à la ligne plutôt que de couper leur texte
 	.modal-buttons {
 		display         : flex;
-		gap             : 1rem;
+		flex-wrap       : wrap;
+		gap             : 0.75rem;
 		justify-content : center;
 	}
 
 	.modal-button {
-		padding       : 0.8rem 1.6rem;
+		padding       : 0.8rem 1.3rem;
+		white-space   : nowrap;
 		border-radius : 8px;
 		border        : none;
 		font-size     : 1.2rem;
@@ -483,5 +486,103 @@
 	.success-modal .xp-progress-gain-label.impact::after,
 	.reward-multiplier.landed {
 		animation : none;
+	}
+}
+
+// ---------- « Voir la grille » : barre en bas de l'écran, la grille résolue reste visible
+.game-review-bar {
+	position        : fixed;
+	left            : 50%;
+	bottom          : calc(1.25rem + env(safe-area-inset-bottom));
+	z-index         : 50;
+	display         : flex;
+	align-items     : center;
+	gap             : 1.25rem;
+	max-width       : calc(100vw - 2rem);
+	box-sizing      : border-box;
+	padding         : 0.6rem 0.6rem 0.6rem 1.25rem;
+	border          : 1px solid rgba(16, 185, 129, 0.45);
+	border-radius   : 999px;
+	background      : rgba(6, 12, 24, 0.94);
+	box-shadow      : 0 0.75rem 2rem rgba(0, 0, 0, 0.5);
+	color           : #f9fafb;
+	transform       : translateX(-50%);
+	// arrive après l'envol des gains vers le header
+	animation       : game-review-in 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.2) 0.5s both;
+
+	.game-review-text {
+		display     : flex;
+		align-items : center;
+		gap         : 0.5rem;
+		font-size   : 1.2rem;
+		white-space : nowrap;
+
+		svg {
+			color : #10b981;
+		}
+	}
+
+	.game-review-buttons {
+		display : flex;
+		gap     : 0.5rem;
+	}
+
+	.modal-button {
+		padding       : 0.55rem 1.2rem;
+		border-radius : 999px;
+		border        : none;
+		background    : #10b981;
+		color         : white;
+		font-family   : inherit;
+		font-size     : 1.1rem;
+		font-weight   : 700;
+		white-space   : nowrap;
+		cursor        : pointer;
+
+		&.secondary {
+			background : transparent;
+			border     : 1px solid rgba(255, 255, 255, 0.2);
+			color      : #e6eef3;
+		}
+	}
+}
+
+// La grille résolue se regarde : plus de saisie (le header reste utilisable)
+body.game-review .puzzle-layout {
+	.game,
+	.options {
+		pointer-events : none;
+	}
+}
+
+@keyframes game-review-in {
+	from {
+		opacity   : 0;
+		transform : translate(-50%, 1.5rem);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.game-review-bar {
+		animation : none;
+	}
+}
+
+// Téléphone : texte au-dessus des boutons
+@media (max-width: 600px) {
+	.game-review-bar {
+		flex-direction : column;
+		gap            : 0.5rem;
+		width          : calc(100vw - 1.5rem);
+		padding        : 0.7rem;
+		border-radius  : 1rem;
+
+		.game-review-buttons {
+			width : 100%;
+
+			.modal-button {
+				flex : 1;
+			}
+		}
 	}
 }
