@@ -1,0 +1,98 @@
+// Page d'un joueur : reprend la page Profil (Profile.scss), avec quelques chiffres clés en plus
+.profile.player-profile {
+	.player-since {
+		margin    : 0.6rem 0 0;
+		font-size : 1.1rem;
+		opacity   : 0.65;
+	}
+
+	.player-mine {
+		margin-top      : 0.6rem;
+		color           : #10b981;
+		font-size       : 1.15rem;
+		font-weight     : 600;
+		text-decoration : none;
+
+		&:hover {
+			text-decoration : underline;
+		}
+	}
+
+	// Classement, victoires, crédits, défis
+	.player-tiles {
+		display               : grid;
+		grid-template-columns : repeat(4, minmax(0, 1fr));
+		gap                   : 0.6rem;
+		width                 : 100%;
+		margin-top            : 1.5rem;
+	}
+
+	.player-tile {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 0.2rem;
+		padding        : 0.8rem 0.4rem;
+		border         : 2px solid rgba(249, 250, 251, 0.15);
+		border-radius  : 10px;
+		background     : rgba(2, 6, 23, 0.45);
+
+		strong {
+			font-size   : 1.9rem;
+			line-height : 1.1;
+		}
+
+		span {
+			font-size : 0.95rem;
+			opacity   : 0.7;
+		}
+	}
+
+	.player-tile-icon {
+		font-size : 1.3rem;
+
+		&.rank {
+			color : #cbd5e1;
+		}
+
+		&.wins,
+		&.credits {
+			color : #fbbf24;
+		}
+
+		&.daily {
+			color : #f59e0b;
+		}
+	}
+
+	.player-grid {
+		opacity : 0.6;
+	}
+
+	.player-back {
+		margin-top      : 2rem;
+		padding         : 0.5rem 1.4rem;
+		border          : 2px solid rgba(229, 231, 235, 0.5);
+		border-radius   : 999px;
+		color           : #f9fafb;
+		font-size       : 1.2rem;
+		text-decoration : none;
+
+		&:hover {
+			border-color : #10b981;
+		}
+	}
+}
+
+// Message d'erreur (joueur introuvable) : même lien de retour
+.profile .player-back {
+	margin-top      : 1rem;
+	color           : #10b981;
+	text-decoration : none;
+}
+
+@media (max-width: 600px) {
+	.profile.player-profile .player-tiles {
+		grid-template-columns : repeat(2, minmax(0, 1fr));
+	}
+}

@@ -15,6 +15,7 @@ import queensRoutes from "./routes/Queens.routes.js";
 import dailyRoutes from "./routes/Daily.routes.js";
 import leaderboardRoutes from "./routes/Leaderboard.routes.js";
 import statsRoutes from "./routes/Stats.routes.js";
+import playersRoutes from "./routes/Players.routes.js";
 import {tracker} from "./services/tracker.js";
 import {pool} from "./db/pool.js";
 import {migrate} from "./db/migrate.js";
@@ -62,6 +63,7 @@ api.use("/queens", queensRoutes);
 api.use("/daily", dailyRoutes);
 api.use("/leaderboard", leaderboardRoutes);
 api.use("/stats", statsRoutes);
+api.use("/players", playersRoutes);
 
 if (config.apiPrefix) {
 	// Route d'API inconnue : réponse JSON plutôt que la page du front

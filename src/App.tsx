@@ -31,6 +31,7 @@ import Changelog from "./Components/Changelog/Changelog.tsx";
 import Hasard from "./Components/Hasard/Hasard.tsx";
 import AppFooter from "./Components/AppFooter/AppFooter.tsx";
 import Stats from "./Components/Stats/Stats.tsx";
+import PlayerProfile from "./Components/PlayerProfile/PlayerProfile.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -67,6 +68,8 @@ function App() {
                 <Route path="/nouveautes" element={<Changelog/>}/>
                 <Route path="/hasard" element={<Hasard/>}/>
                 <Route path="/stats" element={<Stats/>}/>
+                {/* Profil public d'un joueur (depuis les classements) */}
+                <Route path="/joueur/:username" element={<PlayerProfile/>}/>
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
             <AppFooter/>

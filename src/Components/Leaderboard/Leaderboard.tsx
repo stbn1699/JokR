@@ -7,14 +7,16 @@
  * L'onglet est dans l'adresse (?onglet=xp|credits|jeu|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens
  * [&mois=AAAA-MM][&date=AAAA-MM-JJ]) pour pouvoir y renvoyer (ex. classement d'un défi passé).
  * Anciennes adresses (?onglet=sudoku...) : ouvrent l'onglet « Par jeu » sur ce jeu.
+ * Un clic sur un joueur (icône ou pseudo) ouvre sa page (/joueur/:pseudo).
  */
 
 import "./Leaderboard.scss";
 import {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
-import {useSearchParams} from "react-router-dom";
+import {Link, useSearchParams} from "react-router-dom";
 import {FaCoins, FaMedal} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {type Leaderboard as Board, leaderboardService} from "../../Services/leaderboard.service.ts";
+import {playerPath} from "../../Services/player.service.ts";
 import {dailyService} from "../../Services/daily.service.ts";
 import {formatDuration} from "../../Services/format.ts";
 import type {DailyLeaderboard} from "../../Models/daily.model.ts";
@@ -246,9 +248,11 @@ export default function Leaderboard() {
                             <li key={row.rank + row.username} className={`podium-place place-${row.rank} ${isMe(row.username) ? "me" : ""}`}
                                 style={{order: i}}>
                                 <FaMedal className="podium-medal" aria-label={`${row.rank}e place`}/>
-                                <Avatar seed={row.avatar} fallback={row.username} size={row.rank === 1 ? 4.6 : 3.8}
-                                        level={row.userLevel} showLevel className="podium-avatar"/>
-                                <span className="podium-name">{row.username}</span>
+                                <Link to={playerPath(row.username)} className="podium-player" title={`Voir le profil de ${row.username}`}>
+                                    <Avatar seed={row.avatar} fallback={row.username} size={row.rank === 1 ? 4.6 : 3.8}
+                                            level={row.userLevel} showLevel className="podium-avatar"/>
+                                    <span className="podium-name">{row.username}</span>
+                                </Link>
                                 <span className="podium-main">{row.main}</span>
                                 <span className="podium-step">{ordinal(row.rank)}</span>
                             </li>
@@ -262,9 +266,11 @@ export default function Leaderboard() {
                         {rows.map(row => (
                             <li key={row.rank + row.username} className={isMe(row.username) ? "me" : ""}>
                                 <span className="leaderboard-rank">{ordinal(row.rank)}</span>
-                                <Avatar seed={row.avatar} fallback={row.username} size={2.7}
-                                        level={row.userLevel} showLevel className="leaderboard-avatar"/>
-                                <span className="leaderboard-name">{row.username}</span>
+                                <Link to={playerPath(row.username)} className="leaderboard-player" title={`Voir le profil de ${row.username}`}>
+                                    <Avatar seed={row.avatar} fallback={row.username} size={2.7}
+                                            level={row.userLevel} showLevel className="leaderboard-avatar"/>
+                                    <span className="leaderboard-name">{row.username}</span>
+                                </Link>
                                 {row.detail && <span className="leaderboard-detail">{row.detail}</span>}
                                 <span className="leaderboard-main">{row.main}</span>
                             </li>

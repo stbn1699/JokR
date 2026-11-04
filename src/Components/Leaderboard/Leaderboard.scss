@@ -238,6 +238,40 @@
 		margin : 0.15rem 0.45rem 0.15rem 0;
 	}
 
+	// Icône + pseudo : lien vers la page du joueur
+	.leaderboard-player {
+		flex            : 1;
+		display         : flex;
+		align-items     : center;
+		gap             : 0.9rem;
+		min-width       : 0;
+		color           : inherit;
+		text-decoration : none;
+
+		&:hover .leaderboard-name {
+			text-decoration : underline;
+		}
+	}
+
+	.podium-player {
+		display         : flex;
+		flex-direction  : column;
+		align-items     : center;
+		gap             : 0.3rem;
+		max-width       : 100%;
+		color           : inherit;
+		text-decoration : none;
+		transition      : transform 0.15s ease;
+
+		&:hover {
+			transform : translateY(-2px);
+
+			.podium-name {
+				text-decoration : underline;
+			}
+		}
+	}
+
 	.leaderboard-name {
 		flex          : 1;
 		min-width     : 0;
@@ -358,6 +392,10 @@
 
 		.podium-main {
 			font-size : 1.05rem;
+		}
+
+		.leaderboard-player {
+			gap : 0.5rem;
 		}
 
 		.leaderboard-list li {
