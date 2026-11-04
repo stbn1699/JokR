@@ -23,6 +23,7 @@ import {GameResultsRepository} from '../repository/GameResults.repository.js';
  * - PUT /me/avatar : change son icône de profil (JWT requis)
  * - PUT /me/username : change son pseudo (JWT requis)
  * - PUT /me/privacy : ce que les autres joueurs voient sur sa page (JWT requis)
+ * - PUT /me/version : dernière version du site vue, pour la popup des nouveautés (JWT requis)
  * - DELETE /me : supprime son compte (JWT + mot de passe requis)
  * - GET /:userId : profil public (sans email ni mot de passe)
  *
@@ -62,6 +63,7 @@ UsersRoutes.get('/me/results', requireAuth, controller.myResults);
 UsersRoutes.put('/me/avatar', requireAuth, controller.changeAvatar);
 UsersRoutes.put('/me/username', requireAuth, usernameLimiter, controller.changeUsername);
 UsersRoutes.put('/me/privacy', requireAuth, controller.changePrivacy);
+UsersRoutes.put('/me/version', requireAuth, controller.markVersionSeen);
 // ces deux routes vérifient le mot de passe : même limite de tentatives que la connexion
 UsersRoutes.put('/me/password', requireAuth, loginLimiter, controller.changePassword);
 UsersRoutes.delete('/me', requireAuth, loginLimiter, controller.deleteAccount);

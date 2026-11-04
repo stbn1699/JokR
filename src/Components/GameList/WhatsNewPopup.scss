@@ -1,0 +1,76 @@
+// Popup « Quoi de neuf ? » (accueil, après une nouvelle version)
+.modal.success-modal.whats-new {
+	display        : flex;
+	flex-direction : column;
+	width          : min(32rem, calc(100vw - 2rem));
+	animation      : whats-new-in 0.35s cubic-bezier(.2, .9, .3, 1.2);
+
+	.whats-new-badge {
+		align-self    : center;
+		margin        : 0 0 0.5rem;
+		padding       : 0.2rem 0.8rem;
+		border-radius : 999px;
+		background    : rgba(16, 185, 129, 0.15);
+		color         : #34d399;
+		font-size     : 1rem;
+		font-weight   : 700;
+	}
+
+	// Liste des nouveautés : défile si elle est longue (les boutons restent visibles)
+	.whats-new-body {
+		flex          : 1 1 auto;
+		min-height    : 0;
+		max-height    : 55dvh;
+		overflow-y    : auto;
+		margin        : 0.5rem 0 1.5rem;
+		padding-right : 0.25rem;
+		text-align    : left;
+	}
+
+	.whats-new-version + .whats-new-version {
+		margin-top  : 1rem;
+		padding-top : 1rem;
+		border-top  : 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	h3 {
+		margin    : 0 0 0.5rem;
+		font-size : 1.5rem;
+		color     : #34d399;
+	}
+
+	h4 {
+		margin    : 0.75rem 0 0.25rem;
+		font-size : 1.2rem;
+	}
+
+	.whats-new-intro,
+	.whats-new-more {
+		margin    : 0 0 0.5rem;
+		font-size : 1.15rem;
+	}
+
+	ul {
+		margin       : 0;
+		padding-left : 1.2rem;
+	}
+
+	li {
+		margin    : 0.2rem 0;
+		font-size : 1.15rem;
+		color     : rgba(248, 250, 252, 0.85);
+	}
+}
+
+@keyframes whats-new-in {
+	from {
+		opacity   : 0;
+		transform : translateY(1rem) scale(0.96);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.modal.success-modal.whats-new {
+		animation : none;
+	}
+}

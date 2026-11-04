@@ -10,6 +10,7 @@
  * - is_admin : accès à la page Statistiques (jamais renvoyé dans un profil public)
  * - avatar : graine de l'icône de profil (texte a-z0-9, l'icône est dessinée par le site)
  * - show_stats / show_history : les autres joueurs voient ses stats / ses dernières victoires
+ * - last_version : dernière version du site vue (popup des nouveautés), null pour un compte tout neuf
  */
 export type User = {
 	id: string;
@@ -23,4 +24,5 @@ export type User = {
     avatar: string;
     show_stats: boolean;
     show_history: boolean;
+    last_version: string | null;
 };

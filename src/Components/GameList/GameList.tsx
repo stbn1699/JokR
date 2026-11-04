@@ -12,6 +12,9 @@ import DailyBanner from "./DailyBanner.tsx";
 import {useDailyOverview} from "./useDailyOverview.ts";
 import {formatDuration} from "../../Services/format.ts";
 import {dailyGridLabel} from "../../Services/dailyGames.ts";
+import {isNewSince} from "../../Services/version.ts";
+import {useWhatsNew} from "./useWhatsNew.ts";
+import WhatsNewPopup from "./WhatsNewPopup.tsx";
 
 // Nombre de jeux de la dernière visite : autant de cartes fantômes pendant le chargement (pas de saut de page)
 const GAME_COUNT_KEY = "gameListCount";
@@ -103,6 +106,8 @@ export default function GameList() {
     const {userId, isLoggedIn} = useAuth();
     const navigate = useNavigate();
     const daily = useDailyOverview();
+    // Nouvelle version depuis la dernière visite : popup des nouveautés, pastille « Nouveau » sur les jeux apparus depuis
+    const whatsNew = useWhatsNew(isLoggedIn);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -160,6 +165,8 @@ export default function GameList() {
 
     return (
         <>
+            {whatsNew.versions.length > 0 && <WhatsNewPopup versions={whatsNew.versions} onClose={whatsNew.closePopup}/>}
+
             {/* overlay covering the whole viewport when a game is selected */}
             <div className={`click-overlay ${overlayVisible ? 'visible' : ''}`}/>
 
@@ -175,6 +182,7 @@ export default function GameList() {
                         <div className="game-card appear" key={game.code} style={{"--i": index} as CSSProperties}>
                             {/* Carte du jeu, et par-dessus (au survol) les stats du joueur sur ce jeu */}
                             <div className="game-tile">
+                                {isNewSince(game.added_in, whatsNew.since) && <span className="game-new">Nouveau</span>}
                                 <div
                                     className="game"
                                     onClick={handleGameSelection(game.code)}

@@ -8,6 +8,8 @@ export type GamesTable = {
 	code: string;
 	designation: string;
     base_xp: number;
+    // Version du site à laquelle le jeu est apparu (pastille « Nouveau »)
+    added_in: Generated<string>;
 };
 
 export type UsersTable = {
@@ -31,6 +33,8 @@ export type UsersTable = {
     // Visibilité de sa page pour les autres joueurs (stats, dernières victoires)
     show_stats: Generated<boolean>;
     show_history: Generated<boolean>;
+    // Dernière version du site vue (popup des nouveautés), null pour un compte tout neuf
+    last_version: string | null;
 };
 
 // Comptes Google / Discord liés à un joueur

@@ -50,6 +50,11 @@ export class UsersRepository {
         await this.db.updateTable('users').set({username}).where('id', '=', id).execute();
     }
 
+    // Dernière version du site vue par le joueur
+    async updateLastVersion(id: string, version: string): Promise<void> {
+        await this.db.updateTable('users').set({last_version: version}).where('id', '=', id).execute();
+    }
+
     // Ce que les autres joueurs voient sur sa page
     async updatePrivacy(id: string, privacy: { showStats: boolean; showHistory: boolean }): Promise<void> {
         await this.db.updateTable('users')

@@ -17,8 +17,8 @@ export class GamesRepository {
         return this.db
             .selectFrom("games")
             .leftJoin("game_sessions", "game_sessions.game_code", "games.code")
-            .select(["games.code", "games.designation", "games.base_xp"])
-            .groupBy(["games.code", "games.designation", "games.base_xp"])
+            .select(["games.code", "games.designation", "games.base_xp", "games.added_in"])
+            .groupBy(["games.code", "games.designation", "games.base_xp", "games.added_in"])
             .orderBy(sql`count(game_sessions.id) filter (where game_sessions.started_at > now() - interval '30 days')`, "desc")
             .orderBy(sql`count(game_sessions.id)`, "desc")
             .orderBy(sql`games.code = 'SUDOKU'`, "desc")

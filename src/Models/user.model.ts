@@ -16,6 +16,8 @@ export interface User {
     linkedAccounts?: { provider: string; displayName: string | null }[];
     // Seulement dans GET /users/me : ce que les autres joueurs voient sur sa page
     privacy?: Privacy;
+    // Seulement dans GET /users/me : dernière version du site vue (null pour un compte tout neuf)
+    lastVersion?: string | null;
 }
 
 // Visibilité de sa page pour les autres joueurs (le pseudo, l'icône et le niveau restent visibles)

@@ -65,6 +65,25 @@
 		position : relative;
 	}
 
+	// Pastille « Nouveau » : jeu apparu depuis la dernière visite du joueur
+	.game-new {
+		position       : absolute;
+		z-index        : 3;
+		top            : -0.6rem;
+		right          : -0.6rem;
+		padding        : 0.25rem 0.75rem;
+		border-radius  : 999px;
+		background     : linear-gradient(135deg, #34d399, #10b981);
+		color          : #022c22;
+		font-size      : 1.05rem;
+		font-weight    : 800;
+		letter-spacing : 0.03em;
+		box-shadow     : 0 0.3rem 0.8rem rgba(16, 185, 129, 0.45);
+		pointer-events : none;
+		animation      : game-new-in 0.5s cubic-bezier(.2, .9, .3, 1.5) 0.4s backwards,
+		                 game-new-glow 2.4s ease-in-out 1s infinite;
+	}
+
 	// ---------- Stats du joueur, au survol : le panneau recouvre exactement la carte
 	.game-stats {
 		position        : absolute;
@@ -376,6 +395,19 @@
 	}
 }
 
+@keyframes game-new-in {
+	from {
+		opacity   : 0;
+		transform : scale(0.3) rotate(-12deg);
+	}
+}
+
+@keyframes game-new-glow {
+	50% {
+		box-shadow : 0 0.3rem 1.2rem rgba(52, 211, 153, 0.8);
+	}
+}
+
 @keyframes skeleton-in {
 	from {
 		opacity : 0;
@@ -402,6 +434,10 @@
 	.game-list.loading .skeleton-icon,
 	.game-list.loading .skeleton-title,
 	.game-list.loading .skeleton-pill {
+		animation : none;
+	}
+
+	.game-list .game-new {
 		animation : none;
 	}
 

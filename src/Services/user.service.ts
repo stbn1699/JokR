@@ -32,6 +32,15 @@ export const userService = {
         });
     },
 
+    // Version du site que le joueur vient de voir (popup des nouveautés)
+    async markVersionSeen(version: string): Promise<void> {
+        await api(`/users/me/version`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({version}),
+        });
+    },
+
     // Ce que les autres joueurs voient sur sa page
     async changePrivacy(privacy: Privacy): Promise<void> {
         await api(`/users/me/privacy`, {

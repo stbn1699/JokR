@@ -30,6 +30,8 @@ export type MeProfile = PublicUser & {
     linkedAccounts: { provider: string; displayName: string | null }[];
     // Ce que les autres joueurs voient sur sa page
     privacy: { showStats: boolean; showHistory: boolean };
+    // Dernière version du site vue (popup des nouveautés), null pour un compte tout neuf
+    lastVersion: string | null;
 };
 
 export class UsersService {
@@ -163,6 +165,10 @@ export class UsersService {
         }
     }
 
+    async markVersionSeen(userId: string, version: string): Promise<void> {
+        await this.repo.updateLastVersion(userId, version);
+    }
+
     async changePrivacy(userId: string, privacy: { showStats: boolean; showHistory: boolean }): Promise<void> {
         await this.repo.updatePrivacy(userId, privacy);
     }
@@ -205,6 +211,7 @@ export class UsersService {
             hasPassword: user.password !== null,
             linkedAccounts: identities.map(i => ({provider: i.provider, displayName: i.display_name})),
             privacy: {showStats: user.show_stats !== false, showHistory: user.show_history !== false},
+            lastVersion: user.last_version ?? null,
         };
     }
 }

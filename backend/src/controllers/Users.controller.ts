@@ -258,6 +258,16 @@ export function createUsersController(service: UsersService, results: GameResult
             res.status(200).json({status: 'ok', data: {username}});
         }),
 
+        // Version du site que le joueur vient de voir : { version } (ex. 1.7.0)
+        markVersionSeen: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const {version} = req.body ?? {};
+            if (typeof version !== 'string' || !/^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(version)) {
+                return res.status(400).json({status: 'error', message: 'Version invalide'});
+            }
+            await service.markVersionSeen(res.locals.userId!, version);
+            res.status(200).json({status: 'ok', data: {version}});
+        }),
+
         // Visibilité de sa page pour les autres joueurs : { showStats, showHistory }
         changePrivacy: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
             const {showStats, showHistory} = req.body ?? {};
