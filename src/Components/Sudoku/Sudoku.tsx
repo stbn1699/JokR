@@ -174,7 +174,8 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
                               daily={flow.victory.daily}
                               onNewGame={replayDate ? () => navigate("/defi")
                                   : daily ? () => navigate(`/playgame/SUDOKU`) : flow.newGame}
-                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}/>
+                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}
+                              back={replayDate ? null : daily ? "daily" : "home"}/>
             )}
         </div>
     );

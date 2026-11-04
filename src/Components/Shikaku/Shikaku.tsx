@@ -181,7 +181,8 @@ export default function Shikaku({daily = false, replayDate}: ShikakuProps) {
                               daily={flow.victory.daily}
                               onNewGame={replayDate ? () => navigate("/defi")
                                   : daily ? () => navigate(`/playgame/SHIKAKU`) : flow.newGame}
-                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}/>
+                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}
+                              back={replayDate ? null : daily ? "daily" : "home"}/>
             )}
         </div>
     );

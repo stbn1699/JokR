@@ -223,7 +223,8 @@ export default function Tectonic({daily = false, replayDate}: TectonicProps) {
                               daily={flow.victory.daily}
                               onNewGame={replayDate ? () => navigate("/defi")
                                   : daily ? () => navigate(`/playgame/TECTONIC`) : flow.newGame}
-                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}/>
+                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}
+                              back={replayDate ? null : daily ? "daily" : "home"}/>
             )}
         </div>
     );

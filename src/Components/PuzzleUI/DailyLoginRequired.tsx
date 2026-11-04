@@ -26,8 +26,8 @@ export default function DailyLoginRequired() {
                         Se connecter
                     </button>
                 </div>
-                <button type="button" className="daily-login-home" onClick={() => navigate("/")}>
-                    Retour à l'accueil
+                <button type="button" className="daily-login-home" onClick={() => navigate("/defi")}>
+                    Retour aux défis
                 </button>
             </div>
         </div>

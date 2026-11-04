@@ -198,7 +198,8 @@ export default function Queens({daily = false, replayDate}: QueensProps) {
                               daily={flow.victory.daily}
                               onNewGame={replayDate ? () => navigate("/defi")
                                   : daily ? () => navigate(`/playgame/QUEENS`) : flow.newGame}
-                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}/>
+                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}
+                              back={replayDate ? null : daily ? "daily" : "home"}/>
             )}
         </div>
     );

@@ -43,7 +43,14 @@ type SuccessPopupProps = {
     onNewGame: () => void;
     // Libellé du bouton "Nouvelle partie" (ex. "Partie libre" après un défi)
     newGameLabel?: string;
+    // Bouton de retour : accueil, page des défis (après un défi du jour), ou aucun (null)
+    back?: "home" | "daily" | null;
 };
+
+const BACK = {
+    home: {to: "/", label: "Retour à l'accueil", short: "Accueil"},
+    daily: {to: "/defi", label: "Retour aux défis", short: "Défis"},
+} as const;
 
 // start → base (gain de base en bleu) → awaitBonus (attend le « ×2 ») → bonus (en doré)
 // → sweep (le bleu recouvre le doré) → levelUp (niveau suivant)
@@ -65,7 +72,8 @@ const SWEEP_MS = 700;
  * à l'écran, avec une petite barre en bas pour relancer une partie ou revenir à l'accueil.
  */
 export function SuccessPopup(props: SuccessPopupProps) {
-    const {gameName, xpAwarded, creditsAwarded, rewardMultiplier = 1, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie"} = props;
+    const {gameName, xpAwarded, creditsAwarded, rewardMultiplier = 1, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie", back = "home"} = props;
+    const backTo = back ? BACK[back] : null;
     const modalRef = useRef<HTMLDivElement | null>(null);
     // Points de départ des particules (XP en bleu, crédits en orange)
     const xpGainRef = useRef<HTMLSpanElement | null>(null);
@@ -198,7 +206,9 @@ export function SuccessPopup(props: SuccessPopupProps) {
                 </span>
                 <span className="game-review-buttons">
                     <button type="button" className="modal-button" onClick={onNewGame}>{newGameLabel}</button>
-                    <button type="button" className="modal-button secondary" onClick={() => navigate('/')}>Accueil</button>
+                    {backTo && (
+                        <button type="button" className="modal-button secondary" onClick={() => navigate(backTo.to)}>{backTo.short}</button>
+                    )}
                 </span>
             </div>
         );
@@ -313,9 +323,11 @@ export function SuccessPopup(props: SuccessPopupProps) {
                     <button type="button" className="modal-button secondary" onClick={() => closeWith(() => setReviewing(true))}>
                         Voir la grille
                     </button>
-                    <button type="button" className="modal-button secondary" onClick={() => closeWith(() => navigate('/'))}>
-                        Retour à l'accueil
-                    </button>
+                    {backTo && (
+                        <button type="button" className="modal-button secondary" onClick={() => closeWith(() => navigate(backTo.to))}>
+                            {backTo.label}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

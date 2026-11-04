@@ -207,7 +207,8 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
                               daily={flow.victory.daily}
                               onNewGame={replayDate ? () => navigate("/defi")
                                   : daily ? () => navigate(`/playgame/RIKUDO`) : flow.newGame}
-                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}/>
+                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}
+                              back={replayDate ? null : daily ? "daily" : "home"}/>
             )}
         </div>
     );
