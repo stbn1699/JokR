@@ -1,21 +1,9 @@
 // Page d'un joueur : reprend la page Profil (Profile.scss), avec quelques chiffres clés en plus
-.profile.player-profile {
+.profile {
 	.player-since {
 		margin    : 0.6rem 0 0;
 		font-size : 1.1rem;
 		opacity   : 0.65;
-	}
-
-	.player-mine {
-		margin-top      : 0.6rem;
-		color           : #10b981;
-		font-size       : 1.15rem;
-		font-weight     : 600;
-		text-decoration : none;
-
-		&:hover {
-			text-decoration : underline;
-		}
 	}
 
 	// Classement, victoires, crédits, défis
@@ -65,6 +53,55 @@
 		}
 	}
 
+	// Partie masquée par le joueur
+	.player-private {
+		display       : flex;
+		align-items   : center;
+		gap           : 0.75rem;
+		width         : 100%;
+		box-sizing    : border-box;
+		margin-top    : 1.5rem;
+		padding       : 1rem 1.2rem;
+		border        : 2px dashed rgba(249, 250, 251, 0.2);
+		border-radius : 10px;
+		color         : rgba(249, 250, 251, 0.7);
+		font-size     : 1.15rem;
+		text-align    : left;
+
+		svg {
+			flex      : none;
+			font-size : 1.3rem;
+			opacity   : 0.8;
+		}
+	}
+
+	// Son propre profil : ce que les autres ne voient pas
+	.player-owner-note {
+		display     : flex;
+		flex-wrap   : wrap;
+		align-items : center;
+		justify-content : center;
+		gap         : 0.4rem;
+		margin      : 1rem 0 0;
+		font-size   : 1.05rem;
+		color       : rgba(249, 250, 251, 0.7);
+
+		button {
+			padding     : 0;
+			border      : none;
+			background  : none;
+			color       : #10b981;
+			font-family : inherit;
+			font-size   : inherit;
+			font-weight : 600;
+			cursor      : pointer;
+
+			&:hover {
+				text-decoration : underline;
+			}
+		}
+	}
+
 	.player-grid {
 		opacity : 0.6;
 	}
@@ -84,15 +121,8 @@
 	}
 }
 
-// Message d'erreur (joueur introuvable) : même lien de retour
-.profile .player-back {
-	margin-top      : 1rem;
-	color           : #10b981;
-	text-decoration : none;
-}
-
 @media (max-width: 600px) {
-	.profile.player-profile .player-tiles {
+	.profile .player-tiles {
 		grid-template-columns : repeat(2, minmax(0, 1fr));
 	}
 }

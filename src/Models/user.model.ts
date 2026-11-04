@@ -14,4 +14,14 @@ export interface User {
     hasPassword?: boolean;
     // Seulement dans GET /users/me : comptes Google / Discord liés
     linkedAccounts?: { provider: string; displayName: string | null }[];
+    // Seulement dans GET /users/me : ce que les autres joueurs voient sur sa page
+    privacy?: Privacy;
+}
+
+// Visibilité de sa page pour les autres joueurs (le pseudo, l'icône et le niveau restent visibles)
+export interface Privacy {
+    // chiffres clés, stats par jeu, XP et date d'inscription
+    showStats: boolean;
+    // dernières victoires
+    showHistory: boolean;
 }

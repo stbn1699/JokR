@@ -21,6 +21,8 @@ import {GameResultsRepository} from '../repository/GameResults.repository.js';
  * - GET /me/results : ses parties gagnées, par pages (JWT requis)
  * - PUT /me/password : change son mot de passe (JWT requis)
  * - PUT /me/avatar : change son icône de profil (JWT requis)
+ * - PUT /me/username : change son pseudo (JWT requis)
+ * - PUT /me/privacy : ce que les autres joueurs voient sur sa page (JWT requis)
  * - DELETE /me : supprime son compte (JWT + mot de passe requis)
  * - GET /:userId : profil public (sans email ni mot de passe)
  *
@@ -40,6 +42,10 @@ const loginLimiter = rateLimit({windowMs: 15 * 60 * 1000, limit: 10, standardHea
 const registerLimiter = rateLimit({windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: 'draft-7', legacyHeaders: false,
     message: {status: 'error', message: "Trop d'inscriptions depuis cette adresse, réessaie plus tard"}});
 
+// Changement de pseudo : 10 par heure (évite de changer de nom en boucle)
+const usernameLimiter = rateLimit({windowMs: 60 * 60 * 1000, limit: 10, standardHeaders: 'draft-7', legacyHeaders: false,
+    message: {status: 'error', message: 'Trop de changements de pseudo, réessaie plus tard'}});
+
 // Connexion Google / Discord : deux requêtes par connexion, d'où une limite plus large
 const oauthLimiter = rateLimit({windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false,
     message: {status: 'error', message: 'Trop de tentatives, réessaie dans quelques minutes'}});
@@ -54,6 +60,8 @@ UsersRoutes.post('/oauth/:provider/callback', oauthLimiter, optionalAuth, contro
 UsersRoutes.get('/me', requireAuth, controller.me);
 UsersRoutes.get('/me/results', requireAuth, controller.myResults);
 UsersRoutes.put('/me/avatar', requireAuth, controller.changeAvatar);
+UsersRoutes.put('/me/username', requireAuth, usernameLimiter, controller.changeUsername);
+UsersRoutes.put('/me/privacy', requireAuth, controller.changePrivacy);
 // ces deux routes vérifient le mot de passe : même limite de tentatives que la connexion
 UsersRoutes.put('/me/password', requireAuth, loginLimiter, controller.changePassword);
 UsersRoutes.delete('/me', requireAuth, loginLimiter, controller.deleteAccount);

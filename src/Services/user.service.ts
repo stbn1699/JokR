@@ -1,5 +1,5 @@
 import {api} from "../api/api.ts";
-import type {User} from "../Models/user.model.ts";
+import type {Privacy, User} from "../Models/user.model.ts";
 import type {RecentResult} from "../Models/gameResult.model.ts";
 import {clientHash} from "./hash.ts";
 
@@ -20,6 +20,24 @@ export const userService = {
             method: "PUT",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({avatar}),
+        });
+    },
+
+    // Nouveau pseudo (409 s'il est déjà pris)
+    async changeUsername(username: string): Promise<void> {
+        await api(`/users/me/username`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({username}),
+        });
+    },
+
+    // Ce que les autres joueurs voient sur sa page
+    async changePrivacy(privacy: Privacy): Promise<void> {
+        await api(`/users/me/privacy`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(privacy),
         });
     },
 

@@ -29,29 +29,10 @@
 		position : relative;
 	}
 
-	.profile-avatar-button {
-		position      : relative;
-		display       : block;
-		padding       : 0;
-		border        : none;
-		background    : none;
-		border-radius : 16%;
-		cursor        : pointer;
-		box-shadow    : 0 0.6rem 1.5rem rgba(0, 0, 0, 0.5);
-		transition    : transform 0.15s ease;
-
-		&:hover {
-			transform : scale(1.04);
-
-			.profile-avatar-edit {
-				opacity : 1;
-			}
-		}
-	}
-
-	// Crayon : on peut changer d'icône
+	// Crayon sur l'icône (son propre profil) : changer d'icône
 	.profile-avatar-edit {
 		position        : absolute;
+		z-index         : 2;
 		top             : -0.5rem;
 		right           : -0.5rem;
 		display         : flex;
@@ -59,13 +40,19 @@
 		justify-content : center;
 		width           : 2rem;
 		height          : 2rem;
+		padding         : 0;
+		border          : none;
 		border-radius   : 50%;
 		background      : #10b981;
 		color           : white;
 		font-size       : 0.9rem;
 		box-shadow      : 0 2px 6px rgba(0, 0, 0, 0.4);
-		opacity         : 0.85;
-		transition      : opacity 0.15s ease;
+		cursor          : pointer;
+		transition      : transform 0.15s ease;
+
+		&:hover {
+			transform : scale(1.1);
+		}
 	}
 
 	h1 {
@@ -148,24 +135,223 @@
 
 }
 
-// "Voir plus" sous l'historique
-.profile .profile-more {
-	margin        : 1rem 0 0;
-	padding       : 0.5rem 1.4rem;
-	border-radius : 999px;
-	border        : 2px solid rgba(229, 231, 235, 0.5);
-	background    : transparent;
-	color         : #f9fafb;
-	font-family   : inherit;
-	font-size     : 1.2rem;
-	cursor        : pointer;
+// ---------- Onglets Profil / Paramètres
+.profile .profile-page {
+	display        : flex;
+	flex-direction : column;
+	align-items    : center;
+	gap            : 1rem;
+	width          : min(36rem, 100%);
 
-	&:hover:not(:disabled) {
-		border-color : #10b981;
+	.profile-card {
+		width : 100%;
 	}
 }
 
-// Section "Mon compte"
+.profile .profile-tabs {
+	display       : inline-flex;
+	gap           : 0.25rem;
+	padding       : 0.3rem;
+	border        : 2px solid rgba(249, 250, 251, 0.2);
+	border-radius : 999px;
+	background    : rgba(2, 6, 23, 0.45);
+
+	button {
+		padding       : 0.5rem 1.6rem;
+		border        : none;
+		border-radius : 999px;
+		background    : transparent;
+		color         : #f9fafb;
+		font-family   : inherit;
+		font-size     : 1.3rem;
+		cursor        : pointer;
+		transition    : background 0.15s ease, color 0.15s ease;
+
+		&:hover {
+			background : rgba(249, 250, 251, 0.1);
+		}
+
+		&.selected {
+			background  : #f9fafb;
+			color       : #020617;
+			font-weight : 700;
+		}
+	}
+}
+
+// ---------- Onglet Paramètres : sections rangées
+.profile .profile-settings {
+	align-items : stretch;
+	text-align  : left;
+
+	> h1 {
+		text-align : center;
+	}
+
+	.settings-section {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.6rem;
+		padding        : 1.25rem 0;
+		border-bottom  : 1px solid rgba(249, 250, 251, 0.15);
+
+		h2 {
+			margin    : 0;
+			font-size : 1.6rem;
+		}
+	}
+
+	.settings-avatar {
+		display     : flex;
+		align-items : center;
+		gap         : 1.25rem;
+	}
+
+	.settings-row {
+		display : flex;
+		gap     : 0.6rem;
+
+		input {
+			flex          : 1;
+			min-width     : 0;
+			padding       : 0.6rem 0.8rem;
+			border-radius : 10px;
+			border        : 1px solid rgba(249, 250, 251, 0.5);
+			background    : transparent;
+			color         : #f9fafb;
+			font-family   : inherit;
+			font-size     : 1.2rem;
+		}
+	}
+
+	.settings-button {
+		flex          : none;
+		padding       : 0.55rem 1.3rem;
+		border-radius : 999px;
+		border        : none;
+		background    : #10b981;
+		color         : white;
+		font-family   : inherit;
+		font-size     : 1.2rem;
+		font-weight   : 600;
+		cursor        : pointer;
+
+		&:disabled {
+			opacity : 0.5;
+			cursor  : default;
+		}
+	}
+
+	.settings-hint {
+		margin    : 0;
+		font-size : 1.05rem;
+		color     : rgba(249, 250, 251, 0.65);
+	}
+
+	.account-success {
+		margin : 0;
+		color  : #3bf644;
+	}
+
+	.account-error {
+		margin : 0;
+		color  : #fca5a5;
+	}
+
+	// Interrupteurs de visibilité
+	.settings-toggles {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.5rem;
+		margin         : 0;
+		padding        : 0;
+		list-style     : none;
+
+		label {
+			display       : flex;
+			align-items   : center;
+			gap           : 1rem;
+			padding       : 0.7rem 0.9rem;
+			border        : 1px solid rgba(249, 250, 251, 0.2);
+			border-radius : 10px;
+			cursor        : pointer;
+		}
+	}
+
+	.settings-toggle-text {
+		flex           : 1;
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.15rem;
+
+		strong {
+			font-size : 1.25rem;
+		}
+
+		small {
+			font-size : 1rem;
+			color     : rgba(249, 250, 251, 0.6);
+		}
+	}
+
+	// Interrupteur : rond qui glisse, vert quand c'est visible
+	.settings-switch {
+		flex          : none;
+		position      : relative;
+		width         : 2.8rem;
+		height        : 1.6rem;
+		margin        : 0;
+		border-radius : 999px;
+		background    : rgba(249, 250, 251, 0.25);
+		appearance    : none;
+		cursor        : pointer;
+		transition    : background 0.2s ease;
+
+		&::after {
+			content       : "";
+			position      : absolute;
+			top           : 0.2rem;
+			left          : 0.2rem;
+			width         : 1.2rem;
+			height        : 1.2rem;
+			border-radius : 50%;
+			background    : #f9fafb;
+			box-shadow    : 0 1px 3px rgba(0, 0, 0, 0.4);
+			transition    : transform 0.2s ease;
+		}
+
+		&:checked {
+			background : #10b981;
+
+			&::after {
+				transform : translateX(1.2rem);
+			}
+		}
+
+		&:focus-visible {
+			outline        : 2px solid #93c5fd;
+			outline-offset : 2px;
+		}
+
+		&:disabled {
+			opacity : 0.6;
+		}
+	}
+
+	// Comptes liés, mot de passe, zone de danger
+	.account-settings {
+		margin-top : 0;
+		padding-top : 1.25rem;
+
+		h2 {
+			margin     : 0;
+			font-size  : 1.6rem;
+			text-align : left;
+		}
+	}
+}
+
+// Section "Compte" (comptes liés, mot de passe, zone de danger)
 .profile .account-settings {
 	width      : 100%;
 	margin-top : 1rem;

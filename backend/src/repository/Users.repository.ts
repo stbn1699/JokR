@@ -45,6 +45,19 @@ export class UsersRepository {
         await this.db.updateTable('users').set({avatar}).where('id', '=', id).execute();
     }
 
+    // Change le pseudo (la contrainte UNIQUE refuse un pseudo déjà pris)
+    async updateUsername(id: string, username: string): Promise<void> {
+        await this.db.updateTable('users').set({username}).where('id', '=', id).execute();
+    }
+
+    // Ce que les autres joueurs voient sur sa page
+    async updatePrivacy(id: string, privacy: { showStats: boolean; showHistory: boolean }): Promise<void> {
+        await this.db.updateTable('users')
+            .set({show_stats: privacy.showStats, show_history: privacy.showHistory})
+            .where('id', '=', id)
+            .execute();
+    }
+
     // Remplace le mot de passe (déjà hashé)
     async updatePassword(id: string, passwordHash: string): Promise<void> {
         await this.db.updateTable('users').set({password: passwordHash}).where('id', '=', id).execute();

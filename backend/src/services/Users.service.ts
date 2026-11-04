@@ -28,6 +28,8 @@ export type MeProfile = PublicUser & {
     isAdmin: boolean;
     hasPassword: boolean;
     linkedAccounts: { provider: string; displayName: string | null }[];
+    // Ce que les autres joueurs voient sur sa page
+    privacy: { showStats: boolean; showHistory: boolean };
 };
 
 export class UsersService {
@@ -151,6 +153,20 @@ export class UsersService {
         await this.repo.updateAvatar(userId, avatar);
     }
 
+    // Lève UserAlreadyExistsError si le pseudo est déjà pris
+    async changeUsername(userId: string, username: string): Promise<void> {
+        try {
+            await this.repo.updateUsername(userId, username);
+        } catch (err) {
+            if (uniqueViolation(err) !== null) throw new UserAlreadyExistsError();
+            throw err;
+        }
+    }
+
+    async changePrivacy(userId: string, privacy: { showStats: boolean; showHistory: boolean }): Promise<void> {
+        await this.repo.updatePrivacy(userId, privacy);
+    }
+
     // false si le mot de passe actuel est incorrect.
     // Un joueur sans mot de passe (Google / Discord) en définit un sans donner l'actuel.
     async changePassword(userId: string, currentPassword: string | undefined, newPassword: string): Promise<boolean> {
@@ -188,6 +204,7 @@ export class UsersService {
             isAdmin: user.is_admin === true,
             hasPassword: user.password !== null,
             linkedAccounts: identities.map(i => ({provider: i.provider, displayName: i.display_name})),
+            privacy: {showStats: user.show_stats !== false, showHistory: user.show_history !== false},
         };
     }
 }

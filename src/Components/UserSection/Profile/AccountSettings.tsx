@@ -114,7 +114,7 @@ export default function AccountSettings({onLogout}: AccountSettingsProps) {
 
     return (
         <div className="account-settings">
-            <h2>Mon compte</h2>
+            <h2>Compte</h2>
 
             {shown.length > 0 && (
                 <div className="account-linked">

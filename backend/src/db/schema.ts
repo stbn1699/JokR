@@ -28,6 +28,9 @@ export type UsersTable = {
     is_admin: Generated<boolean>;
     // Icône de profil : graine texte (a-z0-9), dessinée par le site
     avatar: Generated<string>;
+    // Visibilité de sa page pour les autres joueurs (stats, dernières victoires)
+    show_stats: Generated<boolean>;
+    show_history: Generated<boolean>;
 };
 
 // Comptes Google / Discord liés à un joueur

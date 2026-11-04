@@ -12,7 +12,8 @@ export class PlayersRepository {
     async byUsername(username: string) {
         return this.db
             .selectFrom("users")
-            .select(["id", "username", "avatar", "user_level as level", "user_xp as xp", "credits", "created_at as createdAt"])
+            .select(["id", "username", "avatar", "user_level as level", "user_xp as xp", "credits", "created_at as createdAt",
+                "show_stats as showStats", "show_history as showHistory"])
             .where("username", "=", username)
             .executeTakeFirst();
     }

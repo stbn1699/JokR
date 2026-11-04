@@ -1,10 +1,7 @@
 import {api} from "../api/api.ts";
 
-// Profil public d'un joueur (GET /players/:username)
-export interface PlayerProfile {
-    username: string;
-    avatar: string;
-    level: number;
+// Stats d'un joueur (masquées s'il a choisi de ne pas les montrer)
+export interface PlayerStats {
     xp: number;
     credits: number;
     createdAt: string;
@@ -25,8 +22,19 @@ export interface PlayerProfile {
     }[];
     // Défis du jour réussis, et gagnés (meilleur temps du jour)
     daily: { completions: number; firsts: number };
+}
+
+// Profil public d'un joueur (GET /players/:username)
+// Toujours visibles : pseudo, icône, niveau. stats / recent valent null si le joueur les a masqués.
+export interface PlayerProfile {
+    username: string;
+    avatar: string;
+    level: number;
+    // C'est le joueur connecté : il voit toujours tout
+    isOwner: boolean;
+    stats: PlayerStats | null;
     // Dernières victoires
-    recent: { code: string; name: string; gridSize: number; emptyCells: number; durationMs: number; finishedAt: string }[];
+    recent: { code: string; name: string; gridSize: number; emptyCells: number; durationMs: number; finishedAt: string }[] | null;
 }
 
 export const playerService = {

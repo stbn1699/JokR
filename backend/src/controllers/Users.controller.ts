@@ -241,6 +241,33 @@ export function createUsersController(service: UsersService, results: GameResult
             res.status(200).json({status: 'ok', data: {avatar}});
         }),
 
+        // Change le pseudo : { username } (mêmes règles qu'à l'inscription)
+        changeUsername: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const {username} = req.body ?? {};
+            if (!isNonEmptyString(username, 30) || !USERNAME_REGEX.test(username)) {
+                return res.status(400).json({status: 'error', message: USERNAME_RULE});
+            }
+            try {
+                await service.changeUsername(res.locals.userId!, username);
+            } catch (err) {
+                if (err instanceof UserAlreadyExistsError) {
+                    return res.status(409).json({status: 'error', message: 'Ce pseudo est déjà pris'});
+                }
+                throw err;
+            }
+            res.status(200).json({status: 'ok', data: {username}});
+        }),
+
+        // Visibilité de sa page pour les autres joueurs : { showStats, showHistory }
+        changePrivacy: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const {showStats, showHistory} = req.body ?? {};
+            if (typeof showStats !== 'boolean' || typeof showHistory !== 'boolean') {
+                return res.status(400).json({status: 'error', message: 'Réglages de visibilité invalides'});
+            }
+            await service.changePrivacy(res.locals.userId!, {showStats, showHistory});
+            res.status(200).json({status: 'ok', data: {showStats, showHistory}});
+        }),
+
         // Parties gagnées par le joueur connecté, par pages : ?limit=10&offset=0 (limit ≤ 50)
         myResults: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
             const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
