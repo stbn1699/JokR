@@ -4,7 +4,7 @@
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
  * - Les onglets Daily (défis du jour, en orange), Puzzle (accueil : Sudoku, Binero, Rikudo, Tectonic, Galaxies, Shikaku, Queens…),
- *   Hasard (jeux de hasard, à venir), Classement, et Stats pour l'administrateur
+ *   Hasard (jeux de hasard, à venir), Boutique, Classement, et Stats pour l'administrateur
  * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits, cloche des notifications, puis icône de profil
  *   (contour selon le niveau) vers le profil (la déconnexion est dans le profil)
  * - Invité : icône pour aller à la page de connexion
@@ -25,6 +25,7 @@ import {createPortal} from "react-dom";
 import {useTierUp} from "../Avatar/useTierUp.ts";
 import TierUpPopup from "../Avatar/TierUpPopup.tsx";
 import LevelBubble from "../Avatar/LevelBubble.tsx";
+import CustomizeButton from "../Shop/CustomizeButton.tsx";
 import {useState} from "react";
 
 // Onglets du header ; `match` dit si une adresse appartient à l'onglet, `highlight` le met en orange
@@ -32,6 +33,7 @@ const TABS = [
     {label: "Daily", to: "/defi", match: (path: string) => path.startsWith("/defi"), highlight: true},
     {label: "Puzzle", to: "/", match: (path: string) => path === "/" || path.startsWith("/playgame")},
     {label: "Hasard", to: "/hasard", match: (path: string) => path.startsWith("/hasard")},
+    {label: "Boutique", to: "/boutique", match: (path: string) => path.startsWith("/boutique")},
     {label: "Classement", to: "/classements", match: (path: string) => path.startsWith("/classements")},
     {label: "Stats", to: "/stats", match: (path: string) => path.startsWith("/stats"), adminOnly: true},
 ];
@@ -117,6 +119,7 @@ export default function Header() {
                             <span>{credits}</span>
                         </span>
 
+                        <CustomizeButton/>
                         <NotificationBell enabled={isLoggedIn}/>
                         <button type="button" className="header-avatar" title="Mon profil" onClick={() => navigate("/profile")}>
                             <Avatar seed={auth.avatar} fallback={auth.username ?? auth.userId ?? undefined} size={2.5}

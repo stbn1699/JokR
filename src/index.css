@@ -15,8 +15,8 @@ html{
 			radial-gradient(circle at 70% 80%, rgba(30,27,75,.50) 0%, rgba(2,6,23,0) 75%),
 			#020617;
 
-	background-size: 260% 260%;
-	animation: ambientDrift 120s ease-in-out infinite;
+	/* Fond fixé à l'écran : on voit toutes les couleurs du dégradé, sans mouvement */
+	background-attachment: fixed;
 	color:#f9fafb;
 	font-family: 'Josefin Slab', serif;
 }
@@ -49,10 +49,3 @@ html::before{
 	mix-blend-mode: overlay;
 }
 
-@keyframes ambientDrift{
-	0%   { background-position:   0%   0%; }
-	25%  { background-position:  80%  20%; }
-	50%  { background-position: 100% 100%; }
-	75%  { background-position:  20%  80%; }
-	100% { background-position:   0%   0%; }
-}

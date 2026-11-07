@@ -156,3 +156,77 @@
 		display : none;
 	}
 }
+
+// Fond du site débloqué par le palier
+.tier-up-unlock {
+	display       : flex;
+	align-items   : center;
+	gap           : 0.75rem;
+	margin        : 1rem auto 0;
+	padding       : 0.6rem 0.8rem;
+	max-width     : 22rem;
+	border        : 1px solid rgba(251, 191, 36, 0.35);
+	border-radius : 12px;
+	background    : rgba(251, 191, 36, 0.08);
+	text-align    : left;
+	animation     : tier-up-unlock-in 0.5s ease-out 1.6s both;
+}
+
+.tier-up-unlock-swatch {
+	flex          : 0 0 auto;
+	width         : 2.8rem;
+	height        : 2.8rem;
+	border        : 2px solid rgba(249, 250, 251, 0.35);
+	border-radius : 8px;
+}
+
+.tier-up-unlock-text {
+	display        : flex;
+	flex           : 1;
+	flex-direction : column;
+	min-width      : 0;
+
+	strong {
+		color : #fbbf24;
+	}
+
+	span {
+		opacity : 0.85;
+	}
+}
+
+.tier-up-unlock-wear {
+	flex          : 0 0 auto;
+	padding       : 0.35rem 0.8rem;
+	border        : 2px solid #34d399;
+	border-radius : 999px;
+	background    : transparent;
+	color         : #f9fafb;
+	font-family   : inherit;
+	font-size     : 0.95rem;
+	cursor        : pointer;
+
+	&:hover:not(:disabled) {
+		background : rgba(52, 211, 153, 0.15);
+	}
+
+	&:disabled {
+		opacity : 0.6;
+	}
+}
+
+.tier-up-unlock-done {
+	color     : #34d399;
+	font-size : 0.95rem;
+}
+
+@keyframes tier-up-unlock-in {
+	from { opacity : 0; transform : translateY(0.5rem); }
+	to { opacity : 1; transform : none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tier-up-unlock {
+		animation : none;
+	}
+}

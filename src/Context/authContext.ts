@@ -15,6 +15,8 @@ export type AuthState = {
     avatar: string | null;
     // Administrateur : accès à la page Statistiques
     isAdmin: boolean;
+    // Fond du site choisi dans la boutique (null : fond par défaut)
+    background: string | null;
 };
 
 export type AuthContextValue = AuthState & {
@@ -25,6 +27,9 @@ export type AuthContextValue = AuthState & {
     refresh: () => Promise<void>;
     // Icône de profil changée : le header se met à jour tout de suite
     setAvatar: (avatar: string) => void;
+    // Fond choisi dans la boutique (appliqué tout de suite au site), et crédits après un achat
+    setBackground: (background: string | null) => void;
+    setCredits: (credits: number) => void;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

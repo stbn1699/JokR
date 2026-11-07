@@ -32,6 +32,8 @@ export type MeProfile = PublicUser & {
     privacy: { showStats: boolean; showHistory: boolean };
     // Dernière version du site vue (popup des nouveautés), null pour un compte tout neuf
     lastVersion: string | null;
+    // Fond du site choisi dans la boutique (null : fond par défaut)
+    background: string | null;
 };
 
 export class UsersService {
@@ -212,6 +214,7 @@ export class UsersService {
             linkedAccounts: identities.map(i => ({provider: i.provider, displayName: i.display_name})),
             privacy: {showStats: user.show_stats !== false, showHistory: user.show_history !== false},
             lastVersion: user.last_version ?? null,
+            background: user.background ?? null,
         };
     }
 }

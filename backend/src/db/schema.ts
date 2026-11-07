@@ -35,6 +35,16 @@ export type UsersTable = {
     show_history: Generated<boolean>;
     // Dernière version du site vue (popup des nouveautés), null pour un compte tout neuf
     last_version: string | null;
+    // Fond du site choisi dans la boutique (null : fond par défaut)
+    background: string | null;
+};
+
+// Boutique : objets achetés
+export type UserItemsTable = {
+    user_id: string;
+    item_id: string;
+    price: number;
+    purchased_at: Generated<Date>;
 };
 
 // Comptes Google / Discord liés à un joueur
@@ -166,5 +176,6 @@ export type DB = {
     friendships: FriendshipsTable;
     friend_challenges: FriendChallengesTable;
     friend_challenge_players: FriendChallengePlayersTable;
+    user_items: UserItemsTable;
 };
 

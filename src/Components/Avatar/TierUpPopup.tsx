@@ -2,15 +2,19 @@
  * Popup « Nouvelle couleur ! » quand le joueur passe un palier de niveau :
  * son icône avec l'ancien contour, puis le nouveau s'écrase dessus et le remplace (comme le ×2 des défis),
  * le nom de la nouvelle couleur, et la frise des couleurs avec sa place (« toi »).
+ * Le palier débloque aussi son dégradé comme fond du site : on l'annonce, avec un bouton pour le mettre tout de suite.
  */
 
 import "./TierUpPopup.scss";
 import "../SuccessPopup/SuccessPopup.scss";
-import {useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import {LEVEL_TIERS} from "../../Services/leveling.ts";
 import {confetti} from "../Confetti/Confetti.tsx";
 import Avatar from "./Avatar.tsx";
 import TierTrack from "./TierTrack.tsx";
+import {useAuth} from "../../Context/authContext.ts";
+import {shopService} from "../../Services/shop.service.ts";
+import {gradientCss, tierGradientAt} from "../../Services/shopCatalog.ts";
 
 type TierUpPopupProps = {
     seed?: string;
@@ -29,6 +33,21 @@ export default function TierUpPopup({seed, fallback, level, fromIndex, toIndex, 
     const from = LEVEL_TIERS[fromIndex]!;
     const to = LEVEL_TIERS[toIndex]!;
     const buttonRef = useRef<HTMLButtonElement>(null);
+    const auth = useAuth();
+    const background = tierGradientAt(to.min);
+    const [wearing, setWearing] = useState<"idle" | "busy" | "done" | "error">("idle");
+
+    async function wear() {
+        if (!background) return;
+        setWearing("busy");
+        try {
+            await shopService.setBackground(background.id);
+            auth.setBackground(background.id);
+            setWearing("done");
+        } catch {
+            setWearing("error");
+        }
+    }
 
     useEffect(() => {
         const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -66,6 +85,23 @@ export default function TierUpPopup({seed, fallback, level, fromIndex, toIndex, 
                 <p className="tier-up-sub">Ton contour passe de {from.name.toLowerCase()} à {to.name.toLowerCase()}.</p>
 
                 <TierTrack level={level}/>
+
+                {background && (
+                    <div className="tier-up-unlock">
+                        <span className="tier-up-unlock-swatch" style={{background: gradientCss(background)}} aria-hidden/>
+                        <span className="tier-up-unlock-text">
+                            <strong>Nouveau fond débloqué</strong>
+                            <span>Dégradé {background.name}</span>
+                        </span>
+                        {auth.background === background.id ? (
+                            <span className="tier-up-unlock-done">Fond actuel</span>
+                        ) : (
+                            <button type="button" className="tier-up-unlock-wear" disabled={wearing === "busy"} onClick={wear}>
+                                {wearing === "error" ? "Réessayer" : "Mettre ce fond"}
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 <div className="modal-buttons">
                     <button type="button" className="modal-button" ref={buttonRef} onClick={onClose}>Super !</button>

@@ -33,6 +33,8 @@ import AppFooter from "./Components/AppFooter/AppFooter.tsx";
 import Stats from "./Components/Stats/Stats.tsx";
 import PlayerProfile from "./Components/PlayerProfile/PlayerProfile.tsx";
 import FriendChallengePage from "./Components/FriendChallenge/FriendChallengePage.tsx";
+import ShopPage from "./Components/Shop/ShopPage.tsx";
+import GradientsPage from "./Components/Shop/GradientsPage.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -68,6 +70,8 @@ function App() {
                 <Route path="/classements" element={<Leaderboard/>}/>
                 <Route path="/nouveautes" element={<Changelog/>}/>
                 <Route path="/hasard" element={<Hasard/>}/>
+                <Route path="/boutique" element={<ShopPage/>}/>
+                <Route path="/boutique/fonds/degrades" element={<GradientsPage/>}/>
                 <Route path="/stats" element={<Stats/>}/>
                 {/* Profil public d'un joueur (depuis les classements) */}
                 <Route path="/joueur/:username" element={<PlayerProfile/>}/>

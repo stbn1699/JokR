@@ -302,9 +302,21 @@
 			gap : 0.15rem;
 		}
 
+		// 5 onglets (6 pour l'administrateur) : plus serrés, et défilement si ça ne tient toujours pas
+		.header-tabs {
+			justify-content : safe center;
+			overflow-x      : auto;
+			scrollbar-width : none;
+
+			&::-webkit-scrollbar {
+				display : none;
+			}
+		}
+
 		.header-tab {
-			padding   : 0.25rem 0.7rem;
-			font-size : 1.1rem;
+			flex-shrink : 0;
+			padding     : 0.2rem 0.4rem;
+			font-size   : 0.98rem;
 		}
 
 		.usersection {
