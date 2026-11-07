@@ -1,3 +1,4 @@
+import {clampXp} from "../utils/xpBounds.js";
 import {countTectonicClues, generateTectonic, isTectonicSolution, type TectonicPuzzle} from "../utils/tectonic.js";
 import {creditsFor, creditsTable} from "../utils/credits.js";
 
@@ -33,13 +34,13 @@ export class TectonicService {
 
     /*
      * XP gagnée : référence = baseXp pour une grille 6×6 aux deux tiers vide.
-     * Plus la grille est grande et plus elle est vide, plus elle rapporte. Bornée entre 20 et 300.
+     * Plus la grille est grande et plus elle est vide, plus elle rapporte. Bornée entre 5 et 500 (voir xpBounds).
      */
     computeXp(baseXp: number, size: number, emptyCells: number): number {
-        const sizeFactor = Math.pow((size * size) / 36, 0.6);
-        const emptyFactor = Math.pow((emptyCells / (size * size)) / (2 / 3), 1.3);
-        const xp = Math.round(baseXp * sizeFactor * emptyFactor);
-        return Math.max(20, Math.min(xp, 300));
+        // exposants élevés : petites grilles très remplies → peu d'XP, grandes grilles presque vides → beaucoup
+        const sizeFactor = Math.pow((size * size) / 36, 0.85);
+        const emptyFactor = Math.pow((emptyCells / (size * size)) / (2 / 3), 2);
+        return clampXp(baseXp * sizeFactor * emptyFactor);
     }
 
     // Crédits gagnés (1 à 3) selon la difficulté, dans la plage proposée pour cette taille

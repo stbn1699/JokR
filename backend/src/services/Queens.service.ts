@@ -1,3 +1,4 @@
+import {clampXp} from "../utils/xpBounds.js";
 import {generateQueens, isQueensSolution, type QueensPuzzle} from "../utils/queens.js";
 import {creditsFor} from "../utils/credits.js";
 
@@ -28,14 +29,14 @@ export class QueensService {
     /*
      * XP gagnée : référence = baseXp pour une grille 8×8 sans aide.
      * Plus la grille est grande, plus elle rapporte ; chaque dame donnée en retire un peu
-     * (avec toute l'aide possible, moitié moins). Bornée entre 20 et 300.
+     * (avec toute l'aide possible, 70 % de moins). Bornée entre 5 et 500 (voir xpBounds).
      */
     computeXp(baseXp: number, size: number, hints: number): number {
         const limits = queensLimits(size);
-        const sizeFactor = Math.pow((size * size) / 64, 0.6);
-        const helpFactor = limits && limits.maxHints > 0 ? 1 - 0.5 * (hints / limits.maxHints) : 1;
-        const xp = Math.round(baseXp * sizeFactor * helpFactor);
-        return Math.max(20, Math.min(xp, 300));
+        // grandes grilles sans aide → beaucoup d'XP ; toute l'aide possible retire 70 % de l'XP
+        const sizeFactor = Math.pow((size * size) / 64, 0.85);
+        const helpFactor = limits && limits.maxHints > 0 ? 1 - 0.7 * (hints / limits.maxHints) : 1;
+        return clampXp(baseXp * sizeFactor * helpFactor);
     }
 
     // Crédits gagnés (1 à 3) : moins il y a d'aide, plus on en gagne

@@ -1,3 +1,4 @@
+import {clampXp} from "../utils/xpBounds.js";
 import {generateSudoku} from "../utils/sudokuGenerator.js";
 import {creditsFor, creditsTable} from "../utils/credits.js";
 
@@ -44,12 +45,12 @@ export class SudokuService {
         return creditsTable(SUDOKU_LIMITS.minEmptyCells, SUDOKU_LIMITS.maxEmptyCells);
     }
 
-    // XP gagnée selon la difficulté : xp = baseXp × (40 / cluesCount)^1.1, bornée entre 20 et 300
+    // XP gagnée selon la difficulté : xp = baseXp × (40 / cluesCount)^2.2, bornée (voir xpBounds)
+    // Exposant élevé : une grille très remplie rapporte peu, une grille presque vide beaucoup
     computeXp(baseXp: number, cluesCount: number): number {
         const referenceClues = 40;
-        const exponent = 1.1;
-        const xp = Math.round(baseXp * Math.pow(referenceClues / Math.max(1, cluesCount), exponent));
-        return Math.max(20, Math.min(xp, 300));
+        const exponent = 2.2;
+        return clampXp(baseXp * Math.pow(referenceClues / Math.max(1, cluesCount), exponent));
     }
 
     // true si chaque chiffre donné au départ (case non nulle du puzzle) est toujours à sa place

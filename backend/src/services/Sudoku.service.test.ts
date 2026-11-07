@@ -74,10 +74,10 @@ describe("SudokuService.computeXp", () => {
         expect(service.computeXp(50, 25)).toBeGreaterThan(service.computeXp(50, 40));
     });
 
-    it("reste entre 20 et 300", () => {
-        expect(service.computeXp(10, 81)).toBe(20);
-        expect(service.computeXp(1000, 17)).toBe(300);
-        expect(service.computeXp(50, 0)).toBe(300);
+    it("reste entre 5 et 500", () => {
+        expect(service.computeXp(10, 81)).toBe(5);
+        expect(service.computeXp(1000, 17)).toBe(500);
+        expect(service.computeXp(50, 0)).toBe(500);
     });
 });
 

@@ -14,9 +14,9 @@ describe("BineroService.computeXp", () => {
         expect(service.computeXp(50, 8, 44)).toBeGreaterThan(service.computeXp(50, 8, 20));
     });
 
-    it("reste entre 20 et 300", () => {
-        expect(service.computeXp(50, 6, 1)).toBe(20);
-        expect(service.computeXp(5000, 12, 80)).toBe(300);
+    it("reste entre 5 et 500", () => {
+        expect(service.computeXp(50, 6, 1)).toBe(5);
+        expect(service.computeXp(5000, 12, 80)).toBe(500);
     });
 });
 
