@@ -5,8 +5,8 @@
  * - Le logo JokR (cliquable pour retourner à l'accueil)
  * - Les onglets Daily (défis du jour, en orange), Puzzle (accueil : Sudoku, Binero, Rikudo, Tectonic, Galaxies, Shikaku, Queens…),
  *   Hasard (jeux de hasard, à venir), Classement, et Stats pour l'administrateur
- * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits, puis icône de profil (contour selon le niveau)
- *   vers le profil (la déconnexion est dans le profil)
+ * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits, cloche des notifications, puis icône de profil
+ *   (contour selon le niveau) vers le profil (la déconnexion est dans le profil)
  * - Invité : icône pour aller à la page de connexion
  *
  * Les infos viennent de l'AuthContext : le header se met à jour dès qu'elles changent.
@@ -15,6 +15,7 @@
 import "./Header.scss"
 import {FaCoins, FaStar, FaUser} from "react-icons/fa";
 import Avatar from "../Avatar/Avatar.tsx";
+import NotificationBell from "../Notifications/NotificationBell.tsx";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
@@ -88,6 +89,7 @@ export default function Header() {
                             <span>{credits}</span>
                         </span>
 
+                        <NotificationBell enabled={isLoggedIn}/>
                         <button type="button" className="header-avatar" title="Mon profil" onClick={() => navigate("/profile")}>
                             <Avatar seed={auth.avatar} fallback={auth.username ?? auth.userId ?? undefined} size={2.5}
                                     level={level} title="Mon profil"/>

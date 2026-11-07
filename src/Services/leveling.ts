@@ -6,6 +6,19 @@ export function xpToNextLevel(level: number): number {
     return Math.ceil(LEVEL_XP_CAP * (1 - Math.exp(-level / LEVEL_XP_RAMP)));
 }
 
+/**
+ * Progression avant un gain d'XP déjà reçu (l'inverse d'un gain) : redescend de niveau si besoin.
+ * Sert à rejouer l'animation du header pour un gain donné pendant l'absence du joueur.
+ */
+export function xpBefore(level: number, xp: number, gained: number): { level: number; xp: number } {
+    let [l, x] = [level, xp - gained];
+    while (x < 0 && l > 1) {
+        l--;
+        x += xpToNextLevel(l);
+    }
+    return {level: l, xp: Math.max(0, x)};
+}
+
 // Palier de niveau : couleur du contour de l'icône de profil (reprend les anciennes icônes de niveau)
 export type LevelTier = "copper" | "silver" | "gold" | "diamond";
 

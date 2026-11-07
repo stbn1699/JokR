@@ -105,6 +105,30 @@ export type GameSessionsTable = {
     failed_attempts: Generated<number>;
 };
 
+// Notifications des joueurs (cloche du header)
+export type NotificationsTable = {
+    id: Generated<string>;
+    user_id: string;
+    // sorte : daily_results (places aux défis d'un jour)
+    kind: string;
+    // ce qu'elle concerne (ex. date du défi) : une seule par joueur, sorte et ref
+    ref: string;
+    // lu tel quel (JSON déjà décodé), écrit sous forme de texte JSON
+    data: ColumnType<unknown, string, string>;
+    created_at: Generated<Date>;
+    // null tant que le joueur ne l'a pas vue
+    read_at: Date | null;
+};
+
+// Amis : demande (pending) puis amitié acceptée (accepted)
+export type FriendshipsTable = {
+    requester_id: string;
+    addressee_id: string;
+    status: Generated<"pending" | "accepted">;
+    created_at: Generated<Date>;
+    accepted_at: Date | null;
+};
+
 export type GameMode = "free" | "daily" | "replay";
 export type Device = "mobile" | "tablet" | "desktop";
 
@@ -117,5 +141,7 @@ export type DB = {
     daily_challenges: DailyChallengesTable;
     daily_results: DailyResultsTable;
     game_sessions: GameSessionsTable;
+    notifications: NotificationsTable;
+    friendships: FriendshipsTable;
 };
 

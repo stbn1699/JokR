@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {levelTier, xpSteps, xpToNextLevel} from "./leveling.ts";
+import {levelTier, xpBefore, xpSteps, xpToNextLevel} from "./leveling.ts";
 
 describe("xpToNextLevel", () => {
     it("utilise la même formule que le backend", () => {
@@ -44,5 +44,20 @@ describe("xpSteps", () => {
 
     it("renvoie une étape vide pour un gain nul", () => {
         expect(xpSteps(3, 10, 0)).toEqual([{level: 3, from: 10, to: 10, max: 286, levelUp: false}]);
+    });
+});
+
+describe("xpBefore", () => {
+    it("retire l'XP dans le niveau", () => {
+        expect(xpBefore(3, 120, 100)).toEqual({level: 3, xp: 20});
+    });
+
+    it("redescend de niveau si le gain l'avait fait monter", () => {
+        // niveau 1 → 2 il faut 100 XP : 80 au niveau 1 + 50 = niveau 2 avec 30
+        expect(xpBefore(2, 30, 50)).toEqual({level: 1, xp: 80});
+    });
+
+    it("ne descend jamais sous le niveau 1", () => {
+        expect(xpBefore(1, 10, 500)).toEqual({level: 1, xp: 0});
     });
 });

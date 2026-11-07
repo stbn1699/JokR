@@ -27,7 +27,7 @@ const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
  *   et résultats du joueur connecté
  * - replay : rejoue le défi d'un jour passé ; c'est une partie normale (XP normale, hors classement du jour)
  */
-export function createDailyController(service: DailyService) {
+export function createDailyController(service: DailyService, friendIds: (userId: string) => Promise<string[]> = async () => []) {
     const gameParam = (req: Request): DailyGameCode | null => {
         const code = routeParam(req.params, "game")?.toUpperCase() ?? "";
         return isDailyGame(code) ? code : null;
@@ -152,8 +152,10 @@ export function createDailyController(service: DailyService) {
             }
             const date = requested;
             const userId = res.locals.userId;
+            // ?amis=1 : seulement le joueur connecté et ses amis
+            const members = req.query.amis === "1" && userId ? [userId, ...await friendIds(userId)] : undefined;
             const [entries, me] = await Promise.all([
-                service.leaderboard(code, date),
+                service.leaderboard(code, date, 20, members),
                 userId ? service.resultOf(code, date, userId) : Promise.resolve(null),
             ]);
             res.status(200).json({status: "ok", data: {date, nextInMs: nextDailyChange().getTime() - Date.now(), entries, me}});

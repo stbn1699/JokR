@@ -4,9 +4,13 @@ import {createDb} from "../db/kysely.js";
 import {optionalAuth, requireAuth} from "../middleware/auth.js";
 import {createDailyController} from "../controllers/Daily.controller.js";
 import {createDailyService} from "../services/daily.js";
+import {FriendsRepository} from "../repository/Friends.repository.js";
 
 const router = Router();
-const controller = createDailyController(createDailyService(createDb(pool)));
+const db = createDb(pool);
+const friends = new FriendsRepository(db);
+// Filtre « Amis » du classement : identifiants des amis du joueur connecté
+const controller = createDailyController(createDailyService(db), userId => friends.friendIds(userId));
 
 // GET /daily : défis du jour (et résultats du joueur connecté)
 router.get("/", optionalAuth, controller.overview);

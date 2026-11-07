@@ -67,6 +67,39 @@
 		}
 	}
 
+	// ---------- Filtre : tout le monde / mes amis
+	.leaderboard-scope {
+		display       : flex;
+		justify-content : center;
+		gap           : 0.4rem;
+		margin        : -0.25rem 0 1rem;
+
+		button {
+			display       : inline-flex;
+			align-items   : center;
+			gap           : 0.4rem;
+			padding       : 0.3rem 0.9rem;
+			border        : 1px solid rgba(249, 250, 251, 0.25);
+			border-radius : 999px;
+			background    : transparent;
+			color         : rgba(249, 250, 251, 0.8);
+			font-family   : inherit;
+			font-size     : 1.05rem;
+			cursor        : pointer;
+
+			&:hover {
+				border-color : rgba(249, 250, 251, 0.6);
+			}
+
+			&.selected {
+				border-color : #60a5fa;
+				background   : rgba(59, 130, 246, 0.2);
+				color        : #f9fafb;
+				font-weight  : 700;
+			}
+		}
+	}
+
 	// ---------- Par jeu / défi du jour : jeu (puis mois et jour pour le défi)
 	.leaderboard-daily {
 		margin-bottom : 1rem;
@@ -151,6 +184,10 @@
 		&.me .podium-name {
 			color : #fbbf24;
 		}
+
+		&.friend .podium-name {
+			color : #93c5fd;
+		}
 	}
 
 	.podium-medal {
@@ -217,6 +254,12 @@
 
 			&:nth-child(odd) {
 				background : rgba(249, 250, 251, 0.05);
+			}
+
+			// Un ami du joueur connecté
+			&.friend {
+				background : rgba(59, 130, 246, 0.16);
+				box-shadow : inset 3px 0 0 #60a5fa;
 			}
 
 			// Le joueur connecté
@@ -301,6 +344,17 @@
 		gap         : 0.35rem;
 		color       : #fbbf24;
 		font-weight : 700;
+	}
+
+	// Badge « Ami » à côté du pseudo
+	.friend-badge {
+		flex          : none;
+		padding       : 0.05rem 0.5rem;
+		border-radius : 999px;
+		background    : #3b82f6;
+		color         : white;
+		font-size     : 0.85rem;
+		font-weight   : 700;
 	}
 
 	.leaderboard-me {

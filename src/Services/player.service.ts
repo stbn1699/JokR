@@ -1,4 +1,5 @@
 import {api} from "../api/api.ts";
+import type {Friendship} from "./friends.service.ts";
 
 // Stats d'un joueur (masquées s'il a choisi de ne pas les montrer)
 export interface PlayerStats {
@@ -32,6 +33,8 @@ export interface PlayerProfile {
     level: number;
     // C'est le joueur connecté : il voit toujours tout
     isOwner: boolean;
+    // Lien avec le joueur connecté (null pour un invité ou sa propre page)
+    friendship: Friendship | null;
     stats: PlayerStats | null;
     // Dernières victoires
     recent: { code: string; name: string; gridSize: number; emptyCells: number; durationMs: number; finishedAt: string }[] | null;

@@ -24,17 +24,18 @@ export interface Leaderboard {
 
 export const leaderboardService = {
     // Classement par XP globale
-    xp(signal?: AbortSignal): Promise<Leaderboard> {
-        return api<Leaderboard>("/leaderboard/xp", {method: "GET"}, signal);
+    // friendsOnly : seulement le joueur connecté et ses amis, avec leur place dans le classement complet
+    xp(signal?: AbortSignal, friendsOnly = false): Promise<Leaderboard> {
+        return api<Leaderboard>(`/leaderboard/xp${friendsOnly ? "?amis=1" : ""}`, {method: "GET"}, signal);
     },
 
     // Classement par crédits (ceux que le joueur a en ce moment)
-    credits(signal?: AbortSignal): Promise<Leaderboard> {
-        return api<Leaderboard>("/leaderboard/credits", {method: "GET"}, signal);
+    credits(signal?: AbortSignal, friendsOnly = false): Promise<Leaderboard> {
+        return api<Leaderboard>(`/leaderboard/credits${friendsOnly ? "?amis=1" : ""}`, {method: "GET"}, signal);
     },
 
     // Classement d'un jeu (niveau / XP sur ce jeu)
-    game(gameCode: string, signal?: AbortSignal): Promise<Leaderboard> {
-        return api<Leaderboard>(`/leaderboard/games/${encodeURIComponent(gameCode.toLowerCase())}`, {method: "GET"}, signal);
+    game(gameCode: string, signal?: AbortSignal, friendsOnly = false): Promise<Leaderboard> {
+        return api<Leaderboard>(`/leaderboard/games/${encodeURIComponent(gameCode.toLowerCase())}${friendsOnly ? "?amis=1" : ""}`, {method: "GET"}, signal);
     },
 };

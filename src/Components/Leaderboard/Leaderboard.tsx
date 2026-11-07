@@ -8,15 +8,19 @@
  * [&mois=AAAA-MM][&date=AAAA-MM-JJ]) pour pouvoir y renvoyer (ex. classement d'un défi passé).
  * Anciennes adresses (?onglet=sudoku...) : ouvrent l'onglet « Par jeu » sur ce jeu.
  * Un clic sur un joueur (icône ou pseudo) ouvre sa page (/joueur/:pseudo).
+ * Les amis du joueur connecté sont mis en avant (ligne bleue, badge « Ami »).
+ * Bouton « Amis » (joueur connecté, &amis=1 dans l'adresse) : seulement lui et ses amis, chacun avec
+ * sa vraie place dans le classement complet (pas de limite aux 20 premiers).
  */
 
 import "./Leaderboard.scss";
 import {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
-import {FaCoins, FaMedal} from "react-icons/fa";
+import {FaCoins, FaMedal, FaUserFriends} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {type Leaderboard as Board, leaderboardService} from "../../Services/leaderboard.service.ts";
 import {playerPath} from "../../Services/player.service.ts";
+import {useFriends} from "../../Services/friends.service.ts";
 import {dailyService} from "../../Services/daily.service.ts";
 import {formatDuration} from "../../Services/format.ts";
 import type {DailyLeaderboard} from "../../Models/daily.model.ts";
@@ -75,8 +79,12 @@ const ordinal = (rank: number) => <>{rank}<sup>{rank === 1 ? "er" : "e"}</sup></
 type Row = { rank: number; username: string; avatar: string; userLevel: number; main: ReactNode; detail?: ReactNode };
 
 export default function Leaderboard() {
-    const {username} = useAuth();
+    const {username, userId} = useAuth();
+    const {friends} = useFriends(userId);
+    const friendNames = useMemo(() => new Set(friends.map(f => f.username)), [friends]);
     const [params, setParams] = useSearchParams();
+    // Filtre « Amis » (joueur connecté seulement)
+    const friendsOnly = userId !== null && params.get("amis") === "1";
     const tabParam = params.get("onglet");
     // ancienne adresse : ?onglet=sudoku (un onglet par jeu) → « Par jeu » sur ce jeu
     const legacyGame = isGameId(tabParam) ? tabParam : null;
@@ -125,13 +133,13 @@ export default function Leaderboard() {
         if (tab === "defi" && !selectedDate) return;
         const controller = new AbortController();
         const request = tab === "defi"
-            ? dailyService.leaderboard(game, controller.signal, selectedDate ?? undefined).then(d => {
+            ? dailyService.leaderboard(game, controller.signal, selectedDate ?? undefined, friendsOnly).then(d => {
                 setDaily(d);
                 setBoard(null);
             })
-            : (tab === "xp" ? leaderboardService.xp(controller.signal)
-                : tab === "credits" ? leaderboardService.credits(controller.signal)
-                    : leaderboardService.game(game, controller.signal))
+            : (tab === "xp" ? leaderboardService.xp(controller.signal, friendsOnly)
+                : tab === "credits" ? leaderboardService.credits(controller.signal, friendsOnly)
+                    : leaderboardService.game(game, controller.signal, friendsOnly))
                 .then(b => {
                     setBoard(b);
                     setDaily(null);
@@ -143,11 +151,16 @@ export default function Leaderboard() {
             })
             .finally(() => setLoading(false));
         return () => controller.abort();
-    }, [tab, game, selectedDate, dayTick]);
+    }, [tab, game, selectedDate, dayTick, friendsOnly]);
 
-    const select = (next: Record<string, string>) => {
+    // Change d'onglet / de jeu / de jour en gardant le filtre Amis
+    const select = (next: Record<string, string>, amis = friendsOnly) => {
         setLoading(true);
-        setParams(next, {replace: true});
+        setParams(amis ? {...next, amis: "1"} : next, {replace: true});
+    };
+    const toggleFriends = () => {
+        const current = Object.fromEntries([...params].filter(([key]) => key !== "amis"));
+        select(current, !friendsOnly);
     };
     const dailyParams = (extra: Record<string, string> = {}) => ({
         onglet: "defi", jeu: game,
@@ -156,6 +169,9 @@ export default function Leaderboard() {
     });
 
     const isMe = (name: string) => username !== null && name === username;
+    // Classe de la ligne : moi, un ami, ou rien
+    const rowClass = (name: string) => (isMe(name) ? "me" : friendNames.has(name) ? "friend" : "");
+    const friendBadge = (name: string) => friendNames.has(name) && <span className="friend-badge">Ami</span>;
 
     // Lignes à afficher, quel que soit l'onglet
     const rows: Row[] | null = board && tab === "credits"
@@ -202,6 +218,20 @@ export default function Leaderboard() {
                     ))}
                 </div>
 
+                {/* Filtre : tout le monde, ou seulement mes amis (et moi) */}
+                {userId && (
+                    <div className="leaderboard-scope" role="radiogroup" aria-label="Joueurs affichés">
+                        <button type="button" role="radio" aria-checked={!friendsOnly} className={!friendsOnly ? "selected" : ""}
+                                onClick={() => friendsOnly && toggleFriends()}>
+                            Tout le monde
+                        </button>
+                        <button type="button" role="radio" aria-checked={friendsOnly} className={friendsOnly ? "selected" : ""}
+                                onClick={() => !friendsOnly && toggleFriends()}>
+                            <FaUserFriends aria-hidden/> Mes amis
+                        </button>
+                    </div>
+                )}
+
                 {tab === "jeu" && (
                     <div className="leaderboard-daily">
                         <GameSelector selected={game} onSelect={id => select({onglet: "jeu", jeu: id})}/>
@@ -233,7 +263,9 @@ export default function Leaderboard() {
 
                 {!loading && !error && rows && rows.length === 0 && (
                     <p className="leaderboard-status">
-                        {!daily
+                        {friendsOnly
+                            ? daily ? "Ni toi ni tes amis n'avez réussi ce défi." : "Ni toi ni tes amis n'êtes encore classés ici."
+                            : !daily
                             ? "Personne n'est encore classé."
                             : selectedDate === month?.today
                                 ? "Personne n'a encore réussi ce défi. À toi de jouer !"
@@ -245,13 +277,15 @@ export default function Leaderboard() {
                     <ol className="podium fade-in">
                         {/* Ordre d'affichage : 2e, 1er, 3e (le 1er au centre, plus haut) */}
                         {[podium[1], podium[0], podium[2]].map((row, i) => row && (
-                            <li key={row.rank + row.username} className={`podium-place place-${row.rank} ${isMe(row.username) ? "me" : ""}`}
+                            // place-N : marche du podium (1re, 2e, 3e de la liste affichée)
+                            <li key={row.rank + row.username} className={`podium-place place-${podium.indexOf(row) + 1} ${rowClass(row.username)}`}
                                 style={{order: i}}>
                                 <FaMedal className="podium-medal" aria-label={`${row.rank}e place`}/>
                                 <Link to={playerPath(row.username)} className="podium-player" title={`Voir le profil de ${row.username}`}>
-                                    <Avatar seed={row.avatar} fallback={row.username} size={row.rank === 1 ? 4.6 : 3.8}
+                                    <Avatar seed={row.avatar} fallback={row.username} size={podium.indexOf(row) === 0 ? 4.6 : 3.8}
                                             level={row.userLevel} showLevel className="podium-avatar"/>
                                     <span className="podium-name">{row.username}</span>
+                                    {friendBadge(row.username)}
                                 </Link>
                                 <span className="podium-main">{row.main}</span>
                                 <span className="podium-step">{ordinal(row.rank)}</span>
@@ -264,12 +298,13 @@ export default function Leaderboard() {
                 {!loading && !error && rows && rows.length > 0 && (
                     <ol className="leaderboard-list fade-in">
                         {rows.map(row => (
-                            <li key={row.rank + row.username} className={isMe(row.username) ? "me" : ""}>
+                            <li key={row.rank + row.username} className={rowClass(row.username)}>
                                 <span className="leaderboard-rank">{ordinal(row.rank)}</span>
                                 <Link to={playerPath(row.username)} className="leaderboard-player" title={`Voir le profil de ${row.username}`}>
                                     <Avatar seed={row.avatar} fallback={row.username} size={2.7}
                                             level={row.userLevel} showLevel className="leaderboard-avatar"/>
                                     <span className="leaderboard-name">{row.username}</span>
+                                    {friendBadge(row.username)}
                                 </Link>
                                 {row.detail && <span className="leaderboard-detail">{row.detail}</span>}
                                 <span className="leaderboard-main">{row.main}</span>

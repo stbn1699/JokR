@@ -1,0 +1,418 @@
+// Cloche des notifications (header), son panneau et le toast d'arrivée
+.notifications {
+	position : relative;
+	display  : flex;
+}
+
+.notif-bell {
+	position        : relative;
+	display         : flex;
+	align-items     : center;
+	justify-content : center;
+	width           : 2.4rem;
+	height          : 2.4rem;
+	padding         : 0;
+	border          : none;
+	border-radius   : 50%;
+	background      : transparent;
+	color           : #374151;
+	font-size       : 1.35rem;
+	cursor          : pointer;
+	transition      : background 0.15s ease;
+
+	&:hover,
+	&[aria-expanded="true"] {
+		background : rgba(55, 65, 81, 0.12);
+	}
+
+	&:focus-visible {
+		outline        : 2px solid #374151;
+		outline-offset : 2px;
+	}
+
+	// Nouvelle notification : la cloche sonne une fois
+	&.has-unread svg {
+		animation        : notif-ring 1.2s ease 0.6s 1;
+		transform-origin : 50% 10%;
+	}
+}
+
+.notif-count {
+	position      : absolute;
+	top           : 0.05rem;
+	right         : 0.05rem;
+	min-width     : 1.1rem;
+	padding       : 0 0.25rem;
+	box-sizing    : border-box;
+	border        : 2px solid #F4E5CB;
+	border-radius : 999px;
+	background    : #dc2626;
+	color         : white;
+	font-size     : 0.75rem;
+	font-weight   : 800;
+	line-height   : 1.1rem;
+	text-align    : center;
+	animation     : notif-pop 0.4s cubic-bezier(.2, .9, .3, 1.6);
+}
+
+// ---------- Panneau
+.notif-panel {
+	position       : absolute;
+	z-index        : 60;
+	top            : calc(100% + 0.9rem);
+	right          : -0.5rem;
+	display        : flex;
+	flex-direction : column;
+	width          : min(23rem, calc(100vw - 1.5rem));
+	max-height     : min(32rem, calc(100dvh - 7rem));
+	border         : 1px solid rgba(255, 255, 255, 0.1);
+	border-radius  : 12px;
+	background     : linear-gradient(180deg, #0f172a, #0b1220);
+	box-shadow     : 0 1rem 2.5rem rgba(0, 0, 0, 0.55);
+	color          : #f8fafc;
+	text-align     : left;
+	animation      : notif-panel-in 0.2s ease-out;
+	cursor         : default;
+}
+
+.notif-panel-head {
+	display         : flex;
+	align-items     : center;
+	justify-content : space-between;
+	padding         : 0.75rem 0.9rem 0.6rem 1.1rem;
+	border-bottom   : 1px solid rgba(255, 255, 255, 0.08);
+	font-size       : 1.3rem;
+}
+
+.notif-close {
+	display     : flex;
+	padding     : 0.35rem;
+	border      : none;
+	border-radius : 50%;
+	background  : none;
+	color       : rgba(248, 250, 252, 0.6);
+	font-size   : 0.95rem;
+	cursor      : pointer;
+
+	&:hover {
+		background : rgba(255, 255, 255, 0.08);
+		color      : #f8fafc;
+	}
+}
+
+.notif-empty {
+	margin    : 0;
+	padding   : 1.25rem 1.1rem;
+	font-size : 1.1rem;
+	color     : rgba(248, 250, 252, 0.65);
+}
+
+.notif-list {
+	margin     : 0;
+	padding    : 0;
+	overflow-y : auto;
+	list-style : none;
+
+	> li {
+		padding       : 0.8rem 1.1rem;
+		border-bottom : 1px solid rgba(255, 255, 255, 0.06);
+
+		&:last-child {
+			border-bottom : none;
+		}
+
+		// Pas encore vue à l'ouverture du panneau
+		&.fresh {
+			background : rgba(16, 185, 129, 0.08);
+			box-shadow : inset 3px 0 0 #10b981;
+		}
+	}
+}
+
+// Résultats des défis d'un jour
+.notif-daily-head {
+	display         : flex;
+	justify-content : space-between;
+	align-items     : baseline;
+	gap             : 0.5rem;
+	margin-bottom   : 0.45rem;
+	font-size       : 1.15rem;
+	font-weight     : 700;
+
+	span::first-letter {
+		text-transform : uppercase;
+	}
+
+	small {
+		flex        : none;
+		font-size   : 0.9rem;
+		font-weight : 400;
+		color       : rgba(248, 250, 252, 0.5);
+	}
+}
+
+// Notification d'ami : icône du joueur, texte, Accepter / Refuser
+.notif-friend {
+	display     : flex;
+	align-items : flex-start;
+	gap         : 0.75rem;
+
+	.notif-daily-head {
+		margin-bottom : 0.3rem;
+		font-weight   : 400;
+
+		a {
+			color           : #f8fafc;
+			font-weight     : 700;
+			text-decoration : none;
+
+			&:hover {
+				text-decoration : underline;
+			}
+		}
+	}
+}
+
+.notif-friend-avatar {
+	flex : none;
+}
+
+.notif-friend-body {
+	flex      : 1;
+	min-width : 0;
+}
+
+.notif-friend-actions {
+	display : flex;
+	gap     : 0.4rem;
+
+	button {
+		padding       : 0.3rem 0.9rem;
+		border        : 1px solid rgba(255, 255, 255, 0.2);
+		border-radius : 999px;
+		background    : transparent;
+		color         : #f8fafc;
+		font-family   : inherit;
+		font-size     : 1rem;
+		cursor        : pointer;
+
+		&.accept {
+			border-color : #10b981;
+			background   : #10b981;
+			font-weight  : 700;
+		}
+
+		&:disabled {
+			opacity : 0.5;
+			cursor  : default;
+		}
+	}
+}
+
+.notif-friend-state {
+	font-size : 0.95rem;
+	color     : rgba(248, 250, 252, 0.55);
+}
+
+.notif-friend-error {
+	display : block;
+	color   : #fca5a5;
+}
+
+.notif-toast-icon.friend {
+	color : #60a5fa;
+}
+
+.notif-daily-xp {
+	margin      : -0.2rem 0 0.4rem;
+	font-size   : 1rem;
+	font-weight : 700;
+	color       : #60a5fa;
+}
+
+.notif-daily-games {
+	display        : flex;
+	flex-direction : column;
+	gap            : 0.2rem;
+	margin         : 0;
+	padding        : 0;
+	list-style     : none;
+
+	a {
+		display         : flex;
+		align-items     : center;
+		gap             : 0.6rem;
+		padding         : 0.3rem 0.45rem;
+		border-radius   : 8px;
+		color           : inherit;
+		text-decoration : none;
+
+		&:hover {
+			background : rgba(255, 255, 255, 0.06);
+		}
+	}
+}
+
+.notif-rank {
+	display     : inline-flex;
+	align-items : center;
+	gap         : 0.25rem;
+	min-width   : 3.4rem;
+	font-size   : 1.15rem;
+	font-weight : 800;
+	color       : rgba(248, 250, 252, 0.75);
+
+	&.podium-1 {
+		color : #fbbf24;
+	}
+
+	&.podium-2 {
+		color : #cbd5e1;
+	}
+
+	&.podium-3 {
+		color : #d97706;
+	}
+}
+
+.notif-game {
+	flex      : 1;
+	font-size : 1.1rem;
+}
+
+.notif-detail {
+	font-size : 0.95rem;
+	color     : rgba(248, 250, 252, 0.55);
+}
+
+// ---------- Toast : sous le header, à droite
+.notif-toast {
+	position      : fixed;
+	z-index       : 60;
+	top           : 5.5rem;
+	right         : 1rem;
+	display       : flex;
+	align-items   : center;
+	gap           : 0.75rem;
+	width         : min(25rem, calc(100vw - 2rem));
+	box-sizing    : border-box;
+	padding       : 0.75rem 0.6rem 0.75rem 1rem;
+	border        : 1px solid rgba(16, 185, 129, 0.45);
+	border-radius : 12px;
+	background    : rgba(11, 18, 32, 0.97);
+	box-shadow    : 0 0.75rem 2rem rgba(0, 0, 0, 0.5);
+	color         : #f8fafc;
+	text-align    : left;
+	animation     : notif-toast-in 0.45s cubic-bezier(.2, .9, .3, 1.2);
+	cursor        : default;
+}
+
+.notif-toast-icon {
+	flex      : none;
+	color     : #fbbf24;
+	font-size : 1.4rem;
+}
+
+.notif-toast-text {
+	flex           : 1;
+	display        : flex;
+	flex-direction : column;
+	gap            : 0.15rem;
+	min-width      : 0;
+
+	strong {
+		font-size : 1.1rem;
+	}
+
+	span {
+		font-size : 1rem;
+		color     : rgba(248, 250, 252, 0.75);
+	}
+}
+
+.notif-toast-open {
+	flex          : none;
+	padding       : 0.4rem 0.9rem;
+	border        : none;
+	border-radius : 999px;
+	background    : #10b981;
+	color         : white;
+	font-family   : inherit;
+	font-size     : 1rem;
+	font-weight   : 700;
+	cursor        : pointer;
+}
+
+@keyframes notif-ring {
+	0%, 100% {
+		transform : rotate(0);
+	}
+	15% {
+		transform : rotate(16deg);
+	}
+	30% {
+		transform : rotate(-14deg);
+	}
+	45% {
+		transform : rotate(10deg);
+	}
+	60% {
+		transform : rotate(-6deg);
+	}
+	75% {
+		transform : rotate(3deg);
+	}
+}
+
+@keyframes notif-pop {
+	from {
+		transform : scale(0);
+	}
+}
+
+@keyframes notif-panel-in {
+	from {
+		opacity   : 0;
+		transform : translateY(-0.4rem);
+	}
+}
+
+@keyframes notif-toast-in {
+	from {
+		opacity   : 0;
+		transform : translateX(1.5rem);
+	}
+}
+
+// Téléphone : panneau et toast sur toute la largeur, sous le header (sur deux lignes, avec les onglets)
+@media (max-width: 600px) {
+	.notif-panel {
+		position : fixed;
+		top      : 6.6rem;
+		left     : 0.75rem;
+		right    : 0.75rem;
+		width    : auto;
+	}
+
+	.notif-toast {
+		top   : 6.6rem;
+		left  : 0.75rem;
+		right : 0.75rem;
+		width : auto;
+	}
+
+	.notif-bell {
+		width     : 2rem;
+		height    : 2rem;
+		font-size : 1.15rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.notif-bell.has-unread svg,
+	.notif-count,
+	.notif-panel,
+	.notif-toast {
+		animation : none;
+	}
+}

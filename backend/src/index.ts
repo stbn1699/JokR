@@ -15,6 +15,9 @@ import queensRoutes from "./routes/Queens.routes.js";
 import dailyRoutes from "./routes/Daily.routes.js";
 import leaderboardRoutes from "./routes/Leaderboard.routes.js";
 import statsRoutes from "./routes/Stats.routes.js";
+import notificationsRoutes from "./routes/Notifications.routes.js";
+import friendsRoutes from "./routes/Friends.routes.js";
+import {NotificationsRepository} from "./repository/Notifications.repository.js";
 import playersRoutes from "./routes/Players.routes.js";
 import {tracker} from "./services/tracker.js";
 import {pool} from "./db/pool.js";
@@ -63,6 +66,8 @@ api.use("/queens", queensRoutes);
 api.use("/daily", dailyRoutes);
 api.use("/leaderboard", leaderboardRoutes);
 api.use("/stats", statsRoutes);
+api.use("/notifications", notificationsRoutes);
+api.use("/friends", friendsRoutes);
 api.use("/players", playersRoutes);
 
 if (config.apiPrefix) {
@@ -108,7 +113,9 @@ const server = app.listen(config.port, () => {
 });
 
 // Défis du jour : générés au démarrage s'ils manquent, puis chaque nuit à minuit (heure de Paris)
-startDailyScheduler(createDailyService(createDb(pool)));
+// À minuit, les défis de la veille se terminent : chaque joueur reçoit ses places finales en notification
+const notifications = new NotificationsRepository(createDb(pool));
+startDailyScheduler(createDailyService(createDb(pool)), console.log, date => notifications.createDailyResults(date));
 
 // Arrêt propre (docker stop envoie SIGTERM)
 for (const signal of ["SIGTERM", "SIGINT"] as const) {

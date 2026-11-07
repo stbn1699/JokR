@@ -7,6 +7,7 @@ import {optionalAuth, type AuthLocals} from "../middleware/auth.js";
 import type {Response} from "express";
 import {PlayersRepository} from "../repository/Players.repository.js";
 import {LeaderboardRepository} from "../repository/Leaderboard.repository.js";
+import {FriendsRepository} from "../repository/Friends.repository.js";
 
 const RECENT_WINS = 8;
 
@@ -16,11 +17,13 @@ const RECENT_WINS = 8;
  *
  * Le joueur choisit ce que les autres voient (show_stats, show_history) : une partie masquée vaut null.
  * Le pseudo, l'icône et le niveau restent toujours visibles. Le joueur connecté voit toujours tout de sa page.
+ * friendship : lien avec le joueur connecté (friends, outgoing, incoming, none ; null pour un invité ou sa propre page).
  */
 const router = Router();
 const db = createDb(pool);
 const players = new PlayersRepository(db);
 const leaderboard = new LeaderboardRepository(db);
+const friends = new FriendsRepository(db);
 
 router.get("/:username", optionalAuth, asyncHandler(async (req, res: Response<unknown, AuthLocals>) => {
     const username = routeParam(req.params, "username") ?? "";
@@ -32,11 +35,13 @@ router.get("/:username", optionalAuth, asyncHandler(async (req, res: Response<un
     const isOwner = res.locals.userId === player.id;
     const showStats = isOwner || player.showStats;
     const showHistory = isOwner || player.showHistory;
-    const [games, daily, recent, rank] = await Promise.all([
+    const viewer = res.locals.userId;
+    const [games, daily, recent, rank, friendship] = await Promise.all([
         showStats ? players.games(player.id) : null,
         showStats ? players.daily(player.id) : null,
         showHistory ? players.recent(player.id, RECENT_WINS) : null,
         showStats ? leaderboard.xpRankOf(player.id) : null,
+        viewer && !isOwner ? friends.relation(viewer, player.id) : null,
     ]);
     res.status(200).json({
         status: "ok",
@@ -46,6 +51,7 @@ router.get("/:username", optionalAuth, asyncHandler(async (req, res: Response<un
             avatar: player.avatar,
             level: player.level,
             isOwner,
+            friendship,
             stats: showStats && games && daily ? {
                 xp: player.xp,
                 credits: player.credits,

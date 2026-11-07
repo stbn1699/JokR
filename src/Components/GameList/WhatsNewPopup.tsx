@@ -4,6 +4,7 @@ import "../SuccessPopup/SuccessPopup.scss";
 import "./WhatsNewPopup.scss";
 import type {ChangelogVersion} from "../Changelog/parseChangelog.ts";
 import {APP_VERSION} from "../../Services/version.ts";
+import {popupQueue} from "../../Services/popupQueue.ts";
 
 type WhatsNewPopupProps = {
     // Versions sorties depuis la dernière visite, la plus récente d'abord
@@ -24,6 +25,12 @@ export default function WhatsNewPopup({versions, onClose}: WhatsNewPopupProps) {
     const modalRef = useRef<HTMLDivElement>(null);
     const shown = versions.slice(0, MAX_VERSIONS);
     const more = versions.length - shown.length;
+
+    // Les autres popups automatiques (XP des défis) attendent sa fermeture
+    useEffect(() => {
+        popupQueue.setWhatsNewOpen(true);
+        return () => popupQueue.setWhatsNewOpen(false);
+    }, []);
 
     useEffect(() => {
         modalRef.current?.focus();

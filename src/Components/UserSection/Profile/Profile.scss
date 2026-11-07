@@ -177,6 +177,22 @@
 			font-weight : 700;
 		}
 	}
+
+	// Demandes d'ami reçues
+	.profile-tab-count {
+		display       : inline-block;
+		margin-left   : 0.4rem;
+		min-width     : 1.2rem;
+		padding       : 0 0.3rem;
+		box-sizing    : border-box;
+		border-radius : 999px;
+		background    : #dc2626;
+		color         : white;
+		font-size     : 0.85rem;
+		font-weight   : 800;
+		line-height   : 1.2rem;
+		text-align    : center;
+	}
 }
 
 // ---------- Onglet Paramètres : sections rangées

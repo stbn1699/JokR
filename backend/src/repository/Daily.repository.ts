@@ -116,8 +116,25 @@ export class DailyRepository {
             .execute();
     }
 
-    // Meilleurs temps du jour
-    async leaderboard(date: string, gameCode: string, limit: number) {
+    // Meilleurs temps du jour ; `members` (filtre Amis) : seulement ces joueurs, avec leur place parmi tous
+    async leaderboard(date: string, gameCode: string, limit: number, members?: string[]) {
+        if (members) {
+            return this.db
+                .selectFrom(eb => eb.selectFrom("daily_results")
+                    .innerJoin("users", "users.id", "daily_results.user_id")
+                    .select([
+                        "users.id", "users.username", "users.avatar", "users.user_level", "daily_results.duration_ms",
+                        sql<number>`rank() over (order by daily_results.duration_ms)`.as("rank"),
+                    ])
+                    .where("daily_results.challenge_date", "=", date)
+                    .where("daily_results.game_code", "=", gameCode)
+                    .as("r"))
+                .selectAll()
+                .where("id", "in", members)
+                .orderBy("rank").orderBy("username")
+                .limit(200)
+                .execute();
+        }
         return this.db
             .selectFrom("daily_results")
             .innerJoin("users", "users.id", "daily_results.user_id")

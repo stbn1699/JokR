@@ -1,4 +1,4 @@
-import type {Kysely} from "kysely";
+import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
 
 export type Ranking = { rank: number; total: number };
@@ -6,12 +6,27 @@ export type Ranking = { rank: number; total: number };
 /*
  * Classements : XP globale (users), crédits (users) et par jeu (game_stats).
  * Ordre : niveau puis XP décroissants (puis nom, pour départager) ; crédits décroissants pour les crédits.
+ * `members` (filtre « Amis ») : seulement ces joueurs, chacun avec sa place dans le classement complet
+ * (rank, ex aequo compris), sans limite de 20.
  */
+export const MEMBERS_LIMIT = 200;
 export class LeaderboardRepository {
     constructor(private db: Kysely<DB>) {
     }
 
-    async topXp(limit: number) {
+    async topXp(limit: number, members?: string[]) {
+        if (members) {
+            return this.db
+                .selectFrom(eb => eb.selectFrom("users")
+                    .select(["id", "username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp",
+                        sql<number>`rank() over (order by user_level desc, user_xp desc)`.as("rank")])
+                    .as("r"))
+                .selectAll()
+                .where("id", "in", members)
+                .orderBy("rank").orderBy("username")
+                .limit(MEMBERS_LIMIT)
+                .execute();
+        }
         return this.db
             .selectFrom("users")
             .select(["username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp"])
@@ -44,7 +59,19 @@ export class LeaderboardRepository {
         return {rank: Number(row.ahead) + 1, total: Number(row.total), level: me.user_level, xp: me.user_xp};
     }
 
-    async topCredits(limit: number) {
+    async topCredits(limit: number, members?: string[]) {
+        if (members) {
+            return this.db
+                .selectFrom(eb => eb.selectFrom("users")
+                    .select(["id", "username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp", "credits",
+                        sql<number>`rank() over (order by credits desc)`.as("rank")])
+                    .as("r"))
+                .selectAll()
+                .where("id", "in", members)
+                .orderBy("rank").orderBy("username")
+                .limit(MEMBERS_LIMIT)
+                .execute();
+        }
         return this.db
             .selectFrom("users")
             .select(["username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp", "credits"])
@@ -73,7 +100,24 @@ export class LeaderboardRepository {
         return {rank: Number(row.ahead) + 1, total: Number(row.total), level: me.user_level, credits: me.credits};
     }
 
-    async topGame(gameCode: string, limit: number) {
+    async topGame(gameCode: string, limit: number, members?: string[]) {
+        if (members) {
+            return this.db
+                .selectFrom(eb => eb.selectFrom("game_stats")
+                    .innerJoin("users", "users.id", "game_stats.user_id")
+                    .select([
+                        "users.id", "users.username", "users.avatar", "users.user_level as userLevel",
+                        "game_stats.game_level as level", "game_stats.game_xp as xp", "game_stats.games_won as gamesWon",
+                        sql<number>`rank() over (order by game_stats.game_level desc, game_stats.game_xp desc)`.as("rank"),
+                    ])
+                    .where("game_stats.game_code", "=", gameCode)
+                    .as("r"))
+                .selectAll()
+                .where("id", "in", members)
+                .orderBy("rank").orderBy("username")
+                .limit(MEMBERS_LIMIT)
+                .execute();
+        }
         return this.db
             .selectFrom("game_stats")
             .innerJoin("users", "users.id", "game_stats.user_id")

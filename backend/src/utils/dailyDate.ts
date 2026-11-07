@@ -12,6 +12,13 @@ export function dailyDate(now: Date = new Date()): string {
     }).format(now);
 }
 
+// Jour d'avant une date AAAA-MM-JJ (ex. défis qui viennent de se terminer à minuit)
+export function previousDailyDate(date: string): string {
+    const d = new Date(`${date}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10);
+}
+
 /**
  * Instant du prochain changement de jour à Paris (minuit), à la seconde près.
  * Recherche par dichotomie plutôt que calcul : juste même les jours de changement d'heure.

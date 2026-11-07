@@ -15,8 +15,12 @@ export const dailyService = {
     },
 
     // Classement du jour, ou d'un jour passé si `date` est donnée (AAAA-MM-JJ)
-    leaderboard(gameCode: string, signal?: AbortSignal, date?: string): Promise<DailyLeaderboard> {
-        const query = date ? `?date=${encodeURIComponent(date)}` : "";
+    // friendsOnly : seulement le joueur connecté et ses amis, avec leur place parmi tous
+    leaderboard(gameCode: string, signal?: AbortSignal, date?: string, friendsOnly = false): Promise<DailyLeaderboard> {
+        const params = new URLSearchParams();
+        if (date) params.set("date", date);
+        if (friendsOnly) params.set("amis", "1");
+        const query = params.size > 0 ? `?${params}` : "";
         return api<DailyLeaderboard>(`/daily/${code(gameCode)}/leaderboard${query}`, {method: "GET"}, signal);
     },
 

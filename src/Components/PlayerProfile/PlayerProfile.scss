@@ -53,6 +53,61 @@
 		}
 	}
 
+	// Bouton d'amitié (page d'un autre joueur)
+	.friend-button {
+		display         : flex;
+		flex-wrap       : wrap;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.6rem;
+		margin-top      : 1.1rem;
+
+		button {
+			display       : inline-flex;
+			align-items   : center;
+			gap           : 0.45rem;
+			padding       : 0.5rem 1.2rem;
+			border        : 1px solid rgba(249, 250, 251, 0.35);
+			border-radius : 999px;
+			background    : transparent;
+			color         : #f9fafb;
+			font-family   : inherit;
+			font-size     : 1.15rem;
+			cursor        : pointer;
+
+			&.primary {
+				border-color : #10b981;
+				background   : #10b981;
+				font-weight  : 700;
+			}
+
+			&:disabled {
+				opacity : 0.5;
+				cursor  : default;
+			}
+		}
+	}
+
+	.friend-state {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.4rem;
+		font-size   : 1.15rem;
+		color       : rgba(249, 250, 251, 0.75);
+
+		&.friends {
+			color       : #60a5fa;
+			font-weight : 700;
+		}
+	}
+
+	.friend-error {
+		flex-basis : 100%;
+		margin     : 0;
+		color      : #fca5a5;
+		font-size  : 1.05rem;
+	}
+
 	// Partie masquée par le joueur
 	.player-private {
 		display       : flex;

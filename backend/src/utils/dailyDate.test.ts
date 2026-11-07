@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {dailyDate, nextDailyChange} from "./dailyDate.js";
+import {dailyDate, nextDailyChange, previousDailyDate} from "./dailyDate.js";
 
 describe("dailyDate", () => {
     it("renvoie la date au format AAAA-MM-JJ", () => {
@@ -30,5 +30,13 @@ describe("nextDailyChange", () => {
 
     it("donne le minuit suivant juste après minuit", () => {
         expect(nextDailyChange(new Date("2026-11-01T23:00:00Z")).toISOString()).toBe("2026-11-02T23:00:00.000Z");
+    });
+});
+
+describe("previousDailyDate", () => {
+    it("donne le jour d'avant, y compris en changeant de mois et d'année", () => {
+        expect(previousDailyDate("2026-11-05")).toBe("2026-11-04");
+        expect(previousDailyDate("2026-03-01")).toBe("2026-02-28");
+        expect(previousDailyDate("2027-01-01")).toBe("2026-12-31");
     });
 });

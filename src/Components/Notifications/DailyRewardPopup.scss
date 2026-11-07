@@ -1,0 +1,107 @@
+// Popup « XP gagnée aux défis » (après la clôture des défis)
+.modal.success-modal.daily-reward {
+	width     : min(30rem, calc(100vw - 2rem));
+	animation : daily-reward-in 0.4s cubic-bezier(.2, .9, .3, 1.25);
+
+	.daily-reward-sub {
+		margin    : 0 0 1rem;
+		font-size : 1.2rem;
+	}
+
+	.daily-reward-day {
+		margin     : 0 0 0.75rem;
+		text-align : left;
+
+		h3 {
+			margin    : 0 0 0.35rem;
+			font-size : 1.2rem;
+			color     : rgba(248, 250, 252, 0.7);
+
+			&::first-letter {
+				text-transform : uppercase;
+			}
+		}
+
+		ul {
+			display        : flex;
+			flex-direction : column;
+			gap            : 0.3rem;
+			margin         : 0;
+			padding        : 0;
+			list-style     : none;
+		}
+
+		li {
+			display       : flex;
+			align-items   : center;
+			gap           : 0.7rem;
+			padding       : 0.45rem 0.7rem;
+			border-radius : 10px;
+			background    : rgba(255, 255, 255, 0.05);
+
+			// Au-delà de la 50e place : pas d'XP
+			&.no-xp {
+				opacity : 0.55;
+			}
+		}
+	}
+
+	.daily-reward-rank {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.25rem;
+		min-width   : 3.4rem;
+		font-size   : 1.2rem;
+		font-weight : 800;
+
+		&.podium-1 {
+			color : #fbbf24;
+		}
+
+		&.podium-2 {
+			color : #cbd5e1;
+		}
+
+		&.podium-3 {
+			color : #d97706;
+		}
+	}
+
+	.daily-reward-game {
+		flex      : 1;
+		font-size : 1.2rem;
+
+		small {
+			font-size : 0.95rem;
+			opacity   : 0.6;
+		}
+	}
+
+	// XP de chaque place, en bleu comme la barre de niveau
+	.daily-reward-xp {
+		font-size   : 1.2rem;
+		font-weight : 700;
+		color       : #60a5fa;
+	}
+
+	.daily-reward-total {
+		margin      : 0.75rem 0 1.25rem;
+		font-size   : 2.6rem;
+		font-weight : 800;
+		color       : #60a5fa;
+		text-shadow : 0 0 1.2rem rgba(59, 130, 246, 0.55);
+	}
+}
+
+@keyframes daily-reward-in {
+	from {
+		opacity   : 0;
+		transform : translateY(1rem) scale(0.95);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.modal.success-modal.daily-reward {
+		animation : none;
+	}
+}

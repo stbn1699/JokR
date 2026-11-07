@@ -18,6 +18,7 @@ import {formatDuration} from "../../Services/format.ts";
 import {ApiError} from "../../api/api.ts";
 import type {Privacy} from "../../Models/user.model.ts";
 import Avatar from "../Avatar/Avatar.tsx";
+import FriendButton from "./FriendButton.tsx";
 import Loader from "../Loader/Loader.tsx";
 
 const fmt = (n: number) => n.toLocaleString("fr-FR");
@@ -100,6 +101,9 @@ export default function PlayerProfileView({username, privacy, avatarAction, back
                     )}
                 </div>
             </div>
+
+            {/* Autre joueur, visiteur connecté : demande d'ami, acceptation, retrait */}
+            {!shown.isOwner && shown.friendship !== null && <FriendButton username={shown.username} initial={shown.friendship}/>}
 
             {hiddenForOthers.length > 0 && (
                 <p className="player-owner-note">

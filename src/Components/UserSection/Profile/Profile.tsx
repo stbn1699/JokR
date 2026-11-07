@@ -1,7 +1,8 @@
 /**
- * Page Profil - joueur connecté, en deux onglets (dans l'adresse : ?onglet=parametres)
+ * Page Profil - joueur connecté, en trois onglets (dans l'adresse : ?onglet=amis|parametres)
  * - Profil : sa page telle que les autres la voient (PlayerProfileView), avec tout visible pour lui
  *   et un rappel de ce qu'il cache aux autres
+ * - Amis : ajouter un ami, demandes reçues à accepter, liste d'amis
  * - Paramètres : icône, pseudo, visibilité de sa page, comptes liés, mot de passe, zone de danger
  * Redirige vers /login si personne n'est connecté.
  */
@@ -15,19 +16,24 @@ import {userService} from "../../../Services/user.service.ts";
 import type {Privacy} from "../../../Models/user.model.ts";
 import PlayerProfileView from "../../PlayerProfile/PlayerProfileView.tsx";
 import ProfileSettings from "./ProfileSettings.tsx";
+import FriendsTab from "./FriendsTab.tsx";
+import {useFriends} from "../../../Services/friends.service.ts";
 import AvatarPicker from "../../Avatar/AvatarPicker.tsx";
 import Loader from "../../Loader/Loader.tsx";
 
 const TABS = [
     {id: "profil", label: "Profil"},
+    {id: "amis", label: "Amis"},
     {id: "parametres", label: "Paramètres"},
 ] as const;
 type Tab = typeof TABS[number]["id"];
 
 export default function Profile() {
-    const {isLoggedIn, username, avatar, setAvatar, logout} = useAuth();
+    const {isLoggedIn, userId, username, avatar, setAvatar, logout} = useAuth();
+    // Demandes d'ami reçues : pastille sur l'onglet Amis
+    const {incoming} = useFriends(userId);
     const [params, setParams] = useSearchParams();
-    const tab: Tab = params.get("onglet") === "parametres" ? "parametres" : "profil";
+    const tab: Tab = TABS.find(t => t.id === params.get("onglet"))?.id ?? "profil";
     const [pickingAvatar, setPickingAvatar] = useState(false);
     // Vrai quand le joueur quitte volontairement (déconnexion, compte supprimé) : retour à l'accueil
     const [leaving, setLeaving] = useState(false);
@@ -57,6 +63,7 @@ export default function Profile() {
                         <button key={t.id} type="button" role="tab" aria-selected={tab === t.id}
                                 className={tab === t.id ? "selected" : ""} onClick={() => openTab(t.id)}>
                             {t.label}
+                            {t.id === "amis" && incoming.length > 0 && <span className="profile-tab-count">{incoming.length}</span>}
                         </button>
                     ))}
                 </div>
@@ -74,6 +81,8 @@ export default function Profile() {
                                            }/>
                     )
                 )}
+
+                {tab === "amis" && <FriendsTab/>}
 
                 {tab === "parametres" && (
                     <ProfileSettings privacy={privacy} onPrivacyChange={setPrivacy}

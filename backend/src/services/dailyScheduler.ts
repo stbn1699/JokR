@@ -1,18 +1,24 @@
 import type {DailyService} from "./Daily.service.js";
-import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
+import {dailyDate, nextDailyChange, previousDailyDate} from "../utils/dailyDate.js";
 
 /*
  * Génère les défis du jour de tous les jeux :
  * - au démarrage du serveur (si ceux du jour manquent encore),
  * - puis chaque jour à minuit, heure de Paris.
  * Les joueurs n'attendent jamais la génération, et tout le monde reçoit les mêmes grilles.
+ * À chaque passage, `onClosed` reçoit la date des défis qui viennent de se terminer (la veille) :
+ * notifications des places finales (sans effet si elles ont déjà été envoyées).
  * Plusieurs serveurs peuvent tourner ensemble : la base n'accepte qu'une grille par jeu et par jour.
  */
 
 // Nouvel essai si la génération échoue (base indisponible…)
 const RETRY_DELAY_MS = 60 * 1000;
 
-export function startDailyScheduler(service: DailyService, log: (msg: string) => void = console.log) {
+export function startDailyScheduler(
+    service: DailyService,
+    log: (msg: string) => void = console.log,
+    onClosed?: (date: string) => Promise<number>,
+) {
     let timer: NodeJS.Timeout | undefined;
 
     const schedule = (delayMs: number) => {
@@ -26,6 +32,11 @@ export function startDailyScheduler(service: DailyService, log: (msg: string) =>
         try {
             const created = await service.generateAll(date);
             if (created.length) log(`Défis du ${date} générés : ${created.join(", ")}`);
+            if (onClosed) {
+                const closed = previousDailyDate(date);
+                const sent = await onClosed(closed);
+                if (sent) log(`Défis du ${closed} terminés : ${sent} notification(s) de résultats`);
+            }
         } catch (err) {
             console.error(`Échec de la génération des défis du ${date}, nouvel essai dans 1 min`, err);
             schedule(RETRY_DELAY_MS);
