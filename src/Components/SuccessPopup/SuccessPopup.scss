@@ -586,3 +586,33 @@ body.game-review .puzzle-layout {
 		}
 	}
 }
+
+// ---------- Bouton Partager (défi du jour réussi)
+.modal .share-row {
+	display         : flex;
+	justify-content : center;
+	margin          : -0.5rem 0 1.25rem;
+}
+
+.modal .modal-button.share-button {
+	display     : inline-flex;
+	align-items : center;
+	gap         : 0.55rem;
+	padding     : 0.6rem 1.4rem;
+	border-radius : 999px;
+	// orange, comme le défi du jour
+	background  : #f59e0b;
+	color       : #1f1300;
+	font-size   : 1.15rem;
+
+	// Message copié (ordinateur)
+	&.copied {
+		background : #10b981;
+		color      : white;
+	}
+
+	&.failed {
+		background : #dc2626;
+		color      : white;
+	}
+}

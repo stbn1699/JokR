@@ -168,7 +168,7 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
             {dailyGame.done && <DailyDonePopup gameCode="SUDOKU" gameName="Sudoku" result={dailyGame.done}/>}
 
             {flow.victory && (
-                <SuccessPopup gameName="Sudoku" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
+                <SuccessPopup gameName="Sudoku" gameCode="SUDOKU" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}

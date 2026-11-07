@@ -2,6 +2,7 @@ import {useNavigate} from "react-router-dom";
 import "../SuccessPopup/SuccessPopup.scss";
 import type {DailyResult} from "../../Models/daily.model.ts";
 import {formatDuration} from "../../Services/format.ts";
+import ShareButton from "./ShareButton.tsx";
 
 type DailyDonePopupProps = {
     gameCode: string;
@@ -23,6 +24,9 @@ export default function DailyDonePopup({gameCode, gameName, result}: DailyDonePo
                     Place : <strong>{result.rank}<sup>{result.rank === 1 ? "er" : "e"}</sup></strong> sur {result.total}.
                 </p>
                 <p>Reviens demain pour une nouvelle grille.</p>
+                <div className="share-row">
+                    <ShareButton share={{gameCode, gameName, durationMs: result.durationMs}}/>
+                </div>
                 <div className="modal-buttons">
                     <button type="button" className="modal-button" onClick={() => navigate(`/classements?onglet=defi`)}>
                         Voir le classement

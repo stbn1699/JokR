@@ -192,7 +192,7 @@ export default function Queens({daily = false, replayDate}: QueensProps) {
             {dailyGame.done && <DailyDonePopup gameCode="QUEENS" gameName="Queens" result={dailyGame.done}/>}
 
             {flow.victory && (
-                <SuccessPopup gameName="Queens" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
+                <SuccessPopup gameName="Queens" gameCode="QUEENS" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}

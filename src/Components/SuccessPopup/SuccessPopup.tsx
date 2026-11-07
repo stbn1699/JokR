@@ -7,6 +7,7 @@ import {xpSteps} from "../../Services/leveling.ts";
 import {formatDuration} from "../../Services/format.ts";
 import {rewardFx} from "../../Services/rewardFx.ts";
 import CountUp from "./CountUp.tsx";
+import ShareButton from "../PuzzleUI/ShareButton.tsx";
 
 // Durées de l'animation de la barre d'XP (ms)
 const START_DELAY_MS = 450;
@@ -26,6 +27,8 @@ export type Progress = { level: number; xp: number };
 type SuccessPopupProps = {
     // Nom affiché du jeu ("Sudoku", "Binero")
     gameName: string;
+    // Code du jeu ("SUDOKU") : lien du bouton Partager d'un défi du jour
+    gameCode?: string;
     // XP gagnée (null si le joueur n'est pas connecté)
     xpAwarded: number | null;
     // Crédits gagnés (null si le joueur n'est pas connecté)
@@ -72,7 +75,7 @@ const SWEEP_MS = 700;
  * à l'écran, avec une petite barre en bas pour relancer une partie ou revenir à l'accueil.
  */
 export function SuccessPopup(props: SuccessPopupProps) {
-    const {gameName, xpAwarded, creditsAwarded, rewardMultiplier = 1, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie", back = "home"} = props;
+    const {gameName, gameCode, xpAwarded, creditsAwarded, rewardMultiplier = 1, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie", back = "home"} = props;
     const backTo = back ? BACK[back] : null;
     const modalRef = useRef<HTMLDivElement | null>(null);
     // Points de départ des particules (XP en bleu, crédits en orange)
@@ -241,6 +244,13 @@ export function SuccessPopup(props: SuccessPopupProps) {
                             : <>Défi déjà réussi aujourd'hui : cette partie ne compte pas.</>}
                         {" · "}<Link to="/classements?onglet=defi">Voir le classement</Link>
                     </p>
+                )}
+
+                {/* Défi du jour classé : on peut inviter ses amis à faire mieux */}
+                {daily?.counted && gameCode && (
+                    <div className="share-row">
+                        <ShareButton share={{gameCode, gameName, durationMs}}/>
+                    </div>
                 )}
 
                 {step && xpAwarded !== null ? (

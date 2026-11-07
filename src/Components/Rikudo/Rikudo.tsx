@@ -201,7 +201,7 @@ export default function Rikudo({daily = false, replayDate}: RikudoProps) {
             {dailyGame.done && <DailyDonePopup gameCode="RIKUDO" gameName="Rikudo" result={dailyGame.done}/>}
 
             {flow.victory && (
-                <SuccessPopup gameName="Rikudo" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
+                <SuccessPopup gameName="Rikudo" gameCode="RIKUDO" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}

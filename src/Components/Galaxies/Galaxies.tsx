@@ -179,7 +179,7 @@ export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
             {dailyGame.done && <DailyDonePopup gameCode="GALAXIES" gameName="Galaxies" result={dailyGame.done}/>}
 
             {flow.victory && (
-                <SuccessPopup gameName="Galaxies" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
+                <SuccessPopup gameName="Galaxies" gameCode="GALAXIES" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}

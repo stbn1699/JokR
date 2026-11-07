@@ -175,7 +175,7 @@ export default function Shikaku({daily = false, replayDate}: ShikakuProps) {
             {dailyGame.done && <DailyDonePopup gameCode="SHIKAKU" gameName="Shikaku" result={dailyGame.done}/>}
 
             {flow.victory && (
-                <SuccessPopup gameName="Shikaku" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
+                <SuccessPopup gameName="Shikaku" gameCode="SHIKAKU" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
