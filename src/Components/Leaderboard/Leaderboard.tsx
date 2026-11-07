@@ -8,7 +8,7 @@
  * [&mois=AAAA-MM][&date=AAAA-MM-JJ]) pour pouvoir y renvoyer (ex. classement d'un défi passé).
  * Anciennes adresses (?onglet=sudoku...) : ouvrent l'onglet « Par jeu » sur ce jeu.
  * Un clic sur un joueur (icône ou pseudo) ouvre sa page (/joueur/:pseudo).
- * Les amis du joueur connecté sont mis en avant (ligne bleue, badge « Ami »).
+ * Les ami·e·s du joueur connecté sont mis en avant (ligne bleue, badge « Ami·e »).
  * Bouton « Amis » (joueur connecté, &amis=1 dans l'adresse) : seulement lui et ses amis, chacun avec
  * sa vraie place dans le classement complet (pas de limite aux 20 premiers).
  */
@@ -171,7 +171,7 @@ export default function Leaderboard() {
     const isMe = (name: string) => username !== null && name === username;
     // Classe de la ligne : moi, un ami, ou rien
     const rowClass = (name: string) => (isMe(name) ? "me" : friendNames.has(name) ? "friend" : "");
-    const friendBadge = (name: string) => friendNames.has(name) && <span className="friend-badge">Ami</span>;
+    const friendBadge = (name: string) => friendNames.has(name) && <span className="friend-badge">Ami·e</span>;
 
     // Lignes à afficher, quel que soit l'onglet
     const rows: Row[] | null = board && tab === "credits"
@@ -227,7 +227,7 @@ export default function Leaderboard() {
                         </button>
                         <button type="button" role="radio" aria-checked={friendsOnly} className={friendsOnly ? "selected" : ""}
                                 onClick={() => !friendsOnly && toggleFriends()}>
-                            <FaUserFriends aria-hidden/> Mes amis
+                            <FaUserFriends aria-hidden/> Mes ami·e·s
                         </button>
                     </div>
                 )}
@@ -264,7 +264,7 @@ export default function Leaderboard() {
                 {!loading && !error && rows && rows.length === 0 && (
                     <p className="leaderboard-status">
                         {friendsOnly
-                            ? daily ? "Ni toi ni tes amis n'avez réussi ce défi." : "Ni toi ni tes amis n'êtes encore classés ici."
+                            ? daily ? "Ni toi ni tes ami·e·s n'avez réussi ce défi." : "Ni toi ni tes ami·e·s n'êtes encore classé·e·s ici."
                             : !daily
                             ? "Personne n'est encore classé."
                             : selectedDate === month?.today

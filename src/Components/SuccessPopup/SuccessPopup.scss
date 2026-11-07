@@ -590,6 +590,8 @@ body.game-review .puzzle-layout {
 // ---------- Bouton Partager (défi du jour réussi)
 .modal .share-row {
 	display         : flex;
+	flex-wrap       : wrap;
+	gap             : 0.6rem;
 	justify-content : center;
 	margin          : -0.5rem 0 1.25rem;
 }

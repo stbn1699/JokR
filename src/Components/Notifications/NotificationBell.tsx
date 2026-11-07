@@ -8,13 +8,23 @@
  * Résultats des défis : une seule notification par jour, avec la place finale sur chaque jeu joué.
  * Si elle rapporte de l'XP (50 premiers), une popup l'annonce à la place du toast (DailyRewardPopup).
  * Amis : demande reçue (Accepter / Refuser directement dans le panneau), demande acceptée.
+ * Défis entre amis : grille reçue (Relever le défi), défi du jour, résultat d'un défi envoyé.
  */
 
 import "./Notifications.scss";
 import {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
-import {FaBell, FaMedal, FaTimes, FaUserFriends} from "react-icons/fa";
-import {type AppNotification, type DailyResultsNotification, type FriendNotification, isDailyResults} from "../../Services/notification.service.ts";
+import {FaBell, FaFlagCheckered, FaMedal, FaTimes, FaUserFriends} from "react-icons/fa";
+import {
+    type AppNotification,
+    type ChallengeNotification,
+    type DailyResultsNotification,
+    type FriendNotification,
+    isDailyResults,
+    isFriendNotification,
+} from "../../Services/notification.service.ts";
+import {challengePath} from "../../Services/challenge.service.ts";
+import {shareTime} from "../../Services/share.ts";
 import {friendsStore, useFriends} from "../../Services/friends.service.ts";
 import {playerPath} from "../../Services/player.service.ts";
 import Avatar from "../Avatar/Avatar.tsx";
@@ -141,6 +151,7 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
             {toast && !open && (
                 <div className="notif-toast" role="status">
                     {isDailyResults(toast) ? <FaBell aria-hidden className="notif-toast-icon"/>
+                        : !isFriendNotification(toast) ? <FaFlagCheckered aria-hidden className="notif-toast-icon friend"/>
                         : <FaUserFriends aria-hidden className="notif-toast-icon friend"/>}
                     <div className="notif-toast-text">
                         {isDailyResults(toast) ? (
@@ -148,14 +159,19 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
                                 <strong>Défis du {dayLabel(toast.data.date)} terminés</strong>
                                 <span>{dailySummary(toast)}</span>
                             </>
+                        ) : !isFriendNotification(toast) ? (
+                            <>
+                                <strong>{challengeTitle(toast)}</strong>
+                                <span>{challengeText(toast)}</span>
+                            </>
                         ) : toast.kind === "friend_request" ? (
                             <>
-                                <strong>Demande d'ami</strong>
-                                <span>{toast.data.username} veut être ton ami</span>
+                                <strong>Demande d'ami·e</strong>
+                                <span>{toast.data.username} veut être ton ami·e</span>
                             </>
                         ) : (
                             <>
-                                <strong>Nouvel ami</strong>
+                                <strong>Nouvel·le ami·e</strong>
                                 <span>{toast.data.username} a accepté ta demande</span>
                             </>
                         )}
@@ -171,7 +187,8 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
 }
 
 function NotificationItem({notification, onNavigate}: { notification: AppNotification; onNavigate: () => void }) {
-    if (!isDailyResults(notification)) return <FriendItem notification={notification} onNavigate={onNavigate}/>;
+    if (isFriendNotification(notification)) return <FriendItem notification={notification} onNavigate={onNavigate}/>;
+    if (!isDailyResults(notification)) return <ChallengeItem notification={notification} onNavigate={onNavigate}/>;
     const n = notification;
     return (
         <div className="notif-daily">
@@ -229,7 +246,7 @@ function FriendItem({notification: n, onNavigate}: { notification: FriendNotific
                 <div className="notif-daily-head">
                     <span>
                         <Link to={playerPath(n.data.username)} onClick={onNavigate}>{n.data.username}</Link>
-                        {n.kind === "friend_request" ? " veut être ton ami" : " a accepté ta demande d'ami"}
+                        {n.kind === "friend_request" ? " veut être ton ami·e" : " a accepté ta demande d'ami·e"}
                     </span>
                     <small>{ago(n.createdAt)}</small>
                 </div>
@@ -242,10 +259,48 @@ function FriendItem({notification: n, onNavigate}: { notification: FriendNotific
                                     onClick={() => void act(() => friendsStore.remove(n.data.username))}>Refuser</button>
                         </div>
                     ) : (
-                        <small className="notif-friend-state">{relation === "friends" ? "Vous êtes amis" : "Demande traitée"}</small>
+                        <small className="notif-friend-state">{relation === "friends" ? "Vous êtes ami·e·s" : "Demande traitée"}</small>
                     )
                 )}
                 {error && <small className="notif-friend-error">{error}</small>}
+            </div>
+        </div>
+    );
+}
+
+// ---------- Défis entre amis
+const challengeTitle = (n: ChallengeNotification) =>
+    n.kind === "challenge_result" ? `${n.data.by.username} a relevé ton défi` : `${n.data.from.username} te défie`;
+
+function challengeText(n: ChallengeNotification) {
+    if (n.kind === "friend_challenge") return <>Sa grille de {n.data.gameName}, faite en {shareTime(n.data.senderMs)}. À toi !</>;
+    if (n.kind === "daily_challenge") return <>Au {n.data.gameName} du jour : bats son temps ({shareTime(n.data.senderMs)}) !</>;
+    const won = n.data.playerMs < n.data.senderMs;
+    return <>{n.data.gameName} : {shareTime(n.data.playerMs)} contre ton {shareTime(n.data.senderMs)} · {won ? `${n.data.by.username} te bat` : n.data.playerMs > n.data.senderMs ? "tu restes devant" : "égalité"}</>;
+}
+
+// Lien d'une notification de défi : la grille à faire, le défi du jour, ou la page de l'ami·e
+function challengeLink(n: ChallengeNotification) {
+    if (n.kind === "friend_challenge") return {to: challengePath(n.data.challengeId), label: "Relever le défi"};
+    if (n.kind === "daily_challenge") return {to: `/defi/${n.data.gameCode}`, label: "Jouer le défi du jour"};
+    return {to: playerPath(n.data.by.username), label: "Voir son profil"};
+}
+
+function ChallengeItem({notification: n, onNavigate}: { notification: ChallengeNotification; onNavigate: () => void }) {
+    const who = n.kind === "challenge_result" ? n.data.by : n.data.from;
+    const link = challengeLink(n);
+    return (
+        <div className="notif-friend notif-challenge">
+            <Link to={playerPath(who.username)} onClick={onNavigate} className="notif-friend-avatar">
+                <Avatar seed={who.avatar} fallback={who.username} size={2.4} level={who.level}/>
+            </Link>
+            <div className="notif-friend-body">
+                <div className="notif-daily-head">
+                    <span><strong>{challengeTitle(n)}</strong></span>
+                    <small>{ago(n.createdAt)}</small>
+                </div>
+                <p className="notif-challenge-text">{challengeText(n)}</p>
+                <Link to={link.to} onClick={onNavigate} className="notif-challenge-link">{link.label}</Link>
             </div>
         </div>
     );

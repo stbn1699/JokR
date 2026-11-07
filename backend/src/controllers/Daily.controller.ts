@@ -2,17 +2,9 @@ import type {Request, Response} from "express";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import type {AuthLocals} from "../middleware/auth.js";
 import {DAILY_GAMES, DAILY_REWARD_MULTIPLIER, type DailyGameCode, type DailyService, isDailyGame} from "../services/Daily.service.js";
-import {countClues} from "../services/Sudoku.service.js";
-import {toApiGrid} from "../services/Binero.service.js";
-import {type BineroGrid, countBineroClues} from "../utils/binero.js";
-import {sudokuStore, bineroStore, rikudoStore, tectonicStore, galaxiesStore, shikakuStore, queensStore} from "../services/stores.js";
-import {countRikudoClues, type RikudoPuzzle} from "../utils/rikudo.js";
-import {countTectonicClues, type TectonicPuzzle} from "../utils/tectonic.js";
-import type {GalaxiesPuzzle} from "../utils/galaxies.js";
-import type {ShikakuPuzzle} from "../utils/shikaku.js";
-import type {QueensPuzzle} from "../utils/queens.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
 import {tracker} from "../services/tracker.js";
+import {startPuzzle} from "../services/puzzleGames.js";
 import {isDateKey, routeParam} from "../utils/validation.js";
 
 const MONTH_KEY = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -31,38 +23,6 @@ export function createDailyController(service: DailyService, friendIds: (userId:
     const gameParam = (req: Request): DailyGameCode | null => {
         const code = routeParam(req.params, "game")?.toUpperCase() ?? "";
         return isDailyGame(code) ? code : null;
-    };
-
-    // Grille d'un défi rangée dans la mémoire du jeu ; `daily` = date si la partie compte pour le classement
-    const createGame = (code: DailyGameCode, puzzle: unknown, daily?: string) => {
-        if (code === "SUDOKU") {
-            const grid = puzzle as number[][];
-            const options = daily ? {daily} : {};
-            return {gameId: sudokuStore.create(grid, countClues(grid), options), grid};
-        }
-        const options = daily ? {daily} : {};
-        if (code === "RIKUDO") {
-            const rikudo = puzzle as RikudoPuzzle;
-            return {gameId: rikudoStore.create(rikudo, countRikudoClues(rikudo), options), grid: rikudo};
-        }
-        if (code === "TECTONIC") {
-            const tectonic = puzzle as TectonicPuzzle;
-            return {gameId: tectonicStore.create(tectonic, countTectonicClues(tectonic), options), grid: tectonic};
-        }
-        if (code === "GALAXIES") {
-            const galaxies = puzzle as GalaxiesPuzzle;
-            return {gameId: galaxiesStore.create(galaxies, galaxies.walls.length, options), grid: galaxies};
-        }
-        if (code === "SHIKAKU") {
-            const shikaku = puzzle as ShikakuPuzzle;
-            return {gameId: shikakuStore.create(shikaku, shikaku.rects.length, options), grid: shikaku};
-        }
-        if (code === "QUEENS") {
-            const queens = puzzle as QueensPuzzle;
-            return {gameId: queensStore.create(queens, queens.queens.length, options), grid: queens};
-        }
-        const grid = puzzle as BineroGrid;
-        return {gameId: bineroStore.create(grid, countBineroClues(grid), options), grid: toApiGrid(grid)};
     };
 
     return {
@@ -97,7 +57,7 @@ export function createDailyController(service: DailyService, friendIds: (userId:
 
             const challenge = await service.challenge(code, date);
             const {size, emptyCells} = DAILY_GAMES[code];
-            const {gameId, grid} = createGame(code, challenge.puzzle, date);
+            const {gameId, grid} = startPuzzle(code, challenge.puzzle, date);
             tracker.started(req, {gameId, gameCode: code, mode: "daily", gridSize: size, emptyCells});
             res.status(200).json({status: "ok", data: {date, alreadyDone: false, gameId, grid, size, emptyCells}});
         }),
@@ -129,7 +89,7 @@ export function createDailyController(service: DailyService, friendIds: (userId:
                 return;
             }
             // Pas de date "daily" : la validation la traite comme une partie normale
-            const {gameId, grid} = createGame(code, challenge.puzzle);
+            const {gameId, grid} = startPuzzle(code, challenge.puzzle);
             tracker.started(req, {gameId, gameCode: code, mode: "replay", gridSize: challenge.grid_size, emptyCells: challenge.empty_cells});
             res.status(200).json({
                 status: "ok",

@@ -219,6 +219,28 @@
 	color   : #fca5a5;
 }
 
+// Défis entre amis
+.notif-challenge-text {
+	margin    : 0 0 0.4rem;
+	font-size : 1rem;
+	color     : rgba(248, 250, 252, 0.75);
+}
+
+.notif-challenge-link {
+	display         : inline-block;
+	padding         : 0.3rem 0.9rem;
+	border-radius   : 999px;
+	background      : #3b82f6;
+	color           : white;
+	font-size       : 1rem;
+	font-weight     : 700;
+	text-decoration : none;
+
+	&:hover {
+		background : #2563eb;
+	}
+}
+
 .notif-toast-icon.friend {
 	color : #60a5fa;
 }

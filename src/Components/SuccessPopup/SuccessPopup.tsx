@@ -8,6 +8,8 @@ import {formatDuration} from "../../Services/format.ts";
 import {rewardFx} from "../../Services/rewardFx.ts";
 import CountUp from "./CountUp.tsx";
 import ShareButton from "../PuzzleUI/ShareButton.tsx";
+import DefyFriendsButton from "../FriendChallenge/DefyFriendsButton.tsx";
+import ChallengeOutcome from "../FriendChallenge/ChallengeOutcome.tsx";
 
 // Durées de l'animation de la barre d'XP (ms)
 const START_DELAY_MS = 450;
@@ -29,6 +31,10 @@ type SuccessPopupProps = {
     gameName: string;
     // Code du jeu ("SUDOKU") : lien du bouton Partager d'un défi du jour
     gameCode?: string;
+    // Bouton « Défier un·e ami·e » : free = envoie la grille de cette partie, daily = défi du jour (s'il compte)
+    defy?: "free" | "daily";
+    // Défi d'un·e ami·e terminé : comparaison des deux temps
+    challengeId?: string;
     // XP gagnée (null si le joueur n'est pas connecté)
     xpAwarded: number | null;
     // Crédits gagnés (null si le joueur n'est pas connecté)
@@ -75,7 +81,7 @@ const SWEEP_MS = 700;
  * à l'écran, avec une petite barre en bas pour relancer une partie ou revenir à l'accueil.
  */
 export function SuccessPopup(props: SuccessPopupProps) {
-    const {gameName, gameCode, xpAwarded, creditsAwarded, rewardMultiplier = 1, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie", back = "home"} = props;
+    const {gameName, gameCode, defy, challengeId, xpAwarded, creditsAwarded, rewardMultiplier = 1, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie", back = "home"} = props;
     const backTo = back ? BACK[back] : null;
     const modalRef = useRef<HTMLDivElement | null>(null);
     // Points de départ des particules (XP en bleu, crédits en orange)
@@ -246,10 +252,13 @@ export function SuccessPopup(props: SuccessPopupProps) {
                     </p>
                 )}
 
-                {/* Défi du jour classé : on peut inviter ses amis à faire mieux */}
-                {daily?.counted && gameCode && (
+                {challengeId && <ChallengeOutcome challengeId={challengeId}/>}
+
+                {/* Défi du jour classé : on peut inviter ses amis à faire mieux ; partie libre : leur envoyer la grille */}
+                {gameCode && (daily?.counted || (defy === "free" && xpAwarded !== null)) && (
                     <div className="share-row">
-                        <ShareButton share={{gameCode, gameName, durationMs}}/>
+                        {daily?.counted && <ShareButton share={{gameCode, gameName, durationMs}}/>}
+                        {defy && xpAwarded !== null && <DefyFriendsButton gameCode={gameCode} gameName={gameName} mode={defy} durationMs={durationMs}/>}
                     </div>
                 )}
 

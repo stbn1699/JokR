@@ -19,7 +19,7 @@ const friends = new FriendsRepository(createDb(pool));
 
 // 30 demandes par heure : pas d'envoi en masse
 const requestLimiter = rateLimit({windowMs: 60 * 60 * 1000, limit: 30, standardHeaders: "draft-7", legacyHeaders: false,
-    message: {status: "error", message: "Trop de demandes d'amis, réessaie plus tard"}});
+    message: {status: "error", message: "Trop de demandes d'ami·e·s, réessaie plus tard"}});
 
 router.use(requireAuth);
 
@@ -27,7 +27,7 @@ router.use(requireAuth);
 async function target(username: unknown, me: string, res: Response): Promise<string | null> {
     const id = typeof username === "string" && username.length <= 30 ? await friends.findUserId(username) : undefined;
     if (!id) {
-        res.status(404).json({status: "error", message: "Joueur introuvable"});
+        res.status(404).json({status: "error", message: "Ce pseudo n'existe pas"});
         return null;
     }
     if (id === me) {

@@ -31,6 +31,7 @@ import {useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
+import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {useNavigate} from "react-router-dom";
 import {gameService} from "../../Services/game.service.ts";
@@ -45,14 +46,16 @@ type SudokuProps = {
     daily?: boolean;
     // Défi d'un jour passé, rejoué en partie normale (hors classement) : AAAA-MM-JJ
     replayDate?: string;
+    // Défi d'un·e ami·e : sa grille, à faire à son tour (partie normale, hors classement)
+    challengeId?: string;
 };
 
-export default function Sudoku({daily = false, replayDate}: SudokuProps) {
+export default function Sudoku({daily = false, replayDate, challengeId}: SudokuProps) {
     const navigate = useNavigate();
     // Grille imposée : défi du jour, ou défi d'un jour passé rejoué
-    const challenge = daily || replayDate !== undefined;
+    const challenge = daily || replayDate !== undefined || challengeId !== undefined;
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
-    const saveKey = replayDate ? `SUDOKU:replay:${replayDate}` : daily ? "SUDOKU:daily" : "SUDOKU";
+    const saveKey = challengeId ? `SUDOKU:challenge:${challengeId}` : replayDate ? `SUDOKU:replay:${replayDate}` : daily ? "SUDOKU:daily" : "SUDOKU";
     const [showErrors, setShowErrors] = useShowErrors();
     const {
         inputs, isGenerating, isLoading, generate, validate, filledKey,
@@ -68,7 +71,8 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
         saveKey,
         fetchStatus: gameService.getSudokuGame,
         emptySave: gameId => ({gameId, values: [], notes: []}),
-        start: replayDate ? () => dailyService.replay("SUDOKU", replayDate) : undefined,
+        start: challengeId ? () => challengeService.start(challengeId)
+            : replayDate ? () => dailyService.replay("SUDOKU", replayDate) : undefined,
         onLoad: (grid, saved, elapsedMs) => {
             restore(grid, saved);
             flow.resume(elapsedMs);
@@ -117,7 +121,7 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
             <GameToolbar
                 gameName="Sudoku"
                 label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
-                    : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : undefined}
+                    : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && canUndo} canRedo={playing && canRedo}
                 onUndo={undo} onRedo={redo}
@@ -139,6 +143,7 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
                 {replayDate && (
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
+                {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
                 <h1 className="title">Sudoku</h1>
                 <SudokuGrid inputs={inputs} onHover={setHoverDigit} onCellInput={onCellInput}
                             onSelectCell={setSelectedCell} notes={notes} notesMode={notesMode}
@@ -172,9 +177,12 @@ export default function Sudoku({daily = false, replayDate}: SudokuProps) {
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
-                              onNewGame={replayDate ? () => navigate("/defi")
+                              challengeId={challengeId}
+                              defy={replayDate || challengeId ? undefined : daily ? "daily" : "free"}
+                              onNewGame={challengeId ? () => navigate(`/playgame/SUDOKU`)
+                                  : replayDate ? () => navigate("/defi")
                                   : daily ? () => navigate(`/playgame/SUDOKU`) : flow.newGame}
-                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}
+                              newGameLabel={replayDate ? "Autres défis" : daily || challengeId ? "Partie libre" : undefined}
                               back={replayDate ? null : daily ? "daily" : "home"}/>
             )}
         </div>

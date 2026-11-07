@@ -129,6 +129,27 @@ export type FriendshipsTable = {
     accepted_at: Date | null;
 };
 
+// Défis entre amis : grille envoyée, et amis défiés (partie lancée, temps)
+export type FriendChallengesTable = {
+    id: Generated<string>;
+    sender_id: string;
+    game_code: string;
+    // lu tel quel (JSON déjà décodé), écrit sous forme de texte JSON
+    puzzle: ColumnType<unknown, string, string>;
+    grid_size: number;
+    empty_cells: number;
+    sender_ms: number;
+    created_at: Generated<Date>;
+};
+
+export type FriendChallengePlayersTable = {
+    challenge_id: string;
+    user_id: string;
+    game_id: string | null;
+    duration_ms: number | null;
+    finished_at: Date | null;
+};
+
 export type GameMode = "free" | "daily" | "replay";
 export type Device = "mobile" | "tablet" | "desktop";
 
@@ -143,5 +164,7 @@ export type DB = {
     game_sessions: GameSessionsTable;
     notifications: NotificationsTable;
     friendships: FriendshipsTable;
+    friend_challenges: FriendChallengesTable;
+    friend_challenge_players: FriendChallengePlayersTable;
 };
 

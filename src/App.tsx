@@ -32,6 +32,7 @@ import Hasard from "./Components/Hasard/Hasard.tsx";
 import AppFooter from "./Components/AppFooter/AppFooter.tsx";
 import Stats from "./Components/Stats/Stats.tsx";
 import PlayerProfile from "./Components/PlayerProfile/PlayerProfile.tsx";
+import FriendChallengePage from "./Components/FriendChallenge/FriendChallengePage.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -70,6 +71,8 @@ function App() {
                 <Route path="/stats" element={<Stats/>}/>
                 {/* Profil public d'un joueur (depuis les classements) */}
                 <Route path="/joueur/:username" element={<PlayerProfile/>}/>
+                {/* Défi d'un·e ami·e : sa grille, à faire à son tour */}
+                <Route path="/defi-ami/:id" element={<FriendChallengePage/>}/>
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
             <AppFooter/>

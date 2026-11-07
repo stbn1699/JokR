@@ -25,7 +25,32 @@ export interface FriendNotification extends BaseNotification {
     data: { username: string; avatar: string; level: number };
 }
 
-export type AppNotification = DailyResultsNotification | FriendNotification;
+type NotifPlayer = { username: string; avatar: string; level: number };
+
+// Un·e ami·e t'envoie la grille d'une de ses parties gagnées
+export interface FriendChallengeNotification extends BaseNotification {
+    kind: "friend_challenge";
+    data: { challengeId: string; from: NotifPlayer; gameCode: string; gameName: string; gridSize: number; emptyCells: number; senderMs: number };
+}
+
+// Un·e ami·e te défie au défi du jour
+export interface DailyChallengeNotification extends BaseNotification {
+    kind: "daily_challenge";
+    data: { from: NotifPlayer; gameCode: string; gameName: string; date: string; senderMs: number };
+}
+
+// Un·e ami·e a fait la grille que tu lui as envoyée
+export interface ChallengeResultNotification extends BaseNotification {
+    kind: "challenge_result";
+    data: { challengeId: string; by: NotifPlayer; gameCode: string; gameName: string; senderMs: number; playerMs: number };
+}
+
+export type ChallengeNotification = FriendChallengeNotification | DailyChallengeNotification | ChallengeResultNotification;
+
+export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification;
+
+export const isFriendNotification = (n: AppNotification): n is FriendNotification =>
+    n.kind === "friend_request" || n.kind === "friend_accepted";
 
 export const isDailyResults = (n: AppNotification): n is DailyResultsNotification => n.kind === "daily_results";
 

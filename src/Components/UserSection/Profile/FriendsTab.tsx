@@ -9,13 +9,13 @@ import Avatar from "../../Avatar/Avatar.tsx";
 
 const REQUEST_MESSAGES = {
     requested: "Demande envoyée.",
-    accepted: "Vous êtes maintenant amis !",
+    accepted: "Vous êtes maintenant ami·e·s !",
     already_requested: "Tu lui as déjà envoyé une demande.",
-    already_friends: "Vous êtes déjà amis.",
+    already_friends: "Vous êtes déjà ami·e·s.",
 } as const;
 
 /**
- * Onglet « Amis » du profil :
+ * Onglet « Ami·e·s » du profil :
  * - ajouter un ami par son pseudo (s'il t'avait déjà demandé, vous devenez amis tout de suite)
  * - demandes reçues : Accepter / Refuser
  * - mes amis (lien vers leur page, Retirer) et demandes envoyées (Annuler)
@@ -53,11 +53,11 @@ export default function FriendsTab() {
 
     return (
         <section className="profile-card friends-tab fade-in">
-            <h1>Amis</h1>
+            <h1>Ami·e·s</h1>
 
             <form className="friends-add" onSubmit={send}>
                 <input value={name} onChange={e => setName(e.target.value)} maxLength={30} spellCheck={false}
-                       placeholder="Pseudo d'un joueur" aria-label="Pseudo du joueur à ajouter"/>
+                       placeholder="Pseudo à ajouter" aria-label="Pseudo du joueur à ajouter"/>
                 <button type="submit" disabled={busy === "send" || !name.trim()}>
                     <FaUserPlus aria-hidden/> Ajouter
                 </button>
@@ -77,13 +77,13 @@ export default function FriendsTab() {
                             )}/>
             )}
 
-            <FriendList title={`Mes amis (${friends.length})`} players={friends}
-                        empty="Pas encore d'amis. Ajoute des joueurs pour les retrouver dans les classements."
-                        detail={p => `Amis depuis le ${new Date(p.since).toLocaleDateString("fr-FR")}`}
+            <FriendList title={`Mes ami·e·s (${friends.length})`} players={friends}
+                        empty="Pas encore d'ami·e·s. Ajoute des personnes pour les retrouver dans les classements."
+                        detail={p => `Ami·e·s depuis le ${new Date(p.since).toLocaleDateString("fr-FR")}`}
                         actions={p => (
                             <button type="button" disabled={busy !== null}
                                     onClick={() => {
-                                        if (window.confirm(`Retirer ${p.username} de tes amis ?`)) {
+                                        if (window.confirm(`Retirer ${p.username} de tes ami·e·s ?`)) {
                                             void act(p.username, () => friendsStore.remove(p.username));
                                         }
                                     }}>Retirer</button>

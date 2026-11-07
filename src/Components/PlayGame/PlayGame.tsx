@@ -33,9 +33,12 @@ type RouteParams = {
  * Composant qui affiche le jeu correspondant au code passé dans l'URL
  * @returns JSX du jeu sélectionné avec le header
  */
-export default function PlayGame({daily = false}: { daily?: boolean }) {
+// challengeId : défi d'un·e ami·e (/defi-ami/:id), le jeu est donné par le défi
+export default function PlayGame({daily = false, challengeGame, challengeId}: { daily?: boolean; challengeGame?: string; challengeId?: string }) {
     // Extraction du code du jeu depuis l'URL (ex: /playgame/SUDOKU → gameCode = "SUDOKU")
-    const {gameCode, date} = useParams<RouteParams>()
+    const params = useParams<RouteParams>()
+    const gameCode = challengeGame ?? params.gameCode
+    const date = params.date
     const {isLoggedIn} = useAuth()
 
     /**
@@ -48,19 +51,19 @@ export default function PlayGame({daily = false}: { daily?: boolean }) {
         switch (gameCode) {
             case "SUDOKU":
                 // Affiche le jeu Sudoku avec son code
-                return <Sudoku daily={daily && !date} replayDate={date}/>;
+                return <Sudoku daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "BINERO":
-                return <Binero daily={daily && !date} replayDate={date}/>;
+                return <Binero daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "RIKUDO":
-                return <Rikudo daily={daily && !date} replayDate={date}/>;
+                return <Rikudo daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "TECTONIC":
-                return <Tectonic daily={daily && !date} replayDate={date}/>;
+                return <Tectonic daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "GALAXIES":
-                return <Galaxies daily={daily && !date} replayDate={date}/>;
+                return <Galaxies daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "SHIKAKU":
-                return <Shikaku daily={daily && !date} replayDate={date}/>;
+                return <Shikaku daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "QUEENS":
-                return <Queens daily={daily && !date} replayDate={date}/>;
+                return <Queens daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

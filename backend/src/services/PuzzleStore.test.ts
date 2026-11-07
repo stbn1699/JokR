@@ -28,6 +28,17 @@ describe("PuzzleStore", () => {
         expect(store.get(id)).toBeUndefined();
     });
 
+    it("garde 24 h la grille d'une partie terminée (défi entre amis), sans la rendre validable", () => {
+        vi.useFakeTimers();
+        const store = new PuzzleStore<number[][]>();
+        const id = store.create(puzzle, 9);
+        store.delete(id);
+        expect(store.get(id)).toBeUndefined();
+        expect(store.getFinished(id)?.puzzle).toBe(puzzle);
+        vi.advanceTimersByTime(24 * 60 * 60 * 1000 + 1);
+        expect(store.getFinished(id)).toBeUndefined();
+    });
+
     it("renvoie undefined pour un identifiant inconnu", () => {
         expect(new PuzzleStore<number[][]>().get("inconnu")).toBeUndefined();
     });

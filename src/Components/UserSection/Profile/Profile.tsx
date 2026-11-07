@@ -23,7 +23,7 @@ import Loader from "../../Loader/Loader.tsx";
 
 const TABS = [
     {id: "profil", label: "Profil"},
-    {id: "amis", label: "Amis"},
+    {id: "amis", label: "Ami·e·s"},
     {id: "parametres", label: "Paramètres"},
 ] as const;
 type Tab = typeof TABS[number]["id"];

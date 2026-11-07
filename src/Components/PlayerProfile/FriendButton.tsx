@@ -35,7 +35,7 @@ export default function FriendButton({username, initial}: { username: string; in
         <div className="friend-button">
             {relation === "none" && (
                 <button type="button" className="primary" disabled={busy} onClick={() => void act(() => friendsStore.request(username))}>
-                    <FaUserPlus aria-hidden/> Ajouter en ami
+                    <FaUserPlus aria-hidden/> Ajouter en ami·e
                 </button>
             )}
             {relation === "outgoing" && (
@@ -46,16 +46,16 @@ export default function FriendButton({username, initial}: { username: string; in
             )}
             {relation === "incoming" && (
                 <>
-                    <span className="friend-state">{username} veut être ton ami</span>
+                    <span className="friend-state">{username} veut être ton ami·e</span>
                     <button type="button" className="primary" disabled={busy} onClick={() => void act(() => friendsStore.accept(username))}>Accepter</button>
                     <button type="button" disabled={busy} onClick={() => void act(() => friendsStore.remove(username))}>Refuser</button>
                 </>
             )}
             {relation === "friends" && (
                 <>
-                    <span className="friend-state friends"><FaCheck aria-hidden/> Vous êtes amis</span>
+                    <span className="friend-state friends"><FaCheck aria-hidden/> Vous êtes ami·e·s</span>
                     <button type="button" disabled={busy} onClick={() => {
-                        if (window.confirm(`Retirer ${username} de tes amis ?`)) void act(() => friendsStore.remove(username));
+                        if (window.confirm(`Retirer ${username} de tes ami·e·s ?`)) void act(() => friendsStore.remove(username));
                     }}>Retirer</button>
                 </>
             )}

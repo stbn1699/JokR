@@ -27,6 +27,7 @@ import {useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
+import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {useNavigate} from "react-router-dom";
 import {galaxiesService} from "../../Services/galaxies.service.ts";
@@ -40,14 +41,16 @@ type GalaxiesProps = {
     daily?: boolean;
     // Défi d'un jour passé, rejoué en partie normale (hors classement) : AAAA-MM-JJ
     replayDate?: string;
+    // Défi d'un·e ami·e : sa grille, à faire à son tour (partie normale, hors classement)
+    challengeId?: string;
 };
 
-export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
+export default function Galaxies({daily = false, replayDate, challengeId}: GalaxiesProps) {
     const navigate = useNavigate();
     // Grille imposée : défi du jour, ou défi d'un jour passé rejoué
-    const challenge = daily || replayDate !== undefined;
+    const challenge = daily || replayDate !== undefined || challengeId !== undefined;
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
-    const saveKey = replayDate ? `GALAXIES:replay:${replayDate}` : daily ? "GALAXIES:daily" : "GALAXIES";
+    const saveKey = challengeId ? `GALAXIES:challenge:${challengeId}` : replayDate ? `GALAXIES:replay:${replayDate}` : daily ? "GALAXIES:daily" : "GALAXIES";
     const game = useGalaxiesGame(saveKey);
     const flow = useGameFlow();
     const {resumable, dismissResumable} = useResumableGame<SavedGalaxies, GalaxiesPuzzle>(saveKey, galaxiesService.getGame, !challenge);
@@ -57,7 +60,8 @@ export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
         saveKey,
         fetchStatus: galaxiesService.getGame,
         emptySave: gameId => ({gameId, walls: []}),
-        start: replayDate ? () => dailyService.replay("GALAXIES", replayDate) : undefined,
+        start: challengeId ? () => challengeService.start(challengeId)
+            : replayDate ? () => dailyService.replay("GALAXIES", replayDate) : undefined,
         onLoad: (puzzle, saved, elapsedMs) => {
             game.restore(puzzle, saved);
             flow.resume(elapsedMs);
@@ -108,7 +112,7 @@ export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
             <GameToolbar
                 gameName="Galaxies"
                 label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
-                    : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : undefined}
+                    : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
                 onUndo={game.undo} onRedo={game.redo}
@@ -137,6 +141,7 @@ export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
                 {replayDate && (
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
+                {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
                 <h1 className="title">Galaxies</h1>
                 {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
                     : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
@@ -183,9 +188,12 @@ export default function Galaxies({daily = false, replayDate}: GalaxiesProps) {
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
-                              onNewGame={replayDate ? () => navigate("/defi")
+                              challengeId={challengeId}
+                              defy={replayDate || challengeId ? undefined : daily ? "daily" : "free"}
+                              onNewGame={challengeId ? () => navigate(`/playgame/GALAXIES`)
+                                  : replayDate ? () => navigate("/defi")
                                   : daily ? () => navigate(`/playgame/GALAXIES`) : flow.newGame}
-                              newGameLabel={replayDate ? "Autres défis" : daily ? "Partie libre" : undefined}
+                              newGameLabel={replayDate ? "Autres défis" : daily || challengeId ? "Partie libre" : undefined}
                               back={replayDate ? null : daily ? "daily" : "home"}/>
             )}
         </div>

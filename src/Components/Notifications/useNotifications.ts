@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from "react";
-import {type AppNotification, type DailyResultsNotification, isDailyResults, notificationService, notificationXp} from "../../Services/notification.service.ts";
+import {type AppNotification, type DailyResultsNotification, isDailyResults, isFriendNotification, notificationService, notificationXp} from "../../Services/notification.service.ts";
 import {friendsStore} from "../../Services/friends.service.ts";
 
 // Nouvelles notifications : vérifiées toutes les 3 minutes, et en revenant sur l'onglet
@@ -43,7 +43,7 @@ export function useNotifications(enabled: boolean) {
         const seen = toasted();
         const fresh = list.items.find(n => n.readAt === null && !seen.includes(n.id) && notificationXp(n) === 0);
         // Nouvelle demande ou amitié acceptée : les listes d'amis changent
-        if (list.items.some(n => !isDailyResults(n) && n.readAt === null)) friendsStore.refresh().catch(() => undefined);
+        if (list.items.some(n => isFriendNotification(n) && n.readAt === null)) friendsStore.refresh().catch(() => undefined);
         if (fresh) {
             setToast(fresh);
             rememberToasted([...seen, ...list.items.filter(n => n.readAt === null).map(n => n.id)]);
