@@ -7,7 +7,7 @@
 	overflow      : hidden;
 }
 
-// ---------- Contour selon le niveau (cuivre 0-9, argent 10-24, or 25-49, diamant 50+)
+// ---------- Contour selon le niveau : une couleur tous les 10 niveaux, platine à partir de 100 (voir levelTier)
 .avatar-frame {
 	--avatar-size : 2.5rem;
 	--ring        : calc(var(--avatar-size) * 0.075);
@@ -39,6 +39,13 @@
 		pointer-events : none;
 	}
 
+	// Pierre (niveaux 1 à 4) : gris neutre, mat, la première vraie couleur arrive au niveau 5
+	&.tier-stone {
+		--metal : linear-gradient(135deg, #b9bec6 0%, #8a9099 35%, #5f656e 60%, #9aa0a8 100%);
+		--plate : #8a9099;
+		--ink   : #15181d;
+	}
+
 	&.tier-copper {
 		--metal : linear-gradient(135deg, #f6c092 0%, #c47c42 35%, #8a4f24 55%, #e3a46d 78%, #b06b35 100%);
 		--plate : #c98149;
@@ -57,6 +64,39 @@
 		--ink   : #3a2600;
 	}
 
+	&.tier-emerald {
+		--metal : linear-gradient(135deg, #b8f5d4 0%, #2ecc71 30%, #0b6b3a 55%, #6ee7a8 78%, #13804a 100%);
+		--plate : #22b562;
+		--ink   : #022c16;
+	}
+
+	&.tier-ruby {
+		--metal : linear-gradient(135deg, #ffc2cc 0%, #e0294a 32%, #7d0a1e 55%, #ff6b85 78%, #a3112b 100%);
+		--plate : #d21f40;
+		--ink   : #fff1f3;
+	}
+
+	&.tier-sapphire {
+		--metal : linear-gradient(135deg, #c4d4ff 0%, #2f5be0 32%, #0d2470 55%, #6f93ff 78%, #1a3aa3 100%);
+		--plate : #2a52cc;
+		--ink   : #eef3ff;
+	}
+
+	&.tier-amethyst {
+		--metal : linear-gradient(135deg, #ead2ff 0%, #9b4fe0 32%, #4a1680 55%, #c08cff 78%, #6a26ad 100%);
+		--plate : #8a3fd1;
+		--ink   : #f8f0ff;
+	}
+
+	// Obsidienne : noir brillant, reflets violets et liseré argenté
+	&.tier-obsidian {
+		--metal : linear-gradient(135deg, #8a8796 0%, #1f1b2b 28%, #050409 52%, #4d3b6e 74%, #15121f 100%);
+		--plate : #1c1827;
+		--ink   : #e9e3ff;
+
+		box-shadow : 0 1px 3px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(200, 190, 230, 0.55);
+	}
+
 	// Diamant : bleu glacé, avec un léger scintillement
 	&.tier-diamond {
 		--metal : linear-gradient(135deg, #f2fcff 0%, #a8e6fc 25%, #4fb3e6 45%, #eafaff 62%, #8fd3f7 80%, #c8f0ff 100%);
@@ -65,7 +105,40 @@
 
 		background-size : 250% 250%;
 		box-shadow      : 0 1px 3px rgba(0, 0, 0, 0.45), 0 0 calc(var(--avatar-size) * 0.18) rgba(125, 211, 252, 0.65);
-		animation       : avatar-diamond 4s ease-in-out infinite;
+		animation       : avatar-shimmer 4s ease-in-out infinite;
+	}
+
+	// Opale : irisée, ses couleurs tournent doucement
+	&.tier-opal {
+		--metal : linear-gradient(135deg, #ffe3f1 0%, #c7f0ff 20%, #fff4c2 38%, #d9ffe8 55%, #e6d6ff 72%, #ffd9e8 88%, #c7f0ff 100%);
+		--plate : #f3e6ff;
+		--ink   : #3b2457;
+
+		background-size : 300% 300%;
+		box-shadow      : 0 1px 3px rgba(0, 0, 0, 0.45), 0 0 calc(var(--avatar-size) * 0.2) rgba(255, 192, 230, 0.6);
+		animation       : avatar-shimmer 6s linear infinite;
+	}
+
+	// Nébuleuse (90–99) : bleu nuit, nuées rose et violette qui dérivent
+	&.tier-nebula {
+		--metal : linear-gradient(135deg, #1b1446 0%, #5b2a9e 22%, #e05ac2 38%, #241a63 55%, #3fa6e8 72%, #1b1446 88%, #9b4fe0 100%);
+		--plate : #3b2a8a;
+		--ink   : #fbeaff;
+
+		background-size : 300% 300%;
+		box-shadow      : 0 1px 3px rgba(0, 0, 0, 0.45), 0 0 calc(var(--avatar-size) * 0.22) rgba(186, 104, 255, 0.7);
+		animation       : avatar-shimmer 7s ease-in-out infinite;
+	}
+
+	// Platine (niveau 100 et plus) : blanc nacré, un reflet qui passe et un halo
+	&.tier-platinum {
+		--metal : linear-gradient(115deg, #d7dce4 0%, #f7f9fc 20%, #aeb6c3 36%, #ffffff 48%, #c3cad6 62%, #eef1f6 80%, #b9c1cd 100%);
+		--plate : #eef1f6;
+		--ink   : #2a3140;
+
+		background-size : 260% 100%;
+		box-shadow      : 0 1px 3px rgba(0, 0, 0, 0.45), 0 0 calc(var(--avatar-size) * 0.25) rgba(230, 236, 255, 0.85);
+		animation       : avatar-platinum 3.2s ease-in-out infinite;
 	}
 }
 
@@ -92,7 +165,7 @@
 	pointer-events : none;
 }
 
-@keyframes avatar-diamond {
+@keyframes avatar-shimmer {
 	0%, 100% {
 		background-position : 0% 50%;
 	}
@@ -101,8 +174,21 @@
 	}
 }
 
+// Platine : le reflet clair traverse le contour
+@keyframes avatar-platinum {
+	0% {
+		background-position : 100% 50%;
+	}
+	60%, 100% {
+		background-position : 0% 50%;
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
-	.avatar-frame.tier-diamond {
+	.avatar-frame.tier-diamond,
+	.avatar-frame.tier-opal,
+	.avatar-frame.tier-nebula,
+	.avatar-frame.tier-platinum {
 		animation : none;
 	}
 }

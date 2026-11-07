@@ -21,6 +21,11 @@ import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
 import {isGameRoute} from "../../Services/routes.ts";
 import {useHeaderProgress} from "./useHeaderProgress.ts";
+import {createPortal} from "react-dom";
+import {useTierUp} from "../Avatar/useTierUp.ts";
+import TierUpPopup from "../Avatar/TierUpPopup.tsx";
+import LevelBubble from "../Avatar/LevelBubble.tsx";
+import {useState} from "react";
 
 // Onglets du header ; `match` dit si une adresse appartient à l'onglet, `highlight` le met en orange
 const TABS = [
@@ -39,6 +44,15 @@ export default function Header() {
     // Après une victoire : valeurs d'avant jusqu'à l'arrivée des particules, puis changement animé
     const shown = useHeaderProgress({level: auth.level, xp: auth.xp, credits: auth.credits});
     const {level, xp, credits} = shown;
+    // Nouveau palier de couleur atteint (niveau affiché) : popup « Nouvelle couleur »
+    const tierUp = useTierUp(auth.userId, level, isLoggedIn && auth.username !== null);
+    // Bulle « où j'en suis » (clic sur le niveau) : position sous le header
+    const [bubbleTop, setBubbleTop] = useState<number | null>(null);
+    const toggleBubble = (badge: HTMLElement) => {
+        if (bubbleTop !== null) return setBubbleTop(null);
+        const header = badge.closest(".header")?.getBoundingClientRect();
+        setBubbleTop((header?.bottom ?? 72) + 8);
+    };
 
     const xpNextLevel = xpToNextLevel(level);
     const xpPercent = Math.min(100, (xp / xpNextLevel) * 100);
@@ -65,12 +79,22 @@ export default function Header() {
                 })}
             </nav>
 
+            {/* Au niveau de la page : jamais enfermée dans le header */}
+            {tierUp.popup && createPortal(
+                <TierUpPopup seed={auth.avatar ?? undefined} fallback={auth.username ?? undefined} level={tierUp.popup.level}
+                             fromIndex={tierUp.popup.fromIndex} toIndex={tierUp.popup.toIndex} onClose={tierUp.close}/>,
+                document.body,
+            )}
+
             <div className="usersection">
                 {isLoggedIn ? (
                     <div className="user-section">
-                        {/* Niveau : étoile bleue à gauche, puis le numéro avec une petite barre d'XP dessous */}
-                        <span className={`level-badge ${shown.levelPop ? "level-pop" : ""}`}
-                              title={`Niveau ${level} · ${xp} / ${xpNextLevel} XP`}>
+                        {/* Niveau : étoile bleue à gauche, puis le numéro avec une petite barre d'XP dessous ;
+                            un clic ouvre la bulle « où j'en suis » (couleur de contour, prochaine couleur) */}
+                        <button type="button" className={`level-badge ${shown.levelPop ? "level-pop" : ""}`}
+                                aria-expanded={bubbleTop !== null}
+                                title={`Niveau ${level} · ${xp} / ${xpNextLevel} XP`}
+                                onClick={e => toggleBubble(e.currentTarget)}>
                             <FaStar className="level-badge-star" aria-hidden/>
                             <span className="level-badge-stack">
                                 <span className="level-badge-value">{level}</span>
@@ -79,7 +103,11 @@ export default function Header() {
                                           style={{width: `${xpPercent}%`}}/>
                                 </span>
                             </span>
-                        </span>
+                        </button>
+                        {bubbleTop !== null && (
+                            <LevelBubble level={level} xp={xp} seed={auth.avatar ?? undefined} fallback={auth.username ?? undefined}
+                                         top={bubbleTop} onClose={() => setBubbleTop(null)}/>
+                        )}
 
                         <span className="user-divider" aria-hidden/>
 

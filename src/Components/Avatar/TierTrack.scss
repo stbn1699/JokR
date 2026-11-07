@@ -1,0 +1,136 @@
+// Frise des couleurs de contour (popup « Nouvelle couleur »)
+.tier-track {
+	display         : flex;
+	justify-content : safe center;
+	gap             : 0.15rem;
+	max-width       : 100%;
+	margin          : 0;
+	padding         : 1.6rem 0.25rem 0.25rem;
+	overflow-x      : auto;
+	list-style      : none;
+	scrollbar-width : none;
+
+	&::-webkit-scrollbar {
+		display : none;
+	}
+}
+
+.tier-step {
+	position       : relative;
+	flex           : none;
+	display        : flex;
+	flex-direction : column;
+	align-items    : center;
+	gap            : 0.3rem;
+	width          : 1.85rem;
+	// apparition de gauche à droite
+	animation      : tier-step-in 0.35s ease backwards;
+	animation-delay : calc(0.9s + var(--i, 0) * 45ms);
+
+	// Paliers pas encore atteints : leur couleur, mais pâlie (on voit ce qui arrive ensuite)
+	&.future .tier-swatch {
+		filter  : saturate(0.55) brightness(0.8);
+		opacity : 0.5;
+	}
+
+	&.current .tier-swatch {
+		transform  : scale(1.25);
+		box-shadow : 0 0 0 2px #f9fafb, 0 0 0.8rem rgba(255, 255, 255, 0.45);
+	}
+
+	&.current .tier-min {
+		color       : #f9fafb;
+		font-weight : 800;
+	}
+}
+
+// Bulle du header : les pastilles arrivent tout de suite
+.tier-track.compact {
+	gap         : 0.1rem;
+	padding-top : 1.5rem;
+
+	// plus serrée : les 13 couleurs tiennent dans la bulle
+	.tier-step {
+		width           : 1.6rem;
+		animation-delay : calc(0.05s + var(--i, 0) * 25ms);
+	}
+
+	.avatar-frame.tier-swatch {
+		--avatar-size : 1.15rem;
+	}
+
+	.tier-min {
+		font-size : 0.78rem;
+	}
+
+	.tier-you {
+		animation-delay : 0.6s;
+	}
+}
+
+// Pastille : le contour sans icône (couleur pleine), en rond
+.avatar-frame.tier-swatch {
+	--avatar-size : 1.35rem;
+	border-radius : 50%;
+	padding       : 0;
+	transition    : transform 0.2s ease;
+
+	&::after {
+		display : none;
+	}
+}
+
+.tier-min {
+	font-size : 0.85rem;
+	color     : rgba(248, 250, 252, 0.6);
+}
+
+// Flèche « toi » au-dessus du palier du joueur
+.tier-you {
+	position       : absolute;
+	top            : -1.45rem;
+	left           : 50%;
+	padding        : 0 0.35rem;
+	border-radius  : 999px;
+	background     : #f9fafb;
+	color          : #0b1220;
+	font-size      : 0.75rem;
+	font-weight    : 800;
+	line-height    : 1.1rem;
+	white-space    : nowrap;
+	transform      : translateX(-50%);
+	animation      : tier-you-bounce 1.6s ease-in-out 1.6s infinite;
+
+	&::after {
+		content      : "";
+		position     : absolute;
+		top          : 100%;
+		left         : 50%;
+		border       : 0.25rem solid transparent;
+		border-top   : 0.3rem solid #f9fafb;
+		transform    : translateX(-50%);
+	}
+}
+
+@keyframes tier-step-in {
+	from {
+		opacity   : 0;
+		transform : translateY(0.4rem);
+	}
+}
+
+@keyframes tier-you-bounce {
+	0%, 100% {
+		transform : translate(-50%, 0);
+	}
+	50% {
+		transform : translate(-50%, -0.2rem);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tier-step,
+	.tier-you {
+		animation : none;
+	}
+}

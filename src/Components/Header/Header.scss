@@ -100,16 +100,34 @@
 
 		// Niveau : étoile bleue à gauche, puis le numéro avec une petite barre d'XP dessous
 		// (même taille que l'icône des crédits)
+		// Bouton : ouvre la bulle « où j'en suis »
 		.level-badge {
-			display     : flex;
-			align-items : center;
-			gap         : 0.35rem;
-			color       : #2563eb;
-			font-size   : 1.35rem;
-			cursor      : default;
+			display       : flex;
+			align-items   : center;
+			gap           : 0.35rem;
+			padding       : 0.2rem 0.4rem;
+			margin        : -0.2rem -0.4rem;
+			border        : none;
+			border-radius : 10px;
+			background    : transparent;
+			color         : #2563eb;
+			font-family   : inherit;
+			font-size     : 1.35rem;
+			cursor        : pointer;
+			transition    : background 0.15s ease;
 
 			svg {
-				cursor : default;
+				cursor : pointer;
+			}
+
+			&:hover,
+			&[aria-expanded="true"] {
+				background : rgba(37, 99, 235, 0.1);
+			}
+
+			&:focus-visible {
+				outline        : 2px solid #2563eb;
+				outline-offset : 2px;
 			}
 		}
 
@@ -204,6 +222,14 @@
 
 			.avatar-frame.tier-diamond {
 				box-shadow : 0 0 0 1.5px #0c2a3d, 0 0 8px rgba(56, 189, 248, 0.7);
+			}
+
+			.avatar-frame.tier-opal {
+				box-shadow : 0 0 0 1.5px #5b3d7a, 0 0 8px rgba(236, 160, 210, 0.7);
+			}
+
+			.avatar-frame.tier-platinum {
+				box-shadow : 0 0 0 1.5px #4a5263, 0 0 9px rgba(180, 195, 235, 0.9);
 			}
 		}
 

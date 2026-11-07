@@ -19,19 +19,42 @@ export function xpBefore(level: number, xp: number, gained: number): { level: nu
     return {level: l, xp: Math.max(0, x)};
 }
 
-// Palier de niveau : couleur du contour de l'icône de profil (reprend les anciennes icônes de niveau)
-export type LevelTier = "copper" | "silver" | "gold" | "diamond";
+/*
+ * Paliers de niveau : couleur du contour de l'icône de profil.
+ * Rapprochés au début (pierre au niveau 1, puis cuivre 5, argent 10, or 15), puis une pierre précieuse
+ * tous les 10 niveaux jusqu'au platine, au niveau 100.
+ */
+export const LEVEL_TIERS = [
+    {id: "stone", min: 1, name: "Pierre"},
+    {id: "copper", min: 5, name: "Cuivre"},
+    {id: "silver", min: 10, name: "Argent"},
+    {id: "gold", min: 15, name: "Or"},
+    {id: "emerald", min: 20, name: "Émeraude"},
+    {id: "ruby", min: 30, name: "Rubis"},
+    {id: "sapphire", min: 40, name: "Saphir"},
+    {id: "amethyst", min: 50, name: "Améthyste"},
+    {id: "obsidian", min: 60, name: "Obsidienne"},
+    {id: "diamond", min: 70, name: "Diamant"},
+    {id: "opal", min: 80, name: "Opale"},
+    {id: "nebula", min: 90, name: "Nébuleuse"},
+    {id: "platinum", min: 100, name: "Platine"},
+] as const;
+export type LevelTier = typeof LEVEL_TIERS[number]["id"];
 
-export function levelTier(level: number): LevelTier {
-    if (level >= 50) return "diamond";
-    if (level >= 25) return "gold";
-    if (level >= 10) return "silver";
-    return "copper";
+// Rang du palier d'un niveau (0 = pierre)
+export function levelTierIndex(level: number): number {
+    let index = 0;
+    LEVEL_TIERS.forEach((t, i) => {
+        if (level >= t.min) index = i;
+    });
+    return index;
 }
 
-export const LEVEL_TIER_NAMES: Record<LevelTier, string> = {
-    copper: "Cuivre", silver: "Argent", gold: "Or", diamond: "Diamant",
-};
+export function levelTier(level: number): LevelTier {
+    return LEVEL_TIERS[levelTierIndex(level)]!.id;
+}
+
+export const LEVEL_TIER_NAMES = Object.fromEntries(LEVEL_TIERS.map(t => [t.id, t.name])) as Record<LevelTier, string>;
 
 /**
  * Une étape de remplissage de la barre d'XP, sur un niveau donné :

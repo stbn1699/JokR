@@ -10,15 +10,24 @@ describe("xpToNextLevel", () => {
 });
 
 describe("levelTier", () => {
-    it("cuivre, argent, or puis diamant (comme les anciennes icônes de niveau)", () => {
-        expect(levelTier(0)).toBe("copper");
+    it("pierre, puis cuivre 5, argent 10, or 15, puis une pierre précieuse tous les 10 niveaux", () => {
+        expect(levelTier(1)).toBe("stone");
+        expect(levelTier(4)).toBe("stone");
+        expect(levelTier(5)).toBe("copper");
         expect(levelTier(9)).toBe("copper");
         expect(levelTier(10)).toBe("silver");
-        expect(levelTier(24)).toBe("silver");
-        expect(levelTier(25)).toBe("gold");
-        expect(levelTier(49)).toBe("gold");
-        expect(levelTier(50)).toBe("diamond");
-        expect(levelTier(120)).toBe("diamond");
+        expect(levelTier(15)).toBe("gold");
+        expect(levelTier(19)).toBe("gold");
+        expect(levelTier(20)).toBe("emerald");
+        expect(levelTier(30)).toBe("ruby");
+        expect(levelTier(40)).toBe("sapphire");
+        expect(levelTier(50)).toBe("amethyst");
+        expect(levelTier(60)).toBe("obsidian");
+        expect(levelTier(70)).toBe("diamond");
+        expect(levelTier(80)).toBe("opal");
+        expect(levelTier(99)).toBe("nebula");
+        expect(levelTier(100)).toBe("platinum");
+        expect(levelTier(250)).toBe("platinum");
     });
 });
 

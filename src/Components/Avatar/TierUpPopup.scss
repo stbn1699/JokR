@@ -1,0 +1,158 @@
+// Popup « Nouvelle couleur ! »
+.tier-up-overlay {
+	z-index : 120;
+}
+
+.modal.success-modal.tier-up {
+	width     : min(32rem, calc(100vw - 2rem));
+	animation : tier-up-in 0.35s cubic-bezier(.2, .9, .3, 1.2);
+
+	.tier-up-kicker {
+		margin         : 0 0 0.5rem;
+		font-size      : 1.05rem;
+		letter-spacing : 0.12em;
+		text-transform : uppercase;
+		opacity        : 0.6;
+	}
+
+	h2 {
+		margin    : 0.75rem 0 0.25rem;
+		font-size : 1.9rem;
+		// le titre arrive avec l'impact
+		animation : tier-up-title 0.5s cubic-bezier(.2, .9, .3, 1.5) 1.15s backwards;
+	}
+
+	.tier-up-sub {
+		margin    : 0 0 0.5rem;
+		font-size : 1.1rem;
+		opacity   : 0.75;
+		animation : tier-up-title 0.4s ease 1.3s backwards;
+	}
+
+	.tier-up-name {
+		font-weight : 800;
+	}
+}
+
+// Nom de la couleur, dans sa teinte
+.tier-up-name {
+	&.stone { color : #b9bec6; }
+	&.copper { color : #e3a46d; }
+	&.silver { color : #e5e9ef; }
+	&.gold { color : #ffd84d; }
+	&.emerald { color : #4ade80; }
+	&.ruby { color : #ff5a78; }
+	&.sapphire { color : #6f93ff; }
+	&.amethyst { color : #c08cff; }
+	&.obsidian { color : #b7a6e8; }
+	&.diamond { color : #8fd3f7; }
+	&.opal { color : #ffc9e6; }
+	&.nebula { color : #e07ae0; }
+	&.platinum { color : #f4f7fb; text-shadow : 0 0 0.8rem rgba(210, 225, 255, 0.8); }
+}
+
+// Les deux icônes l'une sur l'autre : le nouveau contour s'écrase sur l'ancien
+.tier-up-avatars {
+	position        : relative;
+	display         : flex;
+	justify-content : center;
+	align-items     : center;
+	height          : 8rem;
+
+	.tier-up-old,
+	.tier-up-new {
+		position : absolute;
+	}
+
+	// l'ancien disparaît à l'impact
+	.tier-up-old {
+		animation : tier-up-old 1.15s ease forwards;
+	}
+
+	// le nouveau tombe de haut, gros et penché, puis rebondit
+	.tier-up-new {
+		animation : tier-up-slam 1.5s cubic-bezier(.5, 0, .3, 1) forwards;
+	}
+
+	// onde de choc à l'impact
+	.tier-up-wave {
+		position      : absolute;
+		width         : 6.5rem;
+		height        : 6.5rem;
+		border-radius : 30%;
+		border        : 3px solid rgba(255, 255, 255, 0.85);
+		opacity       : 0;
+		animation     : tier-up-wave 0.7s ease-out 1.15s;
+	}
+}
+
+@keyframes tier-up-in {
+	from {
+		opacity   : 0;
+		transform : scale(0.92);
+	}
+}
+
+@keyframes tier-up-old {
+	0%, 85% {
+		opacity   : 1;
+		transform : scale(1);
+	}
+	100% {
+		opacity   : 0;
+		transform : scale(0.85);
+	}
+}
+
+@keyframes tier-up-slam {
+	0%, 30% {
+		opacity   : 0;
+		transform : translateY(-2.5rem) scale(2.4) rotate(-14deg);
+	}
+	45% {
+		opacity : 1;
+	}
+	// impact (1,15 s sur 1,5 s)
+	76% {
+		transform : translateY(0) scale(0.92) rotate(2deg);
+	}
+	88% {
+		transform : scale(1.08) rotate(-1deg);
+	}
+	100% {
+		opacity   : 1;
+		transform : scale(1) rotate(0);
+	}
+}
+
+@keyframes tier-up-wave {
+	0% {
+		opacity   : 0.9;
+		transform : scale(1);
+	}
+	100% {
+		opacity   : 0;
+		transform : scale(2.1);
+	}
+}
+
+@keyframes tier-up-title {
+	from {
+		opacity   : 0;
+		transform : scale(0.7);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.modal.success-modal.tier-up,
+	.modal.success-modal.tier-up h2,
+	.modal.success-modal.tier-up .tier-up-sub,
+	.tier-up-avatars .tier-up-new,
+	.tier-up-avatars .tier-up-wave {
+		animation : none;
+	}
+
+	.tier-up-avatars .tier-up-old {
+		display : none;
+	}
+}
