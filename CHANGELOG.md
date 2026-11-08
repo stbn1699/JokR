@@ -3,6 +3,33 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 2.0.0 — 8 novembre 2026
+
+Nouveau : les jeux de hasard ! L'onglet « Hasard » ouvre ses portes : mise tes crédits et tente ta chance.
+
+### Plinko
+- Lâche une bille sur 12 rangées de clous : la case où elle tombe multiplie ta mise, jusqu'à ×10
+- Une vraie simulation physique : gravité, rebonds, la bille roule et tourne sur elle-même
+- Mises de 10 à 500 crédits, plusieurs billes à la fois
+- Les billes des autres joueurs tombent en fond, en gris
+
+### Roulette en direct
+- Roulette européenne commune à tous : un tour toutes les 30 secondes, jour et nuit
+- 20 secondes pour poser tes jetons, puis la roue tourne en même temps chez tout le monde
+- Mises sur un numéro, à cheval, en carré, rouge ou noir, pair ou impair, douzaines, colonnes…
+- Les numéros couverts s'allument quand tu survoles une mise
+- Tapis et liste des mises de la table en direct, derniers numéros sortis
+- Tes jetons empilés sur le tapis, « Reproduire ma mise » pour rejouer la même chose
+
+### Boutique
+- Billes de Plinko : arc-en-ciel, pastel et drapeaux des fiertés
+- Jeux de jetons : les classiques sont offerts, d'autres sont à acheter
+- Aperçu de chaque objet avant l'achat
+
+### Personnalisation
+- Le crayon du header permet aussi de choisir ta bille de Plinko et tes jetons
+- Un bouton « Règles » sur chaque jeu de hasard
+
 ## 1.7.0 — 8 novembre 2026
 
 ### Ami·e·s

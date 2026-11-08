@@ -1,11 +1,12 @@
 {
   "name": "jokr",
   "private": true,
-  "version": "1.7.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:docker": "pnpm docker:image",
     "lint": "eslint .",
     "preview": "vite preview",
     "migrate": "cd database && flyway migrate",
