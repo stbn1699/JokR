@@ -3,6 +3,49 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 1.7.0 — 8 novembre 2026
+
+### Ami·e·s
+- Ajout d'ami·e·s par pseudo, avec demandes à accepter ou refuser
+- Défier un·e ami·e sur la grille d'une partie ou sur un défi du jour
+- Filtre « Mes ami·e·s » dans les classements
+
+### Notifications
+- Cloche dans le header avec les notifications non lues
+- Places aux défis du jour envoyées chaque soir à minuit
+- Demandes d'ami·e, défis reçus et résultats des défis envoyés
+
+### Défis du jour
+- XP selon la place finale : 200 pour le 1er, 150 pour le 2e, 100 pour le 3e, puis de 47 à 1 jusqu'au 50e
+- Bouton « Partager » après un défi réussi
+- Le retour après un défi mène à la page des défis
+
+### Boutique
+- Nouvel onglet « Boutique » pour dépenser ses crédits
+- 20 fonds dégradés à 15 crédits, avec aperçus de l'accueil, d'une grille et du profil
+- Un fond gratuit pour chaque couleur de niveau, débloqué en atteignant son palier
+- Stylo dans le header pour changer de fond d'un clic
+
+### Profil
+- Onglets Profil, Ami·e·s et Paramètres
+- Changement de pseudo et choix de qui peut voir sa page
+- 13 couleurs de contour, de Pierre (niveau 1) à Platine (niveau 100)
+- Popup « Nouvelle couleur » à chaque palier, avec le fond débloqué
+- Bulle du niveau en cliquant sur le niveau dans le header
+
+### Classements
+- Onglet « Crédits »
+- Clic sur un joueur pour ouvrir sa page publique et ses statistiques
+
+### Parties
+- Écart d'XP plus grand entre les grilles faciles et les grilles difficiles
+
+### Site
+- Popup des nouveautés après une mise à jour, pastille « Nouveau » sur les jeux récents
+- Le header reste en haut de l'écran au défilement
+- Bouton « Un bug ? Une idée ? » pour écrire à l'équipe (joueurs connectés)
+- Textes non genrés
+
 ## 1.6.0 — 3 novembre 2026
 
 ### Parties
