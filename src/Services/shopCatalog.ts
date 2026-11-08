@@ -71,7 +71,7 @@ export const tierGradientAt = (minLevel: number) => TIER_GRADIENTS.find(t => t.m
 export const DEFAULT_BACKGROUND: Gradient = g("defaut", "Par défaut",
     ["rgba(124,45,18,.55)", "rgba(11,60,93,.45)", "rgba(6,78,59,.45)", "rgba(30,27,75,.50)"], "#020617");
 
-// Calques du fond : quatre halos de couleur (fixés à l'écran, voir html dans index.css)
+// Calques du fond : quatre halos de couleur
 export function gradientLayers({glows}: Gradient): string {
     const [a, b, c, d] = glows;
     return [
@@ -93,15 +93,3 @@ export function usableBackgrounds(owned: string[], level: number): Gradient[] {
     return [DEFAULT_BACKGROUND, ...TIER_GRADIENTS.filter(t => level >= t.minLevel), ...GRADIENTS.filter(gr => owned.includes(gr.id))];
 }
 
-// Applique le fond au site entier (null : fond par défaut)
-export function applySiteBackground(id: string | null) {
-    const style = document.documentElement.style;
-    const gradient = findGradient(id);
-    if (!gradient) {
-        style.removeProperty("background-image");
-        style.removeProperty("background-color");
-        return;
-    }
-    style.backgroundImage = gradientLayers(gradient);
-    style.backgroundColor = gradient.base;
-}

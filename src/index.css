@@ -39,6 +39,14 @@ textarea::placeholder {
 	opacity: 0.7;
 }
 
+/* Fond choisi dans la boutique (Components/Shop/SiteBackground.tsx) : par-dessus le fond par défaut, derrière la page */
+.site-background{
+	position:fixed;
+	inset:0;
+	z-index:-1;
+	pointer-events:none;
+}
+
 html::before{
 	content:"";
 	position:fixed;

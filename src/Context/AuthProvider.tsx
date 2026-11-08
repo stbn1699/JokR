@@ -5,7 +5,6 @@ import {authService} from "../Services/auth.service.ts";
 import {userService} from "../Services/user.service.ts";
 import {ApiError, AUTH_EXPIRED_EVENT} from "../api/api.ts";
 import type {LoggedUser} from "../Models/loggedUser.model.ts";
-import {applySiteBackground} from "../Services/shopCatalog.ts";
 
 const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0, credits: 0, avatar: null, isAdmin: false, background: null};
 
@@ -77,11 +76,6 @@ export function AuthProvider({children}: { children: ReactNode }) {
     const setAvatar = useCallback((avatar: string) => setState(s => ({...s, avatar})), []);
     const setBackground = useCallback((background: string | null) => setState(s => ({...s, background})), []);
     const setCredits = useCallback((credits: number) => setState(s => ({...s, credits})), []);
-
-    // Fond du site : celui choisi dans la boutique (fond par défaut sans session)
-    useEffect(() => {
-        applySiteBackground(state.background);
-    }, [state.background]);
 
     const value = useMemo<AuthContextValue>(() => ({
         ...state,
