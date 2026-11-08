@@ -1,0 +1,27 @@
+<svg width="1615" height="915" viewBox="0 0 1615 915" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_g_77_388)">
+<g clip-path="url(#clip0_77_388)">
+<rect x="7.09961" y="7.1" width="1600" height="129" fill="#7F7F7F"/>
+<rect x="7.09961" y="136.1" width="1600" height="128" fill="#C4C4C4"/>
+<rect x="7.09961" y="264.1" width="1600" height="129" fill="#9DD7EA"/>
+<rect x="7.09961" y="778.1" width="1600" height="129" fill="#7F7F7F"/>
+<rect x="7.09961" y="650.1" width="1600" height="128" fill="#C4C4C4"/>
+<rect x="7.09961" y="521.1" width="1600" height="129" fill="#9DD7EA"/>
+<rect x="7.09961" y="393.1" width="1600" height="128" fill="white"/>
+</g>
+</g>
+<defs>
+<filter id="filter0_g_77_388" x="-0.00039053" y="0" width="1614.2" height="914.2" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feTurbulence type="fractalNoise" baseFrequency="0.1190476268529892 0.1190476268529892" numOctaves="3" seed="6034" />
+<feDisplacementMap in="shape" scale="14.199999809265137" xChannelSelector="R" yChannelSelector="G" result="displacedImage" width="100%" height="100%" />
+<feMerge result="effect1_texture_77_388">
+<feMergeNode in="displacedImage"/>
+</feMerge>
+</filter>
+<clipPath id="clip0_77_388">
+<rect width="1600" height="900" fill="white" transform="translate(7.09961 7.1)"/>
+</clipPath>
+</defs>
+</svg>

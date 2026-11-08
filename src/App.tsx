@@ -37,6 +37,7 @@ import ShopPage from "./Components/Shop/ShopPage.tsx";
 import GradientsPage from "./Components/Shop/GradientsPage.tsx";
 import PlinkoBallsPage from "./Components/Shop/PlinkoBallsPage.tsx";
 import ChipSetPage from "./Components/Shop/ChipSetPage.tsx";
+import ImageBackgroundsPage from "./Components/Shop/ImageBackgroundsPage.tsx";
 import SiteBackground from "./Components/Shop/SiteBackground.tsx";
 import FeedbackButton from "./Components/Feedback/FeedbackButton.tsx";
 import FeedbackPage from "./Components/Feedback/FeedbackPage.tsx";
@@ -83,6 +84,7 @@ function App() {
                 <Route path="/boutique" element={<ShopPage/>}/>
                 <Route path="/retour" element={<FeedbackPage/>}/>
                 <Route path="/boutique/fonds/degrades" element={<GradientsPage/>}/>
+                <Route path="/boutique/fonds/:set" element={<ImageBackgroundsPage/>}/>
                 <Route path="/boutique/plinko/:set" element={<PlinkoBallsPage/>}/>
                 <Route path="/boutique/jetons/:set" element={<ChipSetPage/>}/>
                 <Route path="/stats" element={<Stats/>}/>

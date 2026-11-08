@@ -47,6 +47,11 @@ textarea::placeholder {
 	pointer-events:none;
 }
 
+/* Fond en image (drapeau…) : déborde un peu de l'écran, les bords flous de l'image restent cachés */
+.site-background.image{
+	inset:-2%;
+}
+
 html::before{
 	content:"";
 	position:fixed;

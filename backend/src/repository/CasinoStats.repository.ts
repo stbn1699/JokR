@@ -148,6 +148,7 @@ export class CasinoStatsRepository {
             drawn: number; firstDrawn: Date | null; withBets: number; seats: number; chips: number; wagered: number; biggestPot: number; maxPlayers: number;
         }>`with pots as (select round_id, sum(amount) as pot, count(distinct user_id) as players, count(*) as chips
                          from roulette_bets
+                         where not ghost
                          group by round_id)
            select (select count(*) from roulette_rounds)::int          as drawn,
                   (select min(drawn_at) from roulette_rounds)          as "firstDrawn",
@@ -171,7 +172,7 @@ export class CasinoStatsRepository {
                    sum(amount)::float8           as wagered,
                    sum(payout)::float8           as paid
             from roulette_bets
-            where payout is not null
+            where payout is not null and not ghost
             group by 1
             order by sum(amount) desc`.execute(this.db);
         return rows;
@@ -183,7 +184,7 @@ export class CasinoStatsRepository {
             select substring(key from 3)::int as number, count(*)::int as chips, sum(amount)::float8 as wagered,
                    count(distinct user_id)::int as players
             from roulette_bets
-            where key like 'n:%'
+            where key like 'n:%' and not ghost
             group by 1
             order by sum(amount) desc
             limit 8`.execute(this.db);

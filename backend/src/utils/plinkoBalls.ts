@@ -41,7 +41,8 @@ const ballsDir = () => process.env.STATIC_DIR
     ? join(process.env.STATIC_DIR, "plinko_ball")
     : resolve(fileURLToPath(new URL("../../../public/plinko_ball", import.meta.url)));
 
-const colorName = (stem: string) => {
+// Nom d'une couleur ou d'un drapeau d'après son nom de fichier (aussi utilisé pour les fonds en images)
+export const colorName = (stem: string) => {
     const key = stem.replace(/^\d+_/, "");
     return COLORS[key] ?? key.replace(/_/g, " ").replace(/^./, c => c.toUpperCase());
 };

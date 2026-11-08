@@ -20,6 +20,8 @@ export interface User {
     lastVersion?: string | null;
     // Seulement dans GET /users/me : fond du site choisi dans la boutique (null : fond par défaut)
     background?: string | null;
+    // Seulement dans GET /users/me : administrateur en mode admin (« mode fantôme »)
+    adminMode?: boolean;
 }
 
 // Visibilité de sa page pour les autres joueurs (le pseudo, l'icône et le niveau restent visibles)

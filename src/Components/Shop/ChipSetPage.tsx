@@ -4,6 +4,7 @@
  * à la roulette et au Plinko. Les jeux viennent des images de public/chips/<jeu>/ (voir backend/src/utils/chipSets.ts).
  */
 
+import {formatCredits} from "../../Services/credits.ts";
 import "./Shop.scss";
 import {useEffect, useState} from "react";
 import {Link, useParams} from "react-router-dom";
@@ -80,7 +81,7 @@ export default function ChipSetPage() {
                 <Link to="/boutique" className="shop-back"><FaChevronLeft aria-hidden/> Boutique</Link>
                 <div className="shop-head">
                     <h1>Jetons {set.name.toLowerCase()}</h1>
-                    {auth.isLoggedIn && <span className="shop-credits"><FaCoins aria-hidden/> {auth.credits}</span>}
+                    {auth.isLoggedIn && <span className="shop-credits"><FaCoins aria-hidden/> {formatCredits(auth.credits)}</span>}
                 </div>
                 <p className="shop-sub">Les six jetons, utilisés à la roulette (tapis et mises) et au Plinko (mises).</p>
 

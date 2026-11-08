@@ -1,5 +1,6 @@
 import {plinkoBall} from "./plinkoBalls.js";
 import {chipSet} from "./chipSets.js";
+import {imageBackground} from "./backgroundSets.js";
 
 /*
  * Catalogue de la boutique (prix et sortes d'objets). Les couleurs des fonds sont côté site
@@ -28,6 +29,8 @@ export const SHOP_ITEMS: Record<string, ShopItem> = Object.fromEntries(
 export function shopItem(id: unknown): ShopItem | undefined {
     if (typeof id !== "string") return undefined;
     if (SHOP_ITEMS[id]) return SHOP_ITEMS[id];
+    const image = imageBackground(id);
+    if (image) return {id: image.id, kind: "background", price: image.price};
     const chips = chipSet(id);
     // les jetons classiques sont offerts : ils ne s'achètent pas
     if (chips) return chips.price > 0 ? {id: chips.id, kind: "chip-set", price: chips.price} : undefined;

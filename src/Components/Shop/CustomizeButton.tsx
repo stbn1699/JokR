@@ -16,6 +16,7 @@ import {shopService} from "../../Services/shop.service.ts";
 import {DEFAULT_BACKGROUND, gradientCss, usableBackgrounds} from "../../Services/shopCatalog.ts";
 import {DEFAULT_BALL_ID, setMyPlinkoBall, useMyPlinkoBall, usePlinkoBalls} from "../../Services/plinkoBalls.ts";
 import {chipFile, DEFAULT_CHIP_SET_ID, setMyChipSet, useChipSets, useMyChipSet} from "../../Services/chipSets.ts";
+import {imageCss, useImageBackgrounds} from "../../Services/imageBackgrounds.ts";
 
 export default function CustomizeButton() {
     const auth = useAuth();
@@ -26,6 +27,7 @@ export default function CustomizeButton() {
     const ballCatalog = usePlinkoBalls();
     const myBall = useMyPlinkoBall();
     const chipCatalog = useChipSets();
+    const imageSets = useImageBackgrounds();
     const myChips = useMyChipSet();
     const [error, setError] = useState<string | null>(null);
     const rootRef = useRef<HTMLDivElement>(null);
@@ -80,7 +82,12 @@ export default function CustomizeButton() {
         setMyChipSet(id);
     });
 
-    const backgrounds = usableBackgrounds(owned, auth.level);
+    // fonds : par défaut, couleurs de niveau, dégradés achetés, puis fonds en images achetés (drapeaux…)
+    const backgrounds = [
+        ...usableBackgrounds(owned, auth.level).map(gr => ({id: gr === DEFAULT_BACKGROUND ? null : gr.id, name: gr.name, css: gradientCss(gr)})),
+        ...(imageSets ?? []).flatMap(set => set.backgrounds).filter(b => owned.includes(b.id))
+            .map(b => ({id: b.id as string | null, name: b.name, css: imageCss(b.file)})),
+    ];
     // billes et jetons possédés (la bille par défaut et les jetons classiques sont offerts)
     const balls = ballCatalog?.sets.flatMap(set => set.balls.map(b => ({...b, setName: set.name})))
         .filter(b => b.id === DEFAULT_BALL_ID || owned.includes(b.id)) ?? [];
@@ -106,13 +113,13 @@ export default function CustomizeButton() {
                         <h3>Fond du site</h3>
                         <div className="customize-swatches">
                             {backgrounds.map(gr => {
-                                const id = gr === DEFAULT_BACKGROUND ? null : gr.id;
+                                const id = gr.id;
                                 const worn = id === auth.background;
                                 return (
-                                    <button key={gr.id} type="button" title={gr.name} aria-pressed={worn}
+                                    <button key={id ?? "defaut"} type="button" title={gr.name} aria-pressed={worn}
                                             className={`customize-swatch ${worn ? "worn" : ""} ${pending === `bg:${id}` ? "pending" : ""}`}
                                             onClick={() => void applyBackground(id)}>
-                                        <span className="customize-swatch-color" style={{background: gradientCss(gr)}}>
+                                        <span className="customize-swatch-color" style={{background: gr.css}}>
                                             {worn && <FaCheck aria-hidden/>}
                                         </span>
                                         <span>{gr.name}</span>

@@ -17,10 +17,14 @@ export type AuthState = {
     isAdmin: boolean;
     // Fond du site choisi dans la boutique (null : fond par défaut)
     background: string | null;
+    // Mode admin (« mode fantôme ») : niveau max et crédits illimités affichés, rien ne compte
+    adminMode: boolean;
 };
 
 export type AuthContextValue = AuthState & {
     isLoggedIn: boolean;
+    // vrais niveau, XP et crédits du compte (level, xp et credits valent 100, 0 et « illimité » en mode admin)
+    account: { level: number; xp: number; credits: number };
     login: (user: LoggedUser) => void;
     logout: () => void;
     // Recharge niveau, XP et crédits depuis le serveur (après une victoire par exemple)

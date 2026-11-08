@@ -368,3 +368,57 @@
 		}
 	}
 }
+
+// ---------- Mode admin (administrateurs)
+// (une icône ronde, comme la cloche ; verte quand le mode est actif)
+.admin-toggle {
+	display         : inline-flex;
+	align-items     : center;
+	justify-content : center;
+	flex            : none;
+	width           : 2.3rem;
+	height          : 2.3rem;
+	padding         : 0;
+	border          : 2px solid rgba(55, 65, 81, 0.35);
+	border-radius   : 50%;
+	background      : transparent;
+	color           : #374151;
+	font-size       : 1.15rem;
+	cursor          : pointer;
+
+	&:hover:not(:disabled) {
+		border-color : #22c55e;
+	}
+
+	&.on {
+		border-color : #16a34a;
+		background   : #22c55e;
+		color        : #052e16;
+	}
+
+	&:disabled {
+		opacity : 0.6;
+	}
+}
+
+// Cadre vert de 5 px autour de toute la fenêtre : on sait qu'on est en mode admin
+.admin-mode-frame {
+	position       : fixed;
+	inset          : 0;
+	z-index        : 2147483647;
+	border         : 5px solid #22c55e;
+	pointer-events : none;
+
+	span {
+		position      : absolute;
+		bottom        : 0;
+		left          : 50%;
+		padding       : 0.1rem 0.8rem;
+		border-radius : 6px 6px 0 0;
+		background    : #22c55e;
+		color         : #052e16;
+		font-size     : 0.85rem;
+		font-weight   : 700;
+		transform     : translateX(-50%);
+	}
+}

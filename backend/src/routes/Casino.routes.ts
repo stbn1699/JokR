@@ -55,6 +55,14 @@ router.post("/plinko", dropLimiter, asyncHandler(async (req: Request, res: Respo
     const bet: unknown = req.body?.bet;
     if (!isPlinkoBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
 
+    // mode admin : la bille tombe pour de vrai, mais rien n'est retiré, gagné ni enregistré (invisible des autres)
+    if (res.locals.ghost) {
+        const seed = randomInt(0, 2 ** 32);
+        const {slot} = simulatePlinko(seed);
+        const credits = await liveRoulette.credits(res.locals.userId!);
+        return void res.status(200).json({status: "ok", data: {seed, slot, multiplier: PLINKO_MULTIPLIERS[slot], payout: plinkoPayout(bet, slot), credits}});
+    }
+
     const result = await casino.play(res.locals.userId!, "plinko", bet, () => {
         const seed = randomInt(0, 2 ** 32);
         const {slot} = simulatePlinko(seed);
@@ -87,6 +95,8 @@ router.get("/roulette/live", asyncHandler(async (_req: Request, res: Response<un
     // un joueur par ligne : ses mises (total et jetons posés, dans l'ordre), son total et, une fois le tour tiré, son gain
     const players = new Map<string, { username: string; avatar: string; level: number; mine: boolean; total: number; payout: number; bets: Map<string, number[]> }>();
     for (const b of bets) {
+        // jetons posés en mode admin : visibles seulement par leur auteur
+        if (b.ghost && b.user_id !== res.locals.userId) continue;
         const p = players.get(b.user_id) ?? {
             username: b.username, avatar: b.avatar, level: b.user_level, mine: b.user_id === res.locals.userId, total: 0, payout: 0, bets: new Map(),
         };
@@ -117,7 +127,7 @@ router.post("/roulette/bets", dropLimiter, asyncHandler(async (req: Request, res
     const round = rouletteRoundAt(now);
     if (!rouletteBettingOpen(round, now)) return void res.status(409).json({status: "error", message: CLOSED_MESSAGE});
 
-    const result = await liveRoulette.place(res.locals.userId!, round, bets);
+    const result = await liveRoulette.place(res.locals.userId!, round, bets, res.locals.ghost === true);
     if (!result.ok) {
         const [status, message] = result.reason === "closed" ? [409, CLOSED_MESSAGE]
             : result.reason === "credits" ? [402, "Pas assez de crédits"]

@@ -4,6 +4,7 @@
  * Les couleurs viennent des images de public/plinko_ball/<série>/ (voir backend/src/utils/plinkoBalls.ts).
  */
 
+import {formatCredits} from "../../Services/credits.ts";
 import "./Shop.scss";
 import {useEffect, useState} from "react";
 import {Link, useParams} from "react-router-dom";
@@ -79,7 +80,7 @@ export default function PlinkoBallsPage() {
                 <Link to="/boutique" className="shop-back"><FaChevronLeft aria-hidden/> Boutique</Link>
                 <div className="shop-head">
                     <h1>Billes {set.name.toLowerCase()}</h1>
-                    {auth.isLoggedIn && <span className="shop-credits"><FaCoins aria-hidden/> {auth.credits}</span>}
+                    {auth.isLoggedIn && <span className="shop-credits"><FaCoins aria-hidden/> {formatCredits(auth.credits)}</span>}
                 </div>
                 <p className="shop-sub">{set.balls.length} couleurs · {ownedCount} / {set.balls.length} possédée{ownedCount > 1 ? "s" : ""}</p>
 

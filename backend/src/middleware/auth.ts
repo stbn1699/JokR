@@ -1,6 +1,7 @@
 import type {NextFunction, Request, Response} from "express";
 import jwt from "jsonwebtoken";
 import {config} from "../config.js";
+import {isGhost} from "../services/adminMode.js";
 
 /*
  * Middlewares d'authentification JWT.
@@ -8,7 +9,8 @@ import {config} from "../config.js";
  * L'id de l'utilisateur connecté est placé dans `res.locals.userId`.
  */
 
-export type AuthLocals = { userId?: string };
+// ghost : joueur en mode admin (voir services/adminMode.ts)
+export type AuthLocals = { userId?: string; ghost?: boolean };
 
 // Retourne l'id utilisateur du token, null s'il n'y a pas de token, ou lève une erreur s'il est invalide.
 function readUserId(req: Request): string | null {
@@ -45,6 +47,7 @@ export function requireAuth(req: Request, res: Response<unknown, AuthLocals>, ne
             return;
         }
         res.locals.userId = userId;
+        res.locals.ghost = isGhost(userId);
         next();
     } catch {
         res.status(401).json({status: "error", message: "Session expirée, reconnecte-toi"});
@@ -55,7 +58,9 @@ export function requireAuth(req: Request, res: Response<unknown, AuthLocals>, ne
 export function optionalAuth(req: Request, res: Response<unknown, AuthLocals>, next: NextFunction) {
     try {
         const userId = readUserId(req);
-        if (userId) res.locals.userId = userId;
+        // mode admin : traité comme un invité (pas d'XP, de crédits, de résultats ni de classements)
+        if (isGhost(userId)) res.locals.ghost = true;
+        else if (userId) res.locals.userId = userId;
         next();
     } catch {
         res.status(401).json({status: "error", message: "Session expirée, reconnecte-toi"});

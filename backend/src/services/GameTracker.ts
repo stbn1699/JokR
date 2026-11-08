@@ -2,6 +2,7 @@ import type {NextFunction, Request, Response} from "express";
 import {sql, type Kysely} from "kysely";
 import type {DB, GameMode} from "../db/schema.js";
 import {peekUserId} from "../middleware/auth.js";
+import {isGhost} from "./adminMode.js";
 import {deviceFromUserAgent} from "../utils/device.js";
 
 // Dernière activité d'un joueur : écrite au plus une fois toutes les 5 minutes
@@ -31,6 +32,8 @@ export class GameTracker {
 
     started(req: Request, game: StartedGame): void {
         const userId = peekUserId(req);
+        // mode admin : la partie n'est pas notée (ses mises à jour suivantes ne trouvent rien à changer)
+        if (isGhost(userId)) return;
         const insert = this.db.insertInto("game_sessions").values({
             game_id: game.gameId,
             game_code: game.gameCode,
@@ -68,7 +71,7 @@ export class GameTracker {
     readonly activity = (req: Request, _res: Response, next: NextFunction) => {
         const userId = peekUserId(req);
         const now = Date.now();
-        if (userId && now - (this.lastSeen.get(userId) ?? 0) > LAST_SEEN_THROTTLE_MS) {
+        if (userId && !isGhost(userId) && now - (this.lastSeen.get(userId) ?? 0) > LAST_SEEN_THROTTLE_MS) {
             this.lastSeen.set(userId, now);
             this.run("activity", this.db.updateTable("users").set({last_seen_at: new Date(now)}).where("id", "=", userId).execute());
         }

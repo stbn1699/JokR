@@ -4,6 +4,7 @@
  * En dessous, les couleurs des paliers de niveau : gratuites, débloquées en atteignant le niveau du palier.
  */
 
+import {formatCredits} from "../../Services/credits.ts";
 import "./Shop.scss";
 import {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
@@ -17,7 +18,6 @@ import {
     GRADIENT_PRICE,
     GRADIENTS,
     gradientCss,
-    type Gradient,
     TIER_GRADIENTS,
 } from "../../Services/shopCatalog.ts";
 import Avatar from "../Avatar/Avatar.tsx";
@@ -81,10 +81,10 @@ export default function GradientsPage() {
                 <Link to="/boutique" className="shop-back"><FaChevronLeft aria-hidden/> Boutique</Link>
                 <div className="shop-head">
                     <h1>Dégradés</h1>
-                    {auth.isLoggedIn && <span className="shop-credits"><FaCoins aria-hidden/> {auth.credits}</span>}
+                    {auth.isLoggedIn && <span className="shop-credits"><FaCoins aria-hidden/> {formatCredits(auth.credits)}</span>}
                 </div>
 
-                <Previews gradient={gradient}/>
+                <Previews background={gradientCss(gradient)}/>
 
                 <div className="shop-choice">
                     <strong>{gradient.name}</strong>
@@ -153,7 +153,8 @@ export default function GradientsPage() {
 const SLIDES = ["Accueil", "Une grille", "Ton profil"];
 
 // Aperçus du fond, à faire défiler du doigt (ou avec les flèches)
-function Previews({gradient}: { gradient: Gradient }) {
+// (aussi utilisé par la page des fonds en images : `background` est un fond CSS)
+export function Previews({background}: { background: string }) {
     const track = useRef<HTMLDivElement>(null);
     const [slide, setSlide] = useState(0);
 
@@ -166,9 +167,9 @@ function Previews({gradient}: { gradient: Gradient }) {
         <div className="shop-previews">
             <div className="shop-previews-track" ref={track}
                  onScroll={e => setSlide(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}>
-                <div className="shop-preview" style={{background: gradientCss(gradient)}}><HomeMock/></div>
-                <div className="shop-preview" style={{background: gradientCss(gradient)}}><GridMock/></div>
-                <div className="shop-preview" style={{background: gradientCss(gradient)}}><ProfileMock/></div>
+                <div className="shop-preview" style={{background}}><HomeMock/></div>
+                <div className="shop-preview" style={{background}}><GridMock/></div>
+                <div className="shop-preview" style={{background}}><ProfileMock/></div>
             </div>
             <button type="button" className="shop-arrow left" aria-label="Aperçu précédent" disabled={slide === 0} onClick={() => goTo(slide - 1)}><FaChevronLeft/></button>
             <button type="button" className="shop-arrow right" aria-label="Aperçu suivant" disabled={slide === SLIDES.length - 1} onClick={() => goTo(slide + 1)}><FaChevronRight/></button>
@@ -242,7 +243,7 @@ function ProfileMock() {
                 <strong>{name}</strong>
                 <small>Niveau {auth.level}</small>
                 <div className="mock-stats">
-                    <span><b>{auth.credits}</b>crédits</span>
+                    <span><b>{formatCredits(auth.credits)}</b>crédits</span>
                     <span><b>{auth.level}</b>niveau</span>
                     <span><b>{auth.xp}</b>XP</span>
                 </div>

@@ -1,3 +1,4 @@
+import {isGhost} from "./adminMode.js";
 import {type LinkedIdentity, UsersRepository} from "../repository/Users.repository.js";
 import type {User} from "../models/User.model.js";
 import bcrypt from "bcrypt";
@@ -34,6 +35,8 @@ export type MeProfile = PublicUser & {
     lastVersion: string | null;
     // Fond du site choisi dans la boutique (null : fond par défaut)
     background: string | null;
+    // administrateur en mode admin (« mode fantôme »)
+    adminMode: boolean;
 };
 
 export class UsersService {
@@ -215,6 +218,7 @@ export class UsersService {
             privacy: {showStats: user.show_stats !== false, showHistory: user.show_history !== false},
             lastVersion: user.last_version ?? null,
             background: user.background ?? null,
+            adminMode: user.is_admin === true && isGhost(userId),
         };
     }
 }

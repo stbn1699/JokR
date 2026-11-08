@@ -17,6 +17,7 @@ import {dateTime, fmt, longDay, pct, shortDay} from "./statsFormat.ts";
 import Loader from "../Loader/Loader.tsx";
 import {plinkoBallFile, usePlinkoBalls} from "../../Services/plinkoBalls.ts";
 import {chipFile, useChipSets} from "../../Services/chipSets.ts";
+import {findImageBackground, imageCss, useImageBackgrounds} from "../../Services/imageBackgrounds.ts";
 
 const SHOP_COLOR = "#c98500";
 
@@ -24,6 +25,16 @@ const SHOP_COLOR = "#c98500";
 function ItemName({id}: { id: string | null }) {
     const balls = usePlinkoBalls();
     const chipSets = useChipSets();
+    const imageSets = useImageBackgrounds();
+    if (id?.startsWith("bg:")) {
+        const image = findImageBackground(id, imageSets);
+        return (
+            <span className="stats-item">
+                {image && <i className="stats-swatch" style={{background: imageCss(image.file)}}/>}
+                {image ? image.name : id}
+            </span>
+        );
+    }
     if (id?.startsWith("chips:")) {
         const set = chipSets?.sets.find(s => s.id === id);
         return (

@@ -1,10 +1,11 @@
 /**
  * Boutique (/boutique) : objets à acheter avec ses crédits, rangés par rubrique.
- * - Fonds : les dégradés (20 couleurs, 15 crédits chacune) ; les fonds à motifs viendront s'y ajouter
+ * - Fonds : les dégradés (20 couleurs, 15 crédits chacune), et les fonds en images (drapeaux… lus dans public/backgrounds)
  * - Plinko : une carte par série de billes (lues dans public/plinko_ball), avec un aperçu de la série
  * - Jetons : une carte par jeu de jetons (lus dans public/chips), les classiques offerts
  */
 
+import {formatCredits} from "../../Services/credits.ts";
 import "./Shop.scss";
 import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
@@ -16,11 +17,13 @@ import {DEFAULT_BALL_ID, usePlinkoBalls} from "../../Services/plinkoBalls.ts";
 import {CHIP_VALUES} from "../../Services/chips.ts";
 import {useChipSets, useMyChipSet} from "../../Services/chipSets.ts";
 import PlinkoPreview from "./PlinkoPreview.tsx";
+import {imageCss, useImageBackgrounds} from "../../Services/imageBackgrounds.ts";
 
 export default function ShopPage() {
     const {isLoggedIn, credits} = useAuth();
     const [owned, setOwned] = useState<string[] | null>(null);
     const balls = usePlinkoBalls();
+    const imageSets = useImageBackgrounds();
     const chipSets = useChipSets();
     const myChips = useMyChipSet();
 
@@ -38,7 +41,7 @@ export default function ShopPage() {
             <section className="shop-card">
                 <div className="shop-head">
                     <h1>Boutique</h1>
-                    {isLoggedIn && <span className="shop-credits"><FaCoins aria-hidden/> {credits} crédit{credits > 1 ? "s" : ""}</span>}
+                    {isLoggedIn && <span className="shop-credits"><FaCoins aria-hidden/> {formatCredits(credits)} crédit{credits > 1 ? "s" : ""}</span>}
                 </div>
                 <p className="shop-sub">Dépense tes crédits pour personnaliser JokR. Tu gagnes des crédits en finissant des puzzles.</p>
 
@@ -55,6 +58,23 @@ export default function ShopPage() {
                             {isLoggedIn && owned && <small>{ownedGradients} / {GRADIENTS.length} possédés</small>}
                         </span>
                     </Link>
+
+                    {imageSets?.map(set => {
+                        const mine = set.backgrounds.filter(b => owned?.includes(b.id)).length;
+                        return (
+                            <Link key={set.set} to={`/boutique/fonds/${set.set}`} className="shop-item">
+                                {/* quatre fonds de la série en mosaïque */}
+                                <span className="shop-item-mosaic" aria-hidden>
+                                    {set.backgrounds.slice(0, 4).map(b => <span key={b.id} style={{background: imageCss(b.file)}}/>)}
+                                </span>
+                                <span className="shop-item-info">
+                                    <strong>{set.name}</strong>
+                                    <span>{set.backgrounds.length} fonds · <FaCoins aria-hidden/> {set.price} chacun</span>
+                                    {isLoggedIn && owned && <small>{mine} / {set.backgrounds.length} possédé{mine > 1 ? "s" : ""}</small>}
+                                </span>
+                            </Link>
+                        );
+                    })}
 
                     <div className="shop-item soon" aria-disabled>
                         <span className="shop-item-mosaic patterns" aria-hidden><span/><span/><span/><span/></span>

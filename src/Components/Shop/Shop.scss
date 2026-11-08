@@ -636,3 +636,16 @@
 		}
 	}
 }
+
+// ---------- Fonds en images (drapeaux…) : vignettes au format 16:9
+.shop {
+	.shop-swatches.flags {
+		grid-template-columns : repeat(auto-fill, minmax(8rem, 1fr));
+	}
+
+	.shop-flag {
+		aspect-ratio : 16 / 9;
+		color        : #f9fafb;
+		text-shadow  : 0 0 0.3rem rgba(0, 0, 0, 0.8);
+	}
+}

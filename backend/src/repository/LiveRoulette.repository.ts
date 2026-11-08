@@ -28,7 +28,8 @@ export class LiveRouletteRepository {
      * Pose des jetons pour le tour en cours. La ligne du joueur est verrouillée, puis on vérifie que le numéro
      * du tour n'est pas encore tiré (verrou partagé sur le tour : le tirage attend la fin de cette mise).
      */
-    async place(userId: string, round: number, bets: RouletteBet[]): Promise<PlaceResult> {
+    // ghost : mode admin (rien n'est retiré, jetons invisibles des autres et payés sans crédits)
+    async place(userId: string, round: number, bets: RouletteBet[], ghost = false): Promise<PlaceResult> {
         return this.db.transaction().execute(async trx => {
             const user = await trx.selectFrom("users").select("credits").where("id", "=", userId).forUpdate().executeTakeFirst();
             if (!user) return {ok: false, reason: "user"} as const;
@@ -38,7 +39,7 @@ export class LiveRouletteRepository {
             if (drawn) return {ok: false, reason: "closed"} as const;
 
             const total = rouletteTotal(bets);
-            if (user.credits < total) return {ok: false, reason: "credits"} as const;
+            if (!ghost && user.credits < total) return {ok: false, reason: "credits"} as const;
             const mine = await trx.selectFrom("roulette_bets").select(["key", "amount"])
                 .where("round_id", "=", round).where("user_id", "=", userId).execute();
             if (rouletteTotal(mine) + total > ROULETTE_MAX_TOTAL) return {ok: false, reason: "limit"} as const;
@@ -47,10 +48,10 @@ export class LiveRouletteRepository {
                 if ((already.get(key) ?? 0) + amount > ROULETTE_MAX_PER_BET) return {ok: false, reason: "limit"} as const;
             }
 
-            const credits = user.credits - total;
-            await trx.updateTable("users").set({credits}).where("id", "=", userId).execute();
+            const credits = ghost ? user.credits : user.credits - total;
+            if (!ghost) await trx.updateTable("users").set({credits}).where("id", "=", userId).execute();
             await trx.insertInto("roulette_bets")
-                .values(bets.map(b => ({round_id: round, user_id: userId, key: b.key, amount: b.amount}))).execute();
+                .values(bets.map(b => ({round_id: round, user_id: userId, key: b.key, amount: b.amount, ghost}))).execute();
             return {ok: true, credits} as const;
         });
     }
@@ -64,8 +65,9 @@ export class LiveRouletteRepository {
             const drawn = await trx.selectFrom("roulette_rounds").select("id").where("id", "=", round).executeTakeFirst();
             if (drawn) return null;
             const removed = await trx.deleteFrom("roulette_bets").where("round_id", "=", round).where("user_id", "=", userId)
-                .returning("amount").execute();
-            const credits = user.credits + rouletteTotal(removed.map(r => ({key: "", amount: r.amount})));
+                .returning(["amount", "ghost"]).execute();
+            // jetons du mode admin : rien n'avait été retiré, rien n'est rendu
+            const credits = user.credits + rouletteTotal(removed.filter(r => !r.ghost).map(r => ({key: "", amount: r.amount})));
             await trx.updateTable("users").set({credits}).where("id", "=", userId).execute();
             return credits;
         });
@@ -87,7 +89,7 @@ export class LiveRouletteRepository {
         return this.db.transaction().execute(async trx => {
             const drawn = await trx.selectFrom("roulette_rounds").select("number").where("id", "=", round).executeTakeFirst();
             if (!drawn) return 0;
-            const bets = await trx.selectFrom("roulette_bets").select(["id", "user_id", "key", "amount"])
+            const bets = await trx.selectFrom("roulette_bets").select(["id", "user_id", "key", "amount", "ghost"])
                 .where("round_id", "=", round).where("payout", "is", null).forUpdate().execute();
             if (bets.length === 0) return 0;
 
@@ -95,6 +97,8 @@ export class LiveRouletteRepository {
             for (const b of bets) {
                 const payout = roulettePayout([{key: b.key, amount: b.amount}], drawn.number);
                 await trx.updateTable("roulette_bets").set({payout}).where("id", "=", b.id).execute();
+                // mode admin : payé pour l'affichage seulement (ni crédits, ni partie enregistrée)
+                if (b.ghost) continue;
                 const sum = byUser.get(b.user_id) ?? {bet: 0, payout: 0};
                 byUser.set(b.user_id, {bet: sum.bet + b.amount, payout: sum.payout + payout});
             }
@@ -127,7 +131,7 @@ export class LiveRouletteRepository {
     // Jetons d'un tour, avec le pseudo et l'icône de chaque joueur
     async bets(round: number) {
         return this.db.selectFrom("roulette_bets as b").innerJoin("users as u", "u.id", "b.user_id")
-            .select(["b.user_id", "u.username", "u.avatar", "u.user_level", "b.key", "b.amount", "b.payout", "b.created_at"])
+            .select(["b.user_id", "u.username", "u.avatar", "u.user_level", "b.key", "b.amount", "b.payout", "b.ghost", "b.created_at"])
             .where("b.round_id", "=", round).orderBy("b.created_at").execute();
     }
 

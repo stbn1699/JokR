@@ -3,6 +3,19 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 2.1.0 — 8 novembre 2026
+
+### Boutique
+- Nouveaux fonds : 17 drapeaux des fiertés à 1 crédit, avec aperçus de l'accueil, d'une grille et du profil
+- Nouvelle bille de Plinko : le drapeau juxera
+- Les drapeaux se choisissent aussi avec le crayon du header
+
+### Mode admin
+- Bouton dans le header pour passer en mode admin (joueurs admin seulement)
+- Crédits illimités, niveau maximum et toutes les cosmétiques débloquées pour les tester
+- Mode fantôme : mises invisibles à la roulette et au Plinko, aucune trace dans les statistiques ni les classements
+- Cadre vert autour de la fenêtre tant que le mode est actif
+
 ## 2.0.0 — 8 novembre 2026
 
 Nouveau : les jeux de hasard ! L'onglet « Hasard » ouvre ses portes : mise tes crédits et tente ta chance.

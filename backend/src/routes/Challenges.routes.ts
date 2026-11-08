@@ -30,6 +30,13 @@ const sendLimiter = rateLimit({windowMs: 60 * 60 * 1000, limit: 30, standardHead
     message: {status: "error", message: "Trop de défis envoyés, réessaie plus tard"}});
 
 router.use(requireAuth);
+// Mode admin : on regarde ses défis, mais on n'en envoie ni n'en relève (l'ami·e verrait le résultat)
+router.use((req: Request, res: Response<unknown, AuthLocals>, next) => {
+    if (res.locals.ghost && req.method !== "GET") {
+        return void res.status(403).json({status: "error", message: "Pas de défi entre ami·e·s en mode admin"});
+    }
+    next();
+});
 
 // Amis choisis : pseudos de vrais amis du joueur (au plus 20) → identifiants, ou null si la liste ne va pas
 async function chosenFriends(userId: string, usernames: unknown): Promise<string[] | null> {

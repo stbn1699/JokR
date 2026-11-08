@@ -46,7 +46,8 @@ export function createDailyController(service: DailyService, friendIds: (userId:
             }
 
             const date = dailyDate();
-            const userId = res.locals.userId;
+            // mode admin : comme un invité, le défi se rejoue sans compter
+            const userId = res.locals.ghost ? undefined : res.locals.userId;
 
             // Déjà réussi aujourd'hui : on ne relance pas (une seule réussite compte par jour)
             const done = userId ? await service.resultOf(code, date, userId) : null;

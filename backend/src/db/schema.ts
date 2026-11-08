@@ -41,6 +41,8 @@ export type UsersTable = {
     plinko_ball: string | null;
     // jeu de jetons choisi dans la boutique (null : jetons classiques)
     chip_set: string | null;
+    // mode admin (« mode fantôme ») actif : voir services/adminMode.ts
+    admin_mode: Generated<boolean>;
 };
 
 // Boutique : objets achetés
@@ -210,6 +212,8 @@ export type RouletteBetsTable = {
     key: string;
     amount: number;
     payout: number | null;
+    // posé en mode admin : invisible des autres, sans crédits, absent des statistiques
+    ghost: Generated<boolean>;
     created_at: Generated<Date>;
 };
 

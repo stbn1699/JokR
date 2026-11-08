@@ -31,6 +31,8 @@ import {createDailyService} from "./services/daily.js";
 import {startDailyScheduler} from "./services/dailyScheduler.js";
 import {startRouletteScheduler} from "./services/rouletteScheduler.js";
 import {LiveRouletteRepository} from "./repository/LiveRoulette.repository.js";
+import adminModeRoutes from "./routes/AdminMode.routes.js";
+import {loadAdminModes} from "./services/adminMode.js";
 
 /*
  * Point d'entrée de l'API backend
@@ -60,6 +62,7 @@ api.use(tracker.activity);
 
 // Montage des routes (les routers gèrent leurs propres chemins relatifs)
 api.use("/games", gamesRoutes);
+api.use("/users/me/admin-mode", adminModeRoutes);
 api.use("/users", usersRoutes);
 api.use("/gameStats", GameStatsRoutes);
 api.use("/sudoku", sudokuRoutes);
@@ -117,6 +120,9 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
 if (config.migrationsDir) {
 	await migrate(pool, config.migrationsDir);
 }
+
+// Joueurs en mode admin (gardés en mémoire, voir services/adminMode.ts)
+await loadAdminModes(createDb(pool));
 
 const server = app.listen(config.port, () => {
 	console.log(`🚀 Server running on http://localhost:${config.port}`);

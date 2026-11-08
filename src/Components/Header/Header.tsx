@@ -13,7 +13,7 @@
  */
 
 import "./Header.scss"
-import {FaCoins, FaStar, FaUser} from "react-icons/fa";
+import {FaCoins, FaStar, FaUser, FaUserShield} from "react-icons/fa";
 import Avatar from "../Avatar/Avatar.tsx";
 import NotificationBell from "../Notifications/NotificationBell.tsx";
 import {Link, useLocation, useNavigate} from "react-router-dom";
@@ -27,6 +27,8 @@ import TierUpPopup from "../Avatar/TierUpPopup.tsx";
 import LevelBubble from "../Avatar/LevelBubble.tsx";
 import CustomizeButton from "../Shop/CustomizeButton.tsx";
 import {useState} from "react";
+import {api} from "../../api/api.ts";
+import {formatCredits} from "../../Services/credits.ts";
 
 // Onglets du header ; `match` dit si une adresse appartient à l'onglet, `highlight` le met en orange
 const TABS = [
@@ -35,6 +37,7 @@ const TABS = [
     {label: "Hasard", to: "/hasard", match: (path: string) => path.startsWith("/hasard")},
     {label: "Boutique", to: "/boutique", match: (path: string) => path.startsWith("/boutique")},
     {label: "Classement", to: "/classements", match: (path: string) => path.startsWith("/classements")},
+    // fenêtre des administrateurs : seulement en mode admin
     {label: "Stats", to: "/stats", match: (path: string) => path.startsWith("/stats"), adminOnly: true},
 ];
 
@@ -42,12 +45,26 @@ export default function Header() {
     const navigate = useNavigate();
     const {pathname} = useLocation();
     const auth = useAuth();
-    const {isLoggedIn, isAdmin} = auth;
+    const {isLoggedIn, isAdmin, adminMode} = auth;
+    const [switching, setSwitching] = useState(false);
+
+    // Mode admin : le serveur le note, puis la page se recharge (crédits, cosmétiques et mises repartent de zéro)
+    async function toggleAdminMode() {
+        setSwitching(true);
+        try {
+            await api("/users/me/admin-mode", {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify({on: !adminMode})});
+            window.location.reload();
+        } catch {
+            setSwitching(false);
+        }
+    }
     // Après une victoire : valeurs d'avant jusqu'à l'arrivée des particules, puis changement animé
-    const shown = useHeaderProgress({level: auth.level, xp: auth.xp, credits: auth.credits});
-    const {level, xp, credits} = shown;
+    // les animations suivent le vrai compte ; en mode admin, on affiche niveau 100 et crédits illimités
+    const shown = useHeaderProgress(auth.account);
+    const {level, xp, credits} = adminMode ? {level: 100, xp: 0, credits: auth.credits} : shown;
     // Nouveau palier de couleur atteint (niveau affiché) : popup « Nouvelle couleur »
-    const tierUp = useTierUp(auth.userId, level, isLoggedIn && auth.username !== null);
+    // pas de popup « Nouvelle couleur » en entrant dans le mode admin (niveau 100 affiché)
+    const tierUp = useTierUp(auth.userId, level, isLoggedIn && auth.username !== null && !adminMode);
     // Bulle « où j'en suis » (clic sur le niveau) : position sous le header
     const [bubbleTop, setBubbleTop] = useState<number | null>(null);
     const toggleBubble = (badge: HTMLElement) => {
@@ -60,6 +77,8 @@ export default function Header() {
     const xpPercent = Math.min(100, (xp / xpNextLevel) * 100);
 
     return (
+        <>
+        {adminMode && createPortal(<div className="admin-mode-frame" aria-hidden><span>Mode admin</span></div>, document.body)}
         <div className={`header ${isGameRoute(pathname) ? "in-game" : ""}`}>
             <img
                 src="/JokR_Logo_Full.svg"
@@ -69,7 +88,7 @@ export default function Header() {
             />
 
             <nav className="header-tabs" aria-label="Catégories de jeux">
-                {TABS.filter(tab => !("adminOnly" in tab) || isAdmin).map(tab => {
+                {TABS.filter(tab => !("adminOnly" in tab) || (isAdmin && adminMode)).map(tab => {
                     const active = tab.match(pathname);
                     return (
                         <Link key={tab.to} to={tab.to}
@@ -116,9 +135,17 @@ export default function Header() {
                         <span className={`credits ${shown.creditsBump ? "bump" : ""}`}
                               title="Crédits (à miser sur les jeux de hasard)">
                             <FaCoins aria-hidden/>
-                            <span>{credits}</span>
+                            <span>{formatCredits(credits)}</span>
                         </span>
 
+                        {/* administrateurs : bascule du mode admin (« mode fantôme ») */}
+                        {isAdmin && (
+                            <button type="button" className={`admin-toggle ${adminMode ? "on" : ""}`} disabled={switching}
+                                    aria-pressed={adminMode} aria-label="Mode admin" onClick={() => void toggleAdminMode()}
+                                    title={adminMode ? "Quitter le mode admin" : "Passer en mode admin : rien de ce que tu fais ne compte"}>
+                                <FaUserShield aria-hidden/>
+                            </button>
+                        )}
                         <CustomizeButton/>
                         <NotificationBell enabled={isLoggedIn}/>
                         <button type="button" className="header-avatar" title="Mon profil" onClick={() => navigate("/profile")}>
@@ -131,5 +158,6 @@ export default function Header() {
                 )}
             </div>
         </div>
+        </>
     )
 }

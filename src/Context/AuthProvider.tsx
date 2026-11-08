@@ -1,12 +1,13 @@
 import {type ReactNode, useCallback, useEffect, useMemo, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {AuthContext, type AuthContextValue, type AuthState} from "./authContext.ts";
+import {UNLIMITED_CREDITS} from "../Services/credits.ts";
 import {authService} from "../Services/auth.service.ts";
 import {userService} from "../Services/user.service.ts";
 import {ApiError, AUTH_EXPIRED_EVENT} from "../api/api.ts";
 import type {LoggedUser} from "../Models/loggedUser.model.ts";
 
-const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0, credits: 0, avatar: null, isAdmin: false, background: null};
+const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0, credits: 0, avatar: null, isAdmin: false, background: null, adminMode: false};
 
 /*
  * Fournit la session à toute l'app.
@@ -36,6 +37,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
                 avatar: user.avatar,
                 isAdmin: user.isAdmin === true,
                 background: user.background ?? null,
+                adminMode: user.adminMode === true,
             });
         } catch (err) {
             const status = err instanceof ApiError ? err.status : undefined;
@@ -47,7 +49,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
     const login = useCallback((user: LoggedUser) => {
         authService.saveSession(user.token, user.userId);
-        setState({userId: user.userId, username: null, level: user.userLevel, xp: user.userXp, credits: 0, avatar: null, isAdmin: false, background: null});
+        setState({userId: user.userId, username: null, level: user.userLevel, xp: user.userXp, credits: 0, avatar: null, isAdmin: false, background: null, adminMode: false});
         void refresh(); // récupère le username et les crédits
     }, [refresh]);
 
@@ -79,6 +81,9 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
     const value = useMemo<AuthContextValue>(() => ({
         ...state,
+        // mode admin : niveau max et crédits illimités (rien n'est retiré ni gagné côté serveur)
+        ...(state.adminMode ? {level: 100, xp: 0, credits: UNLIMITED_CREDITS} : {}),
+        account: {level: state.level, xp: state.xp, credits: state.credits},
         isLoggedIn: state.userId !== null,
         login,
         logout,
