@@ -35,10 +35,13 @@ import PlayerProfile from "./Components/PlayerProfile/PlayerProfile.tsx";
 import FriendChallengePage from "./Components/FriendChallenge/FriendChallengePage.tsx";
 import ShopPage from "./Components/Shop/ShopPage.tsx";
 import GradientsPage from "./Components/Shop/GradientsPage.tsx";
+import PlinkoBallsPage from "./Components/Shop/PlinkoBallsPage.tsx";
+import ChipSetPage from "./Components/Shop/ChipSetPage.tsx";
 import SiteBackground from "./Components/Shop/SiteBackground.tsx";
 import FeedbackButton from "./Components/Feedback/FeedbackButton.tsx";
 import FeedbackPage from "./Components/Feedback/FeedbackPage.tsx";
 import PlinkoPage from "./Components/Hasard/Plinko/PlinkoPage.tsx";
+import RoulettePage from "./Components/Hasard/Roulette/RoulettePage.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -76,9 +79,12 @@ function App() {
                 <Route path="/nouveautes" element={<Changelog/>}/>
                 <Route path="/hasard" element={<Hasard/>}/>
                 <Route path="/hasard/plinko" element={<PlinkoPage/>}/>
+                <Route path="/hasard/roulette" element={<RoulettePage/>}/>
                 <Route path="/boutique" element={<ShopPage/>}/>
                 <Route path="/retour" element={<FeedbackPage/>}/>
                 <Route path="/boutique/fonds/degrades" element={<GradientsPage/>}/>
+                <Route path="/boutique/plinko/:set" element={<PlinkoBallsPage/>}/>
+                <Route path="/boutique/jetons/:set" element={<ChipSetPage/>}/>
                 <Route path="/stats" element={<Stats/>}/>
                 {/* Profil public d'un joueur (depuis les classements) */}
                 <Route path="/joueur/:username" element={<PlayerProfile/>}/>

@@ -29,6 +29,8 @@ import {migrate} from "./db/migrate.js";
 import {createDb} from "./db/kysely.js";
 import {createDailyService} from "./services/daily.js";
 import {startDailyScheduler} from "./services/dailyScheduler.js";
+import {startRouletteScheduler} from "./services/rouletteScheduler.js";
+import {LiveRouletteRepository} from "./repository/LiveRoulette.repository.js";
 
 /*
  * Point d'entrée de l'API backend
@@ -124,6 +126,8 @@ const server = app.listen(config.port, () => {
 // À minuit, les défis de la veille se terminent : chaque joueur reçoit ses places finales en notification
 const notifications = new NotificationsRepository(createDb(pool));
 startDailyScheduler(createDailyService(createDb(pool)), console.log, date => notifications.createDailyResults(date));
+// Roulette en direct : tirage et paiement de chaque tour, même quand personne ne joue
+startRouletteScheduler(new LiveRouletteRepository(createDb(pool)));
 
 // Arrêt propre (docker stop envoie SIGTERM)
 for (const signal of ["SIGTERM", "SIGINT"] as const) {

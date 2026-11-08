@@ -51,6 +51,13 @@ export const PLINKO_WALLS: Segment[] = [edge(-1), edge(1)];
 // Calibrés par simulation (voir plinko.test.ts) pour rendre environ 96 % des mises sur la durée.
 export const PLINKO_MULTIPLIERS = [10, 4, 2, 1.1, 0.7, 0.5, 0.3, 0.5, 0.7, 1.1, 2, 4, 10] as const;
 
+// Chance d'arriver dans chaque case, en % (mesurée sur 200 000 chutes simulées, arrondie ; à refaire si la
+// physique ou le plateau changent, voir plinko.test.ts)
+export const PLINKO_ODDS = [0.6, 1.7, 4, 7.6, 12, 15.5, 17, 15.5, 12, 7.6, 4, 1.7, 0.6] as const;
+
+// Part des mises rendue sur la durée (mesurée sur 200 000 chutes)
+export const PLINKO_RTP = 0.957;
+
 // Gain en crédits pour une mise et une case. Les mises sont des multiples de 10 et les multiplicateurs ont
 // une décimale : le gain tombe toujours juste (Math.round ne corrige que les erreurs d'arrondi des flottants).
 export const plinkoPayout = (bet: number, slot: number) => Math.round(bet * PLINKO_MULTIPLIERS[slot]!);

@@ -5,21 +5,28 @@
  * Le serveur encaisse la mise, tire la chute (graine) et paie le gain tout de suite ; le site rejoue la même
  * chute à l'écran. Les crédits du header baissent de la mise au lâcher et montent du gain à l'arrivée.
  * Plusieurs billes peuvent tomber en même temps.
+ * En direct : chaque seconde, la page demande les billes lâchées par les autres joueurs et les fait tomber en fond,
+ * grises et transparentes, à l'endroit où elles en sont.
  */
 
 import "./Plinko.scss";
-import {useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Link, Navigate} from "react-router-dom";
 import {FaChevronLeft, FaCoins} from "react-icons/fa";
 import {useAuth} from "../../../Context/authContext.ts";
 import {ApiError} from "../../../api/api.ts";
 import {casinoService} from "../../../Services/casino.service.ts";
+import {useChipImage} from "../../../Services/chipSets.ts";
+import {plinkoBallFile, useMyPlinkoBall, usePlinkoBalls} from "../../../Services/plinkoBalls.ts";
 import {PLINKO_BETS, simulatePlinko} from "../../../../backend/src/utils/plinko.ts";
 import PlinkoBoard, {type PlinkoBoardHandle} from "./PlinkoBoard.tsx";
+import PlinkoRules from "./PlinkoRules.tsx";
+import RulesButton from "../RulesButton.tsx";
 
 type HistoryEntry = { id: number; bet: number; multiplier: number; payout: number };
 
 const HISTORY_SIZE = 8;
+const LIVE_POLL_MS = 1000;
 
 export default function PlinkoPage() {
     const auth = useAuth();
@@ -33,6 +40,46 @@ export default function PlinkoPage() {
     const serverCredits = useRef(0);
     const pending = useRef(0);
     const nextId = useRef(0);
+    const {setCredits} = auth;
+    const chipImage = useChipImage();
+    // bille choisie dans la boutique, et catalogue des billes (images)
+    const balls = usePlinkoBalls();
+    const myBall = useMyPlinkoBall();
+
+    // Billes des autres joueurs : rejouées en fond, une seule fois chacune
+    const [players, setPlayers] = useState(0);
+    useEffect(() => {
+        if (!auth.isLoggedIn) return;
+        const controller = new AbortController();
+        const seen = new Set<string>();
+        const load = async () => {
+            const sent = Date.now();
+            try {
+                const live = await casinoService.plinkoLive(controller.signal);
+                // âge mesuré par la base au moment de la réponse : on ajoute la moitié du trajet du retour
+                const travel = (Date.now() - sent) / 2;
+                for (const d of live.drops) {
+                    if (seen.has(d.id)) continue;
+                    seen.add(d.id);
+                    board.current?.ghost(simulatePlinko(d.seed), d.ago + travel, plinkoBallFile(d.ball));
+                }
+                setPlayers(live.players);
+            } catch {
+                // réseau coupé : on réessaie à la seconde suivante
+            }
+        };
+        void load();
+        const timer = window.setInterval(() => void load(), LIVE_POLL_MS);
+        return () => {
+            controller.abort();
+            window.clearInterval(timer);
+        };
+    }, [auth.isLoggedIn]);
+
+    // Page quittée avec des billes en l'air : le header reprend tout de suite le vrai solde
+    useEffect(() => () => {
+        if (pending.current > 0) setCredits(serverCredits.current);
+    }, [setCredits]);
 
     if (!auth.isLoggedIn) return <Navigate to="/login" replace/>;
 
@@ -59,7 +106,7 @@ export default function PlinkoPage() {
                 auth.setCredits(serverCredits.current - pending.current);
                 setInFlight(n => n - 1);
                 setHistory(h => [entry, ...h].slice(0, HISTORY_SIZE));
-            });
+            }, plinkoBallFile(myBall, balls));
         } catch (err) {
             setError(err instanceof ApiError ? err.message : "La bille n'a pas pu partir, réessaie.");
         } finally {
@@ -72,16 +119,19 @@ export default function PlinkoPage() {
             <div className="plinko-layout">
                 <section className="plinko-controls">
                     <Link to="/hasard" className="plinko-back"><FaChevronLeft aria-hidden/> Hasard</Link>
-                    <h1>Plinko</h1>
+                    <div className="casino-title">
+                        <h1>Plinko</h1>
+                        <RulesButton title="Règles du Plinko"><PlinkoRules/></RulesButton>
+                    </div>
                     <p className="plinko-sub">Lâche une bille : la case où elle tombe multiplie ta mise.</p>
 
                     <span className="plinko-label">Mise</span>
                     <div className="plinko-bets" role="radiogroup" aria-label="Mise">
                         {PLINKO_BETS.map(b => (
-                            <button key={b} type="button" role="radio" aria-checked={bet === b}
+                            <button key={b} type="button" role="radio" aria-checked={bet === b} aria-label={`Miser ${b}`}
                                     className={`plinko-bet ${bet === b ? "active" : ""}`} disabled={auth.credits < b}
                                     onClick={() => setBet(b)}>
-                                {b}
+                                <img src={chipImage(b)} alt="" draggable={false}/>
                             </button>
                         ))}
                     </div>
@@ -91,6 +141,12 @@ export default function PlinkoPage() {
                     </button>
                     {error && <p className="plinko-error" role="alert">{error}</p>}
                     {inFlight > 0 && <p className="plinko-inflight">{inFlight} bille{inFlight > 1 ? "s" : ""} en jeu</p>}
+                    {/* autres joueurs de la dernière minute : leurs billes passent en gris sur le plateau */}
+                    <p className="plinko-players">
+                        <img className="plinko-ghost-dot" src={plinkoBallFile(myBall, balls)} alt="" aria-hidden/>
+                        {players > 0 ? `${players} autre${players > 1 ? "s" : ""} joueur${players > 1 ? "s" : ""} sur la table`
+                            : "Personne d'autre pour l'instant"}
+                    </p>
 
                     {history.length > 0 && (
                         <ul className="plinko-history" aria-label="Dernières billes">

@@ -1,4 +1,4 @@
-import type {Kysely} from "kysely";
+import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
 
 export type PlayResult =
@@ -30,5 +30,29 @@ export class CasinoRepository {
             }).execute();
             return {ok: true, credits, draw: result} as const;
         });
+    }
+
+    /*
+     * Billes de Plinko lâchées par les autres joueurs ces dernières secondes (le site les rejoue en fond),
+     * avec leur âge en millisecondes mesuré par la base (pas de souci d'horloge entre serveur et navigateur),
+     * et le nombre d'autres joueurs passés sur la table dans la dernière minute.
+     */
+    async recentPlinko(userId: string, withinMs: number) {
+        const drops = await this.db.selectFrom("casino_plays as c").innerJoin("users as u", "u.id", "c.user_id")
+            .select(["c.id", "c.seed", "c.outcome", "c.bet", "c.payout", "u.username", "u.plinko_ball",
+                sql<number>`(extract(epoch from (now() - c.created_at)) * 1000)::int`.as("ago")])
+            .where("c.game", "=", "plinko").where("c.user_id", "!=", userId)
+            .where("c.created_at", ">", sql<Date>`now() - make_interval(secs => ${withinMs / 1000})`)
+            .orderBy("c.created_at", "desc").limit(60).execute();
+        const players = await this.db.selectFrom("casino_plays").select(eb => eb.fn.count<string>("user_id").distinct().as("n"))
+            .where("game", "=", "plinko").where("user_id", "!=", userId)
+            .where("created_at", ">", sql<Date>`now() - interval '1 minute'`).executeTakeFirst();
+        return {
+            drops: drops.map(d => ({
+                id: d.id, seed: Number(d.seed), slot: d.outcome, bet: d.bet, payout: d.payout, username: d.username, ago: d.ago,
+                ball: d.plinko_ball,
+            })),
+            players: Number(players?.n ?? 0),
+        };
     }
 }

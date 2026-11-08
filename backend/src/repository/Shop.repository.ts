@@ -13,10 +13,14 @@ export class ShopRepository {
 
     async state(userId: string) {
         const [user, items] = await Promise.all([
-            this.db.selectFrom("users").select(["credits", "background"]).where("id", "=", userId).executeTakeFirst(),
+            this.db.selectFrom("users").select(["credits", "background", "plinko_ball", "chip_set"]).where("id", "=", userId).executeTakeFirst(),
             this.db.selectFrom("user_items").select("item_id").where("user_id", "=", userId).execute(),
         ]);
-        return {credits: user?.credits ?? 0, background: user?.background ?? null, owned: items.map(i => i.item_id)};
+        return {
+            credits: user?.credits ?? 0, background: user?.background ?? null, plinkoBall: user?.plinko_ball ?? null,
+            chipSet: user?.chip_set ?? null,
+            owned: items.map(i => i.item_id),
+        };
     }
 
     /*
@@ -47,6 +51,16 @@ export class ShopRepository {
     async level(userId: string): Promise<number> {
         const row = await this.db.selectFrom("users").select("user_level").where("id", "=", userId).executeTakeFirst();
         return row?.user_level ?? 1;
+    }
+
+    // Jeu de jetons choisi (null : jetons classiques)
+    async setChipSet(userId: string, itemId: string | null): Promise<void> {
+        await this.db.updateTable("users").set({chip_set: itemId}).where("id", "=", userId).execute();
+    }
+
+    // Bille de Plinko choisie (null : bille par défaut)
+    async setPlinkoBall(userId: string, itemId: string | null): Promise<void> {
+        await this.db.updateTable("users").set({plinko_ball: itemId}).where("id", "=", userId).execute();
     }
 
     // Fond choisi (null : fond par défaut)

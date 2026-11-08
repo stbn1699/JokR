@@ -1,3 +1,6 @@
+import {plinkoBall} from "./plinkoBalls.js";
+import {chipSet} from "./chipSets.js";
+
 /*
  * Catalogue de la boutique (prix et sortes d'objets). Les couleurs des fonds sont côté site
  * (src/Services/shopCatalog.ts), avec les mêmes identifiants : le serveur vérifie seulement
@@ -11,7 +14,7 @@ export const GRADIENT_IDS = [
     "neon", "emeraude", "bordeaux", "lagon", "cuivre", "galaxie", "menthe", "ardoise", "peche", "prisme",
 ] as const;
 
-export type ShopItem = { id: string; kind: "background"; price: number };
+export type ShopItem = { id: string; kind: "background" | "plinko-ball" | "chip-set"; price: number };
 
 export const SHOP_ITEMS: Record<string, ShopItem> = Object.fromEntries(
     GRADIENT_IDS.map(slug => {
@@ -20,7 +23,18 @@ export const SHOP_ITEMS: Record<string, ShopItem> = Object.fromEntries(
     }),
 );
 
-export const shopItem = (id: unknown): ShopItem | undefined => (typeof id === "string" ? SHOP_ITEMS[id] : undefined);
+// Objet de la boutique : fond dégradé, jeu de jetons ou bille de Plinko (lus dans les dossiers d'images,
+// voir chipSets.ts et plinkoBalls.ts)
+export function shopItem(id: unknown): ShopItem | undefined {
+    if (typeof id !== "string") return undefined;
+    if (SHOP_ITEMS[id]) return SHOP_ITEMS[id];
+    const chips = chipSet(id);
+    // les jetons classiques sont offerts : ils ne s'achètent pas
+    if (chips) return chips.price > 0 ? {id: chips.id, kind: "chip-set", price: chips.price} : undefined;
+    const ball = plinkoBall(id);
+    // la bille par défaut est offerte : elle ne s'achète pas
+    return ball && ball.price > 0 ? {id: ball.id, kind: "plinko-ball", price: ball.price} : undefined;
+}
 
 /*
  * Fonds des paliers de niveau (gratuits) : un dégradé à la couleur de chaque palier du contour de profil,

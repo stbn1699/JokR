@@ -1,7 +1,8 @@
 /**
  * Boutique (/boutique) : objets à acheter avec ses crédits, rangés par rubrique.
- * Pour l'instant une seule rubrique, « Fonds », avec les dégradés (20 couleurs, 15 crédits chacune).
- * Les fonds à motifs viendront s'ajouter à cette rubrique.
+ * - Fonds : les dégradés (20 couleurs, 15 crédits chacune) ; les fonds à motifs viendront s'y ajouter
+ * - Plinko : une carte par série de billes (lues dans public/plinko_ball), avec un aperçu de la série
+ * - Jetons : une carte par jeu de jetons (lus dans public/chips), les classiques offerts
  */
 
 import "./Shop.scss";
@@ -11,10 +12,17 @@ import {FaCoins, FaLock} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {shopService} from "../../Services/shop.service.ts";
 import {GRADIENT_PRICE, GRADIENTS, gradientCss} from "../../Services/shopCatalog.ts";
+import {DEFAULT_BALL_ID, usePlinkoBalls} from "../../Services/plinkoBalls.ts";
+import {CHIP_VALUES} from "../../Services/chips.ts";
+import {useChipSets, useMyChipSet} from "../../Services/chipSets.ts";
+import PlinkoPreview from "./PlinkoPreview.tsx";
 
 export default function ShopPage() {
     const {isLoggedIn, credits} = useAuth();
     const [owned, setOwned] = useState<string[] | null>(null);
+    const balls = usePlinkoBalls();
+    const chipSets = useChipSets();
+    const myChips = useMyChipSet();
 
     useEffect(() => {
         if (!isLoggedIn) return;
@@ -55,6 +63,49 @@ export default function ShopPage() {
                             <span><FaLock aria-hidden/> Bientôt : quadrillés, rayés…</span>
                         </span>
                     </div>
+                </div>
+
+                <h2>Plinko</h2>
+                <div className="shop-items">
+                    {!balls && <p className="shop-sub">Chargement des billes…</p>}
+                    {balls?.sets.map(set => {
+                        const mine = set.balls.filter(b => b.id === DEFAULT_BALL_ID || owned?.includes(b.id)).length;
+                        const forSale = set.balls.filter(b => b.price > 0);
+                        return (
+                            <Link key={set.set} to={`/boutique/plinko/${set.set}`} className="shop-item">
+                                {/* toute la série, mélangée sur un petit plateau */}
+                                <span className="shop-item-preview" aria-hidden>
+                                    <PlinkoPreview balls={set.balls.map(b => b.file)}/>
+                                </span>
+                                <span className="shop-item-info">
+                                    <strong>Billes {set.name.toLowerCase()}</strong>
+                                    <span>{set.balls.length} couleur{set.balls.length > 1 ? "s" : ""}
+                                        {forSale.length > 0 && <> · <FaCoins aria-hidden/> {set.price} chacune</>}</span>
+                                    {isLoggedIn && owned && <small>{mine} / {set.balls.length} possédée{mine > 1 ? "s" : ""}</small>}
+                                </span>
+                            </Link>
+                        );
+                    })}
+                </div>
+
+                <h2>Jetons</h2>
+                <div className="shop-items">
+                    {!chipSets && <p className="shop-sub">Chargement des jetons…</p>}
+                    {chipSets?.sets.map(set => {
+                        const has = set.price === 0 || owned?.includes(set.id);
+                        return (
+                            <Link key={set.id} to={`/boutique/jetons/${set.set}`} className="shop-item">
+                                <span className="shop-item-chips" aria-hidden>
+                                    {CHIP_VALUES.map(v => <img key={v} src={set.chips[String(v)]} alt=""/>)}
+                                </span>
+                                <span className="shop-item-info">
+                                    <strong>Jetons {set.name.toLowerCase()}</strong>
+                                    <span>{set.price === 0 ? "Offerts à tout le monde" : <><FaCoins aria-hidden/> {set.price} le jeu de six</>}</span>
+                                    {isLoggedIn && <small>{myChips === set.id ? "Utilisés" : has ? "Possédés" : "\u00a0"}</small>}
+                                </span>
+                            </Link>
+                        );
+                    })}
                 </div>
             </section>
         </main>

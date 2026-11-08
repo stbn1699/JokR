@@ -5,6 +5,10 @@ export interface ShopState {
     credits: number;
     // fond du site choisi (null : fond par défaut)
     background: string | null;
+    // bille de Plinko choisie (null : bille par défaut)
+    plinkoBall: string | null;
+    // jeu de jetons choisi (null : jetons classiques)
+    chipSet: string | null;
     owned: string[];
     // prix de chaque objet, donné par le serveur
     prices: Record<string, number>;
@@ -21,6 +25,16 @@ export const shopService = {
     async buy(itemId: string): Promise<number> {
         const {credits} = await api<{ credits: number }>("/shop/buy", {method: "POST", headers: json, body: JSON.stringify({itemId})});
         return credits;
+    },
+
+    // Choisit un jeu de jetons possédé (null : jetons classiques)
+    async setChipSet(itemId: string | null): Promise<void> {
+        await api("/shop/chip-set", {method: "PUT", headers: json, body: JSON.stringify({itemId})});
+    },
+
+    // Choisit une bille de Plinko possédée (null : bille par défaut)
+    async setPlinkoBall(itemId: string | null): Promise<void> {
+        await api("/shop/plinko-ball", {method: "PUT", headers: json, body: JSON.stringify({itemId})});
     },
 
     // Choisit un fond possédé (null : fond par défaut)

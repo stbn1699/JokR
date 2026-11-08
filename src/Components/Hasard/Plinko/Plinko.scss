@@ -5,13 +5,13 @@
 
 	.plinko-layout {
 		display               : grid;
-		grid-template-columns : 17rem minmax(0, 40rem);
-		gap                   : 1.5rem;
+		grid-template-columns : 21rem minmax(0, 60rem);
+		gap                   : 1.75rem;
 		align-items           : start;
-		width                 : min(60rem, 100%);
+		width                 : min(84rem, 100%);
 
 		// Téléphone et tablette : le plateau d'abord, les réglages dessous
-		@media (max-width: 860px) {
+		@media (max-width: 960px) {
 			grid-template-columns : minmax(0, 1fr);
 
 			.plinko-board {
@@ -22,7 +22,7 @@
 
 	.plinko-controls,
 	.plinko-board {
-		padding       : 1.25rem;
+		padding       : 1.5rem;
 		box-sizing    : border-box;
 		border        : 3px solid #f9fafb;
 		border-radius : 12px;
@@ -35,13 +35,14 @@
 
 	.plinko-canvas {
 		display : block;
-		width   : 100%;
+		margin  : 0 auto;
 	}
 
 	.plinko-back {
 		display         : inline-flex;
 		align-items     : center;
 		gap             : 0.35rem;
+		font-size       : 1.2rem;
 		color           : #f9fafb;
 		opacity         : 0.75;
 		text-decoration : none;
@@ -54,44 +55,64 @@
 
 	h1 {
 		margin    : 0.4rem 0 0;
-		font-size : 2.4rem;
+		font-size : 3.2rem;
 	}
 
 	.plinko-sub {
-		margin  : 0.3rem 0 1rem;
-		opacity : 0.75;
+		margin    : 0.3rem 0 1.25rem;
+		font-size : 1.25rem;
+		opacity   : 0.75;
 	}
 
 	.plinko-label {
 		display       : block;
-		margin-bottom : 0.4rem;
+		margin-bottom : 0.5rem;
+		font-size     : 1.2rem;
 		opacity       : 0.85;
 	}
 
 	.plinko-bets {
 		display               : grid;
 		grid-template-columns : repeat(3, 1fr);
-		gap                   : 0.4rem;
+		gap                   : 0.5rem;
 	}
 
+	// Mises : les images des jetons (la valeur est écrite dessus)
 	.plinko-bet {
-		padding       : 0.45rem 0;
-		border        : 2px solid rgba(249, 250, 251, 0.3);
-		border-radius : 8px;
-		background    : rgba(2, 6, 23, 0.45);
-		color         : #f9fafb;
-		font-family   : inherit;
-		font-size     : 1.1rem;
-		cursor        : pointer;
+		display         : flex;
+		justify-content : center;
+		padding         : 0.2rem 0;
+		border          : none;
+		background      : none;
+		cursor          : pointer;
+		transition      : transform 0.12s ease;
 
-		&.active {
-			border-color : #fbbf24;
-			color        : #fbbf24;
+		img {
+			width  : 3.6rem;
+			height : 3.6rem;
+			filter : drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
 		}
 
+		&:hover:not(:disabled) {
+			transform : translateY(-2px);
+		}
+
+		&.active {
+			transform : translateY(-5px) scale(1.1);
+
+			img {
+				filter : drop-shadow(0 0 0.35rem #fbbf24) drop-shadow(0 0.3rem 0.35rem rgba(0, 0, 0, 0.5));
+			}
+		}
+
+		// trop cher pour le solde
 		&:disabled {
-			opacity : 0.35;
-			cursor  : default;
+			cursor  : not-allowed;
+			opacity : 0.4;
+
+			img {
+				filter : grayscale(1);
+			}
 		}
 	}
 
@@ -101,14 +122,14 @@
 		justify-content : center;
 		gap             : 0.4rem;
 		width           : 100%;
-		margin-top      : 1rem;
-		padding         : 0.75rem;
+		margin-top      : 1.25rem;
+		padding         : 0.95rem;
 		border          : none;
 		border-radius   : 999px;
 		background      : #10b981;
 		color           : #f9fafb;
 		font-family     : inherit;
-		font-size       : 1.25rem;
+		font-size       : 1.5rem;
 		font-weight     : 600;
 		cursor          : pointer;
 		transition      : transform 0.1s ease, background 0.15s ease;
@@ -128,14 +149,33 @@
 	}
 
 	.plinko-error {
-		margin : 0.6rem 0 0;
-		color  : #f87171;
+		margin    : 0.7rem 0 0;
+		font-size : 1.15rem;
+		color     : #f87171;
 	}
 
 	.plinko-inflight {
-		margin    : 0.6rem 0 0;
-		font-size : 0.95rem;
+		margin    : 0.7rem 0 0;
+		font-size : 1.15rem;
 		opacity   : 0.7;
+	}
+
+	.plinko-players {
+		display     : flex;
+		align-items : center;
+		gap         : 0.5rem;
+		margin      : 0.7rem 0 0;
+		font-size   : 1.05rem;
+		opacity     : 0.75;
+	}
+
+	// la bille des autres joueurs, comme sur le plateau (noir et blanc, transparente)
+	.plinko-ghost-dot {
+		flex    : none;
+		width   : 1rem;
+		height  : 1rem;
+		opacity : 0.45;
+		filter  : grayscale(1);
 	}
 
 	.plinko-history {
@@ -149,7 +189,8 @@
 		li {
 			display         : flex;
 			justify-content : space-between;
-			padding         : 0.3rem 0.7rem;
+			padding         : 0.4rem 0.9rem;
+			font-size       : 1.2rem;
 			border-radius   : 6px;
 			background      : rgba(2, 6, 23, 0.45);
 			animation       : plinko-history-in 0.25s ease-out;

@@ -37,6 +37,10 @@ export type UsersTable = {
     last_version: string | null;
     // Fond du site choisi dans la boutique (null : fond par défaut)
     background: string | null;
+    // bille de Plinko choisie dans la boutique (null : bille par défaut)
+    plinko_ball: string | null;
+    // jeu de jetons choisi dans la boutique (null : jetons classiques)
+    chip_set: string | null;
 };
 
 // Boutique : objets achetés
@@ -180,7 +184,7 @@ export type FeedbackTable = {
 export type CasinoPlaysTable = {
     id: Generated<string>;
     user_id: string;
-    // plinko pour l'instant
+    // plinko ou roulette
     game: string;
     bet: number;
     payout: number;
@@ -188,6 +192,24 @@ export type CasinoPlaysTable = {
     seed: ColumnType<string, number, number>;
     // résultat (Plinko : numéro de la case)
     outcome: number;
+    created_at: Generated<Date>;
+};
+
+// Roulette en direct : numéro tiré à chaque tour (bigint en base, lu comme texte : à convertir avec Number)
+export type RouletteRoundsTable = {
+    id: number;
+    number: number;
+    drawn_at: Generated<Date>;
+};
+
+// Jetons de la roulette en direct ; payout reste null tant que le tour n'est pas payé
+export type RouletteBetsTable = {
+    id: Generated<string>;
+    round_id: number;
+    user_id: string;
+    key: string;
+    amount: number;
+    payout: number | null;
     created_at: Generated<Date>;
 };
 
@@ -207,5 +229,7 @@ export type DB = {
     user_items: UserItemsTable;
     feedback: FeedbackTable;
     casino_plays: CasinoPlaysTable;
+    roulette_rounds: RouletteRoundsTable;
+    roulette_bets: RouletteBetsTable;
 };
 

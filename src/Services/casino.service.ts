@@ -1,4 +1,5 @@
 import {api} from "../api/api.ts";
+import type {RouletteBet} from "../../backend/src/utils/roulette.ts";
 
 // Une bille lâchée : la graine de sa chute (le site la rejoue), sa case et le gain
 export interface PlinkoResult {
@@ -10,10 +11,64 @@ export interface PlinkoResult {
     credits: number;
 }
 
+// Un joueur du tour de roulette en cours : ses jetons, son total et, une fois le numéro tiré, son gain
+export interface RoulettePlayer {
+    username: string;
+    avatar: string;
+    level: number;
+    mine: boolean;
+    total: number;
+    payout: number | null;
+    // chaque mise : son total et les jetons posés, dans l'ordre (absents d'un serveur plus ancien)
+    bets: (RouletteBet & { chips?: number[] })[];
+}
+
+// Roulette en direct : le tour en cours, vu par le serveur
+export interface RouletteLive {
+    // heure du serveur (ms, temps Unix) : le site cale son horloge dessus
+    now: number;
+    round: number;
+    closesAt: number;
+    endsAt: number;
+    // numéro tiré (null tant que les mises sont ouvertes)
+    number: number | null;
+    credits: number;
+    history: { round: number; number: number }[];
+    players: RoulettePlayer[];
+}
+
+// Billes de Plinko des autres joueurs, encore en l'air (ago : partie depuis tant de ms)
+export interface PlinkoLive {
+    // ball : bille choisie par le joueur (null : bille par défaut)
+    drops: { id: string; seed: number; slot: number; bet: number; payout: number; username: string; ago: number; ball: string | null }[];
+    // autres joueurs passés sur la table dans la dernière minute
+    players: number;
+}
+
 const json = {"Content-Type": "application/json"};
 
 export const casinoService = {
     plinko(bet: number): Promise<PlinkoResult> {
         return api<PlinkoResult>("/casino/plinko", {method: "POST", headers: json, body: JSON.stringify({bet})});
+    },
+
+    plinkoLive(signal?: AbortSignal): Promise<PlinkoLive> {
+        return api<PlinkoLive>("/casino/plinko/live", {method: "GET"}, signal);
+    },
+
+    rouletteLive(signal?: AbortSignal): Promise<RouletteLive> {
+        return api<RouletteLive>("/casino/roulette/live", {method: "GET"}, signal);
+    },
+
+    // Pose des jetons sur le tour en cours → solde restant
+    async rouletteBet(bets: RouletteBet[]): Promise<number> {
+        const {credits} = await api<{ credits: number }>("/casino/roulette/bets", {method: "POST", headers: json, body: JSON.stringify({bets})});
+        return credits;
+    },
+
+    // Retire tous ses jetons du tour en cours → solde restant
+    async rouletteCancel(): Promise<number> {
+        const {credits} = await api<{ credits: number }>("/casino/roulette/bets", {method: "DELETE"});
+        return credits;
     },
 };
