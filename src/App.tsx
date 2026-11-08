@@ -35,6 +35,9 @@ import PlayerProfile from "./Components/PlayerProfile/PlayerProfile.tsx";
 import FriendChallengePage from "./Components/FriendChallenge/FriendChallengePage.tsx";
 import ShopPage from "./Components/Shop/ShopPage.tsx";
 import GradientsPage from "./Components/Shop/GradientsPage.tsx";
+import SiteBackground from "./Components/Shop/SiteBackground.tsx";
+import FeedbackButton from "./Components/Feedback/FeedbackButton.tsx";
+import FeedbackPage from "./Components/Feedback/FeedbackPage.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -54,6 +57,7 @@ function App() {
 
     return (
         <div className={`app-root ${inGame ? "in-game" : ""}`}>
+            <SiteBackground/>
             <Header/>
             <Routes>
                 <Route path="/" element={<GameList/>}/>
@@ -71,6 +75,7 @@ function App() {
                 <Route path="/nouveautes" element={<Changelog/>}/>
                 <Route path="/hasard" element={<Hasard/>}/>
                 <Route path="/boutique" element={<ShopPage/>}/>
+                <Route path="/retour" element={<FeedbackPage/>}/>
                 <Route path="/boutique/fonds/degrades" element={<GradientsPage/>}/>
                 <Route path="/stats" element={<Stats/>}/>
                 {/* Profil public d'un joueur (depuis les classements) */}
@@ -79,6 +84,7 @@ function App() {
                 <Route path="/defi-ami/:id" element={<FriendChallengePage/>}/>
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
+            <FeedbackButton/>
             <AppFooter/>
         </div>
     );

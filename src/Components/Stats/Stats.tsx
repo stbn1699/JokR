@@ -4,6 +4,7 @@ import {Navigate} from "react-router-dom";
 import {FaDownload, FaSyncAlt} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {statsService} from "../../Services/stats.service.ts";
+import FeedbackAdmin from "../Feedback/FeedbackAdmin.tsx";
 import type {StatsData} from "../../Models/stats.model.ts";
 import {ApiError} from "../../api/api.ts";
 import {formatDuration} from "../../Services/format.ts";
@@ -104,6 +105,7 @@ export default function Stats() {
 
                 {error && <p className="stats-status stats-error" role="alert">{error}</p>}
                 {!data && !error && <Loader label="Chargement des statistiques…"/>}
+                <FeedbackAdmin/>
                 {data && <div className="fade-in"><StatsContent data={data}/></div>}
             </div>
         </div>

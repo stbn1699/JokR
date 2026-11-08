@@ -163,6 +163,20 @@ export type FriendChallengePlayersTable = {
 export type GameMode = "free" | "daily" | "replay";
 export type Device = "mobile" | "tablet" | "desktop";
 
+export type FeedbackTable = {
+    id: Generated<string>;
+    user_id: string;
+    // bug (problème signalé) ou idea (amélioration suggérée)
+    kind: string;
+    message: string;
+    // page d'où le joueur a écrit, navigateur et appareil
+    page: string | null;
+    user_agent: string | null;
+    created_at: Generated<Date>;
+    // null tant que l'administrateur ne l'a pas traité
+    done_at: Date | null;
+};
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
@@ -177,5 +191,6 @@ export type DB = {
     friend_challenges: FriendChallengesTable;
     friend_challenge_players: FriendChallengePlayersTable;
     user_items: UserItemsTable;
+    feedback: FeedbackTable;
 };
 
