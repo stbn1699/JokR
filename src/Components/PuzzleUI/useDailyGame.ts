@@ -3,9 +3,31 @@ import {dailyService} from "../../Services/daily.service.ts";
 import type {DailyResult, DailyStart} from "../../Models/daily.model.ts";
 import {loadGame, clearSavedGame} from "./savedGame.ts";
 
+/*
+ * Jour du défi sauvegardé dans le navigateur, à côté de la partie : une partie commencée la veille
+ * (encore gardée quelques heures par le serveur) ne doit pas être reprise à la place du défi du jour.
+ */
+const dayKey = (saveKey: string) => `jokr:daily-date:${saveKey}`;
+
+function savedDay(saveKey: string): string | null {
+    try {
+        return localStorage.getItem(dayKey(saveKey));
+    } catch {
+        return null;
+    }
+}
+
+function rememberDay(saveKey: string, date: string) {
+    try {
+        localStorage.setItem(dayKey(saveKey), date);
+    } catch {
+        // stockage indisponible : la partie ne sera simplement pas reprise
+    }
+}
+
 /**
  * Défi du jour : au chargement de la page,
- * - reprend le défi déjà commencé (sauvegardé dans le navigateur et encore connu du serveur),
+ * - reprend le défi déjà commencé aujourd'hui (sauvegardé dans le navigateur et encore connu du serveur),
  * - sinon commence le défi du jour,
  * - ou signale qu'il est déjà réussi aujourd'hui (`done`).
  * `onLoad` reçoit la grille de départ, la sauvegarde (saisies) et le temps déjà écoulé.
@@ -32,19 +54,23 @@ export function useDailyGame<Saved extends { gameId: string }, Grid>(options: {
         if (!options.enabled) return;
         let cancelled = false;
 
-        // Taille de la grille du jour (pas pour un jour passé rejoué)
-        if (!options.start) {
-            dailyService.overview()
-                .then(overview => {
-                    const size = overview.games.find(g => g.code === options.gameCode)?.size;
-                    if (!cancelled && size) setLoadingSize(size);
-                })
-                .catch(() => undefined);
-        }
+        // Jour du défi et taille de la grille du jour (pas pour un jour passé rejoué)
+        const overview = options.start ? null : dailyService.overview();
+        overview?.then(o => {
+            const size = o.games.find(g => g.code === options.gameCode)?.size;
+            if (!cancelled && size) setLoadingSize(size);
+        }).catch(() => undefined);
 
         const start = async () => {
-            // Défi déjà commencé sur ce navigateur ?
-            const saved = loadGame<Saved>(options.saveKey);
+            // Défi déjà commencé sur ce navigateur ? (pour le défi du jour : seulement s'il date d'aujourd'hui)
+            let saved = loadGame<Saved>(options.saveKey);
+            if (saved && overview) {
+                const today = await overview.then(o => o.date).catch(() => null);
+                if (!today || savedDay(options.saveKey) !== today) {
+                    clearSavedGame(options.saveKey);
+                    saved = null;
+                }
+            }
             if (saved) {
                 try {
                     const status = await options.fetchStatus(saved.gameId);
@@ -58,6 +84,7 @@ export function useDailyGame<Saved extends { gameId: string }, Grid>(options: {
             const started = options.start ? await options.start() : await dailyService.start<Grid>(options.gameCode);
             if (cancelled) return;
             setDate(started.date);
+            if (!options.start) rememberDay(options.saveKey, started.date);
             if (started.alreadyDone) setDone(started.result);
             else options.onLoad(started.grid, options.emptySave(started.gameId), 0);
         };
