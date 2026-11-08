@@ -346,3 +346,82 @@
 		}
 	}
 }
+
+// ---------- Onglets Puzzles / Hasard
+.stats .stats-tabs {
+	display       : flex;
+	gap           : 0.4rem;
+	margin        : 1.25rem 0 1.5rem;
+	border-bottom : 2px solid rgba(249, 250, 251, 0.15);
+
+	button {
+		margin-bottom : -2px;
+		padding       : 0.5rem 1.4rem;
+		border        : none;
+		border-bottom : 3px solid transparent;
+		background    : none;
+		color         : rgba(249, 250, 251, 0.65);
+		font-family   : inherit;
+		font-size     : 1.35rem;
+		font-weight   : 600;
+		cursor        : pointer;
+
+		&:hover {
+			color : #f9fafb;
+		}
+
+		&.active {
+			border-bottom-color : #fbbf24;
+			color               : #f9fafb;
+		}
+	}
+}
+
+// En-tête d'un onglet : date de mise à jour et bouton Actualiser
+.stats .stats-tab-head {
+	display         : flex;
+	flex-wrap       : wrap;
+	align-items     : center;
+	justify-content : space-between;
+	gap             : 0.5rem 1rem;
+	margin-bottom   : 1rem;
+}
+
+// Bilan d'un joueur : en vert s'il gagne, en rouge s'il perd
+.stats .stats-up {
+	color : #34d399;
+}
+
+.stats .stats-down {
+	color : #f87171;
+}
+
+// Boutique : nom d'un fond avec son aperçu de couleur ; fonds jamais vendus ou jamais portés grisés
+.stats .stats-item {
+	display     : inline-flex;
+	align-items : center;
+	gap         : 0.45rem;
+}
+
+.stats .stats-swatch {
+	display       : inline-block;
+	flex          : none;
+	width         : 1.4rem;
+	height        : 1.1rem;
+	border        : 1px solid rgba(249, 250, 251, 0.3);
+	border-radius : 4px;
+}
+
+.stats .stats-muted td {
+	opacity : 0.5;
+}
+
+.stats .stats-subtitle {
+	margin-top : 1.5rem;
+}
+
+.stats .stats-ball {
+	flex   : none;
+	width  : 1.2rem;
+	height : 1.2rem;
+}

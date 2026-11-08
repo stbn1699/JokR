@@ -1,14 +1,17 @@
 import "./Stats.scss";
 import {useCallback, useEffect, useState} from "react";
-import {Navigate} from "react-router-dom";
+import {Navigate, useSearchParams} from "react-router-dom";
 import {FaDownload, FaSyncAlt} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {statsService} from "../../Services/stats.service.ts";
 import FeedbackAdmin from "../Feedback/FeedbackAdmin.tsx";
 import type {StatsData} from "../../Models/stats.model.ts";
 import {ApiError} from "../../api/api.ts";
-import {formatDuration} from "../../Services/format.ts";
 import BarChart from "./BarChart.tsx";
+import {Legend, Tile} from "./StatsWidgets.tsx";
+import {dateTime, duration, fmt, longDay, pct, shortDay} from "./statsFormat.ts";
+import CasinoStats from "./CasinoStats.tsx";
+import ShopStats from "./ShopStats.tsx";
 import {downloadFile, toCsv} from "./exportData.ts";
 
 import Loader from "../Loader/Loader.tsx";
@@ -20,18 +23,19 @@ const gameColor = (code: string) => GAME_COLORS[code] ?? OTHER_COLOR;
 const WEEKDAYS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 const DEVICE_LABELS = {mobile: "Téléphone", tablet: "Tablette", desktop: "Ordinateur", unknown: "Inconnu"} as const;
 
-const fmt = (n: number) => n.toLocaleString("fr-FR");
-const pct = (part: number, total: number) => (total > 0 ? `${Math.round((part / total) * 100)} %` : "–");
-const duration = (ms: number | null) => (ms === null ? "–" : formatDuration(ms));
-const dateTime = (iso: string | null) => (iso ? new Date(iso).toLocaleString("fr-FR", {dateStyle: "short", timeStyle: "short"}) : "–");
-const shortDay = (day: string) => `${day.slice(8, 10)}/${day.slice(5, 7)}`;
 
 /**
- * Page Statistiques (administrateur uniquement) : joueurs, parties, jeux, défis du jour, rythme de jeu.
- * Les données brutes s'exportent en JSON (tout) ou en CSV (parties), pour une analyse ailleurs.
+ * Page Statistiques (administrateur uniquement), en trois onglets (?onglet=hasard, ?onglet=boutique) :
+ * - Puzzles : joueurs, parties, jeux, défis du jour, rythme de jeu ; données brutes en JSON (tout) ou CSV (parties)
+ * - Hasard : Plinko et roulette (CasinoStats)
+ * - Boutique : achats et fonds portés (ShopStats)
+ * Les retours des joueurs sont au-dessus des onglets.
  */
 export default function Stats() {
     const {isLoggedIn, isAdmin, username} = useAuth();
+    const [params, setParams] = useSearchParams();
+    const onglet = params.get("onglet");
+    const tab = onglet === "hasard" || onglet === "boutique" ? onglet : "puzzles";
     const [data, setData] = useState<StatsData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -87,10 +91,10 @@ export default function Stats() {
                 <div className="stats-head">
                     <div>
                         <h1>Statistiques</h1>
-                        {data && <p className="stats-sub">Mises à jour le {dateTime(data.generatedAt)}
+                        {data && tab === "puzzles" && <p className="stats-sub">Mises à jour le {dateTime(data.generatedAt)}
                             {data.overview.sessions.firstStarted && <> · données depuis le {dateTime(data.overview.sessions.firstStarted)}</>}</p>}
                     </div>
-                    <div className="stats-actions">
+                    {tab === "puzzles" && <div className="stats-actions">
                         <button type="button" onClick={() => void load()} disabled={loading}>
                             <FaSyncAlt aria-hidden/> Actualiser
                         </button>
@@ -100,13 +104,25 @@ export default function Stats() {
                         <button type="button" onClick={() => void exportData("csv")} disabled={exporting}>
                             <FaDownload aria-hidden/> Parties (CSV)
                         </button>
-                    </div>
+                    </div>}
                 </div>
 
-                {error && <p className="stats-status stats-error" role="alert">{error}</p>}
-                {!data && !error && <Loader label="Chargement des statistiques…"/>}
                 <FeedbackAdmin/>
-                {data && <div className="fade-in"><StatsContent data={data}/></div>}
+
+                <div className="stats-tabs" role="tablist">
+                    <button type="button" role="tab" aria-selected={tab === "puzzles"} className={tab === "puzzles" ? "active" : ""}
+                            onClick={() => setParams({}, {replace: true})}>Puzzles</button>
+                    <button type="button" role="tab" aria-selected={tab === "hasard"} className={tab === "hasard" ? "active" : ""}
+                            onClick={() => setParams({onglet: "hasard"}, {replace: true})}>Hasard</button>
+                    <button type="button" role="tab" aria-selected={tab === "boutique"} className={tab === "boutique" ? "active" : ""}
+                            onClick={() => setParams({onglet: "boutique"}, {replace: true})}>Boutique</button>
+                </div>
+
+                {tab === "hasard" ? <CasinoStats/> : tab === "boutique" ? <ShopStats/> : <>
+                    {error && <p className="stats-status stats-error" role="alert">{error}</p>}
+                    {!data && !error && <Loader label="Chargement des statistiques…"/>}
+                    {data && <div className="fade-in"><StatsContent data={data}/></div>}
+                </>}
             </div>
         </div>
     );
@@ -157,7 +173,7 @@ function StatsContent({data}: { data: StatsData }) {
                 <BarChart ariaLabel="Parties lancées par jour et par jeu" labelEvery={5}
                           bars={data.timeline.map(t => ({
                               label: shortDay(t.day),
-                              title: new Date(t.day).toLocaleDateString("fr-FR", {weekday: "long", day: "numeric", month: "long"}),
+                              title: longDay(t.day),
                               value: t.started,
                               segments: data.games.map(g => ({key: g.code, label: g.name, value: t.byGame[g.code] ?? 0, color: gameColor(g.code)})),
                           }))}/>
@@ -365,23 +381,5 @@ function StatsContent({data}: { data: StatsData }) {
                 </div>
             </section>
         </>
-    );
-}
-
-function Tile({label, value, detail}: { label: string; value: string; detail: string }) {
-    return (
-        <div className="stats-tile">
-            <span className="stats-tile-label">{label}</span>
-            <strong className="stats-tile-value">{value}</strong>
-            <span className="stats-tile-detail">{detail}</span>
-        </div>
-    );
-}
-
-function Legend({items}: { items: { label: string; color: string }[] }) {
-    return (
-        <ul className="stats-legend">
-            {items.map(i => <li key={i.label}><i className="stats-dot" style={{background: i.color}}/>{i.label}</li>)}
-        </ul>
     );
 }
