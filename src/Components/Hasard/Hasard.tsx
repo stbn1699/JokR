@@ -1,14 +1,27 @@
 import "./Hasard.scss";
+import {Link} from "react-router-dom";
+import {PLINKO_MULTIPLIERS} from "../../../backend/src/utils/plinko.ts";
 
 /**
- * Onglet « Hasard » (/hasard) : les jeux de hasard (roulette, poker à 5 cartes, plinko, blackjack,
- * machine à sous…) arriveront ici. Pour l'instant, page d'attente.
+ * Onglet « Hasard » (/hasard) : les jeux où l'on mise ses crédits.
+ * Pour l'instant le Plinko ; roulette, poker, blackjack, machine à sous… viendront ensuite.
  */
 export default function Hasard() {
     return (
         <main className="hasard">
             <h1>Hasard</h1>
-            <p>Les jeux de hasard arrivent bientôt.</p>
+            <p>Mise tes crédits et tente ta chance.</p>
+
+            <div className="hasard-games">
+                <Link to="/hasard/plinko" className="hasard-game">
+                    <strong>Plinko</strong>
+                    <span>Lâche une bille sur les clous : jusqu'à ×{Math.max(...PLINKO_MULTIPLIERS)} ta mise.</span>
+                </Link>
+                <div className="hasard-game soon" aria-disabled>
+                    <strong>Et bientôt…</strong>
+                    <span>Roulette, blackjack, machine à sous…</span>
+                </div>
+            </div>
         </main>
     );
 }

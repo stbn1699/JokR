@@ -20,6 +20,7 @@ import friendsRoutes from "./routes/Friends.routes.js";
 import challengesRoutes from "./routes/Challenges.routes.js";
 import shopRoutes from "./routes/Shop.routes.js";
 import feedbackRoutes from "./routes/Feedback.routes.js";
+import casinoRoutes from "./routes/Casino.routes.js";
 import {NotificationsRepository} from "./repository/Notifications.repository.js";
 import playersRoutes from "./routes/Players.routes.js";
 import {tracker} from "./services/tracker.js";
@@ -74,6 +75,7 @@ api.use("/friends", friendsRoutes);
 api.use("/challenges", challengesRoutes);
 api.use("/shop", shopRoutes);
 api.use("/feedback", feedbackRoutes);
+api.use("/casino", casinoRoutes);
 api.use("/players", playersRoutes);
 
 if (config.apiPrefix) {

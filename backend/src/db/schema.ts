@@ -177,6 +177,20 @@ export type FeedbackTable = {
     done_at: Date | null;
 };
 
+export type CasinoPlaysTable = {
+    id: Generated<string>;
+    user_id: string;
+    // plinko pour l'instant
+    game: string;
+    bet: number;
+    payout: number;
+    // graine du tirage (bigint en base : lue comme texte, écrite comme nombre)
+    seed: ColumnType<string, number, number>;
+    // résultat (Plinko : numéro de la case)
+    outcome: number;
+    created_at: Generated<Date>;
+};
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
@@ -192,5 +206,6 @@ export type DB = {
     friend_challenge_players: FriendChallengePlayersTable;
     user_items: UserItemsTable;
     feedback: FeedbackTable;
+    casino_plays: CasinoPlaysTable;
 };
 

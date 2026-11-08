@@ -1,0 +1,171 @@
+.plinko {
+	display         : flex;
+	justify-content : center;
+	padding         : 1.5rem 1rem 2rem;
+
+	.plinko-layout {
+		display               : grid;
+		grid-template-columns : 17rem minmax(0, 40rem);
+		gap                   : 1.5rem;
+		align-items           : start;
+		width                 : min(60rem, 100%);
+
+		// Téléphone et tablette : le plateau d'abord, les réglages dessous
+		@media (max-width: 860px) {
+			grid-template-columns : minmax(0, 1fr);
+
+			.plinko-board {
+				order : -1;
+			}
+		}
+	}
+
+	.plinko-controls,
+	.plinko-board {
+		padding       : 1.25rem;
+		box-sizing    : border-box;
+		border        : 3px solid #f9fafb;
+		border-radius : 12px;
+		background    : #02061735;
+	}
+
+	.plinko-board {
+		padding : 0.75rem;
+	}
+
+	.plinko-canvas {
+		display : block;
+		width   : 100%;
+	}
+
+	.plinko-back {
+		display         : inline-flex;
+		align-items     : center;
+		gap             : 0.35rem;
+		color           : #f9fafb;
+		opacity         : 0.75;
+		text-decoration : none;
+
+		&:hover {
+			opacity : 1;
+			color   : #fbbf24;
+		}
+	}
+
+	h1 {
+		margin    : 0.4rem 0 0;
+		font-size : 2.4rem;
+	}
+
+	.plinko-sub {
+		margin  : 0.3rem 0 1rem;
+		opacity : 0.75;
+	}
+
+	.plinko-label {
+		display       : block;
+		margin-bottom : 0.4rem;
+		opacity       : 0.85;
+	}
+
+	.plinko-bets {
+		display               : grid;
+		grid-template-columns : repeat(3, 1fr);
+		gap                   : 0.4rem;
+	}
+
+	.plinko-bet {
+		padding       : 0.45rem 0;
+		border        : 2px solid rgba(249, 250, 251, 0.3);
+		border-radius : 8px;
+		background    : rgba(2, 6, 23, 0.45);
+		color         : #f9fafb;
+		font-family   : inherit;
+		font-size     : 1.1rem;
+		cursor        : pointer;
+
+		&.active {
+			border-color : #fbbf24;
+			color        : #fbbf24;
+		}
+
+		&:disabled {
+			opacity : 0.35;
+			cursor  : default;
+		}
+	}
+
+	.plinko-drop {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.4rem;
+		width           : 100%;
+		margin-top      : 1rem;
+		padding         : 0.75rem;
+		border          : none;
+		border-radius   : 999px;
+		background      : #10b981;
+		color           : #f9fafb;
+		font-family     : inherit;
+		font-size       : 1.25rem;
+		font-weight     : 600;
+		cursor          : pointer;
+		transition      : transform 0.1s ease, background 0.15s ease;
+
+		&:hover:not(:disabled) {
+			background : #059669;
+		}
+
+		&:active:not(:disabled) {
+			transform : scale(0.97);
+		}
+
+		&:disabled {
+			background : rgba(16, 185, 129, 0.35);
+			cursor     : default;
+		}
+	}
+
+	.plinko-error {
+		margin : 0.6rem 0 0;
+		color  : #f87171;
+	}
+
+	.plinko-inflight {
+		margin    : 0.6rem 0 0;
+		font-size : 0.95rem;
+		opacity   : 0.7;
+	}
+
+	.plinko-history {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.3rem;
+		margin         : 1rem 0 0;
+		padding        : 0;
+		list-style     : none;
+
+		li {
+			display         : flex;
+			justify-content : space-between;
+			padding         : 0.3rem 0.7rem;
+			border-radius   : 6px;
+			background      : rgba(2, 6, 23, 0.45);
+			animation       : plinko-history-in 0.25s ease-out;
+
+			&.win span:last-child {
+				color : #34d399;
+			}
+
+			&.loss span:last-child {
+				color : #f87171;
+			}
+		}
+	}
+}
+
+@keyframes plinko-history-in {
+	from { opacity : 0; transform : translateY(-0.4rem); }
+	to { opacity : 1; transform : none; }
+}

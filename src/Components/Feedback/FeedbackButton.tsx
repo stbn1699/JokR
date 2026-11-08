@@ -16,7 +16,7 @@ export default function FeedbackButton() {
 
     return (
         <Link to="/retour" state={{from: pathname + search}}
-              className={`feedback-button ${isGameRoute(pathname) ? "in-game" : ""}`}
+              className={`feedback-button ${isGameRoute(pathname) || pathname.startsWith("/hasard/") ? "in-game" : ""}`}
               title="Signaler un bug ou suggérer une amélioration" aria-label="Signaler un bug ou suggérer une amélioration">
             <FaCommentDots aria-hidden/>
             <span>Un bug ? Une idée ?</span>

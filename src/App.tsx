@@ -38,6 +38,7 @@ import GradientsPage from "./Components/Shop/GradientsPage.tsx";
 import SiteBackground from "./Components/Shop/SiteBackground.tsx";
 import FeedbackButton from "./Components/Feedback/FeedbackButton.tsx";
 import FeedbackPage from "./Components/Feedback/FeedbackPage.tsx";
+import PlinkoPage from "./Components/Hasard/Plinko/PlinkoPage.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -74,6 +75,7 @@ function App() {
                 <Route path="/classements" element={<Leaderboard/>}/>
                 <Route path="/nouveautes" element={<Changelog/>}/>
                 <Route path="/hasard" element={<Hasard/>}/>
+                <Route path="/hasard/plinko" element={<PlinkoPage/>}/>
                 <Route path="/boutique" element={<ShopPage/>}/>
                 <Route path="/retour" element={<FeedbackPage/>}/>
                 <Route path="/boutique/fonds/degrades" element={<GradientsPage/>}/>
