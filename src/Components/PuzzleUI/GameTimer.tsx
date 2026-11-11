@@ -4,7 +4,8 @@ import type {Clock} from "./useGameFlow.ts";
 
 /**
  * Chrono de la partie, dans le panneau Actions.
- * Défile chaque seconde ; une fois la partie gagnée, affiche le temps mesuré par le serveur.
+ * Défile chaque seconde ; figé pendant que le serveur vérifie la grille ; une fois la partie gagnée, affiche
+ * le temps mesuré par le serveur.
  */
 export default function GameTimer({clock}: { clock: Clock }) {
     const [now, setNow] = useState(() => Date.now());
@@ -12,8 +13,13 @@ export default function GameTimer({clock}: { clock: Clock }) {
 
     useEffect(() => {
         if (!running) return;
+        // reprise (grille refusée) : l'heure est remise à jour tout de suite, puis chaque seconde
+        const first = window.setTimeout(() => setNow(Date.now()), 0);
         const timer = window.setInterval(() => setNow(Date.now()), 1000);
-        return () => window.clearInterval(timer);
+        return () => {
+            window.clearTimeout(first);
+            window.clearInterval(timer);
+        };
     }, [running]);
 
     if (clock.startedAt === null) return null;

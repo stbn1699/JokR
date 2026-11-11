@@ -19,7 +19,7 @@ export type Victory = {
     daily: WinResult["daily"] | null;
 };
 
-// Chrono de la partie : démarré à la génération (ou à la reprise), arrêté à la victoire
+// Chrono de la partie : démarré à la génération (ou à la reprise), figé pendant la validation, arrêté à la victoire
 export type Clock = { startedAt: number | null; finalMs: number | null };
 
 /**
@@ -64,9 +64,23 @@ export function useGameFlow() {
         // Progression avant la victoire, pour animer la barre d'XP
         const before = isLoggedIn ? {level, xp} : null;
 
+        // Chrono figé pendant que le serveur vérifie : c'est lui qui mesure le temps officiel, inutile de
+        // voir les secondes défiler si la réponse tarde (il repart si la grille est refusée)
+        setClock(c => (c.startedAt !== null && c.finalMs === null ? {...c, finalMs: Math.max(0, Date.now() - c.startedAt)} : c));
+        const unfreeze = () => setClock(c => ({...c, finalMs: null}));
+
         setValidating(true);
-        const outcome = await run().finally(() => setValidating(false));
+        let outcome: ValidationResult;
+        try {
+            outcome = await run();
+        } catch (err) {
+            unfreeze();
+            throw err;
+        } finally {
+            setValidating(false);
+        }
         if (!outcome.ok) {
+            unfreeze();
             setNotice(outcome.message);
             return;
         }
