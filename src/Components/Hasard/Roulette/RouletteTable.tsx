@@ -6,13 +6,17 @@
  * près d'un coin, en carré sur les quatre numéros. Au survol, un rond gris montre où le jeton sera posé et
  * les numéros couverts ressortent (les autres s'effacent) ; c'est aussi le cas pour couleur, pair, douzaine…
  *
+ * Pose au pinceau (souris) : clic maintenu, chaque mise survolée reçoit un jeton ; en tournant sur une zone, un jeton
+ * de plus tous les PAINT_STEP pixels parcourus (de petits ronds empilent vite). Au doigt, on garde le simple appui
+ * (glisser fait défiler la page).
+ *
  * Deux dispositions, choisies en CSS (Roulette.scss) :
  * - à l'horizontale (ordinateur) : 3 lignes × 12 colonnes de numéros, le zéro à gauche
  * - à la verticale (téléphone) : le zéro en haut, 12 lignes × 3 colonnes, douzaines et chances simples à gauche
  * Chaque case porte sa place dans les deux (variables --hr/--hc et --vr/--vc).
  */
 
-import {type CSSProperties, type MouseEvent, useState, useSyncExternalStore} from "react";
+import {type CSSProperties, type MouseEvent, useEffect, useRef, useState, useSyncExternalStore} from "react";
 import {rouletteRule} from "../../../../backend/src/utils/roulette.ts";
 import {anchorOf, CELLS, type Dir, markerStyle, numberOf, targetAt} from "./rouletteLayout.ts";
 import ChipStack from "./ChipStack.tsx";
@@ -36,6 +40,9 @@ const subscribe = (onChange: () => void) => {
 };
 const useVertical = () => useSyncExternalStore(subscribe, () => window.matchMedia(VERTICAL_QUERY).matches, () => false);
 
+// Pose au pinceau : un jeton de plus sur la même mise tous les PAINT_STEP pixels parcourus clic maintenu
+const PAINT_STEP = 60;
+
 export default function RouletteTable({bets, winning, result, disabled, onBet}: RouletteTableProps) {
     const vertical = useVertical();
     // mise visée par la souris (case entière, à cheval ou en carré)
@@ -48,6 +55,26 @@ export default function RouletteTable({bets, winning, result, disabled, onBet}: 
         const box = e.currentTarget.getBoundingClientRect();
         return targetAt(n, (e.clientX - box.left) / box.width, (e.clientY - box.top) / box.height, vertical);
     };
+    const targetOf = (key: string, e: MouseEvent<HTMLButtonElement>) => {
+        const n = numberOf(key);
+        return n === null || n === 0 ? key : aimAt(n, e);
+    };
+
+    // Pose au pinceau : dernière mise posée, chemin parcouru depuis, et dernière position de la souris
+    const paint = useRef<{ last: string; travelled: number; x: number; y: number } | null>(null);
+    // le clic qui suit l'appui ne repose pas de jeton (déjà posé à l'appui)
+    const skipClick = useRef(false);
+    useEffect(() => {
+        const stop = () => {
+            paint.current = null;
+        };
+        window.addEventListener("pointerup", stop);
+        window.addEventListener("pointercancel", stop);
+        return () => {
+            window.removeEventListener("pointerup", stop);
+            window.removeEventListener("pointercancel", stop);
+        };
+    }, []);
 
     // jetons à dessiner dans chaque case : ceux de ses propres mises et ceux des mises à cheval ou en carré qu'elle porte
     const markers = new Map<string, { key: string; dir: Dir; chips?: number[] }[]>();
@@ -70,14 +97,39 @@ export default function RouletteTable({bets, winning, result, disabled, onBet}: 
                     <button key={key} type="button"
                             className={`rt-cell ${className} ${winning.has(key) ? "win" : ""} ${drawn ? "drawn" : ""} ${highlight}`}
                             style={{"--hr": place.hr, "--hc": place.hc, "--vr": place.vr, "--vc": place.vc} as CSSProperties}
-                            onMouseMove={e => {
-                                const target = n === null || n === 0 ? key : aimAt(n, e);
+                            onPointerDown={e => {
+                                if (e.pointerType !== "mouse" || e.button !== 0 || disabled) return;
+                                e.preventDefault(); // pas de sélection de texte en glissant
+                                const target = targetOf(key, e);
+                                paint.current = {last: target, travelled: 0, x: e.clientX, y: e.clientY};
+                                skipClick.current = true;
+                                onBet(target);
+                            }}
+                            onPointerMove={e => {
+                                const target = targetOf(key, e);
                                 if (target !== hovered) setHovered(target);
+                                const p = paint.current;
+                                if (!p || disabled) return;
+                                p.travelled += Math.hypot(e.clientX - p.x, e.clientY - p.y);
+                                p.x = e.clientX;
+                                p.y = e.clientY;
+                                // nouvelle mise survolée, ou assez de chemin parcouru sur la même : un jeton de plus
+                                if (target !== p.last || p.travelled >= PAINT_STEP) {
+                                    p.last = target;
+                                    p.travelled = 0;
+                                    onBet(target);
+                                }
                             }}
                             onFocus={() => setHovered(key)} onBlur={() => setHovered(null)}
                             disabled={disabled}
                             // clavier (detail = 0) : la case elle-même ; souris ou doigt : là où on a cliqué
-                            onClick={e => onBet(n === null || n === 0 || e.detail === 0 ? key : aimAt(n, e))}
+                            onClick={e => {
+                                if (skipClick.current && e.detail !== 0) {
+                                    skipClick.current = false;
+                                    return;
+                                }
+                                onBet(e.detail === 0 ? key : targetOf(key, e));
+                            }}
                             aria-label={amount ? `${label}, ${amount} crédits misés` : label}>
                         <span>{label}</span>
                         {markers.get(key)?.map(m => m.chips === undefined

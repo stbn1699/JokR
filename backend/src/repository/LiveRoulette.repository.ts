@@ -12,7 +12,7 @@ import {
 
 export type PlaceResult = { ok: true; credits: number } | { ok: false; reason: "closed" | "credits" | "limit" | "user" };
 
-const HISTORY_SIZE = 16;
+export const HISTORY_SIZE = 16;
 
 /*
  * Roulette en direct : tirage de chaque tour, jetons des joueurs, paiement.
@@ -140,6 +140,28 @@ export class LiveRouletteRepository {
         const rows = await this.db.selectFrom("roulette_rounds").select(["id", "number"])
             .where("id", "<=", upTo).orderBy("id", "desc").limit(HISTORY_SIZE).execute();
         return rows.map(r => ({round: Number(r.id), number: r.number}));
+    }
+
+    // Derniers tours joués par un joueur, jusqu'au tour `upTo` compris (le plus récent d'abord) :
+    // numéro sorti, total misé, gain (calculé ici, le tour n'est pas forcément encore payé) et mises (total et jetons posés par case)
+    async myRounds(userId: string, upTo: number, limit: number) {
+        const last = this.db.selectFrom("roulette_bets").select("round_id")
+            .where("user_id", "=", userId).where("round_id", "<=", upTo)
+            .groupBy("round_id").orderBy("round_id", "desc").limit(limit);
+        const rows = await this.db.selectFrom("roulette_bets as b").innerJoin("roulette_rounds as r", "r.id", "b.round_id")
+            .select(["b.round_id", "r.number", "b.key", "b.amount"])
+            .where("b.user_id", "=", userId).where("b.round_id", "in", last).orderBy("b.created_at").execute();
+        const rounds = new Map<number, { round: number; number: number; bet: number; payout: number; bets: Map<string, number[]> }>();
+        for (const row of rows) {
+            const id = Number(row.round_id);
+            const r = rounds.get(id) ?? {round: id, number: row.number, bet: 0, payout: 0, bets: new Map()};
+            r.bet += row.amount;
+            r.payout += roulettePayout([{key: row.key, amount: row.amount}], row.number);
+            r.bets.set(row.key, [...r.bets.get(row.key) ?? [], row.amount]);
+            rounds.set(id, r);
+        }
+        return [...rounds.values()].sort((a, b) => b.round - a.round)
+            .map(r => ({...r, bets: [...r.bets].map(([key, chips]) => ({key, amount: chips.reduce((sum, c) => sum + c, 0), chips}))}));
     }
 
     async credits(userId: string): Promise<number> {

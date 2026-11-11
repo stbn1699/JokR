@@ -24,10 +24,12 @@ import {
     rouletteWinningKeys,
 } from "../../../../backend/src/utils/roulette.ts";
 import RouletteWheel, {type RouletteWheelHandle} from "./RouletteWheel.tsx";
+import {useStoredFlag} from "../../PuzzleUI/useStoredFlag.ts";
 import RouletteTable from "./RouletteTable.tsx";
 import RouletteRules from "./RouletteRules.tsx";
 import RulesButton from "../RulesButton.tsx";
 import LiveBets from "./LiveBets.tsx";
+import RoundDetail from "./RoundDetail.tsx";
 
 const POLL_MS = 1000;
 
@@ -53,6 +55,13 @@ function saveLastBets(userId: string | null, bets: RouletteBet[]) {
 }
 const COLOR_NAMES = {red: "rouge", black: "noir", green: "vert"} as const;
 
+// La roue agrandie reste à l'écran ce temps-là après que la bille s'est posée
+const ZOOM_AFTER_MS = 3000;
+// Jetons posés à moins de ce délai d'écart : envoyés ensemble (pose au pinceau, clics rapides)
+const BATCH_MS = 150;
+// Durée de l'animation de retour de la roue à sa place (même valeur que dans Roulette.scss)
+const ZOOM_OUT_MS = 450;
+
 export default function RoulettePage() {
     const auth = useAuth();
     const {setCredits} = auth;
@@ -68,13 +77,28 @@ export default function RoulettePage() {
     const [error, setError] = useState<string | null>(null);
     // tour dont la bille est posée (résultat visible, gains affichés)
     const [landed, setLanded] = useState<number | null>(null);
+    // moment où la bille s'est posée (heure du navigateur) : la roue agrandie reste encore un peu pour voir le résultat
+    const [landedAt, setLandedAt] = useState(0);
+    // Roue agrandie au centre de l'écran pendant le lancement (désactivable, retenu dans le navigateur) ;
+    // un clic à côté la referme pour le tour en cours
+    const [noZoom, setNoZoom] = useStoredFlag("jokr:roulette:noZoom");
+    const [unzoomedRound, setUnzoomedRound] = useState<number | null>(null);
+    // roue affichée en grand (reste vraie pendant l'animation de retour) et déplacement de cette animation
+    const [shown, setShown] = useState(false);
+    const [closing, setClosing] = useState<{ x: number; y: number; scale: number } | null>(null);
+    const placeholder = useRef<HTMLDivElement>(null);
     // mes jetons du dernier tour joué (pour « Reproduire ma mise »)
+    // numéro survolé de l'historique (tour où j'ai misé) et sa place : une bulle montre mes mises de ce tour sur un tapis
+    const [openRound, setOpenRound] = useState<{ round: number; anchor: DOMRect } | null>(null);
     const [lastBets, setLastBets] = useState<RouletteBet[]>(() => readLastBets(auth.userId));
     const spunRound = useRef<number | null>(null);
     const myRoundBets = useRef<{ round: number; bets: RouletteBet[] } | null>(null);
     const refresh = useRef<() => Promise<void>>(async () => undefined);
     const queue = useRef<Promise<void>>(Promise.resolve());
     const pending = useRef(0);
+    // jetons posés depuis moins de BATCH_MS (pose au pinceau) : envoyés ensemble en une seule requête
+    const batch = useRef<RouletteBet[]>([]);
+    const batchTimer = useRef<number | null>(null);
 
     // ---------- état de la table, chaque seconde ; horloge locale pour le compte à rebours
     useEffect(() => {
@@ -111,13 +135,16 @@ export default function RoulettePage() {
         spunRound.current = live.round;
         const round = live.round;
         const elapsed = Date.now() + offset - live.closesAt;
-        wheel.current?.spin(live.number, () => setLanded(round), Math.max(0, elapsed));
-        // téléphone : si j'ai misé et que la roue est hors de l'écran, on remonte la voir tourner
+        wheel.current?.spin(live.number, () => {
+            setLanded(round);
+            setLandedAt(Date.now());
+        }, Math.max(0, elapsed));
+        // téléphone : si j'ai misé et que la roue est hors de l'écran, on remonte la voir tourner (sauf roue agrandie)
         const box = wheelBox.current?.getBoundingClientRect();
-        if (live.players.some(p => p.mine) && box && (box.bottom < 80 || box.top > window.innerHeight)) {
+        if (noZoom && live.players.some(p => p.mine) && box && (box.bottom < 80 || box.top > window.innerHeight)) {
             wheelBox.current?.scrollIntoView({behavior: "smooth", block: "center"});
         }
-    }, [live, offset]);
+    }, [live, offset, noZoom]);
 
     // ---------- crédits du header : le gain n'est ajouté qu'une fois la bille posée
     const revealed = live !== null && live.number !== null && landed === live.round;
@@ -138,6 +165,49 @@ export default function RoulettePage() {
         myRoundBets.current = {round: live.round, bets: (me?.bets ?? []).flatMap(b => (b.chips ?? [b.amount]).map(amount => ({key: b.key, amount})))};
     }, [live, me, auth.userId]);
 
+    // ---------- roue agrandie : du lancement jusqu'à 3 s après que la bille s'est posée
+    const zoomed = !noZoom && live !== null && live.number !== null && unzoomedRound !== live.round
+        && (landed !== live.round || now - landedAt < ZOOM_AFTER_MS);
+
+    // Agrandie : on l'affiche. Fin : elle rétrécit et glisse jusqu'à sa place dans la page, puis reprend sa place.
+    useEffect(() => {
+        if (zoomed) {
+            const timer = window.setTimeout(() => {
+                setClosing(null);
+                setShown(true);
+            }, 0);
+            return () => window.clearTimeout(timer);
+        }
+        if (!shown) return;
+        // la roue agrandie est centrée dans la fenêtre ; sa taille sans l'animation d'entrée (offsetWidth)
+        const size = wheelBox.current?.offsetWidth ?? 0;
+        const to = placeholder.current?.getBoundingClientRect();
+        const start = window.setTimeout(() => {
+            setClosing(to && size > 0 ? {
+                x: to.left + to.width / 2 - window.innerWidth / 2,
+                y: to.top + to.height / 2 - window.innerHeight / 2,
+                scale: to.width / size,
+            } : {x: 0, y: 0, scale: 0.6});
+        }, 0);
+        const end = window.setTimeout(() => {
+            setShown(false);
+            setClosing(null);
+        }, ZOOM_OUT_MS);
+        return () => {
+            window.clearTimeout(start);
+            window.clearTimeout(end);
+        };
+    }, [zoomed, shown]);
+
+    // bulle de mes mises : placée sous le numéro, elle se ferme si la page défile
+    const bubbleOpen = openRound !== null;
+    useEffect(() => {
+        if (!bubbleOpen) return;
+        const close = () => setOpenRound(null);
+        window.addEventListener("scroll", close, {passive: true});
+        return () => window.removeEventListener("scroll", close);
+    }, [bubbleOpen]);
+
     if (!auth.isLoggedIn) return <Navigate to="/login" replace/>;
 
     const serverNow = now + offset;
@@ -150,6 +220,11 @@ export default function RoulettePage() {
     const winning = drawn !== null ? new Set(rouletteWinningKeys(me?.bets ?? [], drawn)) : new Set<string>();
     // historique : le numéro du tour en cours n'y entre qu'une fois la bille posée
     const history = (live?.history ?? []).filter(h => h.round !== live?.round || revealed);
+    // mes derniers tours : même règle, le tour en cours n'y entre qu'une fois la bille posée
+    const mine = (live?.mine ?? []).filter(r => r.round !== live?.round || revealed);
+    const myRounds = mine.slice(0, 3);
+    const myRound = new Map(mine.map(r => [r.round, r]));
+    const opened = openRound !== null && history.some(h => h.round === openRound.round) ? myRound.get(openRound.round) : undefined;
     const lastTotal = lastBets.reduce((sum, b) => sum + b.amount, 0);
 
     // Envois à la file : des clics rapides (dix jetons de 10 d'affilée) partent tous, dans l'ordre
@@ -170,12 +245,22 @@ export default function RoulettePage() {
         });
     }
 
+    // Pose un jeton : regroupé avec ceux posés juste après (pose au pinceau), puis envoyé en une requête
     function place(key: string) {
         if (!open) return;
-        if (chip > auth.credits) return setError("Pas assez de crédits pour ce jeton");
-        if (total + chip > ROULETTE_MAX_TOTAL) return setError(`${ROULETTE_MAX_TOTAL} crédits au plus par tour`);
-        if (betTotal(key) + chip > ROULETTE_MAX_PER_BET) return setError(`${ROULETTE_MAX_PER_BET} crédits au plus par case`);
-        send(() => casinoService.rouletteBet([{key, amount: chip}]));
+        const queued = batch.current.reduce((sum, b) => sum + b.amount, 0);
+        const queuedHere = batch.current.reduce((sum, b) => sum + (b.key === key ? b.amount : 0), 0);
+        if (queued + chip > auth.credits) return setError("Pas assez de crédits pour ce jeton");
+        if (total + queued + chip > ROULETTE_MAX_TOTAL) return setError(`${ROULETTE_MAX_TOTAL} crédits au plus par tour`);
+        if (betTotal(key) + queuedHere + chip > ROULETTE_MAX_PER_BET) return setError(`${ROULETTE_MAX_PER_BET} crédits au plus par case`);
+        batch.current.push({key, amount: chip});
+        if (batchTimer.current !== null) return;
+        batchTimer.current = window.setTimeout(() => {
+            const bets = batch.current;
+            batch.current = [];
+            batchTimer.current = null;
+            send(() => casinoService.rouletteBet(bets));
+        }, BATCH_MS);
     }
 
     return (
@@ -183,17 +268,38 @@ export default function RoulettePage() {
             <div className="roulette-page">
                 <div className="roulette-top">
                     <Link to="/hasard" className="roulette-back"><FaChevronLeft aria-hidden/> Hasard</Link>
+                    {/* numéros entourés d'or : tours où j'ai misé (au survol, ou d'un appui au doigt, une bulle montre mes mises) */}
                     <ol className="roulette-history" aria-label="Derniers numéros">
                         {history.map((h, i) => (
-                            <li key={h.round} className={`${rouletteColor(h.number)} ${i === 0 ? "latest" : ""}`}>{h.number}</li>
+                            <li key={h.round} className={`${rouletteColor(h.number)} ${i === 0 ? "latest" : ""} ${myRound.has(h.round) ? "mine" : ""} ${opened?.round === h.round ? "open" : ""}`}>
+                                {myRound.has(h.round)
+                                    ? <button type="button" aria-expanded={opened?.round === h.round} aria-label={`${h.number} : voir mes mises de ce tour`}
+                                              onMouseEnter={e => setOpenRound({round: h.round, anchor: e.currentTarget.getBoundingClientRect()})}
+                                              onMouseLeave={() => setOpenRound(null)}
+                                              onFocus={e => setOpenRound({round: h.round, anchor: e.currentTarget.getBoundingClientRect()})}
+                                              onBlur={() => setOpenRound(null)}
+                                              onClick={e => {
+                                                  // au doigt (pas de survol) : un appui ouvre, un autre ferme
+                                                  const anchor = e.currentTarget.getBoundingClientRect();
+                                                  setOpenRound(o => o?.round === h.round && e.detail > 0 && !window.matchMedia("(hover: hover)").matches ? null : {round: h.round, anchor});
+                                              }}>{h.number}</button>
+                                    : h.number}
+                            </li>
                         ))}
                     </ol>
                 </div>
+                {opened && openRound && <RoundDetail round={opened} anchor={openRound.anchor}/>}
 
                 <div className="roulette-layout">
                     <div className="roulette-side">
                         <section className="roulette-wheel-card">
-                            <div className="roulette-wheel-wrap" ref={wheelBox}>
+                            {/* roue agrandie : fond sombre (un clic referme), et une place gardée dans la page */}
+                            {shown && <div className={`roulette-zoom-backdrop ${closing ? "closing" : ""}`}
+                                           onClick={() => setUnzoomedRound(live?.round ?? null)} aria-hidden/>}
+                            {shown && <div className="roulette-wheel-placeholder" ref={placeholder} aria-hidden/>}
+                            <div className={`roulette-wheel-wrap ${shown ? "zoomed" : ""} ${closing ? "closing" : ""}`} ref={wheelBox}
+                                 style={closing ? {transform: `translate(${closing.x}px, ${closing.y}px) scale(${closing.scale})`} : undefined}
+                                 onClick={zoomed ? () => setUnzoomedRound(live?.round ?? null) : undefined}>
                                 <RouletteWheel ref={wheel}/>
                                 {drawn !== null && (
                                     <div className={`roulette-result ${rouletteColor(drawn)}`} role="status">
@@ -202,6 +308,10 @@ export default function RoulettePage() {
                                     </div>
                                 )}
                             </div>
+                            <label className="roulette-zoom-toggle">
+                                <input type="checkbox" checked={!noZoom} onChange={e => setNoZoom(!e.target.checked)}/>
+                                Agrandir la roue au lancement
+                            </label>
                         </section>
                         <LiveBets players={live?.players ?? []} revealed={revealed} drawn={drawn}/>
                     </div>
@@ -256,6 +366,23 @@ export default function RoulettePage() {
                             </button>
                         </div>
                         {error && <p className="roulette-error" role="alert">{error}</p>}
+
+                        {myRounds.length > 0 && (
+                            <div className="roulette-my-rounds">
+                                <span className="roulette-my-rounds-title">Tes derniers tours</span>
+                                <ul>
+                                    {myRounds.map(r => (
+                                        <li key={r.round}>
+                                            <span className={`roulette-my-number ${rouletteColor(r.number)}`}>{r.number}</span>
+                                            <span>Mise <b><FaCoins aria-hidden/> {r.bet}</b></span>
+                                            <span className={`roulette-my-result ${r.payout > 0 ? "win" : "loss"}`}>
+                                                {r.payout > 0 ? `+${r.payout}` : "Perdu"}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </section>
                 </div>
             </div>

@@ -76,6 +76,74 @@
 		margin   : 0.75rem auto 0;
 	}
 
+	// Roue agrandie au centre de l'écran pendant le lancement, sur un fond sombre
+	.roulette-wheel-wrap.zoomed {
+		position  : fixed;
+		inset     : 0;
+		z-index   : 60;
+		width     : min(82vh, 92vw);
+		height    : min(82vh, 92vw);
+		margin    : auto;
+		cursor    : zoom-out;
+		animation : roulette-zoom-in 0.45s cubic-bezier(.2, .9, .3, 1.1);
+
+		// retour : la roue rétrécit et glisse jusqu'à sa place dans la page (déplacement calculé dans RoulettePage)
+		&.closing {
+			animation  : none;
+			transition : transform 0.45s cubic-bezier(.4, 0, .2, 1);
+			cursor     : default;
+
+			.roulette-result { animation : none; }
+		}
+
+		.roulette-result {
+			border-width : 5px;
+
+			strong { font-size : clamp(3.4rem, 10vh, 7rem); }
+			span { font-size : clamp(1.3rem, 3.5vh, 2.4rem); }
+		}
+	}
+
+	.roulette-zoom-backdrop {
+		position        : fixed;
+		inset           : 0;
+		z-index         : 59;
+		background      : rgba(2, 6, 23, 0.72);
+		backdrop-filter : blur(3px);
+		cursor          : zoom-out;
+		animation       : roulette-fade-in 0.3s ease;
+
+		&.closing {
+			opacity    : 0;
+			transition : opacity 0.45s ease;
+		}
+	}
+
+	// garde la place de la roue dans la page pendant qu'elle est agrandie
+	.roulette-wheel-placeholder {
+		width        : min(28rem, 100%);
+		margin       : 0.75rem auto 0;
+		aspect-ratio : 1;
+	}
+
+	.roulette-zoom-toggle {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.5rem;
+		margin-top      : 0.9rem;
+		font-size       : 1.05rem;
+		opacity         : 0.85;
+		cursor          : pointer;
+
+		input {
+			width        : 1.1rem;
+			height       : 1.1rem;
+			accent-color : #10b981;
+			cursor       : pointer;
+		}
+	}
+
 	.roulette-canvas {
 		display      : block;
 		width        : 100%;
@@ -140,11 +208,30 @@
 			&.black { background : #111827; border : 1px solid rgba(249, 250, 251, 0.25); }
 			&.green { background : #059669; }
 
-			// dernier numéro sorti : il arrive par la gauche, entouré d'or
+			// dernier numéro sorti : il arrive par la gauche, entouré de blanc
 			&.latest {
-				outline        : 2px solid #fbbf24;
+				outline        : 2px solid rgba(249, 250, 251, 0.85);
 				outline-offset : 1px;
 				animation      : roulette-history-in 0.45s cubic-bezier(.2, .9, .3, 1.3);
+			}
+
+			// tour où j'ai misé : entouré d'or, un clic montre mes mises
+			&.mine {
+				padding        : 0;
+				outline        : 2px solid #fbbf24;
+				outline-offset : 1px;
+
+				&.open { box-shadow : 0 0 0.6rem #fbbf24; }
+
+				button {
+					width      : 100%;
+					padding    : 0.3rem 0.4rem;
+					border     : none;
+					background : none;
+					color      : inherit;
+					font       : inherit;
+					cursor     : pointer;
+				}
 			}
 		}
 	}
@@ -444,6 +531,63 @@
 		}
 	}
 
+	// Encart « Tes derniers tours » : numéro sorti, total misé, gain
+	.roulette-my-rounds {
+		margin-top    : 1.25rem;
+		padding       : 0.8rem 1rem;
+		border        : 1px solid rgba(249, 250, 251, 0.15);
+		border-radius : 12px;
+		background    : rgba(2, 6, 23, 0.55);
+
+		ul {
+			display        : flex;
+			flex-direction : column;
+			gap            : 0.4rem;
+			margin         : 0.5rem 0 0;
+			padding        : 0;
+			list-style     : none;
+		}
+
+		li {
+			display     : flex;
+			align-items : center;
+			gap         : 0.8rem;
+			font-size   : 1.15rem;
+
+			b {
+				display     : inline-flex;
+				align-items : center;
+				gap         : 0.25rem;
+				color       : #fbbf24;
+			}
+		}
+	}
+
+	.roulette-my-rounds-title {
+		font-size : 1.05rem;
+		opacity   : 0.7;
+	}
+
+	.roulette-my-number {
+		min-width     : 2.2rem;
+		padding       : 0.15rem 0.3rem;
+		border-radius : 6px;
+		font-weight   : 600;
+		text-align    : center;
+
+		&.red { background : #c81e1e; }
+		&.black { background : #111827; border : 1px solid rgba(249, 250, 251, 0.25); }
+		&.green { background : #059669; }
+	}
+
+	.roulette-my-result {
+		margin-left : auto;
+		font-weight : 600;
+
+		&.win { color : #34d399; }
+		&.loss { opacity : 0.6; }
+	}
+
 	.roulette-error {
 		margin    : 0.7rem 0 0;
 		font-size : 1.15rem;
@@ -494,62 +638,6 @@
 		display   : inline-block;
 		color     : #fbbf24;
 		animation : live-bump 0.4s cubic-bezier(.2, .9, .3, 1.6);
-	}
-
-	// Petit tapis : jetons de toute la table
-	.mini-table {
-		display               : grid;
-		grid-template-columns : 1.1fr repeat(12, 1fr) 1.3fr;
-		grid-template-rows    : repeat(3, 1.9rem) 1.5rem 1.5rem;
-		gap                   : 2px;
-		margin                : 0.8rem 0 0;
-		padding               : 0.4rem;
-		border-radius         : 8px;
-		background            : #065f46;
-		box-shadow            : inset 0 0 1rem rgba(0, 0, 0, 0.4);
-	}
-
-	.mt-cell {
-		position        : relative;
-		display         : flex;
-		align-items     : center;
-		justify-content : center;
-		grid-row        : var(--hr);
-		grid-column     : var(--hc);
-		min-width       : 0;
-		border          : 1px solid rgba(249, 250, 251, 0.35);
-		border-radius   : 3px;
-		font-size       : 0.72rem;
-		font-weight     : 600;
-		color           : rgba(249, 250, 251, 0.85);
-
-		&.red { background : #b91c1c; }
-		&.black { background : #111827; }
-		&.green { background : #059669; }
-		&.rt-out { font-size : 0.66rem; }
-		&.rt-red span:first-child { color : #fca5a5; }
-
-		&.drawn {
-			box-shadow : inset 0 0 0 2px #fbbf24, 0 0 0.6rem rgba(251, 191, 36, 0.9);
-		}
-	}
-
-
-	// Piles de jetons sur le petit tapis
-	.mt-stack {
-		--size : 1.15rem;
-		--step : 2px;
-		z-index : 2;
-
-		.chip-stack-total {
-			padding   : 0 0.2rem;
-			font-size : 0.55rem;
-		}
-
-		&.mine .chip-stack-total {
-			background : #fbbf24;
-			color      : #1c1917;
-		}
 	}
 
 	.live-bets-list {
@@ -717,4 +805,147 @@
 @keyframes chip-stack-drop {
 	from { opacity : 0; transform : translateY(-0.8rem); }
 	to { opacity : 1; transform : none; }
+}
+
+@keyframes roulette-zoom-in {
+	from {
+		opacity   : 0;
+		transform : scale(0.6);
+	}
+}
+
+@keyframes roulette-fade-in {
+	from { opacity : 0; }
+}
+
+// ---------- Petit tapis (« Mises du tour » et fenêtre de mes mises d'un tour de l'historique)
+.roulette .live-bets,
+.round-detail {
+	// Petit tapis : jetons de toute la table
+	.mini-table {
+		display               : grid;
+		grid-template-columns : 1.1fr repeat(12, 1fr) 1.3fr;
+		grid-template-rows    : repeat(3, 1.9rem) 1.5rem 1.5rem;
+		gap                   : 2px;
+		margin                : 0.8rem 0 0;
+		padding               : 0.4rem;
+		border-radius         : 8px;
+		background            : #065f46;
+		box-shadow            : inset 0 0 1rem rgba(0, 0, 0, 0.4);
+	}
+
+	.mt-cell {
+		position        : relative;
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		grid-row        : var(--hr);
+		grid-column     : var(--hc);
+		min-width       : 0;
+		border          : 1px solid rgba(249, 250, 251, 0.35);
+		border-radius   : 3px;
+		font-size       : 0.72rem;
+		font-weight     : 600;
+		color           : rgba(249, 250, 251, 0.85);
+
+		&.red { background : #b91c1c; }
+		&.black { background : #111827; }
+		&.green { background : #059669; }
+		&.rt-out { font-size : 0.66rem; }
+		&.rt-red span:first-child { color : #fca5a5; }
+
+		&.drawn {
+			box-shadow : inset 0 0 0 2px #fbbf24, 0 0 0.6rem rgba(251, 191, 36, 0.9);
+		}
+	}
+
+
+	// Piles de jetons sur le petit tapis
+	.mt-stack {
+		--size : 1.15rem;
+		--step : 2px;
+		z-index : 2;
+
+		.chip-stack-total {
+			padding   : 0 0.2rem;
+			font-size : 0.55rem;
+		}
+
+		&.mine .chip-stack-total {
+			background : #fbbf24;
+			color      : #1c1917;
+		}
+	}
+}
+
+// ---------- Bulle de mes mises d'un tour (survol d'un numéro entouré d'or de l'historique)
+.round-detail {
+	position       : fixed;
+	z-index        : 70;
+	padding        : 0.9rem 1rem 1rem;
+	border         : 1px solid rgba(251, 191, 36, 0.6);
+	border-radius  : 12px;
+	background     : linear-gradient(180deg, #0f172a, #0b1220);
+	box-shadow     : 0 1rem 2.5rem rgba(0, 0, 0, 0.6);
+	color          : #f8fafc;
+	pointer-events : none;
+	animation      : roulette-fade-in 0.15s ease;
+
+	.round-detail-title {
+		margin    : 0 0 0.7rem;
+		font-size : 1.25rem;
+	}
+
+	.mini-table {
+		grid-template-rows : repeat(3, 2.6rem) 2rem 2rem;
+		margin             : 0;
+	}
+
+	.mt-cell { font-size : 0.9rem; }
+
+	.mt-stack { --size : 1.5rem; }
+
+	.round-detail-number {
+		display       : inline-block;
+		min-width     : 2.2rem;
+		padding       : 0 0.35rem;
+		border-radius : 6px;
+		text-align    : center;
+
+		&.red { background : #c81e1e; }
+		&.black { background : #111827; border : 1px solid rgba(249, 250, 251, 0.25); }
+		&.green { background : #059669; }
+	}
+
+	.round-detail-bets {
+		display   : flex;
+		flex-wrap : wrap;
+		gap       : 0.4rem;
+		margin    : 1rem 0 0;
+
+		> span {
+			padding       : 0.15rem 0.6rem;
+			border-radius : 999px;
+			background    : rgba(249, 250, 251, 0.1);
+
+			&.win { background : rgba(16, 185, 129, 0.4); }
+		}
+	}
+
+	b {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.25rem;
+		color       : #fbbf24;
+	}
+
+	.round-detail-sum {
+		display         : flex;
+		justify-content : space-between;
+		margin          : 1rem 0 0;
+		font-size       : 1.25rem;
+
+		.win { color : #34d399; font-weight : 600; }
+		.loss { opacity : 0.65; }
+	}
 }

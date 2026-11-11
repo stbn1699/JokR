@@ -24,6 +24,15 @@ export interface RoulettePlayer {
     bets: (RouletteBet & { chips?: number[] })[];
 }
 
+// Un de mes derniers tours de roulette : numéro sorti, total misé, gain et mises (total et jetons posés par case)
+export interface RouletteMyRound {
+    round: number;
+    number: number;
+    bet: number;
+    payout: number;
+    bets?: (RouletteBet & { chips?: number[] })[];
+}
+
 // Roulette en direct : le tour en cours, vu par le serveur
 export interface RouletteLive {
     // heure du serveur (ms, temps Unix) : le site cale son horloge dessus
@@ -35,6 +44,8 @@ export interface RouletteLive {
     number: number | null;
     credits: number;
     history: { round: number; number: number }[];
+    // mes derniers tours joués (le plus récent d'abord ; absent d'un serveur plus ancien)
+    mine?: RouletteMyRound[];
     players: RoulettePlayer[];
 }
 

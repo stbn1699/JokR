@@ -17,7 +17,7 @@ import {
     roulettePayout,
     rouletteRoundAt,
 } from "../utils/roulette.js";
-import {LiveRouletteRepository} from "../repository/LiveRoulette.repository.js";
+import {HISTORY_SIZE, LiveRouletteRepository} from "../repository/LiveRoulette.repository.js";
 
 /*
  * Jeux de hasard (JWT requis)
@@ -29,7 +29,8 @@ import {LiveRouletteRepository} from "../repository/LiveRoulette.repository.js";
  *   → { drops: [{ id, seed, slot, bet, payout, username, ago, ball, friend }], players } (friend : un ami du joueur)
  * - Roulette en direct (une table commune, un tour toutes les 30 s, voir backend/src/utils/roulette.ts) :
  *   - GET /casino/roulette/live : tour en cours, numéro (une fois les mises fermées), jetons de chacun,
- *     derniers numéros, solde du joueur et heure du serveur (le site cale la roue dessus)
+ *     derniers numéros, derniers tours du joueur (mine : numéro, mise, gain et détail des mises, autant que de
+ *     numéros), solde du joueur et heure du serveur (le site cale la roue dessus)
  *   - POST /casino/roulette/bets { bets: [{ key, amount }] } : pose des jetons sur le tour en cours
  *   - DELETE /casino/roulette/bets : retire tous ses jetons du tour en cours
  *   Le tirage et le paiement sont faits par services/rouletteScheduler.ts.
@@ -82,16 +83,17 @@ router.post("/plinko", dropLimiter, asyncHandler(async (req: Request, res: Respo
 
 const CLOSED_MESSAGE = "Les mises de ce tour sont fermées, attends le prochain";
 
-// Tour en cours, jetons de chacun, derniers numéros et solde du joueur
+// Tour en cours, jetons de chacun, derniers numéros, derniers tours du joueur et solde
 router.get("/roulette/live", asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
     const now = Date.now();
     const round = rouletteRoundAt(now);
     const open = rouletteBettingOpen(round, now);
     // mises fermées : le numéro est tiré ici s'il ne l'est pas encore (le planificateur le fait aussi)
     const number = open ? null : await liveRoulette.close(round);
-    const [bets, history, credits] = await Promise.all([
+    const [bets, history, mine, credits] = await Promise.all([
         liveRoulette.bets(round),
         liveRoulette.history(open ? round - 1 : round),
+        liveRoulette.myRounds(res.locals.userId!, open ? round - 1 : round, HISTORY_SIZE),
         liveRoulette.credits(res.locals.userId!),
     ]);
 
@@ -113,6 +115,7 @@ router.get("/roulette/live", asyncHandler(async (_req: Request, res: Response<un
         status: "ok", data: {
             now, round, closesAt: rouletteClosesAt(round), endsAt: rouletteEndsAt(round), number, credits,
             history,
+            mine,
             players: [...players.values()].map(p => ({
                 username: p.username, avatar: p.avatar, level: p.level, mine: p.mine, total: p.total,
                 payout: number === null ? null : p.payout,
