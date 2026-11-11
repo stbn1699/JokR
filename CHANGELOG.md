@@ -2,18 +2,21 @@
 
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
+Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
 ## 2.2.0 — 11 novembre 2026
 
+Merci à @ҜØรђเг0 et @Sansywii : la plupart des nouveautés de cette version viennent de leurs retours !
+
 ### Plinko
-- Trois tableaux de gains au choix : Prudent (petits gains, peu de risque), Équilibré et Risqué (jusqu'à ×25)
-- Lâcher 1, 5 ou 10 billes d'un coup
-- Options pour voir ou masquer les billes de tes ami·e·s et celles des autres joueurs
+- Trois tableaux de gains au choix : Prudent (petits gains, peu de risque), Équilibré et Risqué (jusqu'à ×25) — idée de @ҜØรђเг0
+- Lâcher 1, 5 ou 10 billes d'un coup — idée de @ҜØรђเг0
+- Options pour voir ou masquer les billes de tes ami·e·s et celles des autres joueurs — idée de @ҜØรђเг0
 - Avec les deux options cochées, les billes de tes ami·e·s sont entourées de bleu
 
 ### Roulette
-- La roue s'agrandit au centre de l'écran pendant le lancement, puis revient à sa place (désactivable)
-- Mise en glissant : clic maintenu, chaque mise survolée reçoit un jeton, et de petits ronds sur une case les empilent
+- La roue s'agrandit au centre de l'écran pendant le lancement, puis revient à sa place (désactivable) — idée de @ҜØรђเг0
+- Mise en glissant : clic maintenu, chaque mise survolée reçoit un jeton, et de petits ronds sur une case les empilent — idée de @ҜØรђเг0
 - Encart « Tes derniers tours » : tes 3 derniers tours avec la mise et le résultat
 - Dans les derniers numéros sortis, ceux où tu as misé sont entourés d'or : au survol, un petit tapis montre tes jetons de ce tour
 
@@ -22,7 +25,7 @@ en haut et mettre le même numéro dans le champ `version` de `package.json`.
 - Filtre par jeu, pour les puzzles comme pour les jeux de hasard
 
 ### Puzzles
-- Le chrono s'arrête dès que la grille part en vérification : plus de secondes qui défilent en attendant la réponse
+- Le chrono s'arrête dès que la grille part en vérification : plus de secondes qui défilent en attendant la réponse — idée de @Sansywii
 
 ### Corrections
 - Défi du jour : la grille de la veille n'est plus reprise au nouveau défi

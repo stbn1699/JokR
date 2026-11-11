@@ -5,6 +5,7 @@
  *   texte                            → paragraphe d'introduction de la version
  *   ### Jeux                         → une rubrique
  *   - Sudoku…                        → un élément de la rubrique
+ *   @pseudo                          → dans un texte : lien vers le profil du joueur (idée ou bug remonté)
  * Tout ce qui précède la première version (titre, consignes) est ignoré.
  */
 
@@ -16,6 +17,25 @@ export type ChangelogVersion = {
     intro: string[];
     sections: ChangelogSection[];
 };
+
+// Morceau de texte : texte simple, ou pseudo d'un joueur cité avec @
+export type ChangelogPart = { text: string } | { user: string };
+
+// Même caractères qu'un pseudo (lettres de toutes les langues, chiffres, _ . -), sans le point d'une fin de phrase
+const MENTION = /@([\p{L}\p{N}\p{M}_.-]*[\p{L}\p{N}\p{M}_])/gu;
+
+// Découpe un texte autour des @pseudo
+export function splitMentions(text: string): ChangelogPart[] {
+    const parts: ChangelogPart[] = [];
+    let last = 0;
+    for (const match of text.matchAll(MENTION)) {
+        if (match.index > last) parts.push({text: text.slice(last, match.index)});
+        parts.push({user: match[1]});
+        last = match.index + match[0].length;
+    }
+    if (last < text.length) parts.push({text: text.slice(last)});
+    return parts;
+}
 
 export function parseChangelog(markdown: string): ChangelogVersion[] {
     const versions: ChangelogVersion[] = [];

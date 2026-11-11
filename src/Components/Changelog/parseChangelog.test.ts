@@ -1,6 +1,23 @@
 import {describe, expect, it} from "vitest";
-import {parseChangelog} from "./parseChangelog.ts";
+import {parseChangelog, splitMentions} from "./parseChangelog.ts";
 import changelog from "../../../CHANGELOG.md?raw";
+
+describe("splitMentions", () => {
+    it("repère les @pseudo, même avec des lettres d'autres alphabets", () => {
+        expect(splitMentions("Billes par 10 — idée de @ҜØรђเг0 et @Sansy_w.ii.")).toEqual([
+            {text: "Billes par 10 — idée de "},
+            {user: "ҜØรђเг0"},
+            {text: " et "},
+            {user: "Sansy_w.ii"},
+            {text: "."},
+        ]);
+    });
+
+    it("laisse un texte sans pseudo tel quel", () => {
+        expect(splitMentions("Rien à signaler")).toEqual([{text: "Rien à signaler"}]);
+        expect(splitMentions("")).toEqual([]);
+    });
+});
 
 describe("parseChangelog", () => {
     it("lit les versions, l'introduction, les rubriques et leurs éléments", () => {

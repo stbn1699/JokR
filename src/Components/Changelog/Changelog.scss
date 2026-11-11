@@ -94,6 +94,16 @@
 			line-height   : 1.4;
 		}
 	}
+
+	// joueur cité (idée ou bug remonté) : lien vers son profil
+	.changelog-mention {
+		color           : #fbbf24;
+		font-weight     : 600;
+		text-decoration : none;
+		white-space     : nowrap;
+
+		&:hover { text-decoration : underline; }
+	}
 }
 
 // Pas assez de place à gauche de la boîte : le bouton passe au-dessus
