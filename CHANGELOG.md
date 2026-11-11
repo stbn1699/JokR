@@ -3,6 +3,30 @@
 Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle version : ajouter une section
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 
+## 2.2.0 — 11 novembre 2026
+
+### Plinko
+- Trois tableaux de gains au choix : Prudent (petits gains, peu de risque), Équilibré et Risqué (jusqu'à ×25)
+- Lâcher 1, 5 ou 10 billes d'un coup
+- Options pour voir ou masquer les billes de tes ami·e·s et celles des autres joueurs
+- Avec les deux options cochées, les billes de tes ami·e·s sont entourées de bleu
+
+### Roulette
+- La roue s'agrandit au centre de l'écran pendant le lancement, puis revient à sa place (désactivable)
+- Mise en glissant : clic maintenu, chaque mise survolée reçoit un jeton, et de petits ronds sur une case les empilent
+- Encart « Tes derniers tours » : tes 3 derniers tours avec la mise et le résultat
+- Dans les derniers numéros sortis, ceux où tu as misé sont entourés d'or : au survol, un petit tapis montre tes jetons de ce tour
+
+### Statistiques
+- Filtre par période : 24 h, 7 jours, 30 jours ou dates et heures de début et de fin au choix
+- Filtre par jeu, pour les puzzles comme pour les jeux de hasard
+
+### Puzzles
+- Le chrono s'arrête dès que la grille part en vérification : plus de secondes qui défilent en attendant la réponse
+
+### Corrections
+- Défi du jour : la grille de la veille n'est plus reprise au nouveau défi
+
 ## 2.1.0 — 8 novembre 2026
 
 ### Boutique
