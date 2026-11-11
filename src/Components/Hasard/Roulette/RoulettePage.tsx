@@ -30,6 +30,8 @@ import RouletteRules from "./RouletteRules.tsx";
 import RulesButton from "../RulesButton.tsx";
 import LiveBets from "./LiveBets.tsx";
 import RoundDetail from "./RoundDetail.tsx";
+import {useMaintenance} from "../../../Services/maintenance.ts";
+import {useActivity} from "../../../Services/useActivity.ts";
 
 const POLL_MS = 1000;
 
@@ -89,6 +91,8 @@ export default function RoulettePage() {
     const placeholder = useRef<HTMLDivElement>(null);
     // mes jetons du dernier tour joué (pour « Reproduire ma mise »)
     // numéro survolé de l'historique (tour où j'ai misé) et sa place : une bulle montre mes mises de ce tour sur un tapis
+    // mise à jour activée : le tour en cours est le dernier ; une fois fini (gains versés), écran de mise à jour
+    const site = useMaintenance();
     const [openRound, setOpenRound] = useState<{ round: number; anchor: DOMRect } | null>(null);
     const [lastBets, setLastBets] = useState<RouletteBet[]>(() => readLastBets(auth.userId));
     const spunRound = useRef<number | null>(null);
@@ -199,6 +203,9 @@ export default function RoulettePage() {
         };
     }, [zoomed, shown]);
 
+    const tableClosed = live !== null && site.lastRound !== null && live.round > site.lastRound;
+    useActivity({page: "roulette", busy: !tableClosed});
+
     // bulle de mes mises : placée sous le numéro, elle se ferme si la page défile
     const bubbleOpen = openRound !== null;
     useEffect(() => {
@@ -211,7 +218,7 @@ export default function RoulettePage() {
     if (!auth.isLoggedIn) return <Navigate to="/login" replace/>;
 
     const serverNow = now + offset;
-    const open = live !== null && live.number === null && serverNow < live.closesAt;
+    const open = live !== null && live.number === null && serverNow < live.closesAt && !tableClosed;
     const secondsLeft = live ? Math.max(0, Math.ceil((live.closesAt - serverNow) / 1000)) : 0;
     const bets = new Map((me?.bets ?? []).map(b => [b.key, b.chips ?? [b.amount]]));
     const betTotal = (key: string) => bets.get(key)?.reduce((sum, c) => sum + c, 0) ?? 0;

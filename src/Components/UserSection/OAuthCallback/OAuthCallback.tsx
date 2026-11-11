@@ -1,5 +1,6 @@
 import {type FormEvent, useEffect, useRef, useState} from "react";
 import {Link, useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {isUpdating} from "../../../Services/maintenance.ts";
 import "../Login/Login.scss";
 import {useAuth} from "../../../Context/authContext.ts";
 import {oauthService, type Provider, PROVIDER_NAMES} from "../../../Services/oauth.service.ts";
@@ -61,7 +62,8 @@ export default function OAuthCallback() {
             if (result.result === "logged_in") {
                 const {token, userId, userLevel, userXp} = result;
                 login({token, userId, userLevel, userXp});
-                navigate(pending.from ?? "/", {replace: true});
+                // mise à jour en cours : seul un administrateur se connecte utilement, direction l'onglet « En direct »
+                navigate(isUpdating() ? "/stats?onglet=direct" : pending.from ?? "/", {replace: true});
                 return null;
             }
             if (result.result === "linked") {

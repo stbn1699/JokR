@@ -52,7 +52,7 @@ export default function Galaxies({daily = false, replayDate, challengeId}: Galax
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
     const saveKey = challengeId ? `GALAXIES:challenge:${challengeId}` : replayDate ? `GALAXIES:replay:${replayDate}` : daily ? "GALAXIES:daily" : "GALAXIES";
     const game = useGalaxiesGame(saveKey);
-    const flow = useGameFlow();
+    const flow = useGameFlow("GALAXIES", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedGalaxies, GalaxiesPuzzle>(saveKey, galaxiesService.getGame, !challenge);
     const dailyGame = useDailyGame<SavedGalaxies, GalaxiesPuzzle>({
         enabled: challenge,

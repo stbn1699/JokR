@@ -56,7 +56,7 @@ export default function Binero({daily = false, replayDate, challengeId}: BineroP
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
     const saveKey = challengeId ? `BINERO:challenge:${challengeId}` : replayDate ? `BINERO:replay:${replayDate}` : daily ? "BINERO:daily" : "BINERO";
     const game = useBineroGame(saveKey);
-    const flow = useGameFlow();
+    const flow = useGameFlow("BINERO", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedBinero, BineroCell[][]>(saveKey, bineroService.getGame, !challenge);
     const dailyGame = useDailyGame<SavedBinero, BineroCell[][]>({
         enabled: challenge,

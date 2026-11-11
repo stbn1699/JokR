@@ -17,6 +17,10 @@ import "./App.css";
 import GameList from "./Components/GameList/GameList.tsx";
 import {Route, Routes, useLocation, useNavigationType} from "react-router-dom";
 import {useEffect} from "react";
+import MaintenanceScreen from "./Components/Maintenance/MaintenanceScreen.tsx";
+import {markSent, showsUpdateScreen, useMaintenance} from "./Services/maintenance.ts";
+import UpdateNotice from "./Components/Maintenance/UpdateNotice.tsx";
+import {useAuth} from "./Context/authContext.ts";
 import {isGameRoute} from "./Services/routes.ts";
 import PlayGame from "./Components/PlayGame/PlayGame.tsx";
 import Login from "./Components/UserSection/Login/Login.tsx";
@@ -51,6 +55,19 @@ import RoulettePage from "./Components/Hasard/Roulette/RoulettePage.tsx";
 function App() {
     // Pages de jeu : sur téléphone, l'app occupe exactement l'écran (pas de défilement pendant une partie)
     const {pathname} = useLocation();
+    // Mise à jour activée (ou serveur qui redémarre) : le site entier est remplacé par l'écran de mise à jour,
+    // une fois la partie en cours finie (voir Services/maintenance.ts). Exception : un administrateur sur /stats
+    // (adresse tapée à la main), pour pouvoir rouvrir.
+    const site = useMaintenance();
+    const {isAdmin, isLoggedIn, username} = useAuth();
+    // sur /stats, on attend le profil (sinon on ne sait pas encore si le joueur est administrateur)
+    const profileLoading = isLoggedIn && username === null;
+    // la connexion reste ouverte (un administrateur déconnecté doit pouvoir revenir sur /stats)
+    const loginPage = pathname === "/login" || pathname.startsWith("/auth/callback");
+    const updateScreen = showsUpdateScreen(site, loginPage || (pathname.startsWith("/stats") && (isAdmin || profileLoading)));
+    useEffect(() => {
+        if (updateScreen && site.on) markSent();
+    }, [updateScreen, site.on]);
     const inGame = isGameRoute(pathname);
 
     // Nouvelle page : on repart du haut (sinon on garde la position de la page précédente, ex. le lien
@@ -60,10 +77,13 @@ function App() {
         if (navigationType !== "POP") window.scrollTo(0, 0);
     }, [pathname, navigationType]);
 
+    if (updateScreen) return <MaintenanceScreen/>;
+
     return (
         <div className={`app-root ${inGame ? "in-game" : ""}`}>
             <SiteBackground/>
             <Header/>
+            <UpdateNotice site={site}/>
             <Routes>
                 <Route path="/" element={<GameList/>}/>
                 <Route path="/playgame/:gameCode" element={<PlayGame/>}/>

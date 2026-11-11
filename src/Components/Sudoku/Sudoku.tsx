@@ -63,7 +63,7 @@ export default function Sudoku({daily = false, replayDate, challengeId}: SudokuP
         onCellInput, undo, redo, canUndo, canRedo, conflicts, notes, notesMode, setNotesMode, toggleNoteAt,
         restore,
     } = useSudokuGame(showErrors, saveKey);
-    const flow = useGameFlow();
+    const flow = useGameFlow("SUDOKU", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedSudoku, number[][]>(saveKey, gameService.getSudokuGame, !challenge);
     const dailyGame = useDailyGame<SavedSudoku, number[][]>({
         enabled: challenge,

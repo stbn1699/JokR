@@ -30,6 +30,8 @@ import PlinkoRules from "./PlinkoRules.tsx";
 import RulesButton from "../RulesButton.tsx";
 import {RISK_LABELS} from "./plinkoRisks.ts";
 import {useStoredFlag} from "../../PuzzleUI/useStoredFlag.ts";
+import {useMaintenance} from "../../../Services/maintenance.ts";
+import {useActivity} from "../../../Services/useActivity.ts";
 
 type HistoryEntry = { id: number; bet: number; multiplier: number; payout: number };
 
@@ -69,6 +71,8 @@ export default function PlinkoPage() {
     const [bet, setBet] = useState<number>(PLINKO_BETS[0]);
     const [risk, setRisk] = useState<PlinkoRisk>(savedRisk);
     const [count, setCount] = useState<DropCount>(savedCount);
+    // mise à jour activée : plus de nouvelle bille ; l'écran de mise à jour arrive quand les miennes sont tombées
+    const updating = useMaintenance().on;
     const [sending, setSending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -119,6 +123,8 @@ export default function PlinkoPage() {
         };
     }, [auth.isLoggedIn, hideOthers, hideFriends]);
 
+    useActivity({page: "plinko", busy: inFlight > 0 || sending});
+
     // Page quittée avec des billes en l'air : le header reprend tout de suite le vrai solde
     useEffect(() => () => {
         if (pending.current > 0) setCredits(serverCredits.current);
@@ -148,7 +154,7 @@ export default function PlinkoPage() {
 
     // Lâche la série : une bille après l'autre, arrêt dès qu'il manque des crédits ou qu'une bille échoue
     async function drop() {
-        if (sending || !canAfford) return;
+        if (sending || !canAfford || updating) return;
         setSending(true);
         setError(null);
         let left = auth.credits;
@@ -236,8 +242,9 @@ export default function PlinkoPage() {
                         ))}
                     </div>
 
-                    <button type="button" className="plinko-drop" disabled={sending || !canAfford} onClick={() => void drop()}>
-                        {!canAfford ? "Pas assez de crédits"
+                    <button type="button" className="plinko-drop" disabled={sending || !canAfford || updating} onClick={() => void drop()}>
+                        {updating ? "Mise à jour imminente"
+                            : !canAfford ? "Pas assez de crédits"
                             : count === 1 ? <>Lâcher une bille · <FaCoins aria-hidden/> {bet}</>
                                 : <>Lâcher {count} billes · <FaCoins aria-hidden/> {count * bet}</>}
                     </button>

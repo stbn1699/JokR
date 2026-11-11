@@ -3,6 +3,7 @@ import {useAuth} from "../../Context/authContext.ts";
 import type {Progress} from "../SuccessPopup/SuccessPopup.tsx";
 import type {WinResult} from "../../Models/gameResult.model.ts";
 import {rewardFx} from "../../Services/rewardFx.ts";
+import {useActivity} from "../../Services/useActivity.ts";
 
 export type ValidationResult =
     | { ok: true; result: WinResult }
@@ -32,8 +33,11 @@ export type Clock = { startedAt: number | null; finalMs: number | null };
  * - submit(fn) : valide la grille ; en cas d'échec, le message s'affiche dans `notice`
  *   (`validating` est vrai pendant que le serveur vérifie)
  * - newGame() : rouvre la popup de paramètres, sans recharger la page
+ *
+ * La partie en cours est déclarée pour les mises à jour (useActivity) : l'administrateur voit qui joue, et le
+ * joueur a le temps de finir sa grille. `challenge` : défi du jour, rejoué ou d'un ami.
  */
-export function useGameFlow() {
+export function useGameFlow(gameCode: string, challenge = false) {
     const {isLoggedIn, level, xp, credits, refresh} = useAuth();
 
     const [showSettings, setShowSettings] = useState(true);
@@ -41,6 +45,11 @@ export function useGameFlow() {
     const [victory, setVictory] = useState<Victory | null>(null);
     const [clock, setClock] = useState<Clock>({startedAt: null, finalMs: null});
     const [validating, setValidating] = useState(false);
+
+    // Partie en cours (déclarée pour les mises à jour : l'onglet passe sur l'écran de mise à jour une fois
+    // la grille validée, voir Services/maintenance.ts) ; elle continue pendant la validation
+    const playingSince = clock.startedAt !== null && victory === null && !showSettings ? clock.startedAt : null;
+    useActivity({page: "puzzle", gameCode, challenge, startedAt: playingSince});
 
     const generate = async (run: () => Promise<string | null>) => {
         setShowSettings(false);

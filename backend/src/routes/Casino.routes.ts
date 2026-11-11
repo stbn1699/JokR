@@ -18,6 +18,7 @@ import {
     rouletteRoundAt,
 } from "../utils/roulette.js";
 import {HISTORY_SIZE, LiveRouletteRepository} from "../repository/LiveRoulette.repository.js";
+import {maintenance, MAINTENANCE_MESSAGE} from "../services/maintenance.js";
 
 /*
  * Jeux de hasard (JWT requis)
@@ -34,6 +35,8 @@ import {HISTORY_SIZE, LiveRouletteRepository} from "../repository/LiveRoulette.r
  *   - POST /casino/roulette/bets { bets: [{ key, amount }] } : pose des jetons sur le tour en cours
  *   - DELETE /casino/roulette/bets : retire tous ses jetons du tour en cours
  *   Le tirage et le paiement sont faits par services/rouletteScheduler.ts.
+ * Mise à jour en préparation (services/maintenance.ts) : plus de bille de Plinko, et plus de mise à la roulette
+ * après le tour en cours au moment de la coupure (503, code « maintenance »).
  */
 const router = Router();
 const db = createDb(pool);
@@ -58,6 +61,7 @@ router.post("/plinko", dropLimiter, asyncHandler(async (req: Request, res: Respo
     if (!isPlinkoBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
     const risk: unknown = req.body?.risk ?? DEFAULT_PLINKO_RISK;
     if (!isPlinkoRisk(risk)) return void res.status(400).json({status: "error", message: "Tableau inconnu"});
+    if (maintenance.blocksNewGames()) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
 
     // mode admin : la bille tombe pour de vrai, mais rien n'est retiré, gagné ni enregistré (invisible des autres)
     if (res.locals.ghost) {
@@ -132,6 +136,7 @@ router.post("/roulette/bets", dropLimiter, asyncHandler(async (req: Request, res
     const now = Date.now();
     const round = rouletteRoundAt(now);
     if (!rouletteBettingOpen(round, now)) return void res.status(409).json({status: "error", message: CLOSED_MESSAGE});
+    if (maintenance.blocksRound(round)) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
 
     const result = await liveRoulette.place(res.locals.userId!, round, bets, res.locals.ghost === true);
     if (!result.ok) {

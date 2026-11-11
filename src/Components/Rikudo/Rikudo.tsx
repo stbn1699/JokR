@@ -54,7 +54,7 @@ export default function Rikudo({daily = false, replayDate, challengeId}: RikudoP
     // Sauvegardes séparées (une partie libre et un défi peuvent être en cours en parallèle)
     const saveKey = challengeId ? `RIKUDO:challenge:${challengeId}` : replayDate ? `RIKUDO:replay:${replayDate}` : daily ? "RIKUDO:daily" : "RIKUDO";
     const game = useRikudoGame(saveKey);
-    const flow = useGameFlow();
+    const flow = useGameFlow("RIKUDO", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedRikudo, RikudoPuzzle>(saveKey, rikudoService.getGame, !challenge);
     const dailyGame = useDailyGame<SavedRikudo, RikudoPuzzle>({
         enabled: challenge,

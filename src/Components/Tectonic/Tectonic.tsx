@@ -56,7 +56,7 @@ export default function Tectonic({daily = false, replayDate, challengeId}: Tecto
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
     const saveKey = challengeId ? `TECTONIC:challenge:${challengeId}` : replayDate ? `TECTONIC:replay:${replayDate}` : daily ? "TECTONIC:daily" : "TECTONIC";
     const game = useTectonicGame(saveKey);
-    const flow = useGameFlow();
+    const flow = useGameFlow("TECTONIC", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedTectonic, TectonicPuzzle>(saveKey, tectonicService.getGame, !challenge);
     const dailyGame = useDailyGame<SavedTectonic, TectonicPuzzle>({
         enabled: challenge,

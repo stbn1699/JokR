@@ -14,6 +14,7 @@ import CasinoStats from "./CasinoStats.tsx";
 import ShopStats from "./ShopStats.tsx";
 import {downloadFile, toCsv} from "./exportData.ts";
 import StatsFilters from "./StatsFilters.tsx";
+import StatsLive from "./StatsLive.tsx";
 import {filterFromParams, filterParams, type StatsFilter, timelineTitle} from "./statsFilter.ts";
 
 import Loader from "../Loader/Loader.tsx";
@@ -27,12 +28,13 @@ const DEVICE_LABELS = {mobile: "Téléphone", tablet: "Tablette", desktop: "Ordi
 
 
 /**
- * Page Statistiques (administrateur uniquement), en trois onglets (?onglet=hasard, ?onglet=boutique) :
+ * Page Statistiques (administrateur uniquement), en quatre onglets (?onglet=hasard, boutique, direct) :
  * - Puzzles : joueurs, parties, jeux, défis du jour, rythme de jeu ; données brutes en JSON (tout) ou CSV (parties)
  * - Hasard : Plinko et roulette (CasinoStats)
  * - Boutique : achats et fonds portés (ShopStats)
+ * - En direct : ce qui se joue maintenant, et couper les nouvelles parties avant une mise à jour (StatsLive)
  * Les retours des joueurs sont au-dessus des onglets.
- * Sous les onglets, une barre de filtres : période (à la minute près) et jeu (puzzles, ou Plinko / roulette),
+ * Sous les onglets (sauf En direct), une barre de filtres : période (à la minute près) et jeu (puzzles, ou Plinko / roulette),
  * gardés dans l'adresse de la page (voir statsFilter.ts). La période reste en changeant d'onglet, le jeu non.
  */
 
@@ -42,7 +44,7 @@ export default function Stats() {
     const {isLoggedIn, isAdmin, username} = useAuth();
     const [params, setParams] = useSearchParams();
     const onglet = params.get("onglet");
-    const tab = onglet === "hasard" || onglet === "boutique" ? onglet : "puzzles";
+    const tab = onglet === "hasard" || onglet === "boutique" || onglet === "direct" ? onglet : "puzzles";
     const paramsKey = params.toString();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const filter = useMemo(() => filterFromParams(params), [paramsKey]);
@@ -129,12 +131,14 @@ export default function Stats() {
                             onClick={() => openTab("hasard")}>Hasard</button>
                     <button type="button" role="tab" aria-selected={tab === "boutique"} className={tab === "boutique" ? "active" : ""}
                             onClick={() => openTab("boutique")}>Boutique</button>
+                    <button type="button" role="tab" aria-selected={tab === "direct"} className={tab === "direct" ? "active" : ""}
+                            onClick={() => openTab("direct")}>En direct</button>
                 </div>
 
-                <StatsFilters value={filter} onChange={setFilter}
-                              games={tab === "puzzles" ? data?.gameList ?? null : tab === "hasard" ? CASINO_GAMES : null}/>
+                {tab !== "direct" && <StatsFilters value={filter} onChange={setFilter}
+                                                   games={tab === "puzzles" ? data?.gameList ?? null : tab === "hasard" ? CASINO_GAMES : null}/>}
 
-                {tab === "hasard" ? <CasinoStats filter={filter}/> : tab === "boutique" ? <ShopStats filter={filter}/> : <>
+                {tab === "direct" ? <StatsLive/> : tab === "hasard" ? <CasinoStats filter={filter}/> : tab === "boutique" ? <ShopStats filter={filter}/> : <>
                     {error && <p className="stats-status stats-error" role="alert">{error}</p>}
                     {!data && !error && <Loader label="Chargement des statistiques…"/>}
                     {data && <div className="fade-in"><StatsContent data={data} filter={filter}/></div>}

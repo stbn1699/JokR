@@ -27,6 +27,10 @@ Merci à @ҜØรђเг0 et @Sansywii : la plupart des nouveautés de cette ver
 ### Puzzles
 - Le chrono s'arrête dès que la grille part en vérification : plus de secondes qui défilent en attendant la réponse — idée de @Sansywii
 
+### Mises à jour du site
+- Plus de partie coupée en plein milieu : avant une mise à jour, chacun termine sa grille, son dernier tour de roulette ou ses billes de Plinko
+- Un écran « Mise à jour en cours » remplace le site le temps de la mise à jour, puis le site revient tout seul
+
 ### Corrections
 - Défi du jour : la grille de la veille n'est plus reprise au nouveau défi
 

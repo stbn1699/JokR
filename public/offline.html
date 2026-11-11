@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+    <title>JokR · Mise à jour en cours</title>
+    <!--
+        Écran « Mise à jour en cours » : gardé par le service worker (public/sw.js) et montré à la place du site
+        quand le serveur ne répond pas (redémarrage pendant une mise à jour, page d'erreur du NAS).
+        Même écran que src/Components/Maintenance/MaintenanceScreen.tsx.
+        Il demande au serveur toutes les 5 secondes s'il est revenu, et ramène alors le joueur à l'accueil.
+    -->
+    <style>
+        @font-face {
+            font-family: "Josefin Slab";
+            font-weight: 500;
+            src: url("/JosefinSlab.woff2") format("woff2");
+        }
+
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.4rem;
+            padding: 1.5rem;
+            box-sizing: border-box;
+            background: radial-gradient(circle at 50% 40%, #1e293b, #020617 70%);
+            color: #f8fafc;
+            font-family: "Josefin Slab", Georgia, serif;
+            text-align: center;
+        }
+
+        img {
+            width: min(20rem, 70vw);
+        }
+
+        p {
+            margin: 0;
+            font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+        }
+
+        .heart {
+            width: 1.4rem;
+            height: 1.4rem;
+            fill: #f43f5e;
+            animation: beat 1.6s ease-in-out infinite;
+        }
+
+        @keyframes beat {
+            0%, 60%, 100% {
+                transform: scale(1);
+            }
+            30% {
+                transform: scale(1.2);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .heart {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<img src="/JokR_Logo_Full_Outline.png" alt="JokR"/>
+<p>Mise à jour en cours, nous revenons dans quelques minutes</p>
+<svg class="heart" viewBox="0 0 512 512" aria-hidden="true">
+    <path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/>
+</svg>
+<script>
+    // Serveur revenu (vraie réponse de l'API, pas une page d'erreur du NAS) : retour à l'accueil
+    async function check() {
+        try {
+            const res = await fetch("/api/ping", {cache: "no-store"});
+            const body = res.ok ? await res.json() : null;
+            if (body && body.status === "ok") return location.replace("/");
+        } catch {
+            // toujours coupé
+        }
+        setTimeout(check, 5000);
+    }
+
+    setTimeout(check, 5000);
+</script>
+</body>
+</html>

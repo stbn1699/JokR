@@ -22,6 +22,7 @@ import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../../Context/authContext.ts";
 import AuthCard from "./AuthCard.tsx";
 import PasswordInput from "./PasswordInput.tsx";
+import {useMaintenance} from "../../../Services/maintenance.ts";
 
 export default function Login() {
     const [identifier, setIdentifier] = useState("");
@@ -33,6 +34,8 @@ export default function Login() {
     // Page à rouvrir après la connexion (ex : un défi du jour), sinon l'accueil
     const from = (useLocation().state as { from?: string } | null)?.from;
     const {login} = useAuth();
+    // mise à jour en cours : seul un administrateur se connecte utilement, on l'amène sur l'onglet « En direct »
+    const updating = useMaintenance().on;
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -44,7 +47,7 @@ export default function Login() {
             // Le mot de passe ne part jamais en clair : SHA-256 ici, bcrypt sur le serveur
             const loggedUser = await authService.login(identifier.trim(), await clientHash(password));
             login(loggedUser);
-            navigate(from ?? "/");
+            navigate(updating ? "/stats?onglet=direct" : from ?? "/");
         } catch (err: unknown) {
             setError(err instanceof Error && err.message ? err.message : "Erreur lors de la connexion");
         } finally {

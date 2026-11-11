@@ -52,7 +52,7 @@ export default function Shikaku({daily = false, replayDate, challengeId}: Shikak
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
     const saveKey = challengeId ? `SHIKAKU:challenge:${challengeId}` : replayDate ? `SHIKAKU:replay:${replayDate}` : daily ? "SHIKAKU:daily" : "SHIKAKU";
     const game = useShikakuGame(saveKey);
-    const flow = useGameFlow();
+    const flow = useGameFlow("SHIKAKU", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedShikaku, ShikakuPuzzle>(saveKey, shikakuService.getGame, !challenge);
     const dailyGame = useDailyGame<SavedShikaku, ShikakuPuzzle>({
         enabled: challenge,

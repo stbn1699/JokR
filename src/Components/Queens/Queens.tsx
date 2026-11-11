@@ -56,7 +56,7 @@ export default function Queens({daily = false, replayDate, challengeId}: QueensP
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
     const saveKey = challengeId ? `QUEENS:challenge:${challengeId}` : replayDate ? `QUEENS:replay:${replayDate}` : daily ? "QUEENS:daily" : "QUEENS";
     const game = useQueensGame(saveKey);
-    const flow = useGameFlow();
+    const flow = useGameFlow("QUEENS", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedQueens, QueensPuzzle>(saveKey, queensService.getGame, !challenge);
     const dailyGame = useDailyGame<SavedQueens, QueensPuzzle>({
         enabled: challenge,

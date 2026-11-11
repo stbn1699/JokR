@@ -160,10 +160,20 @@ Les données de la base sont dans le sous-dossier `data/postgres` du projet.
 1. Sur le PC : `pnpm docker:image`.
 2. Container Manager → Image → Ajouter → Ajouter à partir d'un fichier → le nouveau `jokr-image.tar`
    (il remplace `jokr:latest`).
-3. Container Manager → Projet → `jokr` → Arrêter, puis Créer (Build) : le conteneur est recréé avec la
+3. Sur le site, en administrateur : Statistiques → onglet **En direct**. Regarder qui est où (puzzles, roulette,
+   Plinko, reste du site), puis « Fermer le site pour la mise à jour ». Le serveur refuse toute nouvelle partie et
+   chaque joueur passe sur l'écran « Mise à jour en cours » une fois sa partie finie : tout de suite hors partie,
+   à sa dernière bille de Plinko, à la fin du dernier tour de roulette (gains versés), à sa grille validée ou au
+   bout de 2 minutes pour un puzzle (un message l'invite à finir tranquillement). Une notification prévient à
+   chaque départ, avec le nombre de joueurs. Attendre le voyant vert « Plus personne ne joue ». La page `/stats`
+   reste ouverte aux administrateurs pendant ce temps, pour pouvoir rouvrir le site sans redémarrer.
+4. Container Manager → Projet → `jokr` → Arrêter, puis Créer (Build) : le conteneur est recréé avec la
    nouvelle image et les nouvelles migrations sont appliquées au démarrage. Les comptes et l'XP sont conservés ;
-   seules les parties en cours (gardées en mémoire) sont perdues.
-4. Optionnel : Image → supprimer l'ancienne image devenue inutilisée.
+   seules les parties en cours (gardées en mémoire) sont perdues, d'où l'étape 3.
+   Pendant le redémarrage, les joueurs déjà venus sur le site voient le même écran « Mise à jour en cours »
+   (gardé par leur navigateur, `public/sw.js`) au lieu de la page d'erreur du NAS, puis reviennent à l'accueil
+   tout seuls. Le redémarrage rouvre le site : rien à faire après.
+5. Optionnel : Image → supprimer l'ancienne image devenue inutilisée.
 
 ### Sauvegarde
 

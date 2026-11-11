@@ -32,6 +32,8 @@ import {startDailyScheduler} from "./services/dailyScheduler.js";
 import {startRouletteScheduler} from "./services/rouletteScheduler.js";
 import {LiveRouletteRepository} from "./repository/LiveRoulette.repository.js";
 import adminModeRoutes from "./routes/AdminMode.routes.js";
+import maintenanceRoutes from "./routes/Maintenance.routes.js";
+import {blockNewGames} from "./middleware/maintenance.js";
 import {loadAdminModes} from "./services/adminMode.js";
 
 /*
@@ -59,6 +61,10 @@ api.get("/ping", (_req, res) => {
 
 // Statistiques : dernière activité des joueurs connectés
 api.use(tracker.activity);
+
+// Mise à jour en préparation : plus de nouvelle partie de puzzle (voir services/maintenance.ts)
+api.use(blockNewGames);
+api.use("/maintenance", maintenanceRoutes);
 
 // Montage des routes (les routers gèrent leurs propres chemins relatifs)
 api.use("/games", gamesRoutes);
