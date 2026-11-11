@@ -1,5 +1,5 @@
 import "./Stats.scss";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {Navigate, useSearchParams} from "react-router-dom";
 import {FaDownload, FaSyncAlt} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
@@ -13,6 +13,8 @@ import {dateTime, duration, fmt, longDay, pct, shortDay} from "./statsFormat.ts"
 import CasinoStats from "./CasinoStats.tsx";
 import ShopStats from "./ShopStats.tsx";
 import {downloadFile, toCsv} from "./exportData.ts";
+import StatsFilters from "./StatsFilters.tsx";
+import {filterFromParams, filterParams, type StatsFilter, timelineTitle} from "./statsFilter.ts";
 
 import Loader from "../Loader/Loader.tsx";
 // Une couleur fixe par jeu (vérifiée lisible et distincte, daltonisme compris) ; les autres jeux en gris
@@ -30,12 +32,23 @@ const DEVICE_LABELS = {mobile: "Téléphone", tablet: "Tablette", desktop: "Ordi
  * - Hasard : Plinko et roulette (CasinoStats)
  * - Boutique : achats et fonds portés (ShopStats)
  * Les retours des joueurs sont au-dessus des onglets.
+ * Sous les onglets, une barre de filtres : période (à la minute près) et jeu (puzzles, ou Plinko / roulette),
+ * gardés dans l'adresse de la page (voir statsFilter.ts). La période reste en changeant d'onglet, le jeu non.
  */
+
+// Jeux de hasard proposés dans le filtre
+const CASINO_GAMES = [{code: "plinko", name: "Plinko"}, {code: "roulette", name: "Roulette"}];
 export default function Stats() {
     const {isLoggedIn, isAdmin, username} = useAuth();
     const [params, setParams] = useSearchParams();
     const onglet = params.get("onglet");
     const tab = onglet === "hasard" || onglet === "boutique" ? onglet : "puzzles";
+    const paramsKey = params.toString();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const filter = useMemo(() => filterFromParams(params), [paramsKey]);
+    const setFilter = (next: StatsFilter) => setParams({...(onglet ? {onglet} : {}), ...filterParams(next)}, {replace: true});
+    // Changer d'onglet garde la période mais pas le jeu (les jeux diffèrent d'un onglet à l'autre)
+    const openTab = (next: string | null) => setParams({...(next ? {onglet: next} : {}), ...filterParams({...filter, game: null})}, {replace: true});
     const [data, setData] = useState<StatsData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -45,7 +58,7 @@ export default function Stats() {
         setLoading(true);
         setError(null);
         try {
-            setData(await statsService.get(signal));
+            setData(await statsService.get(filter, signal));
         } catch (err) {
             if ((err as Error).name === "AbortError") return;
             setError(err instanceof ApiError && err.status === 403
@@ -54,17 +67,17 @@ export default function Stats() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [filter]);
 
     useEffect(() => {
-        if (!isAdmin) return;
+        if (!isAdmin || tab !== "puzzles") return;
         const controller = new AbortController();
         const timer = window.setTimeout(() => void load(controller.signal), 0);
         return () => {
             window.clearTimeout(timer);
             controller.abort();
         };
-    }, [isAdmin, load]);
+    }, [isAdmin, load, tab]);
 
     const exportData = async (format: "json" | "csv") => {
         setExporting(true);
@@ -111,24 +124,28 @@ export default function Stats() {
 
                 <div className="stats-tabs" role="tablist">
                     <button type="button" role="tab" aria-selected={tab === "puzzles"} className={tab === "puzzles" ? "active" : ""}
-                            onClick={() => setParams({}, {replace: true})}>Puzzles</button>
+                            onClick={() => openTab(null)}>Puzzles</button>
                     <button type="button" role="tab" aria-selected={tab === "hasard"} className={tab === "hasard" ? "active" : ""}
-                            onClick={() => setParams({onglet: "hasard"}, {replace: true})}>Hasard</button>
+                            onClick={() => openTab("hasard")}>Hasard</button>
                     <button type="button" role="tab" aria-selected={tab === "boutique"} className={tab === "boutique" ? "active" : ""}
-                            onClick={() => setParams({onglet: "boutique"}, {replace: true})}>Boutique</button>
+                            onClick={() => openTab("boutique")}>Boutique</button>
                 </div>
 
-                {tab === "hasard" ? <CasinoStats/> : tab === "boutique" ? <ShopStats/> : <>
+                <StatsFilters value={filter} onChange={setFilter}
+                              games={tab === "puzzles" ? data?.gameList ?? null : tab === "hasard" ? CASINO_GAMES : null}/>
+
+                {tab === "hasard" ? <CasinoStats filter={filter}/> : tab === "boutique" ? <ShopStats filter={filter}/> : <>
                     {error && <p className="stats-status stats-error" role="alert">{error}</p>}
                     {!data && !error && <Loader label="Chargement des statistiques…"/>}
-                    {data && <div className="fade-in"><StatsContent data={data}/></div>}
+                    {data && <div className="fade-in"><StatsContent data={data} filter={filter}/></div>}
                 </>}
             </div>
         </div>
     );
 }
 
-function StatsContent({data}: { data: StatsData }) {
+function StatsContent({data, filter}: { data: StatsData; filter: StatsFilter }) {
+    const period = timelineTitle(filter);
     const {users, sessions, rewards, daily} = data.overview;
     const gameName = (code: string) => data.games.find(g => g.code === code)?.name ?? code;
     const totalDevices = data.games.reduce((acc, g) => {
@@ -168,7 +185,7 @@ function StatsContent({data}: { data: StatsData }) {
 
             {/* ---------- Activité */}
             <section className="stats-section">
-                <h2>Parties lancées, 30 derniers jours</h2>
+                <h2>Parties lancées, {period}</h2>
                 <Legend items={data.games.map(g => ({label: g.name, color: gameColor(g.code)}))}/>
                 <BarChart ariaLabel="Parties lancées par jour et par jeu" labelEvery={5}
                           bars={data.timeline.map(t => ({
@@ -199,12 +216,12 @@ function StatsContent({data}: { data: StatsData }) {
 
             <section className="stats-section stats-two">
                 <div>
-                    <h2>Nouveaux comptes, 30 derniers jours</h2>
+                    <h2>Nouveaux comptes, {period}</h2>
                     <BarChart ariaLabel="Nouveaux comptes par jour" labelEvery={5}
                               bars={data.timeline.map(t => ({label: shortDay(t.day), value: t.newUsers}))}/>
                 </div>
                 <div>
-                    <h2>Défis du jour réussis, 30 derniers jours</h2>
+                    <h2>Défis du jour réussis, {period}</h2>
                     <BarChart ariaLabel="Défis du jour réussis par jour" labelEvery={5}
                               bars={data.timeline.map(t => ({label: shortDay(t.day), value: t.dailyCompletions}))}/>
                 </div>
@@ -327,7 +344,7 @@ function StatsContent({data}: { data: StatsData }) {
 
             {/* ---------- Défis du jour */}
             <section className="stats-section">
-                <h2>Défis du jour, 30 derniers jours</h2>
+                <h2>Défis du jour, {period}</h2>
                 {data.daily.length === 0 ? <p className="stats-note">Aucun défi sur la période.</p> : (
                     <div className="stats-table-wrap">
                         <table className="stats-table">

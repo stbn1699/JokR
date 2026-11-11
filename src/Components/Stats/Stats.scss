@@ -377,6 +377,79 @@
 	}
 }
 
+// Filtres sous les onglets : période (raccourcis, début et fin) et jeu
+.stats .stats-filters {
+	display       : flex;
+	flex-wrap     : wrap;
+	align-items   : center;
+	gap           : 0.6rem 1.1rem;
+	margin        : -0.5rem 0 1.4rem;
+	padding       : 0.75rem 1rem;
+	border-radius : 0.9rem;
+	background    : rgba(249, 250, 251, 0.06);
+	font-size     : 1.1rem;
+
+	button {
+		display       : inline-flex;
+		align-items   : center;
+		gap           : 0.35rem;
+		padding       : 0.35rem 0.85rem;
+		border        : 2px solid rgba(249, 250, 251, 0.25);
+		border-radius : 999px;
+		background    : transparent;
+		color         : inherit;
+		font          : inherit;
+		cursor        : pointer;
+
+		&:hover {
+			border-color : rgba(249, 250, 251, 0.6);
+		}
+
+		&.active {
+			border-color : #fbbf24;
+			background   : #fbbf24;
+			color        : #1c1917;
+			font-weight  : bold;
+		}
+	}
+
+	label {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.4rem;
+	}
+
+	input, select {
+		padding       : 0.3rem 0.5rem;
+		border        : 2px solid rgba(249, 250, 251, 0.25);
+		border-radius : 0.5rem;
+		background    : rgba(15, 23, 42, 0.6);
+		color         : inherit;
+		font          : inherit;
+		color-scheme  : dark;
+	}
+}
+
+.stats .stats-filter-group, .stats .stats-filter-dates {
+	display     : flex;
+	flex-wrap   : wrap;
+	align-items : center;
+	gap         : 0.4rem 0.6rem;
+}
+
+.stats .stats-filter-custom {
+	padding       : 0.35rem 0.85rem;
+	border-radius : 999px;
+	background    : #fbbf24;
+	color         : #1c1917;
+	font-weight   : bold;
+}
+
+.stats .stats-filters .stats-filter-reset {
+	margin-left : auto;
+	opacity     : 0.8;
+}
+
 // En-tête d'un onglet : date de mise à jour et bouton Actualiser
 .stats .stats-tab-head {
 	display         : flex;

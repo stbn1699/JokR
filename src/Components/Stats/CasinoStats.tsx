@@ -12,18 +12,21 @@ import {useCallback, useEffect, useState} from "react";
 import {FaSyncAlt} from "react-icons/fa";
 import {statsService} from "../../Services/stats.service.ts";
 import type {CasinoStatsData} from "../../Models/casinoStats.model.ts";
-import {PLINKO_MULTIPLIERS, PLINKO_ODDS, PLINKO_RTP, PLINKO_SLOTS} from "../../../backend/src/utils/plinko.ts";
+import {PLINKO_ODDS, PLINKO_RISKS, PLINKO_RTP, PLINKO_SLOTS, PLINKO_TABLES} from "../../../backend/src/utils/plinko.ts";
 import {rouletteColor} from "../../../backend/src/utils/roulette.ts";
 import BarChart from "./BarChart.tsx";
 import {Legend, Tile} from "./StatsWidgets.tsx";
 import {dateTime, fmt, longDay, pct, pct1, shortDay} from "./statsFormat.ts";
 import Loader from "../Loader/Loader.tsx";
+import {hasPeriod, type StatsFilter, timelineTitle} from "./statsFilter.ts";
 
 const GAMES: Record<string, { name: string; color: string; rtp: number }> = {
     plinko: {name: "Plinko", color: "#3987e5", rtp: PLINKO_RTP},
     roulette: {name: "Roulette", color: "#e46f24", rtp: 36 / 37},
 };
 const gameName = (game: string) => GAMES[game]?.name ?? game;
+// Multiplicateurs d'une case du Plinko dans les trois tableaux (prudent · équilibré · risqué)
+const slotGains = (slot: number) => PLINKO_RISKS.map(r => `×${String(PLINKO_TABLES[r][slot]).replace(".", ",")}`).join(" · ");
 const ROULETTE_COLORS = {red: "#dc2626", black: "#475569", green: "#059669"} as const;
 
 const BET_KINDS: Record<string, string> = {
@@ -34,7 +37,7 @@ const BET_KINDS: Record<string, string> = {
 // Gain net signé : « +120 », « −40 »
 const signed = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${fmt(Math.abs(n))}`;
 
-export default function CasinoStats() {
+export default function CasinoStats({filter}: { filter: StatsFilter }) {
     const [data, setData] = useState<CasinoStatsData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -43,14 +46,14 @@ export default function CasinoStats() {
         setLoading(true);
         setError(null);
         try {
-            setData(await statsService.casino(signal));
+            setData(await statsService.casino(filter, signal));
         } catch (err) {
             if ((err as Error).name === "AbortError") return;
             setError((err as Error).message || "Impossible de charger les statistiques du hasard");
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [filter]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -73,13 +76,16 @@ export default function CasinoStats() {
             {error && <p className="stats-status stats-error" role="alert">{error}</p>}
             {!data && !error && <Loader label="Chargement des statistiques du hasard…"/>}
             {data && (data.overview.plays === 0
-                ? <p className="stats-note">Personne n'a encore misé.</p>
-                : <div className="fade-in"><CasinoContent data={data}/></div>)}
+                ? <p className="stats-note">{hasPeriod(filter) || filter.game ? "Aucune mise sur cette période." : "Personne n'a encore misé."}</p>
+                : <div className="fade-in"><CasinoContent data={data} filter={filter}/></div>)}
         </>
     );
 }
 
-function CasinoContent({data}: { data: CasinoStatsData }) {
+function CasinoContent({data, filter}: { data: CasinoStatsData; filter: StatsFilter }) {
+    // filtre sur un seul jeu : on cache les parties de l'autre
+    const showPlinko = filter.game !== "roulette";
+    const showRoulette = filter.game !== "plinko";
     const o = data.overview;
     const house = o.wagered - o.paid;
     const rounds = data.rouletteRounds;
@@ -127,7 +133,7 @@ function CasinoContent({data}: { data: CasinoStatsData }) {
                 <Tile label="Jetons posés" value={fmt(rounds.chips)}
                       detail={`sur le tapis · ${rounds.withBets ? (rounds.chips / Math.max(1, rounds.seats)).toFixed(1).replace(".", ",") : "–"} par joueur et par tour`}/>
                 <Tile label="Billes de Plinko" value={fmt(plinkoDrops)}
-                      detail={`${pct1(slotDrops(0) + slotDrops(PLINKO_SLOTS - 1), plinkoDrops)} dans les cases ×${PLINKO_MULTIPLIERS[0]}`}/>
+                      detail={`${pct1(slotDrops(0) + slotDrops(PLINKO_SLOTS - 1), plinkoDrops)} dans les cases du bord`}/>
             </section>
 
             {/* ---------- Par jeu */}
@@ -161,7 +167,7 @@ function CasinoContent({data}: { data: CasinoStatsData }) {
             {/* ---------- Activité */}
             <section className="stats-section stats-two">
                 <div>
-                    <h2>Crédits misés, 30 derniers jours</h2>
+                    <h2>Crédits misés, {timelineTitle(filter)}</h2>
                     <Legend items={Object.values(GAMES).map(g => ({label: g.name, color: g.color}))}/>
                     <BarChart ariaLabel="Crédits misés par jour et par jeu" labelEvery={5}
                               bars={data.timeline.map(t => ({
@@ -170,7 +176,7 @@ function CasinoContent({data}: { data: CasinoStatsData }) {
                               }))}/>
                 </div>
                 <div>
-                    <h2>Mises jouées, 30 derniers jours</h2>
+                    <h2>Mises jouées, {timelineTitle(filter)}</h2>
                     <Legend items={Object.values(GAMES).map(g => ({label: g.name, color: g.color}))}/>
                     <BarChart ariaLabel="Mises jouées par jour et par jeu" labelEvery={5}
                               bars={data.timeline.map(t => ({
@@ -206,20 +212,20 @@ function CasinoContent({data}: { data: CasinoStatsData }) {
                     <BarChart ariaLabel="Mises jouées par heure de la journée" labelEvery={3}
                               bars={data.hours.map(h => ({label: `${h.hour}h`, title: `${h.hour}h – ${h.hour + 1}h · ${fmt(h.wagered)} crédits misés`, value: h.plays}))}/>
                 </div>
-                <div>
+                {showPlinko && <div>
                     <h2>Plinko : mises choisies</h2>
                     <BarChart ariaLabel="Billes de Plinko par mise" color={GAMES.plinko!.color}
                               bars={data.plinkoBets.map(b => ({label: String(b.bet), title: `Mise de ${b.bet} · ${b.players} joueur(s)`, value: b.drops}))}/>
-                </div>
+                </div>}
             </section>
 
             {/* ---------- Plinko */}
-            <section className="stats-section">
+            {showPlinko && <section className="stats-section">
                 <h2>Plinko : cases atteintes</h2>
                 <BarChart ariaLabel="Billes de Plinko par case"
                           bars={Array.from({length: PLINKO_SLOTS}, (_, slot) => ({
-                              label: `×${PLINKO_MULTIPLIERS[slot]}`,
-                              title: `Case ${slot + 1} (×${PLINKO_MULTIPLIERS[slot]}) · ${pct1(slotDrops(slot), plinkoDrops)} observé, ${String(PLINKO_ODDS[slot]).replace(".", ",")} % attendu`,
+                              label: String(slot + 1),
+                              title: `Case ${slot + 1} (${slotGains(slot)}) · ${pct1(slotDrops(slot), plinkoDrops)} observé, ${String(PLINKO_ODDS[slot]).replace(".", ",")} % attendu`,
                               value: slotDrops(slot),
                               segments: [{key: "drops", label: "Billes", value: slotDrops(slot), color: GAMES.plinko!.color}],
                           }))}/>
@@ -227,11 +233,11 @@ function CasinoContent({data}: { data: CasinoStatsData }) {
                     <summary>Comparer à la répartition attendue</summary>
                     <div className="stats-table-wrap">
                         <table className="stats-table">
-                            <thead><tr><th>Case</th><th>Gain</th><th>Billes</th><th>Observé</th><th>Attendu</th><th>Crédits rendus</th></tr></thead>
+                            <thead><tr><th>Case</th><th>Gains (prudent · équilibré · risqué)</th><th>Billes</th><th>Observé</th><th>Attendu</th><th>Crédits rendus</th></tr></thead>
                             <tbody>
                             {Array.from({length: PLINKO_SLOTS}, (_, slot) => (
                                 <tr key={slot}>
-                                    <td>{slot + 1}</td><td>×{String(PLINKO_MULTIPLIERS[slot]).replace(".", ",")}</td><td>{fmt(slotDrops(slot))}</td>
+                                    <td>{slot + 1}</td><td>{slotGains(slot)}</td><td>{fmt(slotDrops(slot))}</td>
                                     <td>{pct1(slotDrops(slot), plinkoDrops)}</td><td>{String(PLINKO_ODDS[slot]).replace(".", ",")} %</td>
                                     <td>{fmt(data.plinkoSlots.find(s => s.slot === slot)?.paid ?? 0)}</td>
                                 </tr>
@@ -240,9 +246,10 @@ function CasinoContent({data}: { data: CasinoStatsData }) {
                         </table>
                     </div>
                 </details>
-            </section>
+            </section>}
 
             {/* ---------- Roulette */}
+            {showRoulette && <>
             <section className="stats-section">
                 <h2>Roulette : numéros sortis</h2>
                 <p className="stats-note">
@@ -304,6 +311,7 @@ function CasinoContent({data}: { data: CasinoStatsData }) {
                     )}
                 </div>
             </section>
+            </>}
 
             {/* ---------- Joueurs */}
             <section className="stats-section stats-two">
@@ -326,7 +334,7 @@ function CasinoContent({data}: { data: CasinoStatsData }) {
                                 <td className="text"><i className="stats-dot" style={{background: GAMES[w.game]?.color}}/>{gameName(w.game)}</td>
                                 <td>{fmt(w.bet)}</td><td>{fmt(w.payout)}</td><td>{signed(w.payout - w.bet)}</td>
                                 <td>×{(w.payout / w.bet).toFixed(1).replace(".", ",")}</td>
-                                <td className="text">{w.game === "plinko" ? `case ×${String(PLINKO_MULTIPLIERS[w.outcome] ?? "?").replace(".", ",")}` : `le ${w.outcome}`}</td>
+                                <td className="text">{w.game === "plinko" ? `case ${w.outcome + 1}` : `le ${w.outcome}`}</td>
                                 <td>{dateTime(w.at)}</td>
                             </tr>
                         ))}

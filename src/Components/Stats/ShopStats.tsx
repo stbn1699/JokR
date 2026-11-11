@@ -15,6 +15,7 @@ import BarChart from "./BarChart.tsx";
 import {Tile} from "./StatsWidgets.tsx";
 import {dateTime, fmt, longDay, pct, shortDay} from "./statsFormat.ts";
 import Loader from "../Loader/Loader.tsx";
+import {type StatsFilter, timelineTitle} from "./statsFilter.ts";
 import {plinkoBallFile, usePlinkoBalls} from "../../Services/plinkoBalls.ts";
 import {chipFile, useChipSets} from "../../Services/chipSets.ts";
 import {findImageBackground, imageCss, useImageBackgrounds} from "../../Services/imageBackgrounds.ts";
@@ -63,7 +64,7 @@ function ItemName({id}: { id: string | null }) {
     );
 }
 
-export default function ShopStats() {
+export default function ShopStats({filter}: { filter: StatsFilter }) {
     const [data, setData] = useState<ShopStatsData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -72,14 +73,14 @@ export default function ShopStats() {
         setLoading(true);
         setError(null);
         try {
-            setData(await statsService.shop(signal));
+            setData(await statsService.shop(filter, signal));
         } catch (err) {
             if ((err as Error).name === "AbortError") return;
             setError((err as Error).message || "Impossible de charger les statistiques de la boutique");
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [filter]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -101,12 +102,12 @@ export default function ShopStats() {
             </div>
             {error && <p className="stats-status stats-error" role="alert">{error}</p>}
             {!data && !error && <Loader label="Chargement des statistiques de la boutique…"/>}
-            {data && <div className="fade-in"><ShopContent data={data}/></div>}
+            {data && <div className="fade-in"><ShopContent data={data} period={timelineTitle(filter)}/></div>}
         </>
     );
 }
 
-function ShopContent({data}: { data: ShopStatsData }) {
+function ShopContent({data, period}: { data: ShopStatsData; period: string }) {
     const o = data.overview;
     const sold = new Map(data.items.map(i => [i.itemId, i]));
     const wornBy = new Map(data.worn.map(w => [w.background, w.players]));
@@ -136,12 +137,12 @@ function ShopContent({data}: { data: ShopStatsData }) {
             {/* ---------- Activité */}
             <section className="stats-section stats-two">
                 <div>
-                    <h2>Achats, 30 derniers jours</h2>
+                    <h2>Achats, {period}</h2>
                     <BarChart ariaLabel="Achats par jour" labelEvery={5} color={SHOP_COLOR}
                               bars={data.timeline.map(t => ({label: shortDay(t.day), title: `${longDay(t.day)} · ${t.buyers} acheteur(s)`, value: t.purchases}))}/>
                 </div>
                 <div>
-                    <h2>Crédits dépensés, 30 derniers jours</h2>
+                    <h2>Crédits dépensés, {period}</h2>
                     <BarChart ariaLabel="Crédits dépensés par jour" labelEvery={5} color={SHOP_COLOR}
                               bars={data.timeline.map(t => ({label: shortDay(t.day), title: longDay(t.day), value: t.spent}))}/>
                 </div>

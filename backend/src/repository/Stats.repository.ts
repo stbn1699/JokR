@@ -1,5 +1,6 @@
 import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
+import {gameIs, isFiltered, NO_FILTER, type StatsFilter, timelineDays, within} from "../utils/statsFilter.js";
 
 // Une partie non terminée après ce délai est abandonnée (même durée que la mémoire des parties en cours)
 const ABANDONED_AFTER = sql`interval '6 hours'`;
@@ -14,6 +15,8 @@ type Row = Record<string, unknown>;
 /*
  * Requêtes de la page Statistiques (administrateur uniquement).
  * Tout est calculé en base ; chaque méthode renvoie des nombres prêts à afficher.
+ * Les méthodes prennent les filtres de la page (période, jeu, voir statsFilter.ts) : les parties, victoires et défis
+ * sont comptés dans la période et pour le jeu choisi ; les comptes joueurs (inscrits, niveaux) restent globaux.
  */
 export class StatsRepository {
     constructor(private readonly db: Kysely<DB>) {}
@@ -27,7 +30,7 @@ export class StatsRepository {
         return (await this.rows(query))[0] ?? {};
     }
 
-    async overview() {
+    async overview(f: StatsFilter = NO_FILTER) {
         const users = await this.one(sql`
             select count(*)                                                        as total,
                    count(*) filter (where created_at > now() - interval '1 day')   as new1,
@@ -53,16 +56,19 @@ export class StatsRepository {
                    count(distinct user_id) filter (where started_at > now() - interval '7 days') as players7,
                    count(distinct user_id) filter (where started_at > now() - interval '30 days') as players30,
                    min(started_at)                                                               as first_started
-            from game_sessions`);
+            from game_sessions
+            where ${within("started_at", f)} and ${gameIs("game_code", f)}`);
         const rewards = await this.one(sql`
             select coalesce(sum(xp), 0) as xp, coalesce(sum(credits), 0) as credits, count(*) as wins
-            from game_results`);
+            from game_results
+            where ${within("finished_at", f)} and ${gameIs("game_code", f)}`);
         const daily = await this.one(sql`
-            select (select count(*) from daily_challenges)                  as challenges,
-                   (select count(*) from daily_results)                     as completions,
-                   (select count(distinct user_id) from daily_results)      as players,
+            select (select count(*) from daily_challenges where ${within("created_at", f)} and ${gameIs("game_code", f)}) as challenges,
+                   (select count(*) from daily_results where ${within("finished_at", f)} and ${gameIs("game_code", f)}) as completions,
+                   (select count(distinct user_id) from daily_results where ${within("finished_at", f)} and ${gameIs("game_code", f)}) as players,
                    (select count(*) from daily_results
-                    where challenge_date > (now() at time zone ${TZ})::date - 30) as completions30`);
+                    where challenge_date > (now() at time zone ${TZ})::date - 30
+                      and ${within("finished_at", f)} and ${gameIs("game_code", f)}) as completions30`);
 
         return {
             users: {
@@ -87,7 +93,7 @@ export class StatsRepository {
     }
 
     // Par jeu : volume, taux de réussite, temps, appareils, modes
-    async perGame() {
+    async perGame(f: StatsFilter = NO_FILTER) {
         const rows = await this.rows(sql`
             select g.code, g.designation,
                    count(s.id)                                                          as started,
@@ -108,7 +114,8 @@ export class StatsRepository {
                    count(s.id) filter (where s.device = 'desktop')                      as device_desktop,
                    count(s.id) filter (where s.device is null)                          as device_unknown
             from games g
-                     left join game_sessions s on s.game_code = g.code
+                     left join game_sessions s on s.game_code = g.code and ${within("s.started_at", f)}
+            where ${gameIs("g.code", f)}
             group by g.code, g.designation
             order by started30 desc, started desc, g.designation`);
         return rows.map(r => ({
@@ -123,13 +130,14 @@ export class StatsRepository {
     }
 
     // Réglages choisis (taille, cases à remplir) : lesquels sont joués, réussis, et en combien de temps
-    async configs() {
+    async configs(f: StatsFilter = NO_FILTER) {
         const rows = await this.rows(sql`
             select game_code, grid_size, empty_cells,
                    count(*)                                        as started,
                    count(*) filter (where finished_at is not null) as finished,
                    percentile_cont(0.5) within group (order by duration_ms) as median_ms
             from game_sessions
+            where ${within("started_at", f)} and ${gameIs("game_code", f)}
             group by game_code, grid_size, empty_cells
             order by game_code, grid_size, empty_cells`);
         return rows.map(r => ({
@@ -139,20 +147,27 @@ export class StatsRepository {
     }
 
     // Jour par jour (heure française) : parties par jeu, nouveaux comptes, défis réussis
-    async timeline(days: number) {
+    async timeline(days: number, f: StatsFilter = NO_FILTER) {
+        const {start, end} = timelineDays(f, days);
         const rows = await this.rows(sql`
-            with d as (select generate_series((now() at time zone ${TZ})::date - ${days - 1}::int,
-                                              (now() at time zone ${TZ})::date, interval '1 day')::date as day)
+            with d as (select generate_series(${start}, ${end}, interval '1 day')::date as day)
             select to_char(d.day, 'YYYY-MM-DD') as day,
-                   (select count(*) from game_sessions s where (s.started_at at time zone ${TZ})::date = d.day) as started,
-                   (select count(*) from game_sessions s where (s.finished_at at time zone ${TZ})::date = d.day) as finished,
+                   (select count(*) from game_sessions s where (s.started_at at time zone ${TZ})::date = d.day
+                      and ${within("s.started_at", f)} and ${gameIs("s.game_code", f)}) as started,
+                   (select count(*) from game_sessions s where (s.finished_at at time zone ${TZ})::date = d.day
+                      and ${within("s.finished_at", f)} and ${gameIs("s.game_code", f)}) as finished,
                    (select count(distinct coalesce(s.user_id::text, s.id::text)) from game_sessions s
-                    where (s.started_at at time zone ${TZ})::date = d.day and s.user_id is not null) as players,
-                   (select count(*) from users u where (u.created_at at time zone ${TZ})::date = d.day) as new_users,
-                   (select count(*) from daily_results r where r.challenge_date = d.day) as daily_completions,
+                    where (s.started_at at time zone ${TZ})::date = d.day and s.user_id is not null
+                      and ${within("s.started_at", f)} and ${gameIs("s.game_code", f)}) as players,
+                   (select count(*) from users u where (u.created_at at time zone ${TZ})::date = d.day
+                      and ${within("u.created_at", f)}) as new_users,
+                   (select count(*) from daily_results r where r.challenge_date = d.day
+                      and ${within("r.finished_at", f)} and ${gameIs("r.game_code", f)}) as daily_completions,
                    (select coalesce(json_object_agg(game_code, n), '{}')
                     from (select game_code, count(*) as n from game_sessions s
-                          where (s.started_at at time zone ${TZ})::date = d.day group by game_code) x) as by_game
+                          where (s.started_at at time zone ${TZ})::date = d.day
+                            and ${within("s.started_at", f)} and ${gameIs("s.game_code", f)}
+                          group by game_code) x) as by_game
             from d
             order by d.day`);
         return rows.map(r => ({
@@ -163,13 +178,13 @@ export class StatsRepository {
     }
 
     // Heures et jours de la semaine où l'on joue (heure française, 0 = dimanche)
-    async rhythm() {
+    async rhythm(f: StatsFilter = NO_FILTER) {
         const hours = await this.rows(sql`
             select extract(hour from started_at at time zone ${TZ})::int as h, count(*) as n
-            from game_sessions group by 1`);
+            from game_sessions where ${within("started_at", f)} and ${gameIs("game_code", f)} group by 1`);
         const weekdays = await this.rows(sql`
             select extract(dow from started_at at time zone ${TZ})::int as d, count(*) as n
-            from game_sessions group by 1`);
+            from game_sessions where ${within("started_at", f)} and ${gameIs("game_code", f)} group by 1`);
         const byHour = Array<number>(24).fill(0);
         for (const r of hours) byHour[num(r.h)] = num(r.n);
         const byWeekday = Array<number>(7).fill(0);
@@ -178,7 +193,8 @@ export class StatsRepository {
     }
 
     // Défi du jour, jeu par jeu, sur les derniers jours
-    async dailyByDay(days: number) {
+    async dailyByDay(days: number, f: StatsFilter = NO_FILTER) {
+        const {start, end} = timelineDays(f, days);
         const rows = await this.rows(sql`
             select to_char(c.challenge_date, 'YYYY-MM-DD') as day, c.game_code,
                    count(r.user_id)                         as completions,
@@ -188,13 +204,20 @@ export class StatsRepository {
                       and (s.started_at at time zone ${TZ})::date = c.challenge_date) as started
             from daily_challenges c
                      left join daily_results r on r.challenge_date = c.challenge_date and r.game_code = c.game_code
-            where c.challenge_date > (now() at time zone ${TZ})::date - ${days}::int
+                and ${within("r.finished_at", f)}
+            where c.challenge_date between ${start} and ${end} and ${gameIs("c.game_code", f)}
             group by c.challenge_date, c.game_code
             order by c.challenge_date desc, c.game_code`);
         return rows.map(r => ({
             day: String(r.day), gameCode: String(r.game_code), started: num(r.started),
             completions: num(r.completions), medianMs: numOrNull(r.median_ms),
         }));
+    }
+
+    // Tous les jeux (code et nom), pour le choix du filtre
+    async gameList() {
+        const rows = await this.rows(sql`select code, designation from games order by designation`);
+        return rows.map(r => ({code: String(r.code), name: String(r.designation)}));
     }
 
     // Répartition des joueurs par niveau (tranches de 10)
@@ -206,16 +229,19 @@ export class StatsRepository {
     }
 
     // Joueurs les plus actifs
-    async topPlayers(limit: number) {
+    async topPlayers(limit: number, f: StatsFilter = NO_FILTER) {
         const rows = await this.rows(sql`
             select u.username, u.user_level, u.credits, u.created_at, u.last_seen_at,
                    count(s.id)                                         as started,
                    count(s.id) filter (where s.finished_at is not null) as finished,
-                   (select count(*) from daily_results r where r.user_id = u.id) as daily_completions,
+                   (select count(*) from daily_results r where r.user_id = u.id
+                      and ${within("r.finished_at", f)} and ${gameIs("r.game_code", f)}) as daily_completions,
                    max(s.started_at)                                   as last_game
             from users u
                      left join game_sessions s on s.user_id = u.id
+                and ${within("s.started_at", f)} and ${gameIs("s.game_code", f)}
             group by u.id
+            ${isFiltered(f) ? sql`having count(s.id) > 0` : sql``}
             order by started desc, u.user_level desc
             limit ${limit}`);
         return rows.map(r => ({

@@ -48,6 +48,8 @@ export interface StatsData {
         username: string; level: number; credits: number; createdAt: string | null; lastSeenAt: string | null;
         lastGame: string | null; started: number; finished: number; dailyCompletions: number;
     }[];
+    // tous les jeux, pour le choix du filtre (absent d'un serveur plus ancien)
+    gameList?: { code: string; name: string }[];
 }
 
 // Données brutes (GET /stats/export)
