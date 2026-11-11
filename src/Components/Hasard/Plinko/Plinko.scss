@@ -71,6 +71,59 @@
 		opacity       : 0.85;
 	}
 
+	// Tableaux de gains : trois boutons côte à côte, couleur du plus sûr (vert) au plus risqué (rouge)
+	.plinko-risks {
+		display               : grid;
+		grid-template-columns : repeat(3, 1fr);
+		gap                   : 0.4rem;
+	}
+
+	.plinko-risk {
+		--risk          : #84cc16;
+		padding         : 0.55rem 0.3rem;
+		border          : 2px solid color-mix(in srgb, var(--risk) 55%, transparent);
+		border-radius   : 999px;
+		background      : transparent;
+		color           : inherit;
+		font            : inherit;
+		font-size       : 1.1rem;
+		cursor          : pointer;
+		transition      : background 0.15s ease, color 0.15s ease;
+
+		&.medium { --risk : #f59e0b; }
+		&.high { --risk : #ef4444; }
+
+		&:hover:not(:disabled) {
+			background : color-mix(in srgb, var(--risk) 18%, transparent);
+		}
+
+		&.active {
+			border-color : var(--risk);
+			background   : var(--risk);
+			color        : #1c1917;
+			font-weight  : bold;
+		}
+
+		// billes encore en l'air : on attend qu'elles tombent pour changer de tableau
+		&:disabled {
+			cursor  : not-allowed;
+			opacity : 0.4;
+		}
+	}
+
+	// Billes par lancer (×1, ×5, ×10) : mêmes boutons que les tableaux, en bleu
+	.plinko-counts {
+		margin-bottom : 1rem;
+
+		.plinko-risk { --risk : #38bdf8; }
+	}
+
+	.plinko-risk-hint {
+		margin    : 0.45rem 0 1.1rem;
+		font-size : 1.05rem;
+		opacity   : 0.7;
+	}
+
 	.plinko-bets {
 		display               : grid;
 		grid-template-columns : repeat(3, 1fr);
@@ -167,6 +220,23 @@
 		margin      : 0.7rem 0 0;
 		font-size   : 1.05rem;
 		opacity     : 0.75;
+	}
+
+	// case à cocher : voir ou masquer les billes des autres joueurs
+	.plinko-others-toggle {
+		display     : flex;
+		align-items : center;
+		gap         : 0.5rem;
+		margin      : 0.4rem 0 0;
+		font-size   : 1.05rem;
+		cursor      : pointer;
+
+		input {
+			width        : 1.1rem;
+			height       : 1.1rem;
+			accent-color : #10b981;
+			cursor       : pointer;
+		}
 	}
 
 	// la bille des autres joueurs, comme sur le plateau (noir et blanc, transparente)

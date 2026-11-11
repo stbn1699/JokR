@@ -1,6 +1,6 @@
 import "./Hasard.scss";
 import {Link} from "react-router-dom";
-import {PLINKO_MULTIPLIERS} from "../../../backend/src/utils/plinko.ts";
+import {PLINKO_MAX_MULTIPLIER} from "../../../backend/src/utils/plinko.ts";
 
 /**
  * Onglet « Hasard » (/hasard) : les jeux où l'on mise ses crédits.
@@ -15,7 +15,7 @@ export default function Hasard() {
             <div className="hasard-games">
                 <Link to="/hasard/plinko" className="hasard-game">
                     <strong>Plinko</strong>
-                    <span>Lâche une bille sur les clous : jusqu'à ×{Math.max(...PLINKO_MULTIPLIERS)} ta mise.</span>
+                    <span>Lâche une bille sur les clous : jusqu'à ×{PLINKO_MAX_MULTIPLIER} ta mise.</span>
                 </Link>
                 <Link to="/hasard/roulette" className="hasard-game">
                     <strong>Roulette</strong>

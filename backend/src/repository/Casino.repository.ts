@@ -36,11 +36,15 @@ export class CasinoRepository {
      * Billes de Plinko lâchées par les autres joueurs ces dernières secondes (le site les rejoue en fond),
      * avec leur âge en millisecondes mesuré par la base (pas de souci d'horloge entre serveur et navigateur),
      * et le nombre d'autres joueurs passés sur la table dans la dernière minute.
+     * `friend` : le joueur de la bille est un ami (amitié acceptée) de celui qui regarde.
      */
     async recentPlinko(userId: string, withinMs: number) {
         const drops = await this.db.selectFrom("casino_plays as c").innerJoin("users as u", "u.id", "c.user_id")
             .select(["c.id", "c.seed", "c.outcome", "c.bet", "c.payout", "u.username", "u.plinko_ball",
-                sql<number>`(extract(epoch from (now() - c.created_at)) * 1000)::int`.as("ago")])
+                sql<number>`(extract(epoch from (now() - c.created_at)) * 1000)::int`.as("ago"),
+                sql<boolean>`exists (select 1 from friendships f where f.status = 'accepted'
+                    and ((f.requester_id = ${userId} and f.addressee_id = c.user_id)
+                      or (f.addressee_id = ${userId} and f.requester_id = c.user_id)))`.as("friend")])
             .where("c.game", "=", "plinko").where("c.user_id", "!=", userId)
             .where("c.created_at", ">", sql<Date>`now() - make_interval(secs => ${withinMs / 1000})`)
             .orderBy("c.created_at", "desc").limit(60).execute();
@@ -50,7 +54,7 @@ export class CasinoRepository {
         return {
             drops: drops.map(d => ({
                 id: d.id, seed: Number(d.seed), slot: d.outcome, bet: d.bet, payout: d.payout, username: d.username, ago: d.ago,
-                ball: d.plinko_ball,
+                ball: d.plinko_ball, friend: d.friend,
             })),
             players: Number(players?.n ?? 0),
         };

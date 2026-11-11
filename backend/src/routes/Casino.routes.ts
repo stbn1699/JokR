@@ -6,7 +6,7 @@ import {createDb} from "../db/kysely.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import {requireAuth, type AuthLocals} from "../middleware/auth.js";
 import {CasinoRepository} from "../repository/Casino.repository.js";
-import {isPlinkoBet, PLINKO_MULTIPLIERS, plinkoPayout, simulatePlinko} from "../utils/plinko.js";
+import {DEFAULT_PLINKO_RISK, isPlinkoBet, isPlinkoRisk, plinkoMultiplier, plinkoPayout, simulatePlinko} from "../utils/plinko.js";
 import {
     parseRouletteBets,
     ROULETTE_MAX_PER_BET,
@@ -21,11 +21,12 @@ import {LiveRouletteRepository} from "../repository/LiveRoulette.repository.js";
 
 /*
  * Jeux de hasard (JWT requis)
- * - POST /casino/plinko { bet } : mise des crédits sur une bille. Le serveur tire une graine, simule la
+ * - POST /casino/plinko { bet, risk? } : mise des crédits sur une bille, avec le tableau de gains choisi
+ *   (risk : low, medium ou high, medium par défaut, voir PLINKO_TABLES). Le serveur tire une graine, simule la
  *   chute (backend/src/utils/plinko.ts), paie le gain et renvoie la graine : le site rejoue la même chute.
  *   → { seed, slot, multiplier, payout, credits } (credits : solde après la mise et le gain)
  * - GET /casino/plinko/live : billes des autres joueurs ces dernières secondes (le site les montre en fond)
- *   → { drops: [{ id, seed, slot, bet, payout, username, ago }], players }
+ *   → { drops: [{ id, seed, slot, bet, payout, username, ago, ball, friend }], players } (friend : un ami du joueur)
  * - Roulette en direct (une table commune, un tour toutes les 30 s, voir backend/src/utils/roulette.ts) :
  *   - GET /casino/roulette/live : tour en cours, numéro (une fois les mises fermées), jetons de chacun,
  *     derniers numéros, solde du joueur et heure du serveur (le site cale la roue dessus)
@@ -54,19 +55,21 @@ router.get("/plinko/live", asyncHandler(async (_req: Request, res: Response<unkn
 router.post("/plinko", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
     const bet: unknown = req.body?.bet;
     if (!isPlinkoBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
+    const risk: unknown = req.body?.risk ?? DEFAULT_PLINKO_RISK;
+    if (!isPlinkoRisk(risk)) return void res.status(400).json({status: "error", message: "Tableau inconnu"});
 
     // mode admin : la bille tombe pour de vrai, mais rien n'est retiré, gagné ni enregistré (invisible des autres)
     if (res.locals.ghost) {
         const seed = randomInt(0, 2 ** 32);
         const {slot} = simulatePlinko(seed);
         const credits = await liveRoulette.credits(res.locals.userId!);
-        return void res.status(200).json({status: "ok", data: {seed, slot, multiplier: PLINKO_MULTIPLIERS[slot], payout: plinkoPayout(bet, slot), credits}});
+        return void res.status(200).json({status: "ok", data: {seed, slot, multiplier: plinkoMultiplier(slot, risk), payout: plinkoPayout(bet, slot, risk), credits}});
     }
 
     const result = await casino.play(res.locals.userId!, "plinko", bet, () => {
         const seed = randomInt(0, 2 ** 32);
         const {slot} = simulatePlinko(seed);
-        return {seed, outcome: slot, payout: plinkoPayout(bet, slot)};
+        return {seed, outcome: slot, payout: plinkoPayout(bet, slot, risk)};
     });
     if (!result.ok || !result.draw) {
         const credits = !result.ok && result.reason === "credits";
@@ -74,7 +77,7 @@ router.post("/plinko", dropLimiter, asyncHandler(async (req: Request, res: Respo
     }
 
     const {seed, outcome: slot, payout} = result.draw;
-    res.status(200).json({status: "ok", data: {seed, slot, multiplier: PLINKO_MULTIPLIERS[slot], payout, credits: result.credits}});
+    res.status(200).json({status: "ok", data: {seed, slot, multiplier: plinkoMultiplier(slot, risk), payout, credits: result.credits}});
 }));
 
 const CLOSED_MESSAGE = "Les mises de ce tour sont fermées, attends le prochain";

@@ -1,9 +1,9 @@
 /**
  * Plateau du Plinko dessiné sur un canvas : clous (qui s'allument quand la bille les touche), parois,
- * cases avec leur multiplicateur, et les billes en train de tomber.
+ * cases avec le multiplicateur du tableau choisi (prudent, équilibré ou risqué), et les billes en train de tomber.
  * Les chutes viennent du serveur (graine) et sont rejouées ici avec le même moteur physique.
  * Les billes des autres joueurs (« fantômes ») passent en fond, grises et transparentes : elles n'allument
- * pas les clous et ne font pas rebondir les cases.
+ * pas les clous et ne font pas rebondir les cases. Celles des amis peuvent avoir un contour bleu.
  * Chaque bille est dessinée avec son image (celle choisie dans la boutique) et tourne sur elle-même en roulant :
  * son angle suit le chemin parcouru de côté (distance / rayon), comme une vraie bille.
  */
@@ -14,7 +14,6 @@ import {
     PLINKO_BALL_RADIUS,
     PLINKO_BOTTOM,
     PLINKO_HEIGHT,
-    PLINKO_MULTIPLIERS,
     PLINKO_PEG_RADIUS,
     PLINKO_PEGS,
     PLINKO_SLOTS,
@@ -22,17 +21,32 @@ import {
     PLINKO_WALLS,
     PLINKO_WIDTH,
     type PlinkoDrop,
+    type PlinkoRisk,
+    plinkoMultiplier,
     slotCenterX,
 } from "../../../../backend/src/utils/plinko.ts";
 
 export type PlinkoBoardHandle = {
     // lance l'animation d'une chute ; onLand est appelé quand la bille arrive dans sa case ; `ball` : image de la bille
     drop: (drop: PlinkoDrop, onLand: () => void, ball?: string) => void;
-    // bille d'un autre joueur, déjà partie depuis `elapsed` ms (en fond, grise)
-    ghost: (drop: PlinkoDrop, elapsed: number, ball?: string) => void;
+    // bille d'un autre joueur, déjà partie depuis `elapsed` ms (en fond, grise) ; `ring` : contour bleu (un ami)
+    ghost: (drop: PlinkoDrop, elapsed: number, ball?: string, ring?: boolean) => void;
+    // retire les billes des autres joueurs encore en l'air
+    clearGhosts: () => void;
 };
 
-type Ball = { drop: PlinkoDrop; start: number; onLand?: () => void; landed: boolean; ghost: boolean; image: string; angles: number[] };
+type Ball = { drop: PlinkoDrop; start: number; onLand?: () => void; landed: boolean; ghost: boolean; image: string; angles: number[]; ring?: boolean };
+
+const FRIEND_RING = "#3b82f6";
+
+// Contour bleu autour d'une bille (bille d'un ami), net et opaque même sur une bille transparente
+function drawRing(ctx: CanvasRenderingContext2D, x: number, y: number) {
+    ctx.strokeStyle = FRIEND_RING;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(x, y, PLINKO_BALL_RADIUS + 1.5, 0, Math.PI * 2);
+    ctx.stroke();
+}
 
 // Angle de la bille à chaque image : elle roule, donc tourne de (déplacement de côté / rayon)
 function rollingAngles(drop: PlinkoDrop): number[] {
@@ -49,9 +63,8 @@ const SLOT_BUMP_MS = 450;
 const SLOT_TOP = PLINKO_BOTTOM + PLINKO_BALL_RADIUS + 6;
 const SLOT_HEIGHT = 34;
 
-// Couleur d'une case : rouge vif aux bords (gros gains), vers le jaune puis le gris au centre
-function slotColor(slot: number): string {
-    const m = PLINKO_MULTIPLIERS[slot]!;
+// Couleur d'une case selon son multiplicateur : rouge vif pour les gros gains, vers le jaune puis le gris
+function slotColor(m: number): string {
     if (m >= 10) return "#ef4444";
     if (m >= 4) return "#f97316";
     if (m >= 2) return "#f59e0b";
@@ -60,7 +73,7 @@ function slotColor(slot: number): string {
     return "#64748b";
 }
 
-const PlinkoBoard = forwardRef<PlinkoBoardHandle>(function PlinkoBoard(_props, ref) {
+const PlinkoBoard = forwardRef<PlinkoBoardHandle, { risk: PlinkoRisk }>(function PlinkoBoard({risk}, ref) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const balls = useRef<Ball[]>([]);
     const pegLit = useRef(new Map<number, number>()); // clou → moment où il a été touché
@@ -152,14 +165,15 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle>(function PlinkoBoard(_props, r
             if (t < 1) busy = true;
             const bump = Math.sin(t * Math.PI) * 6;
             const x = slotCenterX(slot) - PLINKO_SPACING / 2 + 2;
-            ctx.fillStyle = slotColor(slot);
+            const multiplier = plinkoMultiplier(slot, risk);
+            ctx.fillStyle = slotColor(multiplier);
             ctx.globalAlpha = t < 1 ? 1 : 0.85;
             ctx.beginPath();
             ctx.roundRect(x, SLOT_TOP + bump, PLINKO_SPACING - 4, SLOT_HEIGHT, 6);
             ctx.fill();
             ctx.globalAlpha = 1;
             ctx.fillStyle = "#1c1917";
-            ctx.fillText(`${PLINKO_MULTIPLIERS[slot]}×`, slotCenterX(slot), SLOT_TOP + SLOT_HEIGHT / 2 + 1 + bump);
+            ctx.fillText(`${multiplier}×`, slotCenterX(slot), SLOT_TOP + SLOT_HEIGHT / 2 + 1 + bump);
         }
 
         // billes (position entre deux images enregistrées : mouvement fluide sur les écrans à 120 Hz),
@@ -190,6 +204,7 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle>(function PlinkoBoard(_props, r
                 ctx.restore();
                 ctx.globalAlpha = 1;
                 ctx.filter = "none";
+                if (ball.ring) drawRing(ctx, x, y);
                 continue;
             }
             // image pas encore chargée : un simple rond
@@ -197,6 +212,7 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle>(function PlinkoBoard(_props, r
             ctx.beginPath();
             ctx.arc(x, y, PLINKO_BALL_RADIUS, 0, Math.PI * 2);
             ctx.fill();
+            if (ball.ring) drawRing(ctx, x, y);
         }
 
         if (busy) frameRequest.current = requestAnimationFrame(t => draw.current(t));
@@ -211,10 +227,14 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle>(function PlinkoBoard(_props, r
             balls.current.push({drop, start: performance.now(), onLand, landed: false, ghost: false, image: ball, angles: rollingAngles(drop)});
             redraw();
         },
-        ghost(drop, elapsed, ball = DEFAULT_BALL_FILE) {
+        ghost(drop, elapsed, ball = DEFAULT_BALL_FILE, ring = false) {
             // déjà arrivée en bas : rien à montrer
             if (elapsed / 1000 * FPS >= drop.frames.length - 1) return;
-            balls.current.push({drop, start: performance.now() - elapsed, landed: false, ghost: true, image: ball, angles: rollingAngles(drop)});
+            balls.current.push({drop, start: performance.now() - elapsed, landed: false, ghost: true, image: ball, angles: rollingAngles(drop), ring});
+            redraw();
+        },
+        clearGhosts() {
+            balls.current = balls.current.filter(b => !b.ghost);
             redraw();
         },
     }));
@@ -236,6 +256,9 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle>(function PlinkoBoard(_props, r
             frameRequest.current = null;
         };
     }, []);
+
+    // Autre tableau choisi : les cases changent
+    useEffect(() => redraw(), [risk]);
 
     // Aussi grand que possible, sans dépasser la hauteur de l'écran (header, marges et bulle « Un bug ? » déduits)
     return <canvas ref={canvasRef} className="plinko-canvas"

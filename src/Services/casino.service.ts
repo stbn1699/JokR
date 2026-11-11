@@ -1,5 +1,6 @@
 import {api} from "../api/api.ts";
 import type {RouletteBet} from "../../backend/src/utils/roulette.ts";
+import type {PlinkoRisk} from "../../backend/src/utils/plinko.ts";
 
 // Une bille lâchée : la graine de sa chute (le site la rejoue), sa case et le gain
 export interface PlinkoResult {
@@ -39,8 +40,8 @@ export interface RouletteLive {
 
 // Billes de Plinko des autres joueurs, encore en l'air (ago : partie depuis tant de ms)
 export interface PlinkoLive {
-    // ball : bille choisie par le joueur (null : bille par défaut)
-    drops: { id: string; seed: number; slot: number; bet: number; payout: number; username: string; ago: number; ball: string | null }[];
+    // ball : bille choisie par le joueur (null : bille par défaut) ; friend : un ami (absent d'un serveur plus ancien)
+    drops: { id: string; seed: number; slot: number; bet: number; payout: number; username: string; ago: number; ball: string | null; friend?: boolean }[];
     // autres joueurs passés sur la table dans la dernière minute
     players: number;
 }
@@ -48,8 +49,9 @@ export interface PlinkoLive {
 const json = {"Content-Type": "application/json"};
 
 export const casinoService = {
-    plinko(bet: number): Promise<PlinkoResult> {
-        return api<PlinkoResult>("/casino/plinko", {method: "POST", headers: json, body: JSON.stringify({bet})});
+    // risk : tableau de gains choisi (prudent, équilibré ou risqué)
+    plinko(bet: number, risk: PlinkoRisk): Promise<PlinkoResult> {
+        return api<PlinkoResult>("/casino/plinko", {method: "POST", headers: json, body: JSON.stringify({bet, risk})});
     },
 
     plinkoLive(signal?: AbortSignal): Promise<PlinkoLive> {
