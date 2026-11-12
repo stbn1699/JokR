@@ -438,3 +438,18 @@
 		animation : none;
 	}
 }
+
+// Loterie gagnée
+.notif-toast-icon.lottery { color : #fbbf24; }
+
+.notif-lottery {
+	.notif-daily-head svg { color : #fbbf24; margin-right : 0.3rem; }
+
+	.notif-lottery-detail {
+		margin    : 0.2rem 0 0;
+		font-size : 0.95rem;
+		opacity   : 0.85;
+
+		a { color : #fbbf24; }
+	}
+}

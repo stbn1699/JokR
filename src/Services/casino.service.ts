@@ -57,12 +57,35 @@ export interface PlinkoLive {
     players: number;
 }
 
+// Une loterie (jour, semaine ou mois) : période en cours, cagnotte, mes tickets et derniers gagnants
+export interface LotteryInfo {
+    kind: "day" | "week" | "month";
+    // prochain tirage, et début de la période (ms, temps Unix)
+    drawAt: number;
+    periodStart: number;
+    // part des mises reversée au gagnant (%), mises de tout le monde, et cagnotte (ce que gagnerait le gagnant)
+    percent: number;
+    totalBet: number;
+    prize: number;
+    totalTickets: number;
+    players: number;
+    myBet: number;
+    myTickets: number;
+    // crédits à miser encore pour un ticket de plus
+    nextTicketIn: number;
+    winners: { date: string; username: string; prize: number; tickets: number; totalTickets: number }[];
+}
+
 const json = {"Content-Type": "application/json"};
 
 export const casinoService = {
     // risk : tableau de gains choisi (prudent, équilibré ou risqué)
     plinko(bet: number, risk: PlinkoRisk): Promise<PlinkoResult> {
         return api<PlinkoResult>("/casino/plinko", {method: "POST", headers: json, body: JSON.stringify({bet, risk})});
+    },
+
+    lottery(signal?: AbortSignal): Promise<LotteryInfo[]> {
+        return api<LotteryInfo[]>("/casino/lottery", {method: "GET"}, signal);
     },
 
     plinkoLive(signal?: AbortSignal): Promise<PlinkoLive> {

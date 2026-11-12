@@ -47,12 +47,24 @@ export interface ChallengeResultNotification extends BaseNotification {
 
 export type ChallengeNotification = FriendChallengeNotification | DailyChallengeNotification | ChallengeResultNotification;
 
-export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification;
+// Loterie du Hasard gagnée (jour, semaine ou mois) : la cagnotte est déjà ajoutée aux crédits
+export interface LotteryWinNotification extends BaseNotification {
+    kind: "lottery_win";
+    data: { kind: "day" | "week" | "month"; date: string; prize: number; tickets: number; totalTickets: number; totalBet: number };
+}
+
+export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification | LotteryWinNotification;
 
 export const isFriendNotification = (n: AppNotification): n is FriendNotification =>
     n.kind === "friend_request" || n.kind === "friend_accepted";
 
 export const isDailyResults = (n: AppNotification): n is DailyResultsNotification => n.kind === "daily_results";
+
+export const isLotteryWin = (n: AppNotification): n is LotteryWinNotification => n.kind === "lottery_win";
+
+// « la loterie du jour », « de la semaine », « du mois »
+export const lotteryName = (kind: LotteryWinNotification["data"]["kind"]) =>
+    kind === "day" ? "la loterie du jour" : kind === "week" ? "la loterie de la semaine" : "la loterie du mois";
 
 // XP rapportée par une notification (résultats des défis seulement)
 export const notificationXp = (n: AppNotification) => (isDailyResults(n) ? n.data.xp ?? 0 : 0);

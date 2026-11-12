@@ -2,27 +2,17 @@
 	display        : flex;
 	flex-direction : column;
 	align-items    : center;
-	padding        : 4rem 1rem;
+	padding        : 1.5rem 1rem 3rem;
 	text-align     : center;
-
-	h1 {
-		margin    : 0 0 0.5rem;
-		font-size : 3.5rem;
-	}
-
-	p {
-		margin    : 0;
-		font-size : 1.5rem;
-		opacity   : 0.8;
-	}
 }
 
 .hasard .hasard-games {
 	display               : grid;
-	grid-template-columns : repeat(auto-fit, minmax(16rem, 1fr));
+	grid-template-columns : repeat(auto-fit, minmax(14rem, 1fr));
 	gap                   : 1rem;
-	width                 : min(40rem, 100%);
-	margin-top            : 2rem;
+	// même largeur que le bandeau des loteries au-dessus
+	width                 : min(52rem, 100%);
+	margin-top            : 2.25rem;
 	text-align            : left;
 }
 

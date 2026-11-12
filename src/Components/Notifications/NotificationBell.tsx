@@ -9,12 +9,13 @@
  * Si elle rapporte de l'XP (50 premiers), une popup l'annonce à la place du toast (DailyRewardPopup).
  * Amis : demande reçue (Accepter / Refuser directement dans le panneau), demande acceptée.
  * Défis entre amis : grille reçue (Relever le défi), défi du jour, résultat d'un défi envoyé.
+ * Loteries du Hasard : lot gagné (les crédits du header se mettent à jour à son arrivée).
  */
 
 import "./Notifications.scss";
 import {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
-import {FaBell, FaFlagCheckered, FaMedal, FaTimes, FaUserFriends} from "react-icons/fa";
+import {FaBell, FaFlagCheckered, FaMedal, FaTicketAlt, FaTimes, FaUserFriends} from "react-icons/fa";
 import {
     type AppNotification,
     type ChallengeNotification,
@@ -22,6 +23,9 @@ import {
     type FriendNotification,
     isDailyResults,
     isFriendNotification,
+    isLotteryWin,
+    type LotteryWinNotification,
+    lotteryName,
 } from "../../Services/notification.service.ts";
 import {challengePath} from "../../Services/challenge.service.ts";
 import {shareTime} from "../../Services/share.ts";
@@ -36,6 +40,9 @@ import {useWhatsNewOpen} from "../../Services/popupQueue.ts";
 
 // Durée d'affichage du toast
 const TOAST_MS = 9000;
+
+// Nombre à la française (4 091)
+const fr = (n: number) => n.toLocaleString("fr-FR");
 
 const ordinal = (rank: number) => <>{rank}<sup>{rank === 1 ? "er" : "e"}</sup></>;
 
@@ -101,6 +108,13 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
         };
     }, [open]);
 
+    // Loterie gagnée : la cagnotte est déjà sur le compte, le header affiche le nouveau solde
+    const {refresh} = useAuth();
+    const lotteryToast = toast !== null && isLotteryWin(toast);
+    useEffect(() => {
+        if (lotteryToast) void refresh();
+    }, [lotteryToast, refresh]);
+
     // Le toast part tout seul
     useEffect(() => {
         if (!toast) return;
@@ -150,11 +164,17 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
 
             {toast && !open && (
                 <div className="notif-toast" role="status">
-                    {isDailyResults(toast) ? <FaBell aria-hidden className="notif-toast-icon"/>
+                    {isLotteryWin(toast) ? <FaTicketAlt aria-hidden className="notif-toast-icon lottery"/>
+                        : isDailyResults(toast) ? <FaBell aria-hidden className="notif-toast-icon"/>
                         : !isFriendNotification(toast) ? <FaFlagCheckered aria-hidden className="notif-toast-icon friend"/>
                         : <FaUserFriends aria-hidden className="notif-toast-icon friend"/>}
                     <div className="notif-toast-text">
-                        {isDailyResults(toast) ? (
+                        {isLotteryWin(toast) ? (
+                            <>
+                                <strong>Tu as gagné {lotteryName(toast.data.kind)} !</strong>
+                                <span>+{fr(toast.data.prize)} crédits avec {fr(toast.data.tickets)} ticket{toast.data.tickets > 1 ? "s" : ""} sur {fr(toast.data.totalTickets)}</span>
+                            </>
+                        ) : isDailyResults(toast) ? (
                             <>
                                 <strong>Défis du {dayLabel(toast.data.date)} terminés</strong>
                                 <span>{dailySummary(toast)}</span>
@@ -187,6 +207,7 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
 }
 
 function NotificationItem({notification, onNavigate}: { notification: AppNotification; onNavigate: () => void }) {
+    if (isLotteryWin(notification)) return <LotteryItem notification={notification} onNavigate={onNavigate}/>;
     if (isFriendNotification(notification)) return <FriendItem notification={notification} onNavigate={onNavigate}/>;
     if (!isDailyResults(notification)) return <ChallengeItem notification={notification} onNavigate={onNavigate}/>;
     const n = notification;
@@ -264,6 +285,23 @@ function FriendItem({notification: n, onNavigate}: { notification: FriendNotific
                 )}
                 {error && <small className="notif-friend-error">{error}</small>}
             </div>
+        </div>
+    );
+}
+
+// ---------- Loteries du Hasard
+function LotteryItem({notification: n, onNavigate}: { notification: LotteryWinNotification; onNavigate: () => void }) {
+    return (
+        <div className="notif-daily notif-lottery">
+            <div className="notif-daily-head">
+                <span><FaTicketAlt aria-hidden/> Tu as gagné {lotteryName(n.data.kind)} !</span>
+                <small>{ago(n.createdAt)}</small>
+            </div>
+            <p className="notif-daily-xp">+{fr(n.data.prize)} crédits</p>
+            <p className="notif-lottery-detail">
+                {fr(n.data.tickets)} ticket{n.data.tickets > 1 ? "s" : ""} sur {fr(n.data.totalTickets)} ·{" "}
+                <Link to="/hasard/loterie" onClick={onNavigate}>Voir les loteries</Link>
+            </p>
         </div>
     );
 }

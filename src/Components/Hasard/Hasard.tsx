@@ -1,16 +1,17 @@
 import "./Hasard.scss";
 import {Link} from "react-router-dom";
 import {PLINKO_MAX_MULTIPLIER} from "../../../backend/src/utils/plinko.ts";
+import LotteryBanner from "./Lottery/LotteryBanner.tsx";
 
 /**
  * Onglet « Hasard » (/hasard) : les jeux où l'on mise ses crédits.
- * Pour l'instant le Plinko et la roulette ; poker, blackjack, machine à sous… viendront ensuite.
+ * Le Plinko et la roulette ; blackjack, machine à sous… viendront ensuite.
+ * En haut, le bandeau des loteries : pas un jeu à choisir, tout le monde y participe en misant.
  */
 export default function Hasard() {
     return (
         <main className="hasard">
-            <h1>Hasard</h1>
-            <p>Mise tes crédits et tente ta chance.</p>
+            <LotteryBanner/>
 
             <div className="hasard-games">
                 <Link to="/hasard/plinko" className="hasard-game">

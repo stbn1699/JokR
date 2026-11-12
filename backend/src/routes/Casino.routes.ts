@@ -19,6 +19,8 @@ import {
 } from "../utils/roulette.js";
 import {HISTORY_SIZE, LiveRouletteRepository} from "../repository/LiveRoulette.repository.js";
 import {maintenance, MAINTENANCE_MESSAGE} from "../services/maintenance.js";
+import {LotteryRepository} from "../repository/Lottery.repository.js";
+import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, lotteryPrize, lotteryTickets, nextLotteryDraw} from "../utils/lottery.js";
 
 /*
  * Jeux de hasard (JWT requis)
@@ -35,6 +37,10 @@ import {maintenance, MAINTENANCE_MESSAGE} from "../services/maintenance.js";
  *   - POST /casino/roulette/bets { bets: [{ key, amount }] } : pose des jetons sur le tour en cours
  *   - DELETE /casino/roulette/bets : retire tous ses jetons du tour en cours
  *   Le tirage et le paiement sont faits par services/rouletteScheduler.ts.
+ * - GET /casino/lottery : les trois loteries (jour, semaine, mois, voir backend/src/utils/lottery.ts) →
+ *   [{ kind, drawAt, periodStart, percent, totalBet, prize, totalTickets, players, myBet, myTickets, nextTicketIn,
+ *   winners: [{ date, username, prize, tickets, totalTickets }] }] (prize : ce que gagnerait le gagnant maintenant)
+ *   Les tirages sont faits par services/lotteryScheduler.ts.
  * Mise à jour en préparation (services/maintenance.ts) : plus de bille de Plinko, et plus de mise à la roulette
  * après le tour en cours au moment de la coupure (503, code « maintenance »).
  */
@@ -42,6 +48,7 @@ const router = Router();
 const db = createDb(pool);
 const casino = new CasinoRepository(db);
 const liveRoulette = new LiveRouletteRepository(db);
+const lottery = new LotteryRepository(db);
 
 // Une bille toutes les ~0,3 s au plus, en moyenne sur une minute
 const dropLimiter = rateLimit({windowMs: 60 * 1000, limit: 200, standardHeaders: "draft-7", legacyHeaders: false,
@@ -156,6 +163,31 @@ router.delete("/roulette/bets", asyncHandler(async (_req: Request, res: Response
     const credits = rouletteBettingOpen(round, now) ? await liveRoulette.cancel(res.locals.userId!, round) : null;
     if (credits === null) return void res.status(409).json({status: "error", message: CLOSED_MESSAGE});
     res.status(200).json({status: "ok", data: {credits}});
+}));
+
+// Loteries : mises, tickets et cagnotte de la période en cours, mes chances, et derniers gagnants
+const LOTTERY_WINNERS = 5;
+router.get("/lottery", asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
+    const now = Date.now();
+    const me = res.locals.userId!;
+    const data = await Promise.all(LOTTERY_KINDS.map(async kind => {
+        const drawAt = nextLotteryDraw(kind, now);
+        const {start} = lotteryPeriod(kind, drawAt);
+        const [bets, winners] = await Promise.all([lottery.betsByUser(start, now), lottery.recentWinners(kind, LOTTERY_WINNERS)]);
+        const totalBet = bets.reduce((sum, b) => sum + b.bet, 0);
+        const myBet = bets.find(b => b.userId === me)?.bet ?? 0;
+        return {
+            kind, drawAt, periodStart: start, percent: LOTTERY_PERCENT[kind],
+            totalBet, prize: lotteryPrize(kind, totalBet),
+            totalTickets: bets.reduce((sum, b) => sum + lotteryTickets(b.bet), 0),
+            players: bets.filter(b => lotteryTickets(b.bet) > 0).length,
+            myBet, myTickets: lotteryTickets(myBet),
+            // crédits à miser encore pour un ticket de plus
+            nextTicketIn: LOTTERY_TICKET_CREDITS - (myBet % LOTTERY_TICKET_CREDITS),
+            winners: winners.map(w => ({date: w.date, username: w.username, prize: w.prize, tickets: w.winner_tickets ?? 0, totalTickets: w.total_tickets})),
+        };
+    }));
+    res.status(200).json({status: "ok", data});
 }));
 
 export default router;

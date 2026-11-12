@@ -204,6 +204,21 @@ export type RouletteRoundsTable = {
     drawn_at: Generated<Date>;
 };
 
+// Tirages des loteries du Hasard (jour, semaine, mois) ; winner_id null : personne n'avait de ticket
+export type LotteryDrawsTable = {
+    id: Generated<number>;
+    kind: string;
+    draw_date: string;
+    period_start: Date;
+    period_end: Date;
+    total_bet: number;
+    total_tickets: number;
+    prize: number;
+    winner_id: string | null;
+    winner_tickets: number | null;
+    drawn_at: Generated<Date>;
+};
+
 // Jetons de la roulette en direct ; payout reste null tant que le tour n'est pas payé
 export type RouletteBetsTable = {
     id: Generated<string>;
@@ -235,5 +250,6 @@ export type DB = {
     casino_plays: CasinoPlaysTable;
     roulette_rounds: RouletteRoundsTable;
     roulette_bets: RouletteBetsTable;
+    lottery_draws: LotteryDrawsTable;
 };
 

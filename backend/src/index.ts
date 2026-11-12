@@ -30,6 +30,8 @@ import {createDb} from "./db/kysely.js";
 import {createDailyService} from "./services/daily.js";
 import {startDailyScheduler} from "./services/dailyScheduler.js";
 import {startRouletteScheduler} from "./services/rouletteScheduler.js";
+import {startLotteryScheduler} from "./services/lotteryScheduler.js";
+import {LotteryRepository} from "./repository/Lottery.repository.js";
 import {LiveRouletteRepository} from "./repository/LiveRoulette.repository.js";
 import adminModeRoutes from "./routes/AdminMode.routes.js";
 import maintenanceRoutes from "./routes/Maintenance.routes.js";
@@ -140,6 +142,8 @@ const notifications = new NotificationsRepository(createDb(pool));
 startDailyScheduler(createDailyService(createDb(pool)), console.log, date => notifications.createDailyResults(date));
 // Roulette en direct : tirage et paiement de chaque tour, même quand personne ne joue
 startRouletteScheduler(new LiveRouletteRepository(createDb(pool)));
+// Loteries du Hasard : tirages du jour, de la semaine et du mois, à 23 h 59 (heure de Paris)
+startLotteryScheduler(new LotteryRepository(createDb(pool)));
 
 // Arrêt propre (docker stop envoie SIGTERM)
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
