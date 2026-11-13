@@ -9,7 +9,7 @@
 import "./Roulette.scss";
 import {useEffect, useRef, useState} from "react";
 import {Link, Navigate} from "react-router-dom";
-import {FaChevronLeft, FaCoins, FaRedo, FaTrash} from "react-icons/fa";
+import {FaChevronLeft, FaCoins, FaRedo, FaTrash, FaUndo} from "react-icons/fa";
 import {useAuth} from "../../../Context/authContext.ts";
 import {ApiError} from "../../../api/api.ts";
 import {casinoService, type RouletteLive} from "../../../Services/casino.service.ts";
@@ -103,6 +103,10 @@ export default function RoulettePage() {
     // jetons posés depuis moins de BATCH_MS (pose au pinceau) : envoyés ensemble en une seule requête
     const batch = useRef<RouletteBet[]>([]);
     const batchTimer = useRef<number | null>(null);
+    // geste en cours (un clic, un glisser, « Reproduire ma mise ») : ses jetons partent avec cet identifiant,
+    // « Annuler la dernière mise » les retire tous ; gestureSent : une partie de ses jetons est déjà partie
+    const gesture = useRef("");
+    const gestureSent = useRef(false);
 
     // ---------- état de la table, chaque seconde ; horloge locale pour le compte à rebours
     useEffect(() => {
@@ -252,9 +256,54 @@ export default function RoulettePage() {
         });
     }
 
-    // Pose un jeton : regroupé avec ceux posés juste après (pose au pinceau), puis envoyé en une requête
-    function place(key: string) {
+    const newGesture = () => {
+        gesture.current = Math.random().toString(36).slice(2, 12);
+        gestureSent.current = false;
+    };
+
+    // Envoie tout de suite les jetons en attente (avant un nouveau geste : un envoi = un seul geste)
+    function flushBatch() {
+        if (batchTimer.current === null) return;
+        window.clearTimeout(batchTimer.current);
+        batchTimer.current = null;
+        const bets = batch.current;
+        const group = gesture.current;
+        batch.current = [];
+        gestureSent.current = true;
+        send(() => casinoService.rouletteBet(bets, group));
+    }
+
+    // Annule la dernière mise : les jetons du dernier geste (encore en attente, et/ou déjà posés sur le serveur)
+    function undoLast() {
         if (!open) return;
+        setError(null);
+        const pendingOnly = batchTimer.current !== null && !gestureSent.current;
+        if (batchTimer.current !== null) {
+            window.clearTimeout(batchTimer.current);
+            batchTimer.current = null;
+            batch.current = [];
+        }
+        // geste pas encore parti : rien à retirer sur le serveur
+        if (pendingOnly) return;
+        newGesture();
+        send(() => casinoService.rouletteUndo());
+    }
+
+    function rebet() {
+        flushBatch();
+        newGesture();
+        const group = gesture.current;
+        send(() => casinoService.rouletteBet(lastBets, group));
+    }
+
+    // Pose un jeton : regroupé avec ceux du même geste posés juste après (pose au pinceau), puis envoyé en une
+    // requête ; un nouveau geste envoie d'abord les jetons du précédent
+    function place(key: string, startsGesture = true) {
+        if (!open) return;
+        if (startsGesture) {
+            flushBatch();
+            newGesture();
+        }
         const queued = batch.current.reduce((sum, b) => sum + b.amount, 0);
         const queuedHere = batch.current.reduce((sum, b) => sum + (b.key === key ? b.amount : 0), 0);
         if (queued + chip > auth.credits) return setError("Pas assez de crédits pour ce jeton");
@@ -262,12 +311,7 @@ export default function RoulettePage() {
         if (betTotal(key) + queuedHere + chip > ROULETTE_MAX_PER_BET) return setError(`${ROULETTE_MAX_PER_BET} crédits au plus par case`);
         batch.current.push({key, amount: chip});
         if (batchTimer.current !== null) return;
-        batchTimer.current = window.setTimeout(() => {
-            const bets = batch.current;
-            batch.current = [];
-            batchTimer.current = null;
-            send(() => casinoService.rouletteBet(bets));
-        }, BATCH_MS);
+        batchTimer.current = window.setTimeout(flushBatch, BATCH_MS);
     }
 
     return (
@@ -362,10 +406,15 @@ export default function RoulettePage() {
                                     onClick={() => send(() => casinoService.rouletteCancel())} title="Rend tous tes jetons de ce tour">
                                 <FaTrash aria-hidden/> Retirer mes jetons
                             </button>
+                            {/* retire le dernier jeton posé, tout le dernier glisser ou toute la mise reproduite */}
+                            <button type="button" className="roulette-secondary" disabled={!open || total === 0}
+                                    onClick={undoLast} title="Retire les jetons de ton dernier geste (clic, glisser ou mise reproduite)">
+                                <FaUndo aria-hidden/> Annuler la dernière mise
+                            </button>
                             {/* repose les jetons du dernier tour joué (en plus de ceux déjà posés sur ce tour) */}
                             <button type="button" className="roulette-secondary roulette-rebet"
                                     disabled={!open || sending || lastBets.length === 0 || lastTotal > auth.credits || total + lastTotal > ROULETTE_MAX_TOTAL}
-                                    onClick={() => send(() => casinoService.rouletteBet(lastBets))}
+                                    onClick={rebet}
                                     title={lastBets.length === 0 ? "Joue un tour pour pouvoir reproduire ta mise"
                                         : lastTotal > auth.credits ? "Pas assez de crédits pour reproduire ta mise"
                                             : "Repose les mêmes jetons qu'à ton dernier tour"}>

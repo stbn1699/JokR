@@ -111,8 +111,15 @@ export const casinoService = {
     },
 
     // Pose des jetons sur le tour en cours → solde restant
-    async rouletteBet(bets: RouletteBet[]): Promise<number> {
-        const {credits} = await api<{ credits: number }>("/casino/roulette/bets", {method: "POST", headers: json, body: JSON.stringify({bets})});
+    // group : geste du joueur (clic, glisser, « Reproduire ma mise »), pour « Annuler la dernière mise »
+    async rouletteBet(bets: RouletteBet[], group?: string): Promise<number> {
+        const {credits} = await api<{ credits: number }>("/casino/roulette/bets", {method: "POST", headers: json, body: JSON.stringify({bets, group})});
+        return credits;
+    },
+
+    // retire les jetons de son dernier geste sur le tour en cours
+    async rouletteUndo(): Promise<number> {
+        const {credits} = await api<{ credits: number; removed: number }>("/casino/roulette/bets/last", {method: "DELETE"});
         return credits;
     },
 

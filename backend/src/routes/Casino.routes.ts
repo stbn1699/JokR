@@ -35,7 +35,9 @@ import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, l
  *   - GET /casino/roulette/live : tour en cours, numéro (une fois les mises fermées), jetons de chacun,
  *     derniers numéros, derniers tours du joueur (mine : numéro, mise, gain et détail des mises, autant que de
  *     numéros), solde du joueur et heure du serveur (le site cale la roue dessus)
- *   - POST /casino/roulette/bets { bets: [{ key, amount }] } : pose des jetons sur le tour en cours
+ *   - POST /casino/roulette/bets { bets: [{ key, amount }], group? } : pose des jetons sur le tour en cours
+ *     (group : geste du joueur, un clic, un glisser ou « Reproduire ma mise »)
+ *   - DELETE /casino/roulette/bets/last : retire les jetons de son dernier geste et rend les crédits
  *   - DELETE /casino/roulette/bets : retire tous ses jetons du tour en cours
  *   Le tirage et le paiement sont faits par services/rouletteScheduler.ts.
  * - POST /casino/slots/:machine { bet, reels, lines } : un lancer de machine à sous (voir backend/src/utils/slots.ts),
@@ -183,7 +185,10 @@ router.post("/roulette/bets", dropLimiter, asyncHandler(async (req: Request, res
     if (!rouletteBettingOpen(round, now)) return void res.status(409).json({status: "error", message: CLOSED_MESSAGE});
     if (maintenance.blocksRound(round)) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
 
-    const result = await liveRoulette.place(res.locals.userId!, round, bets, res.locals.ghost === true);
+    // geste du joueur (clic, glisser, « Reproduire ma mise ») : « Annuler la dernière mise » retire tout le geste
+    const group: unknown = req.body?.group;
+    const betGroup = typeof group === "string" && /^[A-Za-z0-9_-]{1,16}$/.test(group) ? group : null;
+    const result = await liveRoulette.place(res.locals.userId!, round, bets, res.locals.ghost === true, betGroup);
     if (!result.ok) {
         const [status, message] = result.reason === "closed" ? [409, CLOSED_MESSAGE]
             : result.reason === "credits" ? [402, "Pas assez de crédits"]
@@ -201,6 +206,15 @@ router.delete("/roulette/bets", asyncHandler(async (_req: Request, res: Response
     const credits = rouletteBettingOpen(round, now) ? await liveRoulette.cancel(res.locals.userId!, round) : null;
     if (credits === null) return void res.status(409).json({status: "error", message: CLOSED_MESSAGE});
     res.status(200).json({status: "ok", data: {credits}});
+}));
+
+// Retire les jetons de son dernier geste sur le tour en cours (tant que les mises sont ouvertes) → { credits, removed }
+router.delete("/roulette/bets/last", asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
+    const now = Date.now();
+    const round = rouletteRoundAt(now);
+    const result = rouletteBettingOpen(round, now) ? await liveRoulette.undoLast(res.locals.userId!, round) : null;
+    if (result === null) return void res.status(409).json({status: "error", message: CLOSED_MESSAGE});
+    res.status(200).json({status: "ok", data: result});
 }));
 
 // Loteries : mises, tickets et cagnotte de la période en cours, mes chances, et derniers gagnants

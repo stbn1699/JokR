@@ -229,6 +229,8 @@ export type RouletteBetsTable = {
     payout: number | null;
     // posé en mode admin : invisible des autres, sans crédits, absent des statistiques
     ghost: Generated<boolean>;
+    // geste qui a posé le jeton (clic, glisser, « Reproduire ma mise ») : « Annuler la dernière mise »
+    bet_group: string | null;
     created_at: Generated<Date>;
 };
 

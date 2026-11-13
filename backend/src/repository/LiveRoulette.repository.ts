@@ -29,7 +29,8 @@ export class LiveRouletteRepository {
      * du tour n'est pas encore tiré (verrou partagé sur le tour : le tirage attend la fin de cette mise).
      */
     // ghost : mode admin (rien n'est retiré, jetons invisibles des autres et payés sans crédits)
-    async place(userId: string, round: number, bets: RouletteBet[], ghost = false): Promise<PlaceResult> {
+    // group : geste du joueur qui pose ces jetons (voir undoLast)
+    async place(userId: string, round: number, bets: RouletteBet[], ghost = false, group: string | null = null): Promise<PlaceResult> {
         return this.db.transaction().execute(async trx => {
             const user = await trx.selectFrom("users").select("credits").where("id", "=", userId).forUpdate().executeTakeFirst();
             if (!user) return {ok: false, reason: "user"} as const;
@@ -51,7 +52,7 @@ export class LiveRouletteRepository {
             const credits = ghost ? user.credits : user.credits - total;
             if (!ghost) await trx.updateTable("users").set({credits}).where("id", "=", userId).execute();
             await trx.insertInto("roulette_bets")
-                .values(bets.map(b => ({round_id: round, user_id: userId, key: b.key, amount: b.amount, ghost}))).execute();
+                .values(bets.map(b => ({round_id: round, user_id: userId, key: b.key, amount: b.amount, ghost, bet_group: group}))).execute();
             return {ok: true, credits} as const;
         });
     }
@@ -70,6 +71,32 @@ export class LiveRouletteRepository {
             const credits = user.credits + rouletteTotal(removed.filter(r => !r.ghost).map(r => ({key: "", amount: r.amount})));
             await trx.updateTable("users").set({credits}).where("id", "=", userId).execute();
             return credits;
+        });
+    }
+
+    /*
+     * Retire les jetons de son dernier geste sur le tour en cours (mises encore ouvertes) et rend leurs crédits :
+     * tous les jetons du même geste que le dernier posé (un clic, un glisser, « Reproduire ma mise »), ou à défaut
+     * ceux posés au même instant. Renvoie le nouveau solde ; null si c'est trop tard, 0 jeton si rien à retirer.
+     */
+    async undoLast(userId: string, round: number): Promise<{ credits: number; removed: number } | null> {
+        return this.db.transaction().execute(async trx => {
+            const user = await trx.selectFrom("users").select("credits").where("id", "=", userId).forUpdate().executeTakeFirst();
+            if (!user) return null;
+            await sql`select pg_advisory_xact_lock_shared(${round}::bigint)`.execute(trx);
+            const drawn = await trx.selectFrom("roulette_rounds").select("id").where("id", "=", round).executeTakeFirst();
+            if (drawn) return null;
+            const last = await trx.selectFrom("roulette_bets").select(["bet_group", "created_at"])
+                .where("round_id", "=", round).where("user_id", "=", userId)
+                .orderBy("created_at", "desc").limit(1).executeTakeFirst();
+            if (!last) return {credits: user.credits, removed: 0};
+            const removed = await trx.deleteFrom("roulette_bets").where("round_id", "=", round).where("user_id", "=", userId)
+                .where(eb => last.bet_group !== null ? eb("bet_group", "=", last.bet_group) : eb("created_at", "=", last.created_at))
+                .returning(["amount", "ghost"]).execute();
+            // jetons du mode admin : rien n'avait été retiré, rien n'est rendu
+            const credits = user.credits + removed.filter(r => !r.ghost).reduce((sum, r) => sum + r.amount, 0);
+            await trx.updateTable("users").set({credits}).where("id", "=", userId).execute();
+            return {credits, removed: removed.length};
         });
     }
 
