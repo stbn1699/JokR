@@ -6,17 +6,28 @@
 
 	.slots-layout {
 		display               : grid;
-		// la machine prend la place qu'il lui faut (plus de colonnes = plus large)
-		grid-template-columns : 21rem auto;
+		// réglages | machine (la place qu'il lui faut : plus de colonnes = plus large) | derniers lancers
+		grid-template-columns : 21rem auto 9rem;
+		grid-template-areas   : "controls machine side";
 		justify-content       : center;
 		gap                   : 1.75rem;
 		align-items           : start;
-		width                 : min(80rem, 100%);
+		width                 : min(90rem, 100%);
 
+		.slots-controls { grid-area : controls; }
+		.slots-machine { grid-area : machine; }
+		.slots-side { grid-area : side; }
+
+		// écran moyen : derniers lancers sous la machine
+		@media (max-width: 1150px) {
+			grid-template-columns : 21rem auto;
+			grid-template-areas   : "controls machine" "controls side";
+		}
+
+		// téléphone : la machine d'abord, puis les réglages et les derniers lancers
 		@media (max-width: 900px) {
 			grid-template-columns : minmax(0, 1fr);
-
-			.slots-machine { order : -1; }
+			grid-template-areas   : "machine" "controls" "side";
 		}
 	}
 
@@ -42,11 +53,6 @@
 		font-size : 3rem;
 	}
 
-	.slots-sub {
-		margin    : 0.3rem 0 1.25rem;
-		font-size : 1.2rem;
-		opacity   : 0.75;
-	}
 
 	.slots-label {
 		display       : block;
@@ -155,11 +161,6 @@
 		&.win b { color : #34d399; }
 	}
 
-	.slots-hint {
-		margin    : -0.4rem 0 0;
-		font-size : 1rem;
-		opacity   : 0.75;
-	}
 
 	.slots-bets { margin-bottom : 1rem; }
 
@@ -196,13 +197,33 @@
 		color     : #f87171;
 	}
 
+	// colonne des derniers lancers
+	.slots-side {
+		padding       : 1.1rem 0.9rem;
+		box-sizing    : border-box;
+		border        : 3px solid #f9fafb;
+		border-radius : 12px;
+		background    : #02061735;
+	}
+
+	.slots-history-empty {
+		margin    : 0;
+		font-size : 0.95rem;
+		opacity   : 0.6;
+	}
+
+	// une colonne à droite de la machine ; en ligne quand elle passe dessous
 	.slots-history {
 		display               : grid;
-		grid-template-columns : repeat(4, 1fr);
+		grid-template-columns : 1fr;
 		gap                   : 0.4rem;
-		margin                : 1.25rem 0 0;
+		margin                : 0;
 		padding               : 0;
 		list-style            : none;
+
+		@media (max-width: 1150px) {
+			grid-template-columns : repeat(auto-fill, minmax(4.6rem, 1fr));
+		}
 
 		li {
 			display        : flex;
@@ -264,8 +285,12 @@
 .slots .slot-window,
 .slot-window {
 	// taille fixe des cases : plus de colonnes, machine plus large ; réduites seulement si l'écran est trop étroit
-	// (à côté des réglages sur ordinateur, sur toute la largeur sur téléphone)
-	--cell        : min(8.5rem, calc((100vw - 31rem) / var(--reels, 3)));
+	// (entre les réglages et les derniers lancers, à côté des réglages, ou sur toute la largeur sur téléphone)
+	--cell        : min(8.5rem, calc((100vw - 43rem) / var(--reels, 3)));
+
+	@media (max-width: 1150px) {
+		--cell : min(8.5rem, calc((100vw - 31rem) / var(--reels, 3)));
+	}
 
 	@media (max-width: 900px) {
 		--cell : min(8.5rem, calc((100vw - 5.5rem) / var(--reels, 3)));

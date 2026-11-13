@@ -1,7 +1,7 @@
 /**
  * Une machine à sous (/hasard/machines/:id) : choix de la mise (jetons), du nombre de colonnes (3 à 5) et de lignes
  * de gain (1, 3, 5 ou 10 : moins de lignes, chaque ligne vaut plus), lancer (bouton ou barre d'espace), les rouleaux
- * qui s'arrêtent l'un après l'autre, les lignes gagnantes et le gain, les derniers lancers.
+ * qui s'arrêtent l'un après l'autre, les lignes gagnantes et le gain, les derniers lancers (colonne de droite).
  * Colonnes et lignes sont retenues dans le navigateur ; les lignes jouées sont tracées sur les rouleaux.
  * Lancers en série : 1, 5, 10 ou 25 lancers d'affilée (50 et 100 sous cadenas, à débloquer plus tard dans la
  * boutique). La machine enchaîne seule, avec une courte pause pour voir chaque résultat ; « Arrêter » laisse finir le
@@ -37,8 +37,6 @@ import {useStoredFlag} from "../../PuzzleUI/useStoredFlag.ts";
 
 type HistoryEntry = { id: number; bet: number; payout: number };
 
-// 2 crédits, 3,3 crédits…
-const fmtCredits = (n: number) => n.toLocaleString("fr-FR", {maximumFractionDigits: 1});
 const HISTORY_SIZE = 8;
 
 // arrêts affichés à l'arrivée sur la page ou après un changement de colonnes (avant un lancer)
@@ -267,7 +265,6 @@ export default function SlotMachinePage() {
                         <h1>{machine.name}</h1>
                         <RulesButton title={`Règles · ${machine.name}`}><SlotRules machine={machine} reels={reelCount} lines={lineCount}/></RulesButton>
                     </div>
-                    <p className="slots-sub">{machine.tagline}</p>
 
                     <span className="slots-label">Mise</span>
                     <div className="slots-bets" role="radiogroup" aria-label="Mise">
@@ -295,10 +292,6 @@ export default function SlotMachinePage() {
                                     className={`slots-choice ${lineCount === n ? "active" : ""}`} onClick={() => chooseLines(n)}>{n}</button>
                         ))}
                     </div>
-                    <p className="slots-hint">
-                        {fmtCredits(bet / lineCount)} crédit{bet / lineCount >= 2 ? "s" : ""} par ligne ·{" "}
-                        {lineCount === 1 ? "une seule ligne : gains rares mais gros" : lineCount === 10 ? "10 lignes : souvent un petit gain" : "moins de lignes, plus gros gains"}
-                    </p>
 
                     <span className="slots-label">Lancers</span>
                     <div className="slots-choices slots-counts" role="radiogroup" aria-label="Nombre de lancers">
@@ -313,17 +306,6 @@ export default function SlotMachinePage() {
 
                     {spinButton()}
                     {error && <p className="slots-error" role="alert">{error}</p>}
-
-                    {history.length > 0 && (
-                        <ul className="slots-history" aria-label="Derniers lancers">
-                            {history.map(h => (
-                                <li key={h.id} className={h.payout > h.bet ? "win" : h.payout > 0 ? "even" : "loss"}>
-                                    <span>{h.payout > 0 ? `+${h.payout}` : "–"}</span>
-                                    <small>mise {h.bet}</small>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
                 </section>
 
                 <section className={`slots-machine ${machine.id}`}>
@@ -348,6 +330,21 @@ export default function SlotMachinePage() {
                     </label>
                     {/* téléphone : les rouleaux passent avant les réglages, le bouton reste à portée de main */}
                     {spinButton("slots-spin-phone")}
+                </section>
+
+                {/* derniers lancers : à droite de la machine (dessous sur les écrans plus étroits) */}
+                <section className="slots-side" aria-label="Derniers lancers">
+                    <span className="slots-label">Derniers lancers</span>
+                    {history.length === 0 ? <p className="slots-history-empty">Tes lancers s'afficheront ici.</p> : (
+                        <ul className="slots-history">
+                            {history.map(h => (
+                                <li key={h.id} className={h.payout > h.bet ? "win" : h.payout > 0 ? "even" : "loss"}>
+                                    <span>{h.payout > 0 ? `+${h.payout}` : "–"}</span>
+                                    <small>mise {h.bet}</small>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </section>
             </div>
         </main>
