@@ -248,7 +248,7 @@ export default function SlotMachinePage() {
     const spinLabel = running ? <><FaStop aria-hidden/> Arrêter · {autoLeft} restant{autoLeft > 1 ? "s" : ""}</>
         : updating ? "Mise à jour imminente"
             : auth.credits < bet ? "Pas assez de crédits"
-                : spinCount > 1 ? <>Lancer {spinCount} fois · <FaCoins aria-hidden/> {bet} chacun</>
+                : spinCount > 1 ? <>Lancer ×{spinCount} · <FaCoins aria-hidden/> {bet}</>
                     : <>Lancer · <FaCoins aria-hidden/> {bet}</>;
     const spinButton = (extra = "") => (
         <button type="button" className={`slots-spin ${running ? "stop" : ""} ${extra}`} disabled={!running && !canSpin}

@@ -1,14 +1,24 @@
-// Titre du jeu, avec le bouton « Règles » à droite
+// Titre du jeu ; le bouton « Règles » est rangé en haut à droite de l'encart qui contient le titre
+// (les encarts ci-dessous lui servent de repère)
 .casino-title {
-	display         : flex;
-	flex-wrap       : wrap;
-	align-items     : center;
-	justify-content : space-between;
-	gap             : 0.5rem 1rem;
-
+	// place gardée à droite du titre pour le bouton
 	h1 {
-		margin : 0;
+		margin        : 0;
+		padding-right : 7rem;
 	}
+
+	.rules-button {
+		position : absolute;
+		top      : 1rem;
+		right    : 1rem;
+	}
+}
+
+.plinko .plinko-controls,
+.roulette .roulette-play,
+.slots .slots-controls,
+.lottery .lottery-page {
+	position : relative;
 }
 
 // Bouton « Règles » (à côté du titre du jeu)
