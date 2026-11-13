@@ -1,0 +1,473 @@
+// ---------- Une machine à sous : réglages à gauche, rouleaux à droite (rouleaux d'abord sur téléphone)
+.slots {
+	display         : flex;
+	justify-content : center;
+	padding         : 1.5rem 1rem 2rem;
+
+	.slots-layout {
+		display               : grid;
+		// la machine prend la place qu'il lui faut (plus de colonnes = plus large)
+		grid-template-columns : 21rem auto;
+		justify-content       : center;
+		gap                   : 1.75rem;
+		align-items           : start;
+		width                 : min(80rem, 100%);
+
+		@media (max-width: 900px) {
+			grid-template-columns : minmax(0, 1fr);
+
+			.slots-machine { order : -1; }
+		}
+	}
+
+	// bouton Lancer sous les rouleaux : seulement sur téléphone (sinon il est dans les réglages)
+	.slots-spin.slots-spin-phone {
+		display    : none;
+		margin-top : 0;
+
+		@media (max-width: 900px) { display : flex; }
+	}
+
+	.slots-controls,
+	.slots-machine {
+		padding       : 1.5rem;
+		box-sizing    : border-box;
+		border        : 3px solid #f9fafb;
+		border-radius : 12px;
+		background    : #02061735;
+	}
+
+	h1 {
+		margin    : 0.4rem 0 0;
+		font-size : 3rem;
+	}
+
+	.slots-sub {
+		margin    : 0.3rem 0 1.25rem;
+		font-size : 1.2rem;
+		opacity   : 0.75;
+	}
+
+	.slots-label {
+		display       : block;
+		margin-bottom : 0.5rem;
+		font-size     : 1.2rem;
+		opacity       : 0.85;
+	}
+
+	.slots-bets {
+		display               : grid;
+		grid-template-columns : repeat(3, 1fr);
+		gap                   : 0.6rem 0.3rem;
+	}
+
+	.slots-bet {
+		display         : flex;
+		justify-content : center;
+		padding         : 0.2rem 0;
+		border          : none;
+		background      : none;
+		cursor          : pointer;
+		transition      : transform 0.12s ease;
+
+		img {
+			width  : 3.6rem;
+			height : 3.6rem;
+			filter : drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
+		}
+
+		&:hover:not(:disabled) { transform : translateY(-2px); }
+
+		&.active {
+			transform : translateY(-5px) scale(1.1);
+
+			img { filter : drop-shadow(0 0 0.35rem #fbbf24) drop-shadow(0 0.3rem 0.35rem rgba(0, 0, 0, 0.5)); }
+		}
+
+		&:disabled {
+			opacity : 0.35;
+			cursor  : default;
+		}
+	}
+
+	.slots-choices {
+		display               : grid;
+		grid-template-columns : repeat(auto-fit, minmax(2.8rem, 1fr));
+		gap                   : 0.4rem;
+		margin-bottom         : 1rem;
+	}
+
+	.slots-choice {
+		padding       : 0.45rem 0;
+		border        : 2px solid rgba(251, 191, 36, 0.45);
+		border-radius : 999px;
+		background    : transparent;
+		color         : inherit;
+		font-family   : inherit;
+		font-size     : 1.2rem;
+		cursor        : pointer;
+
+		&:hover:not(:disabled) { background : rgba(251, 191, 36, 0.15); }
+
+		&.active {
+			border-color : #fbbf24;
+			background   : #fbbf24;
+			color        : #1c1917;
+			font-weight  : 600;
+		}
+
+		&:disabled:not(.active) {
+			opacity : 0.4;
+			cursor  : default;
+		}
+	}
+
+	.slots-hint {
+		margin    : -0.4rem 0 0;
+		font-size : 1rem;
+		opacity   : 0.75;
+	}
+
+	.slots-bets { margin-bottom : 1rem; }
+
+	.slots-spin {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.4rem;
+		width           : 100%;
+		margin-top      : 1.25rem;
+		padding         : 0.95rem;
+		border          : none;
+		border-radius   : 999px;
+		background      : #fbbf24;
+		color           : #1c1917;
+		font-family     : inherit;
+		font-size       : 1.5rem;
+		font-weight     : 600;
+		cursor          : pointer;
+		transition      : transform 0.1s ease, background 0.15s ease;
+
+		&:hover:not(:disabled) { background : #f59e0b; }
+		&:active:not(:disabled) { transform : scale(0.97); }
+
+		&:disabled {
+			background : rgba(251, 191, 36, 0.35);
+			cursor     : default;
+		}
+	}
+
+	.slots-error {
+		margin    : 0.7rem 0 0;
+		font-size : 1.1rem;
+		color     : #f87171;
+	}
+
+	.slots-history {
+		display               : grid;
+		grid-template-columns : repeat(4, 1fr);
+		gap                   : 0.4rem;
+		margin                : 1.25rem 0 0;
+		padding               : 0;
+		list-style            : none;
+
+		li {
+			display        : flex;
+			flex-direction : column;
+			align-items    : center;
+			padding        : 0.3rem;
+			border-radius  : 8px;
+			background     : rgba(2, 6, 23, 0.5);
+			font-size      : 1.1rem;
+
+			small { font-size : 0.8rem; opacity : 0.65; }
+
+			&.win span { color : #34d399; }
+			&.even span { color : #fbbf24; }
+			&.loss span { opacity : 0.6; }
+		}
+	}
+
+	// ---------- La machine : fenêtre des rouleaux, résultat dessous
+	.slots-machine {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 1rem;
+	}
+
+	.slots-lines-toggle {
+		display     : flex;
+		align-items : center;
+		gap         : 0.5rem;
+		margin-top  : -0.4rem;
+		font-size   : 1.05rem;
+		opacity     : 0.85;
+		cursor      : pointer;
+
+		input {
+			width        : 1.1rem;
+			height       : 1.1rem;
+			accent-color : #fbbf24;
+			cursor       : pointer;
+		}
+	}
+
+	.slots-result {
+		margin     : 0;
+		min-height : 1.6em;
+		font-size  : 1.45rem;
+		text-align : center;
+		opacity    : 0.85;
+
+		&.win {
+			color     : #fbbf24;
+			opacity   : 1;
+			animation : slots-win 0.5s cubic-bezier(.2, .9, .3, 1.4);
+		}
+	}
+}
+
+.slots .slot-window,
+.slot-window {
+	// taille fixe des cases : plus de colonnes, machine plus large ; réduites seulement si l'écran est trop étroit
+	// (à côté des réglages sur ordinateur, sur toute la largeur sur téléphone)
+	--cell        : min(8.5rem, calc((100vw - 31rem) / var(--reels, 3)));
+
+	@media (max-width: 900px) {
+		--cell : min(8.5rem, calc((100vw - 5.5rem) / var(--reels, 3)));
+	}
+	position      : relative;
+	display       : grid;
+	grid-template-columns : repeat(var(--reels, 3), var(--cell));
+	padding       : 0.7rem;
+	border        : 4px solid #1c1917;
+	border-radius : 16px;
+	background    : #1c1917;
+	box-shadow    : 0 0 0 3px #fbbf24, 0 1rem 2rem rgba(0, 0, 0, 0.45);
+}
+
+// un rouleau : fenêtre de 3 cases, la bande défile dedans
+.slot-reel {
+	height     : calc(3 * var(--cell));
+	overflow   : hidden;
+	background : #ffffff;
+
+	&:first-child { border-radius : 10px 0 0 10px; }
+	&:last-child { border-radius : 0 10px 10px 0; }
+	& + & { box-shadow : inset 4px 0 0 #1c1917; }
+}
+
+.slot-strip {
+	transform   : translateY(calc(var(--p, 0) * -1 * var(--cell)));
+	will-change : transform;
+}
+
+.slot-cell {
+	display         : flex;
+	align-items     : center;
+	justify-content : center;
+	height          : var(--cell);
+
+	img {
+		width      : 74%;
+		height     : 74%;
+		object-fit : contain;
+	}
+}
+
+// lignes jouées et gagnantes, par-dessus les rouleaux
+.slot-lines {
+	position       : absolute;
+	inset          : 0.7rem;
+	width          : calc(100% - 1.4rem);
+	height         : calc(100% - 1.4rem);
+	pointer-events : none;
+}
+
+// lignes jouées : discrètes, bien visibles juste après en avoir changé le nombre ; cachées pendant un lancer
+.slot-line-played {
+	fill            : none;
+	stroke-width    : 4;
+	stroke-linecap  : round;
+	stroke-linejoin : round;
+	vector-effect   : non-scaling-stroke;
+	opacity         : 0.28;
+	transition      : opacity 0.3s ease;
+
+	.slot-lines.hidden & { opacity : 0; }
+
+	.slot-lines.show & {
+		stroke-width : 6;
+		opacity      : 0.95;
+	}
+
+	.slot-lines.spinning &,
+	.slot-lines.has-wins & { opacity : 0; }
+}
+
+// numéros des lignes jouées, à gauche de la fenêtre (à hauteur de la case de départ)
+.slot-line-badges {
+	position       : absolute;
+	inset          : 0.7rem auto 0.7rem 0;
+	pointer-events : none;
+
+	transition : opacity 0.3s ease;
+
+	// lignes masquées : les numéros aussi (sauf pendant l'instant où les lignes s'affichent en grand)
+	&.hidden { opacity : 0; }
+
+	span {
+		position        : absolute;
+		top             : calc((var(--row) + 0.5) * var(--cell) - 0.6rem);
+		left            : calc(-0.55rem + var(--k) * -0.95rem);
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		width           : 1.2rem;
+		height          : 1.2rem;
+		border          : 2px solid #1c1917;
+		border-radius   : 50%;
+		color           : #ffffff;
+		font-size       : 0.75rem;
+		font-weight     : 700;
+		line-height     : 1;
+
+		&.win { box-shadow : 0 0 0 2px #fbbf24; }
+	}
+}
+
+.slot-line {
+	fill            : none;
+	stroke          : #fbbf24;
+	stroke-width    : 6;
+	stroke-linecap  : round;
+	stroke-linejoin : round;
+	vector-effect   : non-scaling-stroke;
+	filter          : drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
+	animation       : slots-line 0.45s ease-out;
+}
+
+.slot-line-cell {
+	fill          : rgba(251, 191, 36, 0.16);
+	stroke        : #fbbf24;
+	stroke-width  : 4;
+	vector-effect : non-scaling-stroke;
+	animation     : slots-line 0.45s ease-out;
+}
+
+// ---------- Liste des machines
+.slots-list {
+	.slots-list-head {
+		width      : min(52rem, 100%);
+		text-align : left;
+
+		h1 {
+			margin    : 0.3rem 0 0;
+			font-size : 2.6rem;
+		}
+	}
+
+	.hasard-games { margin-top : 1.25rem; }
+}
+
+.slots-back {
+	display         : inline-flex;
+	align-items     : center;
+	gap             : 0.35rem;
+	font-size       : 1.15rem;
+	color           : #f9fafb;
+	opacity         : 0.75;
+	text-decoration : none;
+
+	&:hover {
+		opacity : 1;
+		color   : #fbbf24;
+	}
+}
+
+// ---------- Règles : schémas des lignes et table des gains
+.slot-line-diagrams {
+	display               : grid;
+	grid-template-columns : repeat(auto-fill, minmax(4.2rem, 1fr));
+	gap                   : 0.6rem;
+	margin                : 0.4rem 0 0.8rem;
+}
+
+.slot-line-diagram {
+	display        : flex;
+	flex-direction : column;
+	align-items    : center;
+	gap            : 0.2rem;
+	margin         : 0;
+
+	svg { width : 100%; }
+
+	rect {
+		fill   : rgba(249, 250, 251, 0.12);
+
+		&.on { fill : rgba(249, 250, 251, 0.45); }
+	}
+
+	figcaption {
+		font-size : 0.9rem;
+		opacity   : 0.6;
+	}
+
+	&.played figcaption {
+		opacity     : 1;
+		font-weight : 600;
+	}
+}
+
+.slot-paytable {
+	width           : 100%;
+	border-collapse : collapse;
+	font-size       : 1rem;
+
+	th, td {
+		padding    : 0.3rem 0.4rem;
+		text-align : right;
+	}
+
+	th:first-child, td:first-child { text-align : left; }
+
+	th {
+		font-weight : 400;
+		opacity     : 0.7;
+	}
+
+	td {
+		color : #fbbf24;
+
+		&:first-child {
+			display     : flex;
+			align-items : center;
+			gap         : 0.6rem;
+			color       : inherit;
+		}
+	}
+
+	tr + tr td { border-top : 1px solid rgba(249, 250, 251, 0.08); }
+
+	img {
+		width         : 2.2rem;
+		height        : 2.2rem;
+		padding       : 0.15rem;
+		border-radius : 6px;
+		background    : #ffffff;
+		object-fit    : contain;
+	}
+}
+
+@keyframes slots-win {
+	from { transform : scale(0.7); opacity : 0; }
+}
+
+@keyframes slots-line {
+	from { opacity : 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.slot-line, .slot-line-cell, .slots .slots-result.win { animation : none; }
+}

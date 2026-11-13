@@ -2,14 +2,14 @@
  * Qui est où sur le site, onglet par onglet : chaque onglet ouvert envoie sa page toutes les 15 secondes
  * (toutes les 5 s pendant une mise à jour) avec POST /maintenance/presence. Sans nouvelles depuis TIMEOUT_MS,
  * l'onglet est oublié (fermé, ordinateur en veille).
- * - page : site (pages sans partie), puzzle, roulette ou plinko ; un puzzle donne aussi son jeu et le début
+ * - page : site (pages sans partie), puzzle, roulette, plinko ou slots (machines à sous) ; un puzzle donne aussi son jeu et le début
  *   de la partie s'il y en a une en cours
  * - closed : l'onglet affiche l'écran « Mise à jour en cours »
  * Pendant une mise à jour, chaque onglet qui passe sur l'écran est noté (journal) : l'onglet « En direct »
  * des Statistiques prévient l'administrateur et compte les joueurs envoyés, page par page.
  */
 
-export const PAGES = ["site", "puzzle", "roulette", "plinko"] as const;
+export const PAGES = ["site", "puzzle", "roulette", "plinko", "slots"] as const;
 export type Page = typeof PAGES[number];
 export const isPage = (v: unknown): v is Page => typeof v === "string" && (PAGES as readonly string[]).includes(v);
 

@@ -1,5 +1,5 @@
 /**
- * Onglet « Hasard » de la page Statistiques (administrateur) : Plinko et roulette.
+ * Onglet « Hasard » de la page Statistiques (administrateur) : Plinko, roulette et machines à sous.
  * - chiffres clés : mises, crédits misés et rendus, bénéfice de la maison, joueurs, records
  * - par jeu : taux de retour observé face au taux attendu
  * - activité : crédits misés et rendus par jour, heures de jeu
@@ -23,6 +23,7 @@ import {hasPeriod, type StatsFilter, timelineTitle} from "./statsFilter.ts";
 const GAMES: Record<string, { name: string; color: string; rtp: number }> = {
     plinko: {name: "Plinko", color: "#3987e5", rtp: PLINKO_RTP},
     roulette: {name: "Roulette", color: "#e46f24", rtp: 36 / 37},
+    slots: {name: "Machines à sous", color: "#1baf7a", rtp: 0.96},
 };
 const gameName = (game: string) => GAMES[game]?.name ?? game;
 // Multiplicateurs d'une case du Plinko dans les trois tableaux (prudent · équilibré · risqué)
@@ -84,8 +85,8 @@ export default function CasinoStats({filter}: { filter: StatsFilter }) {
 
 function CasinoContent({data, filter}: { data: CasinoStatsData; filter: StatsFilter }) {
     // filtre sur un seul jeu : on cache les parties de l'autre
-    const showPlinko = filter.game !== "roulette";
-    const showRoulette = filter.game !== "plinko";
+    const showPlinko = filter.game === null || filter.game === "plinko";
+    const showRoulette = filter.game === null || filter.game === "roulette";
     const o = data.overview;
     const house = o.wagered - o.paid;
     const rounds = data.rouletteRounds;

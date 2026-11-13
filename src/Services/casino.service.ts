@@ -76,10 +76,24 @@ export interface LotteryInfo {
     winners: { date: string; username: string; prize: number; tickets: number; totalTickets: number }[];
 }
 
+// Un lancer de machine à sous (voir backend/src/utils/slots.ts)
+export interface SlotSpinResult {
+    stops: number[];
+    grid: string[][];
+    wins: { line: number; symbol: string; count: number; pays: number }[];
+    payout: number;
+    credits: number;
+}
+
 const json = {"Content-Type": "application/json"};
 
 export const casinoService = {
     // risk : tableau de gains choisi (prudent, équilibré ou risqué)
+    // machine à sous : un lancer (arrêts des rouleaux, grille, lignes gagnantes, gain, solde)
+    slotSpin(machine: string, bet: number, reels: number, lines: number): Promise<SlotSpinResult> {
+        return api<SlotSpinResult>(`/casino/slots/${encodeURIComponent(machine)}`, {method: "POST", headers: json, body: JSON.stringify({bet, reels, lines})});
+    },
+
     plinko(bet: number, risk: PlinkoRisk): Promise<PlinkoResult> {
         return api<PlinkoResult>("/casino/plinko", {method: "POST", headers: json, body: JSON.stringify({bet, risk})});
     },

@@ -48,6 +48,8 @@ import FeedbackPage from "./Components/Feedback/FeedbackPage.tsx";
 import PlinkoPage from "./Components/Hasard/Plinko/PlinkoPage.tsx";
 import RoulettePage from "./Components/Hasard/Roulette/RoulettePage.tsx";
 import LotteryPage from "./Components/Hasard/Lottery/LotteryPage.tsx";
+import SlotsList from "./Components/Hasard/Slots/SlotsList.tsx";
+import SlotMachinePage from "./Components/Hasard/Slots/SlotMachinePage.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -103,6 +105,8 @@ function App() {
                 <Route path="/hasard/plinko" element={<PlinkoPage/>}/>
                 <Route path="/hasard/roulette" element={<RoulettePage/>}/>
                 <Route path="/hasard/loterie" element={<LotteryPage/>}/>
+                <Route path="/hasard/machines" element={<SlotsList/>}/>
+                <Route path="/hasard/machines/:id" element={<SlotMachinePage/>}/>
                 <Route path="/boutique" element={<ShopPage/>}/>
                 <Route path="/retour" element={<FeedbackPage/>}/>
                 <Route path="/boutique/fonds/degrades" element={<GradientsPage/>}/>

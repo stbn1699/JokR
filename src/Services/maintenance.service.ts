@@ -9,7 +9,7 @@ export interface MaintenanceState {
     puzzleGraceMs: number;
 }
 
-export type PresencePage = "site" | "puzzle" | "roulette" | "plinko";
+export type PresencePage = "site" | "puzzle" | "roulette" | "plinko" | "slots";
 
 // Où est un onglet (envoyé toutes les 15 s, 5 s pendant une mise à jour)
 export interface PresenceBody {

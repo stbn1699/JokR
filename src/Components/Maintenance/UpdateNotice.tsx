@@ -30,6 +30,8 @@ export default function UpdateNotice({site}: { site: SiteMaintenance }) {
             <b> {countdown((site.deadline ?? now) - now)}</b>, ou dès ta grille validée.</>
         : a.page === "roulette"
             ? <>Une mise à jour va arriver : c'est le dernier tour. Le site fermera une fois les gains versés.</>
-            : <>Une mise à jour va arriver : plus de nouvelle bille. Le site fermera quand les tiennes seront tombées.</>;
+            : a.page === "slots"
+                ? <>Une mise à jour va arriver : plus de nouveau lancer. Le site fermera quand tes rouleaux seront arrêtés.</>
+                : <>Une mise à jour va arriver : plus de nouvelle bille. Le site fermera quand les tiennes seront tombées.</>;
     return <div className="update-notice" role="status">{text}</div>;
 }

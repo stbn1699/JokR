@@ -20,6 +20,7 @@ import {
 import {HISTORY_SIZE, LiveRouletteRepository} from "../repository/LiveRoulette.repository.js";
 import {maintenance, MAINTENANCE_MESSAGE} from "../services/maintenance.js";
 import {LotteryRepository} from "../repository/Lottery.repository.js";
+import {encodeSlotSpin, isSlotBet, isSlotLineCount, isSlotReelCount, SLOT_MACHINES, slotMachine, slotSpin, slotStops} from "../utils/slots.js";
 import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, lotteryPrize, lotteryTickets, nextLotteryDraw} from "../utils/lottery.js";
 
 /*
@@ -37,6 +38,10 @@ import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, l
  *   - POST /casino/roulette/bets { bets: [{ key, amount }] } : pose des jetons sur le tour en cours
  *   - DELETE /casino/roulette/bets : retire tous ses jetons du tour en cours
  *   Le tirage et le paiement sont faits par services/rouletteScheduler.ts.
+ * - POST /casino/slots/:machine { bet, reels, lines } : un lancer de machine à sous (voir backend/src/utils/slots.ts),
+ *   sur 3, 4 ou 5 colonnes et 1, 3, 5 ou 10 lignes de gain. Le serveur tire l'arrêt de chaque rouleau, encaisse la
+ *   mise et paie les lignes gagnantes → { stops, grid, wins: [{ line, symbol, count, pays }], payout, credits }
+ *   Partie enregistrée sous le jeu « slots » (seed : machine, colonnes, lignes et arrêts ; outcome : lignes gagnantes).
  * - GET /casino/lottery : les trois loteries (jour, semaine, mois, voir backend/src/utils/lottery.ts) →
  *   [{ kind, drawAt, periodStart, percent, totalBet, prize, totalTickets, players, myBet, myTickets, nextTicketIn,
  *   winners: [{ date, username, prize, tickets, totalTickets }] }] (prize : ce que gagnerait le gagnant maintenant)
@@ -90,6 +95,39 @@ router.post("/plinko", dropLimiter, asyncHandler(async (req: Request, res: Respo
 
     const {seed, outcome: slot, payout} = result.draw;
     res.status(200).json({status: "ok", data: {seed, slot, multiplier: plinkoMultiplier(slot, risk), payout, credits: result.credits}});
+}));
+
+// Machines à sous : un lancer
+router.post("/slots/:machine", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+    const machine = slotMachine(req.params.machine);
+    if (!machine) return void res.status(404).json({status: "error", message: "Machine inconnue"});
+    const bet: unknown = req.body?.bet;
+    if (!isSlotBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
+    const reels: unknown = req.body?.reels ?? 3;
+    const lines: unknown = req.body?.lines ?? 5;
+    if (!isSlotReelCount(reels) || !isSlotLineCount(lines)) {
+        return void res.status(400).json({status: "error", message: "Nombre de colonnes ou de lignes invalide"});
+    }
+    if (maintenance.blocksNewGames()) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
+
+    // mode admin : les rouleaux tournent pour de vrai, mais rien n'est retiré, gagné ni enregistré
+    if (res.locals.ghost) {
+        const stops = slotStops(machine, reels, n => randomInt(n));
+        const credits = await liveRoulette.credits(res.locals.userId!);
+        return void res.status(200).json({status: "ok", data: {stops, ...slotSpin(machine, stops, bet, lines), credits}});
+    }
+
+    let stops: number[] = [];
+    const result = await casino.play(res.locals.userId!, "slots", bet, () => {
+        stops = slotStops(machine, reels, n => randomInt(n));
+        const spin = slotSpin(machine, stops, bet, lines);
+        return {seed: encodeSlotSpin(SLOT_MACHINES.indexOf(machine), lines, stops), outcome: spin.wins.length, payout: spin.payout};
+    });
+    if (!result.ok || !result.draw) {
+        const credits = !result.ok && result.reason === "credits";
+        return void res.status(credits ? 402 : 404).json({status: "error", message: credits ? "Pas assez de crédits" : "Compte introuvable"});
+    }
+    res.status(200).json({status: "ok", data: {stops, ...slotSpin(machine, stops, bet, lines), credits: result.credits}});
 }));
 
 const CLOSED_MESSAGE = "Les mises de ce tour sont fermées, attends le prochain";
