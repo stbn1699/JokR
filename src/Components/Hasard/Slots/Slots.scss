@@ -122,6 +122,39 @@
 		}
 	}
 
+	// lancers en série : 6 choix sur 3 colonnes ; 50 et 100 sous cadenas
+	.slots-counts { grid-template-columns : repeat(3, 1fr); }
+
+	.slots-choice.locked {
+		display         : inline-flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.3rem;
+		border-style    : dashed;
+		opacity         : 0.45;
+		cursor          : not-allowed;
+
+		svg { font-size : 0.85em; }
+	}
+
+	// bouton Lancer pendant une série : Arrêter
+	.slots-spin.stop {
+		background : #f87171;
+		color      : #1c1917;
+
+		&:hover { background : #ef4444; }
+	}
+
+	.slots-series {
+		margin    : -0.4rem 0 0;
+		font-size : 1.1rem;
+		opacity   : 0.85;
+
+		b { color : #f87171; }
+
+		&.win b { color : #34d399; }
+	}
+
 	.slots-hint {
 		margin    : -0.4rem 0 0;
 		font-size : 1rem;
