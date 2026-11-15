@@ -8,10 +8,10 @@
 
 .hasard .hasard-games {
 	display               : grid;
-	grid-template-columns : repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
-	gap                   : 1rem;
-	// même largeur que le bandeau des loteries au-dessus
-	width                 : min(52rem, 100%);
+	grid-template-columns : repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+	gap                   : 1.25rem;
+	// plus large que le bandeau des loteries : les cartes débordent de chaque côté
+	width                 : min(68rem, 100%);
 	margin-top            : 2.25rem;
 	text-align            : left;
 }
@@ -20,8 +20,8 @@
 .hasard .hasard-game {
 	display         : flex;
 	align-items     : center;
-	gap             : 1rem;
-	padding         : 1rem;
+	gap             : 1.5rem;
+	padding         : 1.25rem 1.5rem;
 	border          : 3px solid #f9fafb;
 	border-radius   : 12px;
 	background      : #02061735;
@@ -46,8 +46,8 @@
 	display         : flex;
 	align-items     : center;
 	justify-content : center;
-	width           : 5.5rem;
-	height          : 5.5rem;
+	width           : 8rem;
+	height          : 8rem;
 	overflow        : hidden;
 	border          : 2px dashed rgba(249, 250, 251, 0.35);
 	border-radius   : 12px;
@@ -67,11 +67,11 @@
 	gap            : 0.2rem;
 	min-width      : 0;
 
-	strong { font-size : 1.7rem; }
+	strong { font-size : 2.1rem; }
 }
 
 .hasard .hasard-game-text {
-	font-size : 1.1rem;
+	font-size : 1.25rem;
 	opacity   : 0.8;
 }
 
@@ -102,9 +102,9 @@
 // Téléphone : icône plus petite
 @media (max-width: 640px) {
 	.hasard .hasard-game-icon {
-		width  : 4.25rem;
-		height : 4.25rem;
+		width  : 5.5rem;
+		height : 5.5rem;
 	}
 
-	.hasard .hasard-game-body strong { font-size : 1.45rem; }
+	.hasard .hasard-game-body strong { font-size : 1.65rem; }
 }
