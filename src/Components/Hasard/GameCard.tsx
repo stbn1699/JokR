@@ -3,7 +3,7 @@ import {Link} from "react-router-dom";
 
 /**
  * Carte d'un jeu de hasard (page Hasard, liste des machines à sous) : icône à gauche, nom, phrase et étiquettes.
- * L'icône pas encore dessinée laisse une case en pointillés. Sans lien : carte « bientôt ».
+ * L'icône pas encore dessinée laisse une case en pointillés. Sans lien ni action : carte « bientôt ».
  * Styles dans Hasard.scss (sous .hasard).
  */
 
@@ -12,13 +12,15 @@ export type GameTag = { text: ReactNode; kind: "gain" | "live" };
 
 type GameCardProps = {
     to?: string;
+    // carte qui ouvre une fenêtre au lieu d'une page (roue du jour)
+    onClick?: () => void;
     icon: string;
     name: string;
     text: string;
     tags?: GameTag[];
 };
 
-export default function GameCard({to, icon, name, text, tags = []}: GameCardProps) {
+export default function GameCard({to, onClick, icon, name, text, tags = []}: GameCardProps) {
     const [noIcon, setNoIcon] = useState(false);
     const body = (
         <>
@@ -36,5 +38,7 @@ export default function GameCard({to, icon, name, text, tags = []}: GameCardProp
             </span>
         </>
     );
-    return to ? <Link to={to} className="hasard-game">{body}</Link> : <div className="hasard-game soon" aria-disabled>{body}</div>;
+    if (to) return <Link to={to} className="hasard-game">{body}</Link>;
+    if (onClick) return <button type="button" className="hasard-game" onClick={onClick}>{body}</button>;
+    return <div className="hasard-game soon" aria-disabled>{body}</div>;
 }

@@ -28,6 +28,10 @@
 	color           : #f9fafb;
 	text-decoration : none;
 	transition      : border-color 0.15s ease, transform 0.15s ease;
+	// carte bouton (roue du jour) : même allure qu'un lien
+	font            : inherit;
+	text-align      : left;
+	cursor          : pointer;
 
 	&:not(.soon):hover {
 		border-color : #fbbf24;

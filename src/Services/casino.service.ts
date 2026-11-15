@@ -2,6 +2,22 @@ import {api} from "../api/api.ts";
 import type {RouletteBet} from "../../backend/src/utils/roulette.ts";
 import type {PlinkoRisk} from "../../backend/src/utils/plinko.ts";
 
+// Roue du jour (voir backend/src/utils/wheel.ts)
+export interface WheelStatus {
+    available: boolean;
+    // prochain lancer possible (minuit, heure de Paris), en ms
+    nextAt: number;
+    today: { segment: number } | null;
+}
+
+// level et xp : null en mode admin (rien n'est donné)
+export interface WheelSpin {
+    segment: number;
+    credits: number;
+    level: number | null;
+    xp: number | null;
+}
+
 // Une bille lâchée : la graine de sa chute (le site la rejoue), sa case et le gain
 export interface PlinkoResult {
     seed: number;
@@ -96,6 +112,16 @@ export const casinoService = {
 
     plinko(bet: number, risk: PlinkoRisk): Promise<PlinkoResult> {
         return api<PlinkoResult>("/casino/plinko", {method: "POST", headers: json, body: JSON.stringify({bet, risk})});
+    },
+
+    // Roue du jour : lancer disponible aujourd'hui ? (nextAt : minuit, prochain lancer possible)
+    wheel(signal?: AbortSignal): Promise<WheelStatus> {
+        return api<WheelStatus>("/casino/wheel", {method: "GET"}, signal);
+    },
+
+    // Lance la roue du jour (409 si déjà lancée aujourd'hui) → case tirée, solde, niveau et XP après le gain
+    spinWheel(): Promise<WheelSpin> {
+        return api<WheelSpin>("/casino/wheel", {method: "POST"});
     },
 
     lottery(signal?: AbortSignal): Promise<LotteryInfo[]> {

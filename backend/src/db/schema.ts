@@ -234,6 +234,16 @@ export type RouletteBetsTable = {
     created_at: Generated<Date>;
 };
 
+// Roue du jour du Hasard : un lancer par joueur et par jour (heure de Paris)
+export type DailyWheelSpinsTable = {
+    user_id: string;
+    spin_date: string;
+    segment: number;
+    credits: Generated<number>;
+    xp: Generated<number>;
+    created_at: Generated<Date>;
+};
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
@@ -253,5 +263,6 @@ export type DB = {
     roulette_rounds: RouletteRoundsTable;
     roulette_bets: RouletteBetsTable;
     lottery_draws: LotteryDrawsTable;
+    daily_wheel_spins: DailyWheelSpinsTable;
 };
 

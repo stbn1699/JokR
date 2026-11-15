@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_wheel)">
+<rect width="512" height="512" rx="50" fill="white"/>
+<path d="M256 296L175.6 102.0A210 210 0 0 1 336.4 102.0Z" fill="#F8A4A4" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+<path d="M256 296L336.4 102.0A210 210 0 0 1 450.0 215.6Z" fill="#FFDF88" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+<path d="M256 296L450.0 215.6A210 210 0 0 1 450.0 376.4Z" fill="#88C9FF" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+<path d="M256 296L450.0 376.4A210 210 0 0 1 336.4 490.0Z" fill="#FFDF88" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+<path d="M256 296L336.4 490.0A210 210 0 0 1 175.6 490.0Z" fill="#88C9FF" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+<path d="M256 296L175.6 490.0A210 210 0 0 1 62.0 376.4Z" fill="#FFDF88" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+<path d="M256 296L62.0 376.4A210 210 0 0 1 62.0 215.6Z" fill="#88C9FF" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+<path d="M256 296L62.0 215.6A210 210 0 0 1 175.6 102.0Z" fill="#FFDF88" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+<circle cx="256" cy="296" r="210" stroke="black" stroke-width="10"/>
+<circle cx="256" cy="296" r="44" fill="white" stroke="black" stroke-width="10"/>
+<path d="M214 30H298L256 116Z" fill="black" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+</g>
+<defs>
+<clipPath id="clip_wheel">
+<rect width="512" height="512" rx="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>

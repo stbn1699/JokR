@@ -21,6 +21,9 @@ import {HISTORY_SIZE, LiveRouletteRepository} from "../repository/LiveRoulette.r
 import {maintenance, MAINTENANCE_MESSAGE} from "../services/maintenance.js";
 import {LotteryRepository} from "../repository/Lottery.repository.js";
 import {encodeSlotSpin, isSlotBet, isSlotLineCount, isSlotReelCount, SLOT_MACHINES, slotMachine, slotSpin, slotStops} from "../utils/slots.js";
+import {WheelRepository} from "../repository/Wheel.repository.js";
+import {WHEEL_TOTAL_WEIGHT, wheelSegmentFor} from "../utils/wheel.js";
+import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
 import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, lotteryPrize, lotteryTickets, nextLotteryDraw} from "../utils/lottery.js";
 
 /*
@@ -48,6 +51,10 @@ import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, l
  *   [{ kind, drawAt, periodStart, percent, totalBet, prize, totalTickets, players, myBet, myTickets, nextTicketIn,
  *   winners: [{ date, username, prize, tickets, totalTickets }] }] (prize : ce que gagnerait le gagnant maintenant)
  *   Les tirages sont faits par services/lotteryScheduler.ts.
+ * - Roue du jour (voir backend/src/utils/wheel.ts) : un lancer gratuit par jour, heure de Paris.
+ *   - GET /casino/wheel → { available, nextAt, today: { segment } | null } (nextAt : prochain lancer possible, minuit)
+ *   - POST /casino/wheel → { segment, credits, level, xp } (solde, niveau et XP après le gain) ; 409 si déjà lancée
+ *     aujourd'hui. Mode admin : la roue tourne autant qu'on veut, sans rien donner ni enregistrer.
  * Mise à jour en préparation (services/maintenance.ts) : plus de bille de Plinko, et plus de mise à la roulette
  * après le tour en cours au moment de la coupure (503, code « maintenance »).
  */
@@ -56,6 +63,7 @@ const db = createDb(pool);
 const casino = new CasinoRepository(db);
 const liveRoulette = new LiveRouletteRepository(db);
 const lottery = new LotteryRepository(db);
+const wheel = new WheelRepository(db);
 
 // Une bille toutes les ~0,3 s au plus, en moyenne sur une minute
 const dropLimiter = rateLimit({windowMs: 60 * 1000, limit: 200, standardHeaders: "draft-7", legacyHeaders: false,
@@ -130,6 +138,28 @@ router.post("/slots/:machine", dropLimiter, asyncHandler(async (req: Request, re
         return void res.status(credits ? 402 : 404).json({status: "error", message: credits ? "Pas assez de crédits" : "Compte introuvable"});
     }
     res.status(200).json({status: "ok", data: {stops, ...slotSpin(machine, stops, bet, lines), credits: result.credits}});
+}));
+
+// Roue du jour : déjà lancée aujourd'hui ? (en mode admin, toujours disponible)
+router.get("/wheel", asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
+    const now = new Date();
+    const today = res.locals.ghost ? null : await wheel.spinOn(res.locals.userId!, dailyDate(now));
+    res.status(200).json({status: "ok", data: {available: today === null, nextAt: nextDailyChange(now).getTime(), today}});
+}));
+
+router.post("/wheel", asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
+    const segment = wheelSegmentFor(randomInt(WHEEL_TOTAL_WEIGHT));
+    // mode admin : la roue tourne pour de vrai, mais rien n'est donné ni enregistré
+    if (res.locals.ghost) {
+        const credits = await liveRoulette.credits(res.locals.userId!);
+        return void res.status(200).json({status: "ok", data: {segment, credits, level: null, xp: null}});
+    }
+    const result = await wheel.spin(res.locals.userId!, dailyDate(), segment);
+    if (!result.ok) {
+        return void res.status(result.reason === "already" ? 409 : 404).json({status: "error",
+            message: result.reason === "already" ? "Tu as déjà lancé la roue aujourd'hui, reviens demain !" : "Compte introuvable"});
+    }
+    res.status(200).json({status: "ok", data: {segment, credits: result.credits, level: result.level, xp: result.xp}});
 }));
 
 const CLOSED_MESSAGE = "Les mises de ce tour sont fermées, attends le prochain";
