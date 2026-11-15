@@ -21,22 +21,32 @@
 		display: block;
 	}
 
-	// Onglets Puzzle / Hasard, centrés dans l'espace entre le logo et la zone joueur
-	// (jamais par-dessus : ils passent sur une 2e ligne quand la place manque)
+	// Catégories de jeux (Puzzle, Hasard), centrées dans l'espace entre le logo et la zone joueur :
+	// un sélecteur en pilule, la catégorie affichée en sombre
+	// (jamais par-dessus : il passe sur une 2e ligne quand la place manque)
 	.header-tabs {
 		flex            : 1;
 		display         : flex;
 		justify-content : center;
-		gap             : 0.4rem;
 		margin          : 0 1rem;
 	}
 
+	.header-tabs-track {
+		display       : flex;
+		gap           : 0.25rem;
+		padding       : 0.25rem;
+		border-radius : 999px;
+		background    : rgba(55, 65, 81, 0.1);
+	}
+
 	.header-tab {
-		padding         : 0.3rem 1.4rem;
+		position        : relative;
+		padding         : 0.3rem 1.8rem;
 		border-radius   : 999px;
 		color           : #374151;
-		font-size       : 1.7rem;
+		font-size       : 1.6rem;
 		font-weight     : 600;
+		text-align      : center;
 		text-decoration : none;
 		transition      : background 0.15s ease, color 0.15s ease;
 
@@ -44,26 +54,49 @@
 			background : rgba(55, 65, 81, 0.12);
 		}
 
-		// Onglet de la page affichée (l'orange est réservé à Daily)
 		&.active {
 			background : #374151;
 			color      : #F4E5CB;
 		}
+	}
 
-		// Onglet Daily : toujours en orange (même couleur que les badges « XP et crédits ×2 »)
-		&.highlight {
-			background : #f59e0b;
-			color      : #1f1300;
+	// Défis du jour pas encore faits : petit point orange en haut à droite de l'onglet Puzzle
+	.header-tab-dot {
+		position      : absolute;
+		top           : 0.3rem;
+		right         : 0.7rem;
+		width         : 0.55rem;
+		height        : 0.55rem;
+		border-radius : 50%;
+		background    : #f59e0b;
+		box-shadow    : 0 0 0 2px #F4E5CB;
+	}
 
-			&:hover {
-				background : #fbbf24;
-			}
+	.header-tab.active .header-tab-dot {
+		box-shadow : 0 0 0 2px #374151;
+	}
 
-			&.active {
-				background : #f59e0b;
-				color      : #1f1300;
-				box-shadow : 0 0 0 2px #F4E5CB, 0 0 0 4px #374151;
-			}
+	// Classement et Boutique : icônes rondes, comme la cloche
+	.header-icon {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		flex            : none;
+		width           : 2.4rem;
+		height          : 2.4rem;
+		border-radius   : 50%;
+		color           : #374151;
+		font-size       : 1.3rem;
+		text-decoration : none;
+		transition      : background 0.15s ease;
+
+		&:hover {
+			background : rgba(55, 65, 81, 0.12);
+		}
+
+		&.active {
+			background : #374151;
+			color      : #F4E5CB;
 		}
 	}
 
@@ -94,7 +127,7 @@
 		}
 
 		// Un peu plus d'air avant l'icône de profil
-		.header-avatar {
+		.profile-menu {
 			margin-left : 0.4rem;
 		}
 
@@ -170,19 +203,22 @@
 			}
 		}
 
-		// Crédits du joueur, à côté du niveau
+		// Crédits du joueur, à côté du niveau (un clic mène à la boutique)
 		.credits {
-			display     : flex;
-			align-items : center;
-			gap         : 0.35rem;
-			color       : #b45309;
-			font-size   : 1.35rem;
-			font-weight : 700;
-			cursor      : default;
-			transition  : color 0.3s ease, text-shadow 0.3s ease;
+			display         : flex;
+			align-items     : center;
+			gap             : 0.35rem;
+			padding         : 0.2rem 0.5rem;
+			margin          : -0.2rem -0.5rem;
+			border-radius   : 10px;
+			color           : #b45309;
+			font-size       : 1.35rem;
+			font-weight     : 700;
+			text-decoration : none;
+			transition      : color 0.3s ease, text-shadow 0.3s ease, background 0.15s ease;
 
-			svg {
-				cursor : default;
+			&:hover {
+				background : rgba(180, 83, 9, 0.1);
 			}
 
 			// Crédits qui défilent après une victoire : ils s'illuminent
@@ -298,13 +334,10 @@
 			height : 2.2rem;
 		}
 
-		.header-tabs {
-			gap : 0.15rem;
-		}
-
-		// 5 onglets (6 pour l'administrateur) : plus serrés, et défilement si ça ne tient toujours pas
-		.header-tabs {
-			justify-content : safe center;
+		// le sélecteur prend toute la largeur : deux gros boutons faciles à toucher
+		// (défilement si d'autres catégories arrivent un jour et ne tiennent plus)
+		.header-tabs-track {
+			flex            : 1;
 			overflow-x      : auto;
 			scrollbar-width : none;
 
@@ -314,9 +347,15 @@
 		}
 
 		.header-tab {
-			flex-shrink : 0;
-			padding     : 0.2rem 0.4rem;
-			font-size   : 0.98rem;
+			flex        : 1 0 auto;
+			padding     : 0.25rem 1rem;
+			font-size   : 1.2rem;
+		}
+
+		.header-icon {
+			width     : 2rem;
+			height    : 2rem;
+			font-size : 1.1rem;
 		}
 
 		.usersection {
@@ -331,8 +370,8 @@
 				height : 1.1rem;
 			}
 
-			.header-avatar {
-				margin-left : 0.2rem;
+			.profile-menu {
+				margin-left : 0.1rem;
 			}
 
 			.level-badge,
@@ -347,6 +386,20 @@
 			.header-avatar .avatar-frame {
 				--avatar-size : 2.1rem;
 			}
+		}
+	}
+}
+
+// Petit téléphone : le niveau est dans le menu de la photo de profil (et sur son contour)
+@media (max-width: 440px) {
+	.header .usersection {
+		.level-badge,
+		.user-divider {
+			display : none;
+		}
+
+		.user-section {
+			gap : 0.45rem;
 		}
 	}
 }
@@ -369,36 +422,115 @@
 	}
 }
 
-// ---------- Mode admin (administrateurs)
-// (une icône ronde, comme la cloche ; verte quand le mode est actif)
-.admin-toggle {
-	display         : inline-flex;
-	align-items     : center;
-	justify-content : center;
-	flex            : none;
-	width           : 2.3rem;
-	height          : 2.3rem;
-	padding         : 0;
-	border          : 2px solid rgba(55, 65, 81, 0.35);
-	border-radius   : 50%;
-	background      : transparent;
-	color           : #374151;
-	font-size       : 1.15rem;
-	cursor          : pointer;
+// ---------- Menu de la photo de profil (voir ProfileMenu.tsx)
+.profile-menu {
+	position : relative;
+	display  : flex;
+}
 
-	&:hover:not(:disabled) {
-		border-color : #22c55e;
+.profile-menu-panel {
+	position       : absolute;
+	z-index        : 60;
+	top            : calc(100% + 0.9rem);
+	right          : -0.5rem;
+	display        : flex;
+	flex-direction : column;
+	width          : 15.5rem;
+	padding        : 0.4rem;
+	border         : 1px solid rgba(255, 255, 255, 0.1);
+	border-radius  : 12px;
+	background     : linear-gradient(180deg, #0f172a, #0b1220);
+	box-shadow     : 0 1rem 2.5rem rgba(0, 0, 0, 0.55);
+	color          : #f8fafc;
+	font-size      : 1.1rem;
+	text-align     : left;
+	animation      : profile-menu-in 0.15s ease-out;
+
+	a,
+	button {
+		display         : flex;
+		align-items     : center;
+		gap             : 0.7rem;
+		box-sizing      : border-box;
+		width           : 100%;
+		padding         : 0.55rem 0.75rem;
+		border          : none;
+		border-radius   : 8px;
+		background      : none;
+		color           : inherit;
+		font-family     : inherit;
+		font-size       : inherit;
+		text-align      : left;
+		text-decoration : none;
+		cursor          : pointer;
+
+		svg {
+			flex    : none;
+			width   : 1.1rem;
+			opacity : 0.75;
+		}
+
+		&:hover:not(:disabled) {
+			background : rgba(255, 255, 255, 0.08);
+		}
+
+		&:disabled {
+			opacity : 0.6;
+			cursor  : default;
+		}
 	}
 
-	&.on {
-		border-color : #16a34a;
-		background   : #22c55e;
-		color        : #052e16;
+	hr {
+		margin     : 0.3rem 0.5rem;
+		border     : none;
+		border-top : 1px solid rgba(255, 255, 255, 0.1);
 	}
 
-	&:disabled {
-		opacity : 0.6;
+	// mode admin actif : en vert, comme le cadre autour de la page
+	.profile-menu-admin.on {
+		color : #4ade80;
 	}
+}
+
+.profile-menu-head {
+	display        : flex;
+	flex-direction : column;
+	gap            : 0.2rem;
+	padding        : 0.5rem 0.75rem 0.7rem;
+	margin-bottom  : 0.3rem;
+	border-bottom  : 1px solid rgba(255, 255, 255, 0.1);
+
+	strong {
+		font-size : 1.25rem;
+	}
+
+	span {
+		font-size : 0.95rem;
+		color     : #93c5fd;
+	}
+}
+
+.profile-menu-xp {
+	display       : block;
+	height        : 4px;
+	margin-top    : 0.15rem;
+	border-radius : 999px;
+	overflow      : hidden;
+	background    : rgba(59, 130, 246, 0.25);
+
+	span {
+		display    : block;
+		height     : 100%;
+		background : linear-gradient(90deg, #3b82f6, #60a5fa);
+	}
+}
+
+@keyframes profile-menu-in {
+	from { opacity : 0; transform : translateY(-0.3rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.profile-menu-panel { animation : none; }
 }
 
 // Cadre vert de 5 px autour de toute la fenêtre : on sait qu'on est en mode admin

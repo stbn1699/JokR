@@ -3,18 +3,18 @@
  *
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
- * - Les onglets Daily (défis du jour, en orange), Puzzle (accueil : Sudoku, Binero, Rikudo, Tectonic, Galaxies, Shikaku, Queens…),
- *   Hasard (jeux de hasard, à venir), Boutique, Classement, et Stats pour l'administrateur
- * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits, cloche des notifications, puis icône de profil
- *   (contour selon le niveau) vers le profil (la déconnexion est dans le profil)
+ * - Au centre, les catégories de jeux seulement : Puzzle (accueil, défis du jour compris) et Hasard.
+ *   Un point orange sur Puzzle tant que le joueur n'a pas fini les défis du jour.
+ * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits (vers la boutique), Classement et Boutique en
+ *   icônes (et Stats pour les administrateurs), cloche des notifications, puis l'icône de profil (contour selon le niveau) qui ouvre le menu du
+ *   compte (profil, personnaliser, nouveautés, retours, mode admin et stats ; voir ProfileMenu)
  * - Invité : icône pour aller à la page de connexion
  *
  * Les infos viennent de l'AuthContext : le header se met à jour dès qu'elles changent.
  */
 
 import "./Header.scss"
-import {FaCoins, FaStar, FaUser, FaUserShield} from "react-icons/fa";
-import Avatar from "../Avatar/Avatar.tsx";
+import {FaChartBar, FaCoins, FaShoppingBag, FaStar, FaTrophy, FaUser} from "react-icons/fa";
 import NotificationBell from "../Notifications/NotificationBell.tsx";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
@@ -25,39 +25,40 @@ import {createPortal} from "react-dom";
 import {useTierUp} from "../Avatar/useTierUp.ts";
 import TierUpPopup from "../Avatar/TierUpPopup.tsx";
 import LevelBubble from "../Avatar/LevelBubble.tsx";
-import CustomizeButton from "../Shop/CustomizeButton.tsx";
-import {useState} from "react";
-import {api} from "../../api/api.ts";
+import CustomizePanel from "../Shop/CustomizePanel.tsx";
+import ProfileMenu from "./ProfileMenu.tsx";
+import {useEffect, useState} from "react";
+import {dailyService} from "../../Services/daily.service.ts";
 import {formatCredits} from "../../Services/credits.ts";
 
-// Onglets du header ; `match` dit si une adresse appartient à l'onglet, `highlight` le met en orange
+// Catégories de jeux (au centre du header) ; `match` dit si une adresse appartient à l'onglet
+// Les défis du jour (/defi) font partie des puzzles
 const TABS = [
-    {label: "Daily", to: "/defi", match: (path: string) => path.startsWith("/defi"), highlight: true},
-    {label: "Puzzle", to: "/", match: (path: string) => path === "/" || path.startsWith("/playgame")},
+    {label: "Puzzle", to: "/", match: (path: string) => path === "/" || path.startsWith("/playgame") || path.startsWith("/defi")},
     {label: "Hasard", to: "/hasard", match: (path: string) => path.startsWith("/hasard")},
-    {label: "Boutique", to: "/boutique", match: (path: string) => path.startsWith("/boutique")},
-    {label: "Classement", to: "/classements", match: (path: string) => path.startsWith("/classements")},
-    // fenêtre des administrateurs : seulement en mode admin
-    {label: "Stats", to: "/stats", match: (path: string) => path.startsWith("/stats"), adminOnly: true},
 ];
+
+// Défis du jour pas encore tous réussis (point orange sur l'onglet Puzzle) ; relu à chaque changement de page
+function useDailyPending(enabled: boolean, pathname: string): boolean {
+    const [pending, setPending] = useState(false);
+    useEffect(() => {
+        if (!enabled) return;
+        const controller = new AbortController();
+        dailyService.overview(controller.signal)
+            .then(o => setPending(o.ready && o.games.some(g => g.result === null)))
+            .catch(() => undefined);
+        return () => controller.abort();
+    }, [enabled, pathname]);
+    return enabled && pending;
+}
 
 export default function Header() {
     const navigate = useNavigate();
     const {pathname} = useLocation();
     const auth = useAuth();
-    const {isLoggedIn, isAdmin, adminMode} = auth;
-    const [switching, setSwitching] = useState(false);
-
-    // Mode admin : le serveur le note, puis la page se recharge (crédits, cosmétiques et mises repartent de zéro)
-    async function toggleAdminMode() {
-        setSwitching(true);
-        try {
-            await api("/users/me/admin-mode", {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify({on: !adminMode})});
-            window.location.reload();
-        } catch {
-            setSwitching(false);
-        }
-    }
+    const {isLoggedIn, adminMode} = auth;
+    const [customizing, setCustomizing] = useState(false);
+    const dailyPending = useDailyPending(isLoggedIn, pathname);
     // Après une victoire : valeurs d'avant jusqu'à l'arrivée des particules, puis changement animé
     // les animations suivent le vrai compte ; en mode admin, on affiche niveau 100 et crédits illimités
     const shown = useHeaderProgress(auth.account);
@@ -88,16 +89,19 @@ export default function Header() {
             />
 
             <nav className="header-tabs" aria-label="Catégories de jeux">
-                {TABS.filter(tab => !("adminOnly" in tab) || (isAdmin && adminMode)).map(tab => {
-                    const active = tab.match(pathname);
-                    return (
-                        <Link key={tab.to} to={tab.to}
-                              className={`header-tab ${active ? "active" : ""} ${"highlight" in tab && tab.highlight ? "highlight" : ""}`}
-                              aria-current={active ? "page" : undefined}>
-                            {tab.label}
-                        </Link>
-                    );
-                })}
+                <div className="header-tabs-track">
+                    {TABS.map(tab => {
+                        const active = tab.match(pathname);
+                        const dot = tab.to === "/" && dailyPending;
+                        return (
+                            <Link key={tab.to} to={tab.to} className={`header-tab ${active ? "active" : ""}`}
+                                  aria-current={active ? "page" : undefined}>
+                                {tab.label}
+                                {dot && <span className="header-tab-dot" title="Défis du jour à faire" aria-label="(défis du jour à faire)"/>}
+                            </Link>
+                        );
+                    })}
+                </div>
             </nav>
 
             {/* Au niveau de la page : jamais enfermée dans le header */}
@@ -132,26 +136,31 @@ export default function Header() {
 
                         <span className="user-divider" aria-hidden/>
 
-                        <span className={`credits ${shown.creditsBump ? "bump" : ""}`}
-                              title="Crédits (à miser sur les jeux de hasard)">
+                        {/* crédits : un clic mène à la boutique */}
+                        <Link to="/boutique" className={`credits ${shown.creditsBump ? "bump" : ""}`}
+                              title="Crédits (à miser sur les jeux de hasard, à dépenser dans la boutique)">
                             <FaCoins aria-hidden/>
                             <span>{formatCredits(credits)}</span>
-                        </span>
+                        </Link>
 
-                        {/* administrateurs : bascule du mode admin (« mode fantôme ») */}
-                        {isAdmin && (
-                            <button type="button" className={`admin-toggle ${adminMode ? "on" : ""}`} disabled={switching}
-                                    aria-pressed={adminMode} aria-label="Mode admin" onClick={() => void toggleAdminMode()}
-                                    title={adminMode ? "Quitter le mode admin" : "Passer en mode admin : rien de ce que tu fais ne compte"}>
-                                <FaUserShield aria-hidden/>
-                            </button>
+                        <Link to="/classements" className={`header-icon ${pathname.startsWith("/classements") ? "active" : ""}`}
+                              title="Classements" aria-label="Classements">
+                            <FaTrophy aria-hidden/>
+                        </Link>
+                        <Link to="/boutique" className={`header-icon ${pathname.startsWith("/boutique") ? "active" : ""}`}
+                              title="Boutique" aria-label="Boutique">
+                            <FaShoppingBag aria-hidden/>
+                        </Link>
+                        {/* administrateurs : statistiques du site, avec ou sans le mode admin */}
+                        {auth.isAdmin && (
+                            <Link to="/stats" className={`header-icon ${pathname.startsWith("/stats") ? "active" : ""}`}
+                                  title="Stats" aria-label="Stats">
+                                <FaChartBar aria-hidden/>
+                            </Link>
                         )}
-                        <CustomizeButton/>
+                        <CustomizePanel open={customizing} onClose={() => setCustomizing(false)}/>
                         <NotificationBell enabled={isLoggedIn}/>
-                        <button type="button" className="header-avatar" title="Mon profil" onClick={() => navigate("/profile")}>
-                            <Avatar seed={auth.avatar} fallback={auth.username ?? auth.userId ?? undefined} size={2.5}
-                                    level={level} title="Mon profil"/>
-                        </button>
+                        <ProfileMenu level={level} xp={xp} xpNextLevel={xpNextLevel} onCustomize={() => setCustomizing(true)}/>
                     </div>
                 ) : (
                     <FaUser title="Se connecter" onClick={() => navigate("/login")}/>
