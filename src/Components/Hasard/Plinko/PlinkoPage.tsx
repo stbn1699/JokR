@@ -245,8 +245,11 @@ export default function PlinkoPage() {
                     <button type="button" className="plinko-drop" disabled={sending || !canAfford || updating} onClick={() => void drop()}>
                         {updating ? "Mise à jour imminente"
                             : !canAfford ? "Pas assez de crédits"
-                            : count === 1 ? <>Lâcher une bille · <FaCoins aria-hidden/> {bet}</>
-                                : <>Lâcher {count} billes · <FaCoins aria-hidden/> {count * bet}</>}
+                            : <>
+                                <span>{count === 1 ? "Lâcher une bille" : `Lâcher ${count} billes`}</span>
+                                {/* le coût dans une pastille qui ne se coupe jamais (même à 4 chiffres) */}
+                                <span className="plinko-drop-cost"><FaCoins aria-hidden/> {count * bet}</span>
+                            </>}
                     </button>
                     {error && <p className="plinko-error" role="alert">{error}</p>}
                     {inFlight > 0 && <p className="plinko-inflight">{inFlight} bille{inFlight > 1 ? "s" : ""} en jeu</p>}
