@@ -7,6 +7,7 @@ export interface WheelStatus {
     available: boolean;
     // prochain lancer possible (minuit, heure de Paris), en ms
     nextAt: number;
+    // dernier lancer du jour
     today: { segment: number } | null;
 }
 
@@ -16,6 +17,12 @@ export interface WheelSpin {
     credits: number;
     level: number | null;
     xp: number | null;
+    // bille offerte par la case « cadeau » (null : pas cette case, ou le joueur les avait toutes)
+    item: { id: string; name: string; file: string } | null;
+    // crédits gagnés par ce lancer
+    creditsWon: number;
+    // encore un lancer aujourd'hui (relance tombée, ou mode admin)
+    available: boolean;
 }
 
 // Une bille lâchée : la graine de sa chute (le site la rejoue), sa case et le gain

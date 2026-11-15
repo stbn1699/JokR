@@ -1,7 +1,8 @@
 /**
- * Roue du jour (page Hasard) : un lancer gratuit par jour, qui rapporte des crédits ou de l'XP
- * (cases et chances : backend/src/utils/wheel.ts). S'ouvre toute seule à la première visite du jour
- * sur la page Hasard, et depuis sa carte.
+ * Roue du jour (page Hasard) : un lancer gratuit par jour, qui rapporte des crédits, de l'XP, une bille
+ * de Plinko ou une relance (cases et chances : backend/src/utils/wheel.ts). S'ouvre toute seule à la
+ * première visite du jour sur la page Hasard, et depuis sa carte. En mode admin, on la relance à volonté
+ * (rien n'est donné).
  *
  * Le serveur tire la case et donne le gain tout de suite : le header reste figé sur l'ancien solde
  * (rewardFx.hold) le temps que la roue tourne, puis les particules partent vers le header à « Récupérer ».
@@ -10,11 +11,11 @@
 import "../../SuccessPopup/SuccessPopup.scss";
 import "./DailyWheel.scss";
 import {useEffect, useRef, useState} from "react";
-import {FaCoins, FaStar} from "react-icons/fa";
-import {WHEEL_SEGMENTS, type WheelSegment, wheelChance} from "../../../../backend/src/utils/wheel.ts";
+import {FaCoins, FaRedo, FaStar} from "react-icons/fa";
+import {WHEEL_ITEM_FALLBACK, WHEEL_SEGMENTS, type WheelSegment, wheelChance} from "../../../../backend/src/utils/wheel.ts";
 import {useAuth} from "../../../Context/authContext.ts";
 import {ApiError} from "../../../api/api.ts";
-import {casinoService} from "../../../Services/casino.service.ts";
+import {casinoService, type WheelSpin} from "../../../Services/casino.service.ts";
 import {rewardFx} from "../../../Services/rewardFx.ts";
 import {confetti} from "../../Confetti/Confetti.tsx";
 
@@ -22,15 +23,31 @@ const SPIN_MS = 5200;
 const SLICE = 360 / WHEEL_SEGMENTS.length;
 const R = 100;
 
-// Couleurs des cases : crédits en doré/orangé, XP en bleu, jackpot en rouge
+// Couleurs des cases : crédits en doré/orangé, XP en bleu, relance en vert, bille en violet, jackpot en rouge
 function segmentColors(s: WheelSegment, i: number): { fill: string; text: string } {
     if (s.jackpot) return {fill: "#dc2626", text: "#fef3c7"};
-    if (s.reward === "xp") return {fill: i % 4 === 1 ? "#2563eb" : "#3b82f6", text: "#eff6ff"};
-    return {fill: i % 4 === 0 ? "#f59e0b" : "#fbbf24", text: "#451a03"};
+    if (s.reward === "respin") return {fill: "#10b981", text: "#ecfdf5"};
+    if (s.reward === "item") return {fill: "#8b5cf6", text: "#f5f3ff"};
+    if (s.reward === "xp") return {fill: i % 2 ? "#2563eb" : "#3b82f6", text: "#eff6ff"};
+    return {fill: i % 2 ? "#fbbf24" : "#f59e0b", text: "#451a03"};
+}
+
+// Texte de la case sur la roue : grand (montant) et petit (unité)
+function segmentLabel(s: WheelSegment): [string, string] {
+    if (s.jackpot) return ["1 000", "JACKPOT"];
+    if (s.reward === "respin") return ["+1", "LANCER"];
+    if (s.reward === "item") return ["Bille", "OFFERTE"];
+    return [fr(s.amount), s.reward === "xp" ? "XP" : "crédits"];
 }
 
 const fr = (n: number) => n.toLocaleString("fr-FR");
-const rewardText = (s: WheelSegment) => s.reward === "xp" ? `${fr(s.amount)} XP` : `${fr(s.amount)} crédits`;
+
+// Gain d'une case, en toutes lettres (liste des chances)
+function rewardText(s: WheelSegment): string {
+    if (s.reward === "respin") return "Un lancer de plus";
+    if (s.reward === "item") return "Une bille de Plinko";
+    return s.reward === "xp" ? `${fr(s.amount)} XP` : `${fr(s.amount)} crédits`;
+}
 
 // « 5 h 12 », « 12 min »
 function untilText(ms: number): string {
@@ -47,19 +64,21 @@ const point = (deg: number, r: number): [number, number] => {
 const at = (deg: number, r: number) => point(deg, r).join(" ");
 
 type DailyWheelProps = {
-    // déjà lancée aujourd'hui : la case du jour (la roue s'arrête dessus), sinon null
+    // lancer disponible à l'ouverture
+    available: boolean;
+    // dernier lancer du jour (la roue s'arrête dessus), sinon null
     today: { segment: number } | null;
     nextAt: number;
-    // lancer fait : la page met à jour la carte
-    onSpun: (segment: number) => void;
+    // lancer fait : la page met à jour la carte (available : encore un lancer aujourd'hui)
+    onSpun: (segment: number, available: boolean) => void;
     onClose: () => void;
 };
 
-export default function DailyWheel({today, nextAt, onSpun, onClose}: DailyWheelProps) {
+export default function DailyWheel({available, today, nextAt, onSpun, onClose}: DailyWheelProps) {
     const auth = useAuth();
     const [rotation, setRotation] = useState(() => today ? -today.segment * SLICE : 0);
-    const [phase, setPhase] = useState<"ready" | "spinning" | "done" | "used">(today ? "used" : "ready");
-    const [won, setWon] = useState<number | null>(null);
+    const [phase, setPhase] = useState<"ready" | "spinning" | "done" | "used">(available ? "ready" : "used");
+    const [result, setResult] = useState<WheelSpin | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [now, setNow] = useState(() => Date.now());
     const resultRef = useRef<HTMLSpanElement>(null);
@@ -78,26 +97,27 @@ export default function DailyWheel({today, nextAt, onSpun, onClose}: DailyWheelP
     }, []);
 
     const spin = async () => {
-        if (phase !== "ready") return;
+        if (phase !== "ready" && phase !== "done") return;
+        // relance : le gain précédent s'affiche dans le header, sans particules
+        if (heldRef.current) rewardFx.release();
         setPhase("spinning");
+        setResult(null);
         setError(null);
         // le header garde l'ancien solde pendant que la roue tourne
         rewardFx.hold({level: auth.level, xp: auth.xp, credits: auth.credits});
         heldRef.current = true;
+        flewRef.current = false;
         try {
-            const result = await casinoService.spinWheel();
+            const spun = await casinoService.spinWheel();
             // plusieurs tours, puis la case tirée sous la flèche, un peu décalée du centre pour faire vrai
             const jitter = (Math.random() - 0.5) * SLICE * 0.7;
-            setRotation(r => {
-                const base = Math.ceil(r / 360) * 360 + 360 * 6;
-                return base - result.segment * SLICE + jitter;
-            });
+            setRotation(r => Math.ceil(r / 360) * 360 + 360 * 6 - spun.segment * SLICE + jitter);
             void auth.refresh();
             window.setTimeout(() => {
-                setWon(result.segment);
+                setResult(spun);
                 setPhase("done");
-                onSpun(result.segment);
-                if (WHEEL_SEGMENTS[result.segment]!.jackpot) confetti();
+                onSpun(spun.segment, spun.available);
+                if (WHEEL_SEGMENTS[spun.segment]!.jackpot) confetti();
             }, SPIN_MS);
         } catch (err) {
             rewardFx.release();
@@ -112,11 +132,14 @@ export default function DailyWheel({today, nextAt, onSpun, onClose}: DailyWheelP
         }
     };
 
+    const wonSegment = result ? WHEEL_SEGMENTS[result.segment]! : null;
+    // crédits gagnés (case crédits, ou bille remplacée par des crédits)
+    const wonCredits = wonSegment ? wonSegment.reward === "credits" || result!.creditsWon > 0 : false;
+
     const collect = () => {
-        const s = won === null ? null : WHEEL_SEGMENTS[won];
-        if (s && heldRef.current) {
+        if (wonSegment && heldRef.current) {
             flewRef.current = true;
-            rewardFx.fly(s.reward === "xp" ? resultRef.current : null, s.reward === "credits" ? resultRef.current : null);
+            rewardFx.fly(wonSegment.reward === "xp" ? resultRef.current : null, wonCredits ? resultRef.current : null);
         }
         onClose();
     };
@@ -132,8 +155,6 @@ export default function DailyWheel({today, nextAt, onSpun, onClose}: DailyWheelP
         return () => window.removeEventListener("keydown", onKey);
     });
 
-    const wonSegment = won === null ? null : WHEEL_SEGMENTS[won]!;
-
     return (
         <div className="modal-overlay success-overlay" role="dialog" aria-modal="true" aria-labelledby="daily-wheel-title"
              onClick={e => {
@@ -141,25 +162,28 @@ export default function DailyWheel({today, nextAt, onSpun, onClose}: DailyWheelP
              }}>
             <div className="modal success-modal daily-wheel">
                 <h2 id="daily-wheel-title">Roue du jour</h2>
-                <p className="daily-wheel-sub">Un lancer gratuit chaque jour. Jackpot : 1 000 crédits !</p>
+                <p className="daily-wheel-sub">
+                    {auth.adminMode ? "Mode admin : relance à volonté, rien n'est donné." : "Un lancer gratuit chaque jour. Jackpot : 1 000 crédits !"}
+                </p>
 
                 <div className="daily-wheel-stage">
                     <svg className="daily-wheel-pointer" viewBox="0 0 40 44" aria-hidden>
                         <path d="M6 4H34L20 40Z"/>
                     </svg>
                     <svg className="daily-wheel-disc" viewBox="-110 -110 220 220" role="img"
-                         aria-label="Roue : crédits et XP à gagner"
+                         aria-label="Roue : crédits, XP, billes et relances à gagner"
                          style={{transform: `rotate(${rotation}deg)`, transitionDuration: phase === "spinning" ? `${SPIN_MS}ms` : "0ms"}}>
                         <circle r="108" className="daily-wheel-rim"/>
                         {WHEEL_SEGMENTS.map((s, i) => {
                             const {fill, text} = segmentColors(s, i);
+                            const [big, small] = segmentLabel(s);
                             const from = i * SLICE - SLICE / 2, to = i * SLICE + SLICE / 2;
                             return (
                                 <g key={i}>
                                     <path d={`M0 0L${at(from, R)}A${R} ${R} 0 0 1 ${at(to, R)}Z`} fill={fill}/>
                                     <g transform={`rotate(${i * SLICE})`} fill={text} textAnchor="middle">
-                                        <text y={-66} className="daily-wheel-amount">{s.jackpot ? "1 000" : fr(s.amount)}</text>
-                                        <text y={-50} className="daily-wheel-unit">{s.jackpot ? "JACKPOT" : s.reward === "xp" ? "XP" : "crédits"}</text>
+                                        <text y={-72} className="daily-wheel-amount">{big}</text>
+                                        <text y={-60} className="daily-wheel-unit">{small}</text>
                                     </g>
                                 </g>
                             );
@@ -168,15 +192,28 @@ export default function DailyWheel({today, nextAt, onSpun, onClose}: DailyWheelP
                             const [x, y] = point(i * SLICE - SLICE / 2, R);
                             return <line key={i} x1="0" y1="0" x2={x} y2={y} className="daily-wheel-sep"/>;
                         })}
-                        <circle r="22" className="daily-wheel-hub"/>
+                        {/* petits clous au bord, entre les cases */}
+                        {WHEEL_SEGMENTS.map((_, i) => {
+                            const [x, y] = point(i * SLICE - SLICE / 2, 104);
+                            return <circle key={i} cx={x} cy={y} r="2.6" className="daily-wheel-stud"/>;
+                        })}
+                        <circle r="26" className="daily-wheel-hub"/>
+                        <text y="6" textAnchor="middle" className="daily-wheel-hub-text">JokR</text>
                     </svg>
                 </div>
 
                 <div className="daily-wheel-result" aria-live="polite">
-                    {phase === "done" && wonSegment && (
+                    {phase === "done" && wonSegment && result && (
                         <span ref={resultRef} className={`daily-wheel-won ${wonSegment.reward} ${wonSegment.jackpot ? "jackpot" : ""}`}>
-                            {wonSegment.jackpot && "JACKPOT ! "}+{rewardText(wonSegment)}
+                            {wonSegment.reward === "respin" ? "Relance ! Un lancer de plus"
+                                : wonSegment.reward === "item" ? (result.item
+                                    ? <><img src={result.item.file} alt="" draggable={false}/> Bille offerte : {result.item.name}</>
+                                    : `Tu as déjà toutes les billes : +${WHEEL_ITEM_FALLBACK} crédits`)
+                                : <>{wonSegment.jackpot && "JACKPOT ! "}+{rewardText(wonSegment)}</>}
                         </span>
+                    )}
+                    {phase === "done" && wonSegment?.reward === "item" && result?.item && !auth.adminMode && (
+                        <span className="daily-wheel-note">Elle est déjà dans tes billes de Plinko (boutique).</span>
                     )}
                     {phase === "used" && <span className="daily-wheel-wait">Prochain lancer dans {untilText(nextAt - now)}</span>}
                     {error && <span className="daily-wheel-error" role="alert">{error}</span>}
@@ -191,9 +228,17 @@ export default function DailyWheel({today, nextAt, onSpun, onClose}: DailyWheelP
                             {phase === "ready" && <button type="button" className="modal-button secondary" onClick={onClose}>Plus tard</button>}
                         </>
                     ) : phase === "done" ? (
-                        <button type="button" className="modal-button" onClick={collect}>
-                            Récupérer {wonSegment?.reward === "xp" ? <FaStar aria-hidden/> : <FaCoins aria-hidden/>}
-                        </button>
+                        <>
+                            {result?.available && (
+                                <button type="button" className="modal-button" onClick={() => void spin()}>
+                                    <FaRedo aria-hidden/> Relancer
+                                </button>
+                            )}
+                            <button type="button" className={`modal-button ${result?.available ? "secondary" : ""}`} onClick={collect}>
+                                {wonSegment?.reward === "respin" || wonSegment?.reward === "item" && result?.item ? "Fermer"
+                                    : <>Récupérer {wonSegment?.reward === "xp" ? <FaStar aria-hidden/> : <FaCoins aria-hidden/>}</>}
+                            </button>
+                        </>
                     ) : (
                         <button type="button" className="modal-button secondary" onClick={onClose}>Fermer</button>
                     )}

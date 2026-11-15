@@ -127,8 +127,8 @@ export default function Hasard() {
             </div>
 
             {wheelOpen && wheel && !whatsNewOpen && (
-                <DailyWheel today={wheel.today} nextAt={wheel.nextAt} onClose={closeWheel}
-                            onSpun={segment => setWheel(w => w && {...w, available: false, today: {segment}})}/>
+                <DailyWheel available={wheel.available} today={wheel.today} nextAt={wheel.nextAt} onClose={closeWheel}
+                            onSpun={(segment, available) => setWheel(w => w && {...w, available, today: {segment}})}/>
             )}
         </main>
     );

@@ -238,7 +238,11 @@ export type RouletteBetsTable = {
 export type DailyWheelSpinsTable = {
     user_id: string;
     spin_date: string;
+    // 1er, 2e… lancer du jour (une case « relance » en donne un de plus)
+    attempt: Generated<number>;
     segment: number;
+    // bille de Plinko offerte par la case « cadeau »
+    item_id: string | null;
     credits: Generated<number>;
     xp: Generated<number>;
     created_at: Generated<Date>;
