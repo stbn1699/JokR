@@ -5,23 +5,34 @@
 
 	.plinko-layout {
 		display               : grid;
-		grid-template-columns : 21rem minmax(0, 60rem);
+		// réglages | plateau | dernières billes (comme les machines à sous)
+		grid-template-columns : 21rem minmax(0, 60rem) 9rem;
+		grid-template-areas   : "controls board side";
+		justify-content       : center;
 		gap                   : 1.75rem;
 		align-items           : start;
-		width                 : min(84rem, 100%);
+		width                 : min(96rem, 100%);
 
-		// Téléphone et tablette : le plateau d'abord, les réglages dessous
+		.plinko-controls { grid-area : controls; }
+		.plinko-board { grid-area : board; }
+		.plinko-side { grid-area : side; }
+
+		// écran moyen : dernières billes sous le plateau
+		@media (max-width: 1250px) {
+			grid-template-columns : 21rem minmax(0, 60rem);
+			grid-template-areas   : "controls board" "controls side";
+		}
+
+		// téléphone et tablette : le plateau d'abord, puis les réglages et les dernières billes
 		@media (max-width: 960px) {
 			grid-template-columns : minmax(0, 1fr);
-
-			.plinko-board {
-				order : -1;
-			}
+			grid-template-areas   : "board" "controls" "side";
 		}
 	}
 
 	.plinko-controls,
-	.plinko-board {
+	.plinko-board,
+	.plinko-side {
 		padding       : 1.5rem;
 		box-sizing    : border-box;
 		border        : 3px solid #f9fafb;
@@ -248,30 +259,46 @@
 		filter  : grayscale(1);
 	}
 
+	.plinko-side {
+		padding : 1.1rem 0.9rem;
+
+		.plinko-label { margin-top : 0; }
+	}
+
+	.plinko-history-empty {
+		margin    : 0;
+		font-size : 0.95rem;
+		opacity   : 0.6;
+	}
+
+	// une colonne à droite du plateau ; en ligne quand elle passe dessous
 	.plinko-history {
-		display        : flex;
-		flex-direction : column;
-		gap            : 0.3rem;
-		margin         : 1rem 0 0;
-		padding        : 0;
-		list-style     : none;
+		display               : grid;
+		grid-template-columns : 1fr;
+		gap                   : 0.4rem;
+		margin                : 0;
+		padding               : 0;
+		list-style            : none;
+
+		@media (max-width: 1250px) {
+			grid-template-columns : repeat(auto-fill, minmax(5.5rem, 1fr));
+		}
 
 		li {
-			display         : flex;
-			justify-content : space-between;
-			padding         : 0.4rem 0.9rem;
-			font-size       : 1.2rem;
-			border-radius   : 6px;
-			background      : rgba(2, 6, 23, 0.45);
-			animation       : plinko-history-in 0.25s ease-out;
+			display        : flex;
+			flex-direction : column;
+			align-items    : center;
+			padding        : 0.3rem;
+			border-radius  : 8px;
+			background     : rgba(2, 6, 23, 0.5);
+			font-size      : 1.1rem;
+			animation      : plinko-history-in 0.25s ease-out;
 
-			&.win span:last-child {
-				color : #34d399;
-			}
+			small { font-size : 0.8rem; opacity : 0.65; }
 
-			&.loss span:last-child {
-				color : #f87171;
-			}
+			&.win span { color : #34d399; }
+			&.even span { color : #fbbf24; }
+			&.loss span { color : #f87171; }
 		}
 	}
 }

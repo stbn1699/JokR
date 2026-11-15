@@ -265,20 +265,25 @@ export default function PlinkoPage() {
                         Voir les billes des autres joueurs
                     </label>
 
-                    {history.length > 0 && (
-                        <ul className="plinko-history" aria-label="Dernières billes">
-                            {history.map(h => (
-                                <li key={h.id} className={h.payout > h.bet ? "win" : h.payout === h.bet ? "even" : "loss"}>
-                                    <span>{h.multiplier}×</span>
-                                    <span>{h.payout - h.bet >= 0 ? "+" : ""}{h.payout - h.bet}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
                 </section>
 
                 <section className="plinko-board">
                     <PlinkoBoard ref={board} risk={risk}/>
+                </section>
+
+                {/* dernières billes : à droite du plateau (dessous sur les écrans plus étroits) */}
+                <section className="plinko-side" aria-label="Dernières billes">
+                    <span className="plinko-label">Dernières billes</span>
+                    {history.length === 0 ? <p className="plinko-history-empty">Tes billes s'afficheront ici.</p> : (
+                        <ul className="plinko-history">
+                            {history.map(h => (
+                                <li key={h.id} className={h.payout > h.bet ? "win" : h.payout === h.bet ? "even" : "loss"}>
+                                    <span>{h.payout - h.bet >= 0 ? "+" : ""}{h.payout - h.bet}</span>
+                                    <small>{h.multiplier}× · mise {h.bet}</small>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </section>
             </div>
         </main>
