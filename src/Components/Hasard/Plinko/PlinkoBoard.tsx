@@ -58,6 +58,14 @@ function rollingAngles(drop: PlinkoDrop): number[] {
 }
 
 const FPS = 60;
+
+// Nombre d'images écoulées depuis le départ de la bille. Jamais négatif : l'heure donnée par
+// requestAnimationFrame est celle du début de l'image, qui peut précéder de quelques millisecondes
+// le départ d'une bille lancée pendant cette même image ; on lirait alors une position qui n'existe
+// pas (frames[-1]), le dessin planterait et toutes les billes resteraient figées.
+function elapsedFrames(ball: { start: number }, now: number): number {
+    return Math.max(0, (now - ball.start) / 1000 * FPS);
+}
 const PEG_GLOW_MS = 350;
 const SLOT_BUMP_MS = 450;
 const SLOT_TOP = PLINKO_BOTTOM + PLINKO_BALL_RADIUS + 6;
@@ -114,7 +122,7 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle, { risk: PlinkoRisk }>(function
 
         // billes : avance de chacune, clous touchés allumés, arrivée dans la case
         for (const ball of balls.current) {
-            const frame = Math.floor((now - ball.start) / 1000 * FPS);
+            const frame = Math.floor(elapsedFrames(ball, now));
             if (!ball.ghost) {
                 for (const hit of ball.drop.hits) {
                     if (hit.frame <= frame && hit.frame > frame - 2) pegLit.current.set(hit.peg, now);
@@ -123,7 +131,12 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle, { risk: PlinkoRisk }>(function
             if (!ball.landed && frame >= ball.drop.frames.length - 1) {
                 ball.landed = true;
                 if (!ball.ghost) slotLit.current.set(ball.drop.slot, now);
-                ball.onLand?.();
+                // une erreur ici ne doit pas arrêter l'animation des autres billes
+                try {
+                    ball.onLand?.();
+                } catch (error) {
+                    console.error(error);
+                }
             }
         }
         balls.current = balls.current.filter(b => !b.landed);
@@ -181,7 +194,7 @@ const PlinkoBoard = forwardRef<PlinkoBoardHandle, { risk: PlinkoRisk }>(function
         const ordered = [...balls.current.filter(b => b.ghost), ...balls.current.filter(b => !b.ghost)];
         for (const ball of ordered) {
             busy = true;
-            const exact = (now - ball.start) / 1000 * FPS;
+            const exact = elapsedFrames(ball, now);
             const i = Math.min(Math.floor(exact), ball.drop.frames.length - 1);
             const a = ball.drop.frames[i]!;
             const b = ball.drop.frames[Math.min(i + 1, ball.drop.frames.length - 1)]!;
