@@ -1,10 +1,8 @@
 // Titre du jeu ; le bouton « Règles » est rangé en haut à droite de l'encart qui contient le titre
 // (les encarts ci-dessous lui servent de repère)
 .casino-title {
-	// place gardée à droite du titre pour le bouton
 	h1 {
-		margin        : 0;
-		padding-right : 7rem;
+		margin : 0;
 	}
 
 	.rules-button {
@@ -12,6 +10,11 @@
 		top      : 1rem;
 		right    : 1rem;
 	}
+}
+
+// roulette : le titre est sur la même ligne que le bouton, on lui garde la place à droite
+.roulette .casino-title h1 {
+	padding-right : 7rem;
 }
 
 .plinko .plinko-controls,

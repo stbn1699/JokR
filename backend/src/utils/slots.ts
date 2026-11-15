@@ -64,42 +64,44 @@ function strip(counts: [string, number][]): string[] {
     return keyed.sort((a, b) => a.at - b.at).map(x => x.id);
 }
 
-export const SLOT_MACHINES: SlotMachine[] = [
-    {
-        id: "classique",
-        name: "Classique",
-        tagline: "Fruits, cloches et 7 : souvent un petit gain",
-        icon: "/slots/classique/seven.svg",
-        volatility: "faible",
-        symbols: [
-            {id: "cherry", name: "Cerises", image: "/slots/classique/cherry.svg", base: 5},
-            {id: "lemon", name: "Citron", image: "/slots/classique/lemon.svg", base: 8},
-            {id: "grape", name: "Raisin", image: "/slots/classique/grape.svg", base: 15},
-            {id: "bell", name: "Cloche", image: "/slots/classique/bell.svg", base: 32},
-            {id: "bar", name: "BAR", image: "/slots/classique/bar.svg", base: 60},
-            {id: "seven", name: "Sept", image: "/slots/classique/seven.svg", base: 100},
-            {id: "star", name: "Étoile (joker)", image: "/slots/classique/star.svg", base: 250, wild: true},
-        ],
-        strip: strip([["cherry", 6], ["lemon", 5], ["grape", 3], ["bell", 2], ["bar", 1], ["seven", 1], ["star", 1]]),
-    },
-    {
-        id: "jokr",
-        name: "JokR",
-        tagline: "Les puzzles du site : rares mais gros gains",
-        icon: "/favicon.svg",
-        volatility: "forte",
-        symbols: [
-            {id: "sudoku", name: "Sudoku", image: "/gameIcons/SUDOKU.svg", base: 3},
-            {id: "queens", name: "Queens", image: "/gameIcons/QUEENS.svg", base: 6},
-            {id: "rikudo", name: "Rikudo", image: "/gameIcons/RIKUDO.svg", base: 12},
-            {id: "galaxies", name: "Galaxies", image: "/gameIcons/GALAXIES.svg", base: 26},
-            {id: "r", name: "Le R", image: "/slots/jokr/R.svg", base: 100},
-            {id: "logo", name: "JokR", image: "/JokR_Logo_Full.svg", base: 200},
-            {id: "joker", name: "Icône JokR (joker)", image: "/favicon.svg", base: 300, wild: true},
-        ],
-        strip: strip([["sudoku", 6], ["queens", 4], ["rikudo", 3], ["galaxies", 2], ["r", 1], ["logo", 1], ["joker", 1]]),
-    },
-];
+const CLASSIQUE: SlotMachine = {
+    id: "classique",
+    name: "Classique",
+    tagline: "Fruits, cloches et 7 : souvent un petit gain",
+    icon: "/slots/classique/seven.svg",
+    volatility: "faible",
+    symbols: [
+        {id: "cherry", name: "Cerises", image: "/slots/classique/cherry.svg", base: 5},
+        {id: "lemon", name: "Citron", image: "/slots/classique/lemon.svg", base: 8},
+        {id: "grape", name: "Raisin", image: "/slots/classique/grape.svg", base: 15},
+        {id: "bell", name: "Cloche", image: "/slots/classique/bell.svg", base: 32},
+        {id: "bar", name: "BAR", image: "/slots/classique/bar.svg", base: 60},
+        {id: "seven", name: "Sept", image: "/slots/classique/seven.svg", base: 100},
+        {id: "star", name: "Étoile (joker)", image: "/slots/classique/star.svg", base: 250, wild: true},
+    ],
+    strip: strip([["cherry", 6], ["lemon", 5], ["grape", 3], ["bell", 2], ["bar", 1], ["seven", 1], ["star", 1]]),
+};
+
+const JOKR: SlotMachine = {
+    id: "jokr",
+    name: "JokR",
+    tagline: "Les puzzles du site : rares mais gros gains",
+    icon: "/favicon.svg",
+    volatility: "forte",
+    symbols: [
+        {id: "sudoku", name: "Sudoku", image: "/gameIcons/SUDOKU.svg", base: 3},
+        {id: "queens", name: "Queens", image: "/gameIcons/QUEENS.svg", base: 6},
+        {id: "rikudo", name: "Rikudo", image: "/gameIcons/RIKUDO.svg", base: 12},
+        {id: "galaxies", name: "Galaxies", image: "/gameIcons/GALAXIES.svg", base: 26},
+        {id: "r", name: "Le R", image: "/slots/jokr/R.svg", base: 100},
+        {id: "logo", name: "JokR", image: "/JokR_Logo_Full.svg", base: 200},
+        {id: "joker", name: "Icône JokR (joker)", image: "/favicon.svg", base: 300, wild: true},
+    ],
+    strip: strip([["sudoku", 6], ["queens", 4], ["rikudo", 3], ["galaxies", 2], ["r", 1], ["logo", 1], ["joker", 1]]),
+};
+
+// Ordre fixe : le numéro de chaque machine est enregistré avec ses lancers (ajouter les nouvelles à la fin)
+export const SLOT_MACHINES: SlotMachine[] = [CLASSIQUE, JOKR];
 
 export const slotMachine = (id: unknown): SlotMachine | undefined => SLOT_MACHINES.find(m => m.id === id);
 
