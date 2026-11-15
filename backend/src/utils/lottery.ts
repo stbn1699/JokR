@@ -1,6 +1,6 @@
 /*
  * Loteries du Hasard : une du jour, une de la semaine, une du mois.
- * - chaque tranche de LOTTERY_TICKET_CREDITS crédits misés (Plinko, roulette) sur la période donne un ticket
+ * - chaque tranche de LOTTERY_TICKET_CREDITS crédits misés (Plinko, roulette, machines à sous) sur la période donne un ticket
  * - au tirage, un ticket gagnant est tiré au sort (plus on a de tickets, plus on a de chances)
  * - le gagnant reçoit LOTTERY_PERCENT % de tous les crédits misés sur la période
  * Tirages à 23 h 59, heure de Paris : chaque jour, chaque dimanche, et le dernier jour du mois (28, 29, 30 ou 31).

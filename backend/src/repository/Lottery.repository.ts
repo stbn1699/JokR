@@ -8,7 +8,8 @@ export type LotteryWinData = { kind: LotteryKind; date: string; prize: number; t
 
 /*
  * Loteries du Hasard (voir utils/lottery.ts) : mises de chacun sur une période, tirages et gagnants.
- * Les mises viennent de casino_plays (billes de Plinko, tours de roulette ; rien en mode admin).
+ * Les mises viennent de casino_plays (billes de Plinko, tours de roulette, lancers des machines à sous ;
+ * rien en mode admin, et pas la roue du jour, qui est gratuite).
  */
 export class LotteryRepository {
     constructor(private db: Kysely<DB>) {

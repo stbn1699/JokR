@@ -1,6 +1,6 @@
 /**
  * Loteries (/hasard/loterie) : une du jour, une de la semaine, une du mois (voir backend/src/utils/lottery.ts).
- * Chaque tranche de 10 crédits misés au Plinko ou à la roulette donne un ticket ; au tirage (23 h 59), un ticket
+ * Chaque tranche de 10 crédits misés au Plinko, à la roulette ou aux machines à sous donne un ticket ; au tirage (23 h 59), un ticket
  * gagnant remporte une part de tous les crédits misés sur la période.
  * Pour chaque loterie : la cagnotte (ce que gagnerait le gagnant), les crédits misés, mes tickets, mes chances,
  * le compte à rebours du tirage et les derniers gagnants. Rafraîchi toutes les 15 secondes.
@@ -32,7 +32,7 @@ export default function LotteryPage() {
                     <h1>Loterie</h1>
                     <RulesButton title="Règles des loteries"><LotteryRules/></RulesButton>
                 </div>
-                <p className="lottery-sub">Chaque tranche de 10 crédits misés au Plinko ou à la roulette te donne un ticket.</p>
+                <p className="lottery-sub">Chaque tranche de 10 crédits misés au Plinko, à la roulette ou aux machines à sous te donne un ticket.</p>
 
                 {error && <p className="lottery-error" role="alert">{error}</p>}
                 {!lotteries ? !error && <Loader label="Chargement des loteries…"/> : (
