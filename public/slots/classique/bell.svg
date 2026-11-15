@@ -1,7 +1,13 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="256" cy="85" r="24" stroke="black" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="M256 110C170 110 140 190 140 260V330L95 390H417L372 330V260C372 190 342 110 256 110Z" fill="#FFDF88" stroke="black" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="256" cy="420" r="34" fill="#FFDF88" stroke="black" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="M95 390H417" stroke="black" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="M185 200C195 170 215 150 240 145" stroke="white" stroke-width="16" stroke-linecap="round"/>
+<defs><clipPath id="bell1"><path d="M256 112C168 112 138 192 138 262V328L94 386H418L374 328V262C374 192 344 112 256 112Z"/></clipPath><clipPath id="bell2"><circle cx="256" cy="420" r="36"/></clipPath></defs>
+<circle cx="256" cy="86" r="26" stroke="#2C241F" stroke-width="20"/>
+<path d="M256 112C168 112 138 192 138 262V328L94 386H418L374 328V262C374 192 344 112 256 112Z" fill="#EFBB5B"/>
+<g clip-path="url(#bell1)"><circle cx="350" cy="318" r="136" fill="#CF9433"/></g>
+<path d="M256 112C168 112 138 192 138 262V328L94 386H418L374 328V262C374 192 344 112 256 112Z" stroke="#2C241F" stroke-width="20" stroke-linejoin="round"/>
+<circle cx="256" cy="420" r="36" fill="#D9523E"/>
+<g clip-path="url(#bell2)"><circle cx="281" cy="445" r="38" fill="#B23A28"/></g>
+<circle cx="256" cy="420" r="36" stroke="#2C241F" stroke-width="20" stroke-linejoin="round"/>
+<path d="M94 386H418" stroke="#2C241F" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M150 316H362" stroke="#CF9433" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M182 216C190 182 210 158 238 150" stroke="#F4E5CB" stroke-width="16" stroke-linecap="round"/>
 </svg>

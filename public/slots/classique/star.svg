@@ -1,4 +1,10 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M256.0 65.0L308.9 197.2L451.0 206.7L341.6 297.8L376.5 435.8L256.0 360.0L135.5 435.8L170.4 297.8L61.0 206.7L203.1 197.2Z" fill="#FFDF88" stroke="black" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="256" cy="270" r="30" fill="#F8A4A4" stroke="black" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<defs><clipPath id="star1"><path d="M256.0 72.0L310.1 197.6L446.2 210.2L343.5 300.4L373.6 433.8L256.0 364.0L138.4 433.8L168.5 300.4L65.8 210.2L201.9 197.6Z"/></clipPath><clipPath id="star2"><circle cx="256" cy="278" r="40"/></clipPath></defs>
+<path d="M256.0 72.0L310.1 197.6L446.2 210.2L343.5 300.4L373.6 433.8L256.0 364.0L138.4 433.8L168.5 300.4L65.8 210.2L201.9 197.6Z" fill="#EFBB5B"/>
+<g clip-path="url(#star1)"><circle cx="326" cy="362" r="158" fill="#CF9433"/></g>
+<path d="M256.0 72.0L310.1 197.6L446.2 210.2L343.5 300.4L373.6 433.8L256.0 364.0L138.4 433.8L168.5 300.4L65.8 210.2L201.9 197.6Z" stroke="#2C241F" stroke-width="20" stroke-linejoin="round"/>
+<circle cx="256" cy="278" r="40" fill="#D9523E"/>
+<g clip-path="url(#star2)"><circle cx="284" cy="306" r="42" fill="#B23A28"/></g>
+<circle cx="256" cy="278" r="40" stroke="#2C241F" stroke-width="20" stroke-linejoin="round"/>
+<path d="M196 210L226 172" stroke="#F4E5CB" stroke-width="14" stroke-linecap="round"/>
 </svg>

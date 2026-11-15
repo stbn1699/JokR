@@ -1,5 +1,13 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M70 270C90 250 100 215 140 185C210 135 320 140 390 190C420 212 430 240 445 260C430 275 420 305 390 330C320 380 210 385 140 335C100 305 90 285 70 270Z" fill="#FFDF88" stroke="black" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="M160 225C190 200 230 190 270 190" stroke="white" stroke-width="16" stroke-linecap="round"/>
-<path d="M300 150C305 120 320 100 345 95" stroke="black" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+<defs><clipPath id="lemon1"><path d="M62 270C84 248 96 214 138 184C210 132 322 138 392 190C424 214 432 242 450 262C432 278 422 308 392 332C322 384 208 388 138 336C96 306 84 288 62 270Z"/></clipPath></defs>
+<path d="M300 156C304 126 318 104 344 98" stroke="#2C241F" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M62 270C84 248 96 214 138 184C210 132 322 138 392 190C424 214 432 242 450 262C432 278 422 308 392 332C322 384 208 388 138 336C96 306 84 288 62 270Z" fill="#EFBB5B"/>
+<g clip-path="url(#lemon1)"><circle cx="313" cy="414" r="168" fill="#CF9433"/></g>
+<path d="M62 270C84 248 96 214 138 184C210 132 322 138 392 190C424 214 432 242 450 262C432 278 422 308 392 332C322 384 208 388 138 336C96 306 84 288 62 270Z" stroke="#2C241F" stroke-width="20" stroke-linejoin="round"/>
+<path d="M150 228C184 198 226 188 268 190" stroke="#F4E5CB" stroke-width="16" stroke-linecap="round"/>
+<circle cx="210" cy="300" r="6" fill="#CF9433"/>
+<circle cx="262" cy="316" r="6" fill="#CF9433"/>
+<circle cx="316" cy="300" r="6" fill="#CF9433"/>
+<circle cx="240" cy="262" r="6" fill="#CF9433"/>
+<circle cx="296" cy="262" r="6" fill="#CF9433"/>
 </svg>

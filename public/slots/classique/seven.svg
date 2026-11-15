@@ -1,4 +1,7 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M120 95H392V160L262 430H178L298 165H190V200H120V95Z" fill="#F8A4A4" stroke="black" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="M150 125H360" stroke="white" stroke-width="14" stroke-linecap="round" opacity="0.8"/>
+<defs><clipPath id="seven1"><path d="M114 92H398V164L266 432H170L292 172H192V206H114V92Z"/></clipPath></defs>
+<path d="M114 92H398V164L266 432H170L292 172H192V206H114V92Z" fill="#D9523E"/>
+<g clip-path="url(#seven1)"><circle cx="376" cy="380" r="158" fill="#B23A28"/></g>
+<path d="M114 92H398V164L266 432H170L292 172H192V206H114V92Z" stroke="#2C241F" stroke-width="20" stroke-linejoin="round"/>
+<path d="M140 122H366" stroke="#F4E5CB" stroke-width="14" stroke-linecap="round"/>
 </svg>
