@@ -68,7 +68,7 @@ const CLASSIQUE: SlotMachine = {
     id: "classique",
     name: "Classique",
     tagline: "Fruits, cloches et 7 : souvent un petit gain",
-    icon: "/slots/classique/seven.svg",
+    icon: "/slots/classique/icon.svg",
     volatility: "faible",
     symbols: [
         {id: "cherry", name: "Cerises", image: "/slots/classique/cherry.svg", base: 5},

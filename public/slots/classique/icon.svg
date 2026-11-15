@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_classique)">
+<rect width="512" height="512" rx="50" fill="white"/>
+<path d="M176 300C188 220 236 150 300 110" stroke="black" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M336 290C332 214 318 156 300 110" stroke="black" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M300 110C330 70 396 72 424 112C390 142 330 144 300 110Z" fill="#BEFFAE" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+<circle cx="170.0" cy="350.0" r="80" fill="#F8A4A4" stroke="black" stroke-width="10"/>
+<circle cx="342.0" cy="334.0" r="80" fill="#F8A4A4" stroke="black" stroke-width="10"/>
+</g>
+<defs>
+<clipPath id="clip_classique">
+<rect width="512" height="512" rx="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>
