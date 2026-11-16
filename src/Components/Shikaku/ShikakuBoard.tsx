@@ -18,6 +18,8 @@ type ShikakuBoardProps = {
     onErase: (cell: number) => void;
     // Montrer les coups interdits : rectangles faux en rouge
     showErrors: boolean;
+    // Tutoriel : cases dans l'ombre (toutes sauf `lit`), cases montrées du doigt et rectangle à tracer (qui brille)
+    guide?: { lit: Set<number> | null; focus: number[]; target: Rect | null };
 };
 
 // Couleur d'un rectangle juste (une teinte par nombre, bien espacées, jamais rouge : le rouge signale une erreur)
@@ -31,7 +33,7 @@ const rectColor = (clue: number) => `hsl(${30 + ((clue * 137.5) % 300)} 70% 52% 
  *   Échap pour annuler
  * - Un rectangle juste (un seul nombre, égal à son aire) se colore
  */
-export default function ShikakuBoard({puzzle, rects, hintCount, analysis, disabled, onDraw, onErase, showErrors}: ShikakuBoardProps) {
+export default function ShikakuBoard({puzzle, rects, hintCount, analysis, disabled, onDraw, onErase, showErrors, guide}: ShikakuBoardProps) {
     const {width, height, clues} = puzzle;
     // Glissé en cours : case de départ et case actuelle
     const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
@@ -157,6 +159,25 @@ export default function ShikakuBoard({puzzle, rects, hintCount, analysis, disabl
                         {clue.area}
                     </text>
                 ))}
+
+                {/* Tutoriel : ombre sur les cases dont on ne parle pas, cases montrées et rectangle à tracer */}
+                {guide && (
+                    <g className="shikaku-guide">
+                        {Array.from({length: width * height}, (_, i) => (
+                            <rect key={i} x={(i % width) * CELL} y={Math.floor(i / width) * CELL} width={CELL} height={CELL}
+                                  className={`shikaku-veil ${guide.lit === null || guide.lit.has(i) ? "lit" : ""}`}/>
+                        ))}
+                        {guide.focus.map(i => (
+                            <rect key={`f${i}`} x={(i % width) * CELL + 0.8} y={Math.floor(i / width) * CELL + 0.8}
+                                  width={CELL - 1.6} height={CELL - 1.6} className="shikaku-focus"/>
+                        ))}
+                        {guide.target && (
+                            <rect x={guide.target[1] * CELL + 0.6} y={guide.target[0] * CELL + 0.6}
+                                  width={guide.target[3] * CELL - 1.2} height={guide.target[2] * CELL - 1.2} rx={1.2}
+                                  className="shikaku-target"/>
+                        )}
+                    </g>
+                )}
             </svg>
         </div>
     );

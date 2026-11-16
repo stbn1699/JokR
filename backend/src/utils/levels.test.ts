@@ -8,6 +8,8 @@ import {BINERO_LEVELS, BINERO_TUTORIAL} from "./bineroLevels.js";
 import {logicalSolve} from "./binero.js";
 import {SUDOKU_LEVELS, SUDOKU_TUTORIAL} from "./sudokuLevels.js";
 import {countSolutions} from "./sudokuSolver.js";
+import {SHIKAKU_LEVELS, SHIKAKU_TUTORIAL} from "./shikakuLevels.js";
+import {solveShikaku} from "./shikaku.js";
 
 describe("niveaux du Queens", () => {
     it("1000 niveaux, dont 3 leçons de tutoriel, de 4×4 à 12×12", () => {
@@ -70,5 +72,17 @@ describe("niveaux du Sudoku", () => {
             expect(countSolutions(puzzle, 2)).toBe(1);
         }
         expect(levelPuzzle("SUDOKU", 1)).toBe(SUDOKU_LEVELS[0]);
+    });
+});
+
+describe("niveaux du Shikaku", () => {
+    it("3 leçons de tutoriel, chacune à solution unique", () => {
+        expect(SHIKAKU_TUTORIAL).toBe(3);
+        for (const puzzle of SHIKAKU_LEVELS) {
+            const {count, aborted} = solveShikaku(puzzle, 2);
+            expect(aborted).toBe(false);
+            expect(count).toBe(1);
+        }
+        expect(levelPuzzle("SHIKAKU", 1)).toBe(SHIKAKU_LEVELS[0]);
     });
 });

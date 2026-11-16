@@ -1,5 +1,7 @@
 import {QUEENS_LEVELS, QUEENS_TUTORIAL} from "./queensLevels.js";
 import type {QueensPuzzle} from "./queens.js";
+import {SHIKAKU_LEVELS, SHIKAKU_TUTORIAL} from "./shikakuLevels.js";
+import type {ShikakuPuzzle} from "./shikaku.js";
 import {SUDOKU_LEVELS, SUDOKU_TUTORIAL} from "./sudokuLevels.js";
 import {GALAXIES_LEVELS, GALAXIES_TUTORIAL} from "./galaxiesLevels.js";
 import type {GalaxiesPuzzle} from "./galaxies.js";
@@ -41,6 +43,11 @@ export const LEVEL_GAMES: Record<string, LevelGame> = {
         levels: SUDOKU_LEVELS,
         tutorial: SUDOKU_TUTORIAL,
         describe: p => ({size: 9, hints: (p as number[][]).flat().filter(v => v !== 0).length}),
+    },
+    SHIKAKU: {
+        levels: SHIKAKU_LEVELS,
+        tutorial: SHIKAKU_TUTORIAL,
+        describe: p => ({size: (p as ShikakuPuzzle).width, hints: (p as ShikakuPuzzle).rects.length}),
     },
 };
 

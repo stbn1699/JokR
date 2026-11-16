@@ -29,7 +29,8 @@ import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import "../Levels/Levels.scss";
 import {shikakuService} from "../../Services/shikaku.service.ts";
 import type {ShikakuPuzzle} from "../../Models/shikaku.model.ts";
 import {type SavedShikaku, useShikakuGame} from "./useShikakuGame.ts";
@@ -119,6 +120,9 @@ export default function Shikaku({daily = false, replayDate, challengeId}: Shikak
 
             <div className="options">
                 <h2 className="title">Shikaku</h2>
+                {!challenge && (
+                    <p className="queens-levels-link"><Link to="/niveaux/SHIKAKU">Mode niveaux (avec tutoriel) →</Link></p>
+                )}
                 <p className="shikaku-progress">
                     {total > 0 ? <><strong>{doneCount}</strong> / {total} rectangles justes</> : "–"}
                 </p>
