@@ -1,6 +1,21 @@
 import {api} from "../api/api.ts";
 import type {RouletteBet} from "../../backend/src/utils/roulette.ts";
 import type {PlinkoRisk} from "../../backend/src/utils/plinko.ts";
+import type {BlackjackAction, BlackjackView, HandOutcome} from "../../backend/src/utils/blackjack.ts";
+
+// Blackjack : ce que voit le joueur de la main (voir backend/src/utils/blackjack.ts) et son solde
+export interface BlackjackPlay {
+    hand: BlackjackView;
+    credits: number;
+}
+
+export interface BlackjackTable {
+    // main en cours (reprise en revenant sur la page), ou null
+    hand: BlackjackView | null;
+    // dernières mains finies, la plus récente d'abord
+    recent: { bet: number; payout: number; outcomes: (HandOutcome | undefined)[] }[];
+    credits: number;
+}
 
 // Roue du jour (voir backend/src/utils/wheel.ts)
 export interface WheelStatus {
@@ -131,6 +146,22 @@ export const casinoService = {
     // Lance la roue du jour (409 si déjà lancée aujourd'hui) → case tirée, solde, niveau et XP après le gain
     spinWheel(): Promise<WheelSpin> {
         return api<WheelSpin>("/casino/wheel", {method: "POST"});
+    },
+
+    blackjack(signal?: AbortSignal): Promise<BlackjackTable> {
+        return api<BlackjackTable>("/casino/blackjack", {method: "GET"}, signal);
+    },
+
+    // Nouvelle main (mise retirée)
+    blackjackStart(bet: number): Promise<BlackjackPlay> {
+        return api<BlackjackPlay>("/casino/blackjack", {
+            method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({bet}),
+        });
+    },
+
+    // Tirer, rester, doubler ou séparer
+    blackjackAct(action: BlackjackAction): Promise<BlackjackPlay> {
+        return api<BlackjackPlay>(`/casino/blackjack/${action}`, {method: "POST"});
     },
 
     lottery(signal?: AbortSignal): Promise<LotteryInfo[]> {

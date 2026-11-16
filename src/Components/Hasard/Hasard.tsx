@@ -15,7 +15,7 @@ import type {WheelStatus} from "../../Services/casino.service.ts";
  * En haut, le bandeau des loteries : pas un jeu à choisir, tout le monde y participe en misant.
  * Puis une carte par jeu (GameCard) : son icône (public/gameIcons/<CODE>.svg ; case vide en attendant),
  * son nom, une phrase et une étiquette (gain maximum, joueurs en ce moment).
- * Les machines à sous ont leur propre page (une carte par machine). Le blackjack viendra ensuite.
+ * Les machines à sous ont leur propre page (une carte par machine).
  * La roue du jour (un lancer gratuit par jour) s'ouvre toute seule à la première visite du jour,
  * et reste accessible depuis sa carte.
  */
@@ -123,7 +123,8 @@ export default function Hasard() {
                 ]}/>
                 <GameCard to="/hasard/machines" icon="/gameIcons/SLOTS.svg" name="Machines à sous"
                           text={`${SLOT_MACHINES.length} machines, chacune son thème`} tags={[{text: <>jusqu'à ×{Math.max(...SLOT_MACHINES.map(slotTopPays)).toLocaleString("fr-FR")} par ligne</>, kind: "gain"}]}/>
-                <GameCard icon="/gameIcons/BLACKJACK.svg" name="Et bientôt…" text="Blackjack…"/>
+                <GameCard to="/hasard/blackjack" icon="/gameIcons/BLACKJACK.svg" name="Blackjack" text="En solo contre le croupier : fais 21 sans dépasser"
+                          tags={[{text: "blackjack payé 3 pour 2", kind: "gain"}]}/>
             </div>
 
             {wheelOpen && wheel && !whatsNewOpen && (

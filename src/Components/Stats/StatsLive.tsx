@@ -23,8 +23,8 @@ const POLL_MS = 2000;
 // durée d'affichage d'une notification de départ
 const TOAST_MS = 8000;
 
-const PAGE_NAMES: Record<PresencePage, string> = {puzzle: "Puzzles", roulette: "Roulette", plinko: "Plinko", slots: "Machines à sous", site: "Reste du site"};
-const PAGE_ORDER: PresencePage[] = ["puzzle", "roulette", "plinko", "slots", "site"];
+const PAGE_NAMES: Record<PresencePage, string> = {puzzle: "Puzzles", roulette: "Roulette", plinko: "Plinko", slots: "Machines à sous", blackjack: "Blackjack", site: "Reste du site"};
+const PAGE_ORDER: PresencePage[] = ["puzzle", "roulette", "plinko", "slots", "blackjack", "site"];
 
 const clock = (ms: number) => new Date(ms).toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit", second: "2-digit"});
 const ago = (ms: number) => (ms < 60_000 ? `il y a ${Math.max(0, Math.round(ms / 1000))} s` : `il y a ${duration(ms)}`);
@@ -102,6 +102,7 @@ export default function StatsLive() {
         pages.roulette.here > 0 && `${players(pages.roulette.here)} sur la roulette`,
         pages.plinko.here > 0 && `${players(pages.plinko.here)} sur le Plinko`,
         pages.slots.here > 0 && `${players(pages.slots.here)} aux machines à sous`,
+        pages.blackjack.here > 0 && `${players(pages.blackjack.here)} au blackjack`,
         roulette.busy && (roulette.lastRoundEndsAt !== null && now < roulette.lastRoundEndsAt
             ? `dernier tour de roulette (fin à ${clock(roulette.lastRoundEndsAt)})` : "gains de la roulette"),
         plinko.inFlight > 0 && `${fmt(plinko.inFlight)} bille${plinko.inFlight > 1 ? "s" : ""} en l'air`,

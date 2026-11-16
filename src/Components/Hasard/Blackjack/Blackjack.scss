@@ -1,0 +1,360 @@
+// ---------- Blackjack : réglages à gauche, table au milieu, dernières mains à droite
+.blackjack {
+	display         : flex;
+	justify-content : center;
+	padding         : 1.5rem 1rem 2rem;
+	color           : #f9fafb;
+
+	.bj-layout {
+		display               : grid;
+		grid-template-columns : 21rem minmax(0, 58rem) 9rem;
+		grid-template-areas   : "controls table side";
+		justify-content       : center;
+		gap                   : 1.75rem;
+		align-items           : start;
+		width                 : min(100rem, 100%);
+
+		.bj-controls { grid-area : controls; }
+		.bj-table { grid-area : table; }
+		.bj-side { grid-area : side; }
+
+		// écran moyen : dernières mains sous la table
+		@media (max-width: 1250px) {
+			grid-template-columns : 21rem minmax(0, 58rem);
+			grid-template-areas   : "controls table" "controls side";
+		}
+
+		// téléphone : la table d'abord, puis les réglages et les dernières mains
+		@media (max-width: 900px) {
+			grid-template-columns : minmax(0, 1fr);
+			grid-template-areas   : "table" "controls" "side";
+		}
+	}
+
+	.bj-controls,
+	.bj-side {
+		padding       : 1.5rem;
+		box-sizing    : border-box;
+		border        : 3px solid #f9fafb;
+		border-radius : 12px;
+		background    : #02061735;
+	}
+
+	.bj-side { padding : 1.1rem 0.9rem; }
+
+	.bj-back {
+		display         : inline-flex;
+		align-items     : center;
+		gap             : 0.35rem;
+		font-size       : 1.2rem;
+		color           : #f9fafb;
+		text-decoration : none;
+		opacity         : 0.8;
+
+		&:hover { opacity : 1; }
+	}
+
+	h1 {
+		margin      : 0.4rem 0 1rem;
+		font-size   : 2.5rem;
+		line-height : 1.1;
+	}
+
+	.bj-label {
+		display       : block;
+		margin-bottom : 0.5rem;
+		font-size     : 1.2rem;
+		opacity       : 0.85;
+	}
+
+	.bj-bets {
+		display               : grid;
+		grid-template-columns : repeat(3, 1fr);
+		gap                   : 0.6rem 0.3rem;
+	}
+
+	.bj-bet {
+		display         : flex;
+		justify-content : center;
+		padding         : 0.2rem 0;
+		border          : none;
+		background      : none;
+		cursor          : pointer;
+		transition      : transform 0.12s ease;
+
+		img {
+			width  : 3.6rem;
+			height : 3.6rem;
+			filter : drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
+		}
+
+		&:hover:not(:disabled) { transform : translateY(-2px); }
+
+		&.active {
+			transform : translateY(-5px) scale(1.1);
+
+			img { filter : drop-shadow(0 0 0.35rem #fbbf24) drop-shadow(0 0.3rem 0.35rem rgba(0, 0, 0, 0.5)); }
+		}
+
+		&:disabled {
+			opacity : 0.35;
+			cursor  : default;
+		}
+	}
+
+	.bj-deal {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.4rem;
+		width           : 100%;
+		margin-top      : 1.25rem;
+		padding         : 0.85rem 1rem;
+		border          : none;
+		border-radius   : 999px;
+		background      : #10b981;
+		color           : #f9fafb;
+		font-family     : inherit;
+		font-size       : 1.5rem;
+		font-weight     : 600;
+		white-space     : nowrap;
+		cursor          : pointer;
+		transition      : transform 0.1s ease, background 0.15s ease;
+
+		&:hover:not(:disabled) { background : #059669; }
+		&:active:not(:disabled) { transform : scale(0.97); }
+
+		&:disabled {
+			background : rgba(16, 185, 129, 0.35);
+			cursor     : default;
+		}
+	}
+
+	.bj-error {
+		margin    : 0.75rem 0 0;
+		color     : #fca5a5;
+		font-size : 1.05rem;
+	}
+
+	// ---------- La table : tapis vert, croupier en haut, joueur en bas
+	.bj-table {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 1rem;
+		min-height     : 38rem;
+		padding        : 2rem 1.5rem;
+		box-sizing     : border-box;
+		border         : 6px solid #7c4a1e;
+		border-radius  : 1.5rem;
+		background     : radial-gradient(ellipse at center, #1f7a4d 0%, #135c39 70%, #0d4a2d 100%);
+		box-shadow     : inset 0 0 2.5rem rgba(0, 0, 0, 0.45), 0 0.6rem 1.5rem rgba(0, 0, 0, 0.4);
+	}
+
+	.bj-row {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 0.5rem;
+	}
+
+	.bj-who {
+		display     : flex;
+		align-items : center;
+		gap         : 0.6rem;
+		font-size   : 1.2rem;
+
+		strong {
+			min-width     : 2.2rem;
+			padding       : 0.05rem 0.55rem;
+			border-radius : 999px;
+			background    : rgba(2, 6, 23, 0.55);
+			font-size     : 1.3rem;
+			text-align    : center;
+		}
+	}
+
+	.bj-cards {
+		display    : flex;
+		min-height : 9.6rem;
+		padding    : 0 1.6rem 0 0;
+	}
+
+	// les cartes se chevauchent un peu, comme posées sur la table
+	.bj-card {
+		width         : 6.8rem;
+		height        : 9.6rem;
+		margin-right  : -1.6rem;
+		border-radius : 0.45rem;
+		box-shadow    : 0 0.25rem 0.6rem rgba(0, 0, 0, 0.45);
+		animation     : bj-card-in 0.3s cubic-bezier(.2, .9, .3, 1.2) both;
+		user-select   : none;
+	}
+
+	// carte sans image : dessinée simplement
+	.bj-card.drawn {
+		position       : relative;
+		display        : flex;
+		align-items    : center;
+		justify-content: center;
+		box-sizing     : border-box;
+		border         : 1px solid #d6d3d1;
+		background     : #fafaf9;
+		color          : #1c1917;
+		font-weight    : 700;
+
+		&.red { color : #b91c1c; }
+
+		&.back {
+			border     : 3px solid #fafaf9;
+			background : repeating-linear-gradient(45deg, #b91c1c 0 6px, #991b1b 6px 12px);
+		}
+	}
+
+	.bj-card-corner {
+		position    : absolute;
+		top         : 0.3rem;
+		left        : 0.4rem;
+		font-size   : 1rem;
+		line-height : 1;
+		text-align  : center;
+	}
+
+	.bj-card-middle { font-size : 3.2rem; }
+
+	.bj-message {
+		margin     : 0.25rem 0;
+		min-height : 1.6em;
+		font-size  : 1.5rem;
+		font-weight: 600;
+		text-align : center;
+		text-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.5);
+
+		&.win { color : #fde047; }
+		&.push { color : #e5e7eb; }
+		&.lose { color : #fecaca; }
+	}
+
+	.bj-hands {
+		display         : flex;
+		flex-wrap       : wrap;
+		justify-content : center;
+		gap             : 1.5rem;
+	}
+
+	// main jouée en ce moment (après une séparation) : entourée
+	.bj-row.player {
+		padding       : 0.5rem;
+		border        : 2px solid transparent;
+		border-radius : 0.8rem;
+
+		&.active { border-color : #fbbf24; }
+	}
+
+	.bj-hands.split .bj-row.player:not(.active):not(.win):not(.blackjack):not(.push) { opacity : 0.8; }
+
+	.bj-hand-bet {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.3rem;
+		font-size   : 1rem;
+		opacity     : 0.85;
+	}
+
+	.bj-outcome {
+		padding       : 0.1rem 0.6rem;
+		border-radius : 999px;
+		font-size     : 1rem;
+		font-weight   : 700;
+		animation     : level-up-pop 450ms cubic-bezier(.2, .9, .3, 1.3) both;
+
+		&.blackjack,
+		&.win { background : #fde047; color : #422006; }
+		&.push { background : #e5e7eb; color : #1f2937; }
+		&.lose,
+		&.bust { background : #7f1d1d; color : #fecaca; }
+	}
+
+	.bj-actions {
+		display         : flex;
+		flex-wrap       : wrap;
+		justify-content : center;
+		gap             : 0.6rem;
+		margin-top      : auto;
+
+		button {
+			display       : inline-flex;
+			align-items   : center;
+			gap           : 0.35rem;
+			padding       : 0.6rem 1.3rem;
+			border        : 2px solid #fbbf24;
+			border-radius : 999px;
+			background    : rgba(2, 6, 23, 0.55);
+			color         : #f9fafb;
+			font-family   : inherit;
+			font-size     : 1.25rem;
+			font-weight   : 600;
+			cursor        : pointer;
+
+			&:hover:not(:disabled) { background : rgba(251, 191, 36, 0.25); }
+
+			&:disabled {
+				opacity : 0.5;
+				cursor  : default;
+			}
+		}
+	}
+
+	// ---------- Dernières mains
+	.bj-recent-empty {
+		margin    : 0;
+		font-size : 0.95rem;
+		opacity   : 0.6;
+	}
+
+	.bj-recent {
+		display               : grid;
+		grid-template-columns : 1fr;
+		gap                   : 0.4rem;
+		margin                : 0;
+		padding               : 0;
+		list-style            : none;
+
+		@media (max-width: 1250px) {
+			grid-template-columns : repeat(auto-fill, minmax(6rem, 1fr));
+		}
+
+		li {
+			display        : flex;
+			flex-direction : column;
+			align-items    : center;
+			padding        : 0.3rem;
+			border-radius  : 8px;
+			background     : rgba(2, 6, 23, 0.5);
+			font-size      : 1.1rem;
+
+			small { font-size : 0.8rem; opacity : 0.65; }
+
+			&.win span { color : #34d399; }
+			&.even span { color : #fbbf24; }
+			&.loss span { color : #f87171; }
+		}
+	}
+
+	// téléphone : cartes un peu plus petites
+	@media (max-width: 600px) {
+		.bj-table { min-height : 24rem; padding : 1rem 0.5rem; }
+
+		.bj-card { width : 4.2rem; height : 5.9rem; margin-right : -1.4rem; }
+
+		.bj-cards { min-height : 5.9rem; padding-right : 1.4rem; }
+	}
+}
+
+@keyframes bj-card-in {
+	from { opacity : 0; transform : translateY(-1.5rem) rotate(-6deg) scale(0.9); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.blackjack .bj-card { animation : none; }
+}

@@ -1,4 +1,5 @@
 import type { ColumnType, Generated } from "kysely";
+import type {BlackjackState} from "../utils/blackjack.js";
 
 /*
  * Déclarations de type représentant le schéma de la base de données pour Kysely.
@@ -258,6 +259,17 @@ export type LotteryBonusTicketsTable = {
     created_at: Generated<Date>;
 };
 
+// Blackjack en solo : main de chaque joueur, gardée par le serveur (state : BlackjackState, voir utils/blackjack.ts)
+export type BlackjackHandsTable = {
+    id: Generated<string>;
+    user_id: string;
+    state: ColumnType<BlackjackState, string, string>;
+    ghost: Generated<boolean>;
+    finished: Generated<boolean>;
+    created_at: Generated<Date>;
+    updated_at: ColumnType<Date, Date | undefined, Date>;
+};
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
@@ -279,5 +291,6 @@ export type DB = {
     lottery_draws: LotteryDrawsTable;
     daily_wheel_spins: DailyWheelSpinsTable;
     lottery_bonus_tickets: LotteryBonusTicketsTable;
+    blackjack_hands: BlackjackHandsTable;
 };
 

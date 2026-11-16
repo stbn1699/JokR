@@ -1,0 +1,18 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_blackjack)">
+<rect width="512" height="512" rx="50" fill="white"/>
+<rect x="96" y="104" width="220" height="310" rx="24" transform="rotate(-14 206 259)" fill="#F8A4A4" stroke="black" stroke-width="10"/>
+<rect x="200" y="96" width="220" height="310" rx="24" transform="rotate(8 310 251)" fill="white" stroke="black" stroke-width="10"/>
+<g transform="rotate(8 310 251)">
+<path d="M310 160C268 206 232 234 232 270C232 300 258 314 280 306C294 301 304 290 310 278C316 290 326 301 340 306C362 314 388 300 388 270C388 234 352 206 310 160Z" fill="black"/>
+<path d="M310 270L290 340H330Z" fill="black"/>
+</g>
+<circle cx="140" cy="410" r="62" fill="#FFDF88" stroke="black" stroke-width="10"/>
+<circle cx="140" cy="410" r="34" stroke="black" stroke-width="6" stroke-dasharray="14 10"/>
+</g>
+<defs>
+<clipPath id="clip_blackjack">
+<rect width="512" height="512" rx="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>

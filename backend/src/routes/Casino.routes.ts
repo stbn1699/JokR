@@ -24,6 +24,8 @@ import {encodeSlotSpin, isSlotBet, isSlotLineCount, isSlotReelCount, SLOT_MACHIN
 import {wheelAvailable, type WheelItem, WheelRepository} from "../repository/Wheel.repository.js";
 import {WHEEL_SEGMENTS, WHEEL_TOTAL_WEIGHT, wheelSegmentFor, wheelTickets} from "../utils/wheel.js";
 import {plinkoBallSets} from "../utils/plinkoBalls.js";
+import {BlackjackRepository} from "../repository/Blackjack.repository.js";
+import {blackjackView, isBlackjackAction, isBlackjackBet, totalBet, totalPayout} from "../utils/blackjack.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
 import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, lotteryPrize, nextLotteryDraw} from "../utils/lottery.js";
 
@@ -59,6 +61,12 @@ import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, l
  *     XP après le gain ; item : bille offerte ; tickets : tickets de loterie offerts ; available : encore un lancer
  *     aujourd'hui) ; 409 si plus de lancer.
  *     Mode admin : la roue tourne autant qu'on veut, sans rien donner ni enregistrer.
+ * - Blackjack en solo (voir backend/src/utils/blackjack.ts) : la main en cours est gardée par le serveur, le site n'en
+ *   reçoit que ce que le joueur voit (pas le sabot, ni la carte cachée du croupier avant la fin).
+ *   - GET /casino/blackjack → { hand, recent, credits } (hand : main en cours ou null ; recent : dernières mains finies)
+ *   - POST /casino/blackjack { bet } : nouvelle main (mise retirée) → { hand, credits } ; 409 si une main est en cours
+ *   - POST /casino/blackjack/:action (hit, stand, double, split) → { hand, credits } (doubler, séparer : mise ajoutée)
+ *   Main finie : gain versé, partie enregistrée sous le jeu « blackjack » (outcome : nombre de mains).
  * Mise à jour en préparation (services/maintenance.ts) : plus de bille de Plinko, et plus de mise à la roulette
  * après le tour en cours au moment de la coupure (503, code « maintenance »).
  */
@@ -68,6 +76,7 @@ const casino = new CasinoRepository(db);
 const liveRoulette = new LiveRouletteRepository(db);
 const lottery = new LotteryRepository(db);
 const wheel = new WheelRepository(db);
+const blackjack = new BlackjackRepository(db);
 
 // Une bille toutes les ~0,3 s au plus, en moyenne sur une minute
 const dropLimiter = rateLimit({windowMs: 60 * 1000, limit: 200, standardHeaders: "draft-7", legacyHeaders: false,
@@ -180,6 +189,51 @@ router.post("/wheel", asyncHandler(async (_req: Request, res: Response<unknown, 
     const available = wheelAvailable(await wheel.spinsOn(res.locals.userId!, date));
     res.status(200).json({status: "ok", data: {segment, credits: result.credits, level: result.level, xp: result.xp,
         item: result.item, creditsWon: result.creditsWon, tickets: result.tickets, available}});
+}));
+
+// ---------- Blackjack
+const BLACKJACK_RECENT = 5;
+
+const BLACKJACK_ERRORS = {
+    user: [404, "Compte introuvable"],
+    credits: [402, "Pas assez de crédits"],
+    active: [409, "Finis d'abord ta main en cours"],
+    none: [404, "Pas de main en cours"],
+    invalid: [400, "Ce coup n'est pas possible maintenant"],
+} as const;
+
+router.get("/blackjack", asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
+    const me = res.locals.userId!;
+    const [hand, recent, credits] = await Promise.all([blackjack.active(me), blackjack.recent(me, BLACKJACK_RECENT), liveRoulette.credits(me)]);
+    res.status(200).json({status: "ok", data: {
+        hand: hand ? blackjackView(hand) : null,
+        recent: recent.map(s => ({bet: totalBet(s), payout: totalPayout(s), outcomes: s.hands.map(h => h.outcome)})),
+        credits,
+    }});
+}));
+
+router.post("/blackjack", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+    const bet: unknown = req.body?.bet;
+    if (!isBlackjackBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
+    if (maintenance.blocksNewGames()) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
+    const result = await blackjack.start(res.locals.userId!, bet, res.locals.ghost === true);
+    if (!result.ok) {
+        const [status, message] = BLACKJACK_ERRORS[result.reason];
+        return void res.status(status).json({status: "error", message});
+    }
+    res.status(200).json({status: "ok", data: {hand: blackjackView(result.state), credits: result.credits}});
+}));
+
+// Une main commencée se finit toujours, même pendant la préparation d'une mise à jour
+router.post("/blackjack/:action", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+    const action = req.params.action;
+    if (!isBlackjackAction(action)) return void res.status(404).json({status: "error", message: "Coup inconnu"});
+    const result = await blackjack.act(res.locals.userId!, action);
+    if (!result.ok) {
+        const [status, message] = BLACKJACK_ERRORS[result.reason];
+        return void res.status(status).json({status: "error", message});
+    }
+    res.status(200).json({status: "ok", data: {hand: blackjackView(result.state), credits: result.credits}});
 }));
 
 const CLOSED_MESSAGE = "Les mises de ce tour sont fermées, attends le prochain";
