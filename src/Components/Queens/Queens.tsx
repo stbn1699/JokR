@@ -84,7 +84,7 @@ type QueensProps = {
 
 export default function Queens({daily = false, replayDate, challengeId, level, levelInfo}: QueensProps) {
     const navigate = useNavigate();
-    const {isLoggedIn} = useAuth();
+    const {isLoggedIn, adminMode} = useAuth();
     // Visite de l'écran : au premier niveau après le tutoriel, une seule fois (retenue dans le navigateur)
     const [touring, setTouring] = useState(() => level !== undefined && levelInfo?.tutorial !== null
         && levelInfo?.tutorial !== undefined && level === levelInfo.tutorial + 1 && !tourSeen());
@@ -261,7 +261,7 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               title={`Niveau ${level} réussi !`}
                               subtitle="Bien joué, la grille est résolue."
-                              noXpNote={isLoggedIn ? "Niveau déjà réussi : l'XP et les crédits ne sont donnés qu'à la première réussite." : undefined}
+                              noXpNote={adminMode ? "Mode admin : rien n'est enregistré." : isLoggedIn ? "Niveau déjà réussi : l'XP et les crédits ne sont donnés qu'à la première réussite." : undefined}
                               onNewGame={isLastLevel ? () => navigate("/niveaux/QUEENS") : () => navigate(`/niveaux/QUEENS/${level + 1}`)}
                               newGameLabel={isLastLevel ? "Carte des niveaux" : "Niveau suivant"}
                               extraAction={isLastLevel ? {label: "Grille aléatoire", onClick: () => navigate("/playgame/QUEENS")} : undefined}

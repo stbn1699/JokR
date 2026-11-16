@@ -42,7 +42,7 @@ function smoothPath(points: [number, number][]): string {
 export default function LevelsMap() {
     const {gameCode = ""} = useParams<{ gameCode: string }>();
     const code = gameCode.toUpperCase();
-    const {isLoggedIn} = useAuth();
+    const {isLoggedIn, adminMode} = useAuth();
     const navigate = useNavigate();
     const [overview, setOverview] = useState<LevelsOverview | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -91,7 +91,7 @@ export default function LevelsMap() {
     const height = yOf(shown.length) + TOP;
     const reachedHere = shown.filter(l => l.done).length;
     const reached = Math.min(shown.length - (lastWorld ? 1 : 0), reachedHere);
-    const nextWorldOpen = !lastWorld && (levels[first + WORLD - 1]?.done ?? false);
+    const nextWorldOpen = !lastWorld && (adminMode || (levels[first + WORLD - 1]?.done ?? false));
     const goWorld = (w: number) => {
         setChosenWorld(w);
         window.scrollTo({top: 0, behavior: "smooth"});
@@ -128,6 +128,9 @@ export default function LevelsMap() {
                         </button>
                     </nav>
                 )}
+                {adminMode && (
+                    <p className="levels-guest">Mode admin : tous les niveaux sont ouverts, mais aucune réussite n'est enregistrée.</p>
+                )}
                 {!isLoggedIn && (
                     <p className="levels-guest">
                         <Link to="/login">Connecte-toi</Link> pour garder ta progression partout et gagner de l'XP à chaque niveau.
@@ -157,8 +160,9 @@ export default function LevelsMap() {
                             )}
 
                             {shown.map((l, i) => {
-                                const unlocked = l.done || l.level === current;
-                                const state = l.done ? "done" : l.level === current ? "current" : "locked";
+                                // mode admin : tout est ouvert
+                                const unlocked = adminMode || l.done || l.level === current;
+                                const state = l.done ? "done" : l.level === current ? "current" : unlocked ? "open" : "locked";
                                 return (
                                     <div key={l.level} className={`levels-node ${state}`}
                                          style={{left: `${(xOf(i) / WIDTH) * 100}%`, top: `${yOf(i)}px`}}>
