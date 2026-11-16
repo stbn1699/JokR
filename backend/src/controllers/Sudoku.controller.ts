@@ -8,6 +8,8 @@ import type {AuthLocals} from "../middleware/auth.js";
 import {DAILY_REWARD_MULTIPLIER, type DailyService} from "../services/Daily.service.js";
 import {routeParam} from "../utils/validation.js";
 import {tracker} from "../services/tracker.js";
+import type {LevelsRepository} from "../repository/Levels.repository.js";
+import {recordLevelWin} from "../services/levelWin.js";
 
 const GAME_CODE = "SUDOKU";
 
@@ -25,6 +27,7 @@ export function createSudokuController(
     progressionService: ProgressionService,
     gamesService: GamesService,
     dailyService: DailyService,
+    levels: LevelsRepository,
 ) {
     const minClues = 81 - SUDOKU_LIMITS.maxEmptyCells;
     const maxClues = 81 - SUDOKU_LIMITS.minEmptyCells;
@@ -112,6 +115,16 @@ export function createSudokuController(
             const userId = res.locals.userId;
             if (!userId) {
                 res.status(200).json({status: 'ok', data: {xp: undefined, durationMs}});
+                return;
+            }
+
+            // Mode Niveaux : réussite enregistrée ; un niveau déjà réussi ne rapporte plus rien
+            if (game.level) {
+                const data = await recordLevelWin(levels, progressionService, GAME_CODE, game.level, userId, durationMs, async () => {
+                    const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
+                    return {xp: service.computeXp(baseXp, game.cluesCount), credits: service.computeCredits(81 - game.cluesCount), gridSize: 9, emptyCells: 81 - game.cluesCount};
+                });
+                res.status(200).json({status: "ok", data});
                 return;
             }
 

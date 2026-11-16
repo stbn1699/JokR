@@ -6,6 +6,8 @@ import {GALAXIES_LEVELS, GALAXIES_TUTORIAL} from "./galaxiesLevels.js";
 import {solveGalaxies} from "./galaxies.js";
 import {BINERO_LEVELS, BINERO_TUTORIAL} from "./bineroLevels.js";
 import {logicalSolve} from "./binero.js";
+import {SUDOKU_LEVELS, SUDOKU_TUTORIAL} from "./sudokuLevels.js";
+import {countSolutions} from "./sudokuSolver.js";
 
 describe("niveaux du Queens", () => {
     it("1000 niveaux, dont 3 leçons de tutoriel, de 4×4 à 12×12", () => {
@@ -30,7 +32,7 @@ describe("niveaux du Queens", () => {
         expect(levelPuzzle("QUEENS", 1)).toBe(QUEENS_LEVELS[0]);
         expect(levelPuzzle("QUEENS", 0)).toBeUndefined();
         expect(levelPuzzle("QUEENS", 1001)).toBeUndefined();
-        expect(levelPuzzle("SUDOKU", 1)).toBeUndefined();
+        expect(levelPuzzle("INCONNU", 1)).toBeUndefined();
         expect(isLevelUnlocked(1, new Set())).toBe(true);
         expect(isLevelUnlocked(3, new Set([1]))).toBe(false);
         expect(isLevelUnlocked(3, new Set([1, 2]))).toBe(true);
@@ -57,5 +59,16 @@ describe("niveaux du Binero", () => {
         // résolue par déductions sûres : solution unique
         for (const puzzle of BINERO_LEVELS) expect(logicalSolve(puzzle).solved).toBe(true);
         expect(levelPuzzle("BINERO", 1)).toBe(BINERO_LEVELS[0]);
+    });
+});
+
+describe("niveaux du Sudoku", () => {
+    it("3 leçons de tutoriel, chacune à solution unique", () => {
+        expect(SUDOKU_TUTORIAL).toBe(3);
+        for (const puzzle of SUDOKU_LEVELS) {
+            expect(puzzle).toHaveLength(9);
+            expect(countSolutions(puzzle, 2)).toBe(1);
+        }
+        expect(levelPuzzle("SUDOKU", 1)).toBe(SUDOKU_LEVELS[0]);
     });
 });

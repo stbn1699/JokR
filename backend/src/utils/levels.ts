@@ -1,5 +1,6 @@
 import {QUEENS_LEVELS, QUEENS_TUTORIAL} from "./queensLevels.js";
 import type {QueensPuzzle} from "./queens.js";
+import {SUDOKU_LEVELS, SUDOKU_TUTORIAL} from "./sudokuLevels.js";
 import {GALAXIES_LEVELS, GALAXIES_TUTORIAL} from "./galaxiesLevels.js";
 import type {GalaxiesPuzzle} from "./galaxies.js";
 import {BINERO_LEVELS, BINERO_TUTORIAL} from "./bineroLevels.js";
@@ -35,6 +36,11 @@ export const LEVEL_GAMES: Record<string, LevelGame> = {
         levels: BINERO_LEVELS,
         tutorial: BINERO_TUTORIAL,
         describe: p => ({size: (p as BineroGrid).length, hints: countBineroClues(p as BineroGrid)}),
+    },
+    SUDOKU: {
+        levels: SUDOKU_LEVELS,
+        tutorial: SUDOKU_TUTORIAL,
+        describe: p => ({size: 9, hints: (p as number[][]).flat().filter(v => v !== 0).length}),
     },
 };
 

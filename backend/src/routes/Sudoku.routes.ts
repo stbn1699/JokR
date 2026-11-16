@@ -9,6 +9,7 @@ import {sudokuStore} from "../services/stores.js";
 import {createDailyService} from "../services/daily.js";
 import {ProgressionService} from "../services/Progression.service.js";
 import {optionalAuth} from "../middleware/auth.js";
+import {LevelsRepository} from "../repository/Levels.repository.js";
 
 const router = Router();
 const db = createDb(pool);
@@ -21,7 +22,7 @@ const progressionService = new ProgressionService(db);
 const gamesService = new GamesService(new GamesRepository(db));
 
 // parties en cours partagées avec le défi du jour
-const controller = createSudokuController(service, sudokuStore, progressionService, gamesService, createDailyService(db));
+const controller = createSudokuController(service, sudokuStore, progressionService, gamesService, createDailyService(db), new LevelsRepository(db));
 
 // GET /sudoku/settings (plage de cases vides et XP associée)
 router.get("/settings", controller.settings);

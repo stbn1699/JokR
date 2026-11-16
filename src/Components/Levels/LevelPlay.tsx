@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {type ComponentType, useEffect, useState} from "react";
 import {Navigate, useParams} from "react-router-dom";
 import {LEVEL_GAMES, type LevelsOverview, levelsService} from "../../Services/levels.service.ts";
 import Queens from "../Queens/Queens.tsx";
@@ -6,10 +6,22 @@ import Loader from "../Loader/Loader.tsx";
 import QueensTutorial from "./QueensTutorial.tsx";
 import GalaxiesTutorial from "./GalaxiesTutorial.tsx";
 import BineroTutorial from "./BineroTutorial.tsx";
+import SudokuTutorial from "./SudokuTutorial.tsx";
+
+type LessonProps = { level: number; tutorial: number | null };
+
+// Leçons guidées de chaque jeu (les `tutorial` premiers niveaux)
+const TUTORIALS: Record<string, ComponentType<LessonProps>> = {
+    QUEENS: QueensTutorial,
+    GALAXIES: GalaxiesTutorial,
+    BINERO: BineroTutorial,
+    SUDOKU: SudokuTutorial,
+};
 
 /**
  * Partie d'un niveau (/niveaux/:gameCode/:level) : leçon guidée pour les niveaux du tutoriel, sinon le jeu du puzzle
- * chargé sur la grille du niveau. Le nombre de niveaux et la taille du tutoriel viennent du serveur.
+ * chargé sur la grille du niveau (pour l'instant, seul le Queens a des niveaux après son tutoriel).
+ * Le nombre de niveaux et la taille du tutoriel viennent du serveur.
  */
 export default function LevelPlay() {
     const {gameCode = "", level = ""} = useParams<{ gameCode: string; level: string }>();
@@ -27,24 +39,13 @@ export default function LevelPlay() {
     if (!LEVEL_GAMES.has(code) || !Number.isInteger(number) || number < 1) return <Navigate to="/" replace/>;
 
     if (!overview) return <Loader label="Chargement du niveau…"/>;
-    const info = {count: overview.levels.length, tutorial: overview.tutorial};
-    switch (code) {
-        case "QUEENS":
-            // key : passer au niveau suivant recharge une partie neuve
-            return number <= overview.tutorial
-                ? <QueensTutorial key={number} level={number} tutorial={overview.tutorial}/>
-                : <Queens key={number} level={number} levelInfo={info}/>;
-        case "GALAXIES":
-            // pour l'instant, seulement les leçons du tutoriel
-            return number <= overview.tutorial && number <= overview.levels.length
-                ? <GalaxiesTutorial key={number} level={number} tutorial={overview.tutorial}/>
-                : <Navigate to="/niveaux/GALAXIES" replace/>;
-        case "BINERO":
-            // pour l'instant, seulement les leçons du tutoriel
-            return number <= overview.tutorial && number <= overview.levels.length
-                ? <BineroTutorial key={number} level={number} tutorial={overview.tutorial}/>
-                : <Navigate to="/niveaux/BINERO" replace/>;
-        default:
-            return <Navigate to="/" replace/>;
+    if (number > overview.levels.length) return <Navigate to={`/niveaux/${code}`} replace/>;
+
+    // key : passer au niveau suivant recharge une partie neuve
+    const Lesson = TUTORIALS[code];
+    if (Lesson && number <= overview.tutorial) return <Lesson key={number} level={number} tutorial={overview.tutorial}/>;
+    if (code === "QUEENS") {
+        return <Queens key={number} level={number} levelInfo={{count: overview.levels.length, tutorial: overview.tutorial}}/>;
     }
+    return <Navigate to={`/niveaux/${code}`} replace/>;
 }

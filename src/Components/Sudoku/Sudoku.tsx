@@ -33,7 +33,8 @@ import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import "../Levels/Levels.scss";
 import {gameService} from "../../Services/game.service.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
 import SudokuGrid from "./SudokuGrid.tsx";
@@ -145,6 +146,9 @@ export default function Sudoku({daily = false, replayDate, challengeId}: SudokuP
                 )}
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
                 <h1 className="title">Sudoku</h1>
+                {!challenge && (
+                    <p className="queens-levels-link"><Link to="/niveaux/SUDOKU">Mode niveaux (avec tutoriel) →</Link></p>
+                )}
                 <SudokuGrid inputs={inputs} onHover={setHoverDigit} onCellInput={onCellInput}
                             onSelectCell={setSelectedCell} notes={notes} notesMode={notesMode}
                             onToggleNote={toggleNoteAt} loading={isLoading || dailyGame.loading}/>

@@ -8,7 +8,7 @@ import type {DailyStart} from "../Models/daily.model.ts";
  */
 
 // Jeux qui ont un mode Niveaux (la carte de ces jeux ouvre la carte des niveaux)
-export const LEVEL_GAMES = new Set(["QUEENS", "GALAXIES", "BINERO"]);
+export const LEVEL_GAMES = new Set(["QUEENS", "GALAXIES", "BINERO", "SUDOKU"]);
 
 export type LevelInfo = { level: number; size: number; hints: number; done: boolean; bestMs: number | null };
 export type LevelsOverview = { tutorial: number; levels: LevelInfo[] };
