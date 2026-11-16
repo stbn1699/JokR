@@ -19,7 +19,7 @@ import "./Confetti.scss";
 // =====================
 
 /** Durée totale de l'animation avant le fade-out (en millisecondes) */
-const CONFETTI_DURATION = 5000
+const CONFETTI_DURATION = 2000
 
 /** Intervalle entre chaque vague de confettis (en millisecondes) */
 const CONFETTI_INTERVAL = 50
@@ -65,10 +65,10 @@ export function confetti() {
             // Ajoute la classe pour démarrer l'animation de fade-out
             container.classList.add("fade-out");
 
-            // Après le fade-out (1.5s), on retire le conteneur du DOM
+            // Après le fade-out (0,5 s), on retire le conteneur du DOM
             setTimeout(() => {
                 container.remove();
-            }, 1500);
+            }, 600);
             return;
         }
 
