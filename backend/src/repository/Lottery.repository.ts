@@ -9,7 +9,8 @@ export type LotteryWinData = { kind: LotteryKind; date: string; prize: number; t
 /*
  * Loteries du Hasard (voir utils/lottery.ts) : mises de chacun sur une période, tirages et gagnants.
  * Les mises viennent de casino_plays (billes de Plinko, tours de roulette, lancers des machines à sous ;
- * rien en mode admin, et pas la roue du jour, qui est gratuite).
+ * rien en mode admin, et pas la roue du jour, qui est gratuite), plus les tickets offerts par la roue du jour
+ * (lottery_bonus_tickets), qui n'ajoutent rien à la cagnotte.
  */
 export class LotteryRepository {
     constructor(private db: Kysely<DB>) {
@@ -22,6 +23,32 @@ export class LotteryRepository {
             .where("created_at", ">", new Date(start)).where("created_at", "<=", new Date(end))
             .groupBy("user_id").execute();
         return rows.map(r => ({userId: r.user_id, bet: Number(r.bet)}));
+    }
+
+    /**
+     * Joueurs d'une loterie sur une période (start exclu, end compris) : crédits misés et tickets, ceux des mises
+     * plus ceux offerts par la roue du jour pour cette loterie.
+     */
+    async players(kind: LotteryKind, start: number, end: number, db: Kysely<DB> = this.db): Promise<{ userId: string; bet: number; tickets: number }[]> {
+        const [bets, bonus] = await Promise.all([
+            this.betsByUser(start, end, db),
+            db.selectFrom("lottery_bonus_tickets")
+                .select(["user_id", eb => eb.fn.sum<string>("tickets").as("tickets")])
+                .where("kind", "=", kind).where("created_at", ">", new Date(start)).where("created_at", "<=", new Date(end))
+                .groupBy("user_id").execute(),
+        ]);
+        const players = new Map(bets.map(b => [b.userId, {userId: b.userId, bet: b.bet, tickets: lotteryTickets(b.bet)}]));
+        for (const b of bonus) {
+            const p = players.get(b.user_id) ?? {userId: b.user_id, bet: 0, tickets: 0};
+            p.tickets += Number(b.tickets);
+            players.set(b.user_id, p);
+        }
+        return [...players.values()];
+    }
+
+    // Tickets offerts par la roue du jour (comptent pour la période en cours de cette loterie)
+    async addBonusTickets(userId: string, kind: LotteryKind, tickets: number, db: Kysely<DB> = this.db): Promise<void> {
+        await db.insertInto("lottery_bonus_tickets").values({user_id: userId, kind, tickets, source: "wheel"}).execute();
     }
 
     async hasDraws(kind: LotteryKind): Promise<boolean> {
@@ -38,8 +65,7 @@ export class LotteryRepository {
         const {start, end} = lotteryPeriod(kind, drawAt);
         const date = lotteryDrawDate(drawAt);
         return this.db.transaction().execute(async trx => {
-            const bets = await this.betsByUser(start, end, trx);
-            const players = bets.map(b => ({...b, tickets: lotteryTickets(b.bet)}));
+            const players = await this.players(kind, start, end, trx);
             const totalBet = players.reduce((sum, p) => sum + p.bet, 0);
             const totalTickets = players.reduce((sum, p) => sum + p.tickets, 0);
             const winner = pickLotteryWinner(players, n => randomInt(n));

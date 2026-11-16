@@ -21,6 +21,8 @@ export interface WheelSpin {
     item: { id: string; name: string; file: string } | null;
     // crédits gagnés par ce lancer
     creditsWon: number;
+    // tickets de loterie offerts par ce lancer (case « tickets »)
+    tickets: number;
     // encore un lancer aujourd'hui (relance tombée, ou mode admin)
     available: boolean;
 }

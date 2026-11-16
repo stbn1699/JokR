@@ -22,10 +22,10 @@ import {maintenance, MAINTENANCE_MESSAGE} from "../services/maintenance.js";
 import {LotteryRepository} from "../repository/Lottery.repository.js";
 import {encodeSlotSpin, isSlotBet, isSlotLineCount, isSlotReelCount, SLOT_MACHINES, slotMachine, slotSpin, slotStops} from "../utils/slots.js";
 import {wheelAvailable, type WheelItem, WheelRepository} from "../repository/Wheel.repository.js";
-import {WHEEL_SEGMENTS, WHEEL_TOTAL_WEIGHT, wheelSegmentFor} from "../utils/wheel.js";
+import {WHEEL_SEGMENTS, WHEEL_TOTAL_WEIGHT, wheelSegmentFor, wheelTickets} from "../utils/wheel.js";
 import {plinkoBallSets} from "../utils/plinkoBalls.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
-import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, lotteryPrize, lotteryTickets, nextLotteryDraw} from "../utils/lottery.js";
+import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, lotteryPrize, nextLotteryDraw} from "../utils/lottery.js";
 
 /*
  * Jeux de hasard (JWT requis)
@@ -55,8 +55,9 @@ import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, l
  * - Roue du jour (voir backend/src/utils/wheel.ts) : un lancer gratuit par jour (heure de Paris), plus un par
  *   case « relance ».
  *   - GET /casino/wheel → { available, nextAt, today: { segment } | null } (nextAt : minuit ; today : dernier lancer)
- *   - POST /casino/wheel → { segment, credits, level, xp, item, creditsWon, available } (solde, niveau et XP après
- *     le gain ; item : bille offerte ; available : encore un lancer aujourd'hui) ; 409 si plus de lancer.
+ *   - POST /casino/wheel → { segment, credits, level, xp, item, creditsWon, tickets, available } (solde, niveau et
+ *     XP après le gain ; item : bille offerte ; tickets : tickets de loterie offerts ; available : encore un lancer
+ *     aujourd'hui) ; 409 si plus de lancer.
  *     Mode admin : la roue tourne autant qu'on veut, sans rien donner ni enregistrer.
  * Mise à jour en préparation (services/maintenance.ts) : plus de bille de Plinko, et plus de mise à la roulette
  * après le tour en cours au moment de la coupure (503, code « maintenance »).
@@ -167,7 +168,8 @@ router.post("/wheel", asyncHandler(async (_req: Request, res: Response<unknown, 
     if (res.locals.ghost) {
         const credits = await liveRoulette.credits(res.locals.userId!);
         const item = WHEEL_SEGMENTS[segment]!.reward === "item" ? pickWheelBall(new Set()) : null;
-        return void res.status(200).json({status: "ok", data: {segment, credits, level: null, xp: null, item, creditsWon: 0, available: true}});
+        const tickets = wheelTickets(WHEEL_SEGMENTS[segment]!, dailyDate());
+        return void res.status(200).json({status: "ok", data: {segment, credits, level: null, xp: null, item, creditsWon: 0, tickets, available: true}});
     }
     const date = dailyDate();
     const result = await wheel.spin(res.locals.userId!, date, segment, pickWheelBall);
@@ -177,7 +179,7 @@ router.post("/wheel", asyncHandler(async (_req: Request, res: Response<unknown, 
     }
     const available = wheelAvailable(await wheel.spinsOn(res.locals.userId!, date));
     res.status(200).json({status: "ok", data: {segment, credits: result.credits, level: result.level, xp: result.xp,
-        item: result.item, creditsWon: result.creditsWon, available}});
+        item: result.item, creditsWon: result.creditsWon, tickets: result.tickets, available}});
 }));
 
 const CLOSED_MESSAGE = "Les mises de ce tour sont fermées, attends le prochain";
@@ -273,15 +275,17 @@ router.get("/lottery", asyncHandler(async (_req: Request, res: Response<unknown,
     const data = await Promise.all(LOTTERY_KINDS.map(async kind => {
         const drawAt = nextLotteryDraw(kind, now);
         const {start} = lotteryPeriod(kind, drawAt);
-        const [bets, winners] = await Promise.all([lottery.betsByUser(start, now), lottery.recentWinners(kind, LOTTERY_WINNERS)]);
-        const totalBet = bets.reduce((sum, b) => sum + b.bet, 0);
-        const myBet = bets.find(b => b.userId === me)?.bet ?? 0;
+        const [players, winners] = await Promise.all([lottery.players(kind, start, now), lottery.recentWinners(kind, LOTTERY_WINNERS)]);
+        const totalBet = players.reduce((sum, b) => sum + b.bet, 0);
+        const mine = players.find(b => b.userId === me);
+        const myBet = mine?.bet ?? 0;
         return {
             kind, drawAt, periodStart: start, percent: LOTTERY_PERCENT[kind],
             totalBet, prize: lotteryPrize(kind, totalBet),
-            totalTickets: bets.reduce((sum, b) => sum + lotteryTickets(b.bet), 0),
-            players: bets.filter(b => lotteryTickets(b.bet) > 0).length,
-            myBet, myTickets: lotteryTickets(myBet),
+            // tickets des mises et tickets offerts par la roue du jour
+            totalTickets: players.reduce((sum, b) => sum + b.tickets, 0),
+            players: players.filter(b => b.tickets > 0).length,
+            myBet, myTickets: mine?.tickets ?? 0,
             // crédits à miser encore pour un ticket de plus
             nextTicketIn: LOTTERY_TICKET_CREDITS - (myBet % LOTTERY_TICKET_CREDITS),
             winners: winners.map(w => ({date: w.date, username: w.username, prize: w.prize, tickets: w.winner_tickets ?? 0, totalTickets: w.total_tickets})),

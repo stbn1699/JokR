@@ -1,6 +1,6 @@
 /**
  * Roue du jour (page Hasard) : un lancer gratuit par jour, qui rapporte des crédits, de l'XP, une bille
- * de Plinko ou une relance (cases et chances : backend/src/utils/wheel.ts). S'ouvre toute seule à la
+ * de Plinko, des tickets de loterie ou une relance (cases et chances : backend/src/utils/wheel.ts). S'ouvre toute seule à la
  * première visite du jour sur la page Hasard, et depuis sa carte. En mode admin, on la relance à volonté
  * (rien n'est donné).
  *
@@ -12,7 +12,9 @@ import "../../SuccessPopup/SuccessPopup.scss";
 import "./DailyWheel.scss";
 import {useEffect, useRef, useState} from "react";
 import {FaCoins, FaRedo, FaStar} from "react-icons/fa";
-import {WHEEL_ITEM_FALLBACK, WHEEL_SEGMENTS, type WheelSegment, wheelChance} from "../../../../backend/src/utils/wheel.ts";
+import {WHEEL_ITEM_FALLBACK, WHEEL_ORDER, WHEEL_SEGMENTS, type WheelSegment, wheelChance, wheelTickets} from "../../../../backend/src/utils/wheel.ts";
+import {dailyDate} from "../../../../backend/src/utils/dailyDate.ts";
+import type {LotteryKind} from "../../../../backend/src/utils/lottery.ts";
 import {useAuth} from "../../../Context/authContext.ts";
 import {ApiError} from "../../../api/api.ts";
 import {casinoService, type WheelSpin} from "../../../Services/casino.service.ts";
@@ -21,20 +23,31 @@ import {confetti} from "../../Confetti/Confetti.tsx";
 
 const SPIN_MS = 5200;
 const SLICE = 360 / WHEEL_SEGMENTS.length;
+// Angle de la roue qui met une case sous la flèche
+const angleOf = (segment: number) => -WHEEL_ORDER.indexOf(segment) * SLICE;
 const R = 100;
 
-// Couleurs des cases : crédits en doré/orangé, XP en bleu, relance en vert, bille en violet, jackpot en rouge
+// Couleurs des cases : crédits en doré/orangé, XP en bleu, relance en vert, bille en violet, tickets en rose,
+// jackpot en rouge
 function segmentColors(s: WheelSegment, i: number): { fill: string; text: string } {
     if (s.jackpot) return {fill: "#dc2626", text: "#fef3c7"};
+    if (s.reward === "lottery") return {fill: "#ec4899", text: "#fdf2f8"};
     if (s.reward === "respin") return {fill: "#10b981", text: "#ecfdf5"};
     if (s.reward === "item") return {fill: "#8b5cf6", text: "#f5f3ff"};
     if (s.reward === "xp") return {fill: i % 2 ? "#2563eb" : "#3b82f6", text: "#eff6ff"};
     return {fill: i % 2 ? "#fbbf24" : "#f59e0b", text: "#451a03"};
 }
 
-// Texte de la case sur la roue : grand (montant) et petit (unité)
-function segmentLabel(s: WheelSegment): [string, string] {
+const LOTTERY_NAMES: Record<LotteryKind, string> = {day: "du jour", week: "de la semaine", month: "du mois"};
+const LOTTERY_SHORT: Record<LotteryKind, string> = {day: "JOUR", week: "SEMAINE", month: "MOIS"};
+
+// Tickets d'une case « tickets » aujourd'hui (le mois : 1 000 par jour du mois en cours)
+const ticketsToday = (s: WheelSegment) => wheelTickets(s, dailyDate());
+
+// Texte de la case sur la roue : grand (montant), petit (unité) et, pour les tickets, la loterie
+function segmentLabel(s: WheelSegment): [string, string, string?] {
     if (s.jackpot) return ["1 000", "JACKPOT"];
+    if (s.reward === "lottery") return [fr(ticketsToday(s)), "TICKETS", LOTTERY_SHORT[s.lottery!]];
     if (s.reward === "respin") return ["+1", "LANCER"];
     if (s.reward === "item") return ["Bille", "OFFERTE"];
     return [fr(s.amount), s.reward === "xp" ? "XP" : "crédits"];
@@ -46,6 +59,7 @@ const fr = (n: number) => n.toLocaleString("fr-FR");
 function rewardText(s: WheelSegment): string {
     if (s.reward === "respin") return "Un lancer de plus";
     if (s.reward === "item") return "Une bille de Plinko";
+    if (s.reward === "lottery") return `${fr(ticketsToday(s))} tickets (loterie ${LOTTERY_NAMES[s.lottery!]})`;
     return s.reward === "xp" ? `${fr(s.amount)} XP` : `${fr(s.amount)} crédits`;
 }
 
@@ -76,7 +90,7 @@ type DailyWheelProps = {
 
 export default function DailyWheel({available, today, nextAt, onSpun, onClose}: DailyWheelProps) {
     const auth = useAuth();
-    const [rotation, setRotation] = useState(() => today ? -today.segment * SLICE : 0);
+    const [rotation, setRotation] = useState(() => today ? angleOf(today.segment) : 0);
     const [phase, setPhase] = useState<"ready" | "spinning" | "done" | "used">(available ? "ready" : "used");
     const [result, setResult] = useState<WheelSpin | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -111,7 +125,7 @@ export default function DailyWheel({available, today, nextAt, onSpun, onClose}: 
             const spun = await casinoService.spinWheel();
             // plusieurs tours, puis la case tirée sous la flèche, un peu décalée du centre pour faire vrai
             const jitter = (Math.random() - 0.5) * SLICE * 0.7;
-            setRotation(r => Math.ceil(r / 360) * 360 + 360 * 6 - spun.segment * SLICE + jitter);
+            setRotation(r => Math.ceil(r / 360) * 360 + 360 * 6 + angleOf(spun.segment) + jitter);
             void auth.refresh();
             window.setTimeout(() => {
                 setResult(spun);
@@ -174,23 +188,30 @@ export default function DailyWheel({available, today, nextAt, onSpun, onClose}: 
                          aria-label="Roue : crédits, XP, billes et relances à gagner"
                          style={{transform: `rotate(${rotation}deg)`, transitionDuration: phase === "spinning" ? `${SPIN_MS}ms` : "0ms"}}>
                         <circle r="108" className="daily-wheel-rim"/>
-                        {WHEEL_SEGMENTS.map((s, i) => {
-                            const {fill, text} = segmentColors(s, i);
-                            const [big, small] = segmentLabel(s);
+                        {WHEEL_ORDER.map((index, i) => {
                             const from = i * SLICE - SLICE / 2, to = i * SLICE + SLICE / 2;
-                            return (
-                                <g key={i}>
-                                    <path d={`M0 0L${at(from, R)}A${R} ${R} 0 0 1 ${at(to, R)}Z`} fill={fill}/>
-                                    <g transform={`rotate(${i * SLICE})`} fill={text} textAnchor="middle">
-                                        <text y={-72} className="daily-wheel-amount">{big}</text>
-                                        <text y={-60} className="daily-wheel-unit">{small}</text>
-                                    </g>
-                                </g>
-                            );
+                            return <path key={index} d={`M0 0L${at(from, R)}A${R} ${R} 0 0 1 ${at(to, R)}Z`}
+                                         fill={segmentColors(WHEEL_SEGMENTS[index]!, i).fill}/>;
                         })}
                         {WHEEL_SEGMENTS.map((_, i) => {
                             const [x, y] = point(i * SLICE - SLICE / 2, R);
                             return <line key={i} x1="0" y1="0" x2={x} y2={y} className="daily-wheel-sep"/>;
+                        })}
+                        {/* textes par-dessus toutes les cases (jamais recouverts par la case suivante), le long du rayon
+                            (à la verticale pour la case du haut), calés contre le bord, là où la case est la plus large */}
+                        {WHEEL_ORDER.map((index, i) => {
+                            const s = WHEEL_SEGMENTS[index]!;
+                            const [big, small, extra] = segmentLabel(s);
+                            return (
+                                <g key={index} transform={`rotate(${i * SLICE - 90})`} fill={segmentColors(s, i).text}
+                                   textAnchor="end" dominantBaseline="central">
+                                    <text x={95} y={extra ? -3.2 : 0}>
+                                        <tspan className={`daily-wheel-amount ${extra ? "small" : ""}`}>{big}</tspan>
+                                        <tspan className="daily-wheel-unit" dx={2}>{small}</tspan>
+                                    </text>
+                                    {extra && <text x={95} y={4.6} className="daily-wheel-unit extra">{extra}</text>}
+                                </g>
+                            );
                         })}
                         {/* petits clous au bord, entre les cases */}
                         {WHEEL_SEGMENTS.map((_, i) => {
@@ -206,6 +227,7 @@ export default function DailyWheel({available, today, nextAt, onSpun, onClose}: 
                     {phase === "done" && wonSegment && result && (
                         <span ref={resultRef} className={`daily-wheel-won ${wonSegment.reward} ${wonSegment.jackpot ? "jackpot" : ""}`}>
                             {wonSegment.reward === "respin" ? "Relance ! Un lancer de plus"
+                                : wonSegment.reward === "lottery" ? `+${fr(result.tickets)} tickets pour la loterie ${LOTTERY_NAMES[wonSegment.lottery!]}`
                                 : wonSegment.reward === "item" ? (result.item
                                     ? <><img src={result.item.file} alt="" draggable={false}/> Bille offerte : {result.item.name}</>
                                     : `Tu as déjà toutes les billes : +${WHEEL_ITEM_FALLBACK} crédits`)
@@ -235,7 +257,7 @@ export default function DailyWheel({available, today, nextAt, onSpun, onClose}: 
                                 </button>
                             )}
                             <button type="button" className={`modal-button ${result?.available ? "secondary" : ""}`} onClick={collect}>
-                                {wonSegment?.reward === "respin" || wonSegment?.reward === "item" && result?.item ? "Fermer"
+                                {wonSegment?.reward === "respin" || wonSegment?.reward === "lottery" || wonSegment?.reward === "item" && result?.item ? "Fermer"
                                     : <>Récupérer {wonSegment?.reward === "xp" ? <FaStar aria-hidden/> : <FaCoins aria-hidden/>}</>}
                             </button>
                         </>

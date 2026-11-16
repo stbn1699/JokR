@@ -248,6 +248,16 @@ export type DailyWheelSpinsTable = {
     created_at: Generated<Date>;
 };
 
+// Tickets de loterie offerts (roue du jour), en plus de ceux gagnés en misant
+export type LotteryBonusTicketsTable = {
+    id: Generated<number>;
+    user_id: string;
+    kind: string;
+    tickets: number;
+    source: Generated<string>;
+    created_at: Generated<Date>;
+};
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
@@ -268,5 +278,6 @@ export type DB = {
     roulette_bets: RouletteBetsTable;
     lottery_draws: LotteryDrawsTable;
     daily_wheel_spins: DailyWheelSpinsTable;
+    lottery_bonus_tickets: LotteryBonusTicketsTable;
 };
 

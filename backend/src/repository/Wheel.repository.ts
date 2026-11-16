@@ -1,18 +1,19 @@
 import type {Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
 import {addXp} from "../utils/leveling.js";
-import {WHEEL_ITEM_FALLBACK, WHEEL_SEGMENTS} from "../utils/wheel.js";
+import {WHEEL_ITEM_FALLBACK, WHEEL_SEGMENTS, wheelTickets} from "../utils/wheel.js";
+import {LotteryRepository} from "./Lottery.repository.js";
 
 // Bille offerte par la case « cadeau » (null : le joueur les avait toutes, il a eu des crédits à la place)
 export type WheelItem = { id: string; name: string; file: string };
 
 export type WheelSpinResult =
-    | { ok: true; credits: number; level: number; xp: number; item: WheelItem | null; creditsWon: number }
+    | { ok: true; credits: number; level: number; xp: number; item: WheelItem | null; creditsWon: number; tickets: number }
     | { ok: false; reason: "already" | "user" };
 
 /*
  * Roue du jour (voir utils/wheel.ts) : lancers enregistrés dans daily_wheel_spins, un par jour,
- * plus un par case « relance » tombée ce jour-là.
+ * plus un par case « relance » tombée ce jour-là. Les tickets de loterie gagnés vont dans lottery_bonus_tickets.
  */
 export class WheelRepository {
     constructor(private db: Kysely<DB>) {
@@ -49,6 +50,8 @@ export class WheelRepository {
                 if (item) await trx.insertInto("user_items").values({user_id: userId, item_id: item.id, price: 0}).execute();
                 else credits = WHEEL_ITEM_FALLBACK;
             }
+            const tickets = wheelTickets(s, date);
+            if (tickets > 0) await new LotteryRepository(trx).addBonusTickets(userId, s.lottery!, tickets);
 
             await trx.insertInto("daily_wheel_spins")
                 .values({user_id: userId, spin_date: date, attempt: done.length + 1, segment, credits, xp, item_id: item?.id ?? null})
@@ -58,7 +61,7 @@ export class WheelRepository {
             const updated = await trx.updateTable("users")
                 .set(eb => ({credits: eb("credits", "+", credits), user_level: next.level, user_xp: next.xp}))
                 .where("id", "=", userId).returning("credits").executeTakeFirstOrThrow();
-            return {ok: true, credits: updated.credits, level: next.level, xp: next.xp, item, creditsWon: credits} as const;
+            return {ok: true, credits: updated.credits, level: next.level, xp: next.xp, item, creditsWon: credits, tickets} as const;
         });
     }
 }

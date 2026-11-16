@@ -10,7 +10,11 @@ export default function LotteryRules() {
             </p>
             <ul>
                 <li>Chaque tranche de {LOTTERY_TICKET_CREDITS} crédits misés sur la période te donne un ticket, dans les trois loteries à la fois.</li>
-                <li>La roue du jour est gratuite : elle ne donne pas de ticket.</li>
+                <li>
+                    La roue du jour peut aussi t'offrir des tickets : 1 000 pour la loterie du jour, 7 000 pour celle de
+                    la semaine, ou 1 000 par jour du mois pour celle du mois. Ils comptent comme les autres pour le tirage,
+                    mais n'augmentent pas la cagnotte (elle ne vient que des mises).
+                </li>
                 <li>Au tirage, un ticket gagnant est tiré au sort parmi tous ceux de la période : plus tu as de tickets, plus tu as de chances.</li>
                 <li>
                     Le gagnant remporte la cagnotte : {LOTTERY_PERCENT.day} % de tous les crédits misés par tout le monde
