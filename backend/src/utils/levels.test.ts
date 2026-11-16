@@ -2,6 +2,8 @@ import {describe, expect, it} from "vitest";
 import {QUEENS_LEVELS, QUEENS_TUTORIAL} from "./queensLevels.js";
 import {solveQueens} from "./queens.js";
 import {isLevelUnlocked, levelPuzzle} from "./levels.js";
+import {GALAXIES_LEVELS, GALAXIES_TUTORIAL} from "./galaxiesLevels.js";
+import {solveGalaxies} from "./galaxies.js";
 
 describe("niveaux du Queens", () => {
     it("1000 niveaux, dont 3 leçons de tutoriel, de 4×4 à 12×12", () => {
@@ -30,5 +32,18 @@ describe("niveaux du Queens", () => {
         expect(isLevelUnlocked(1, new Set())).toBe(true);
         expect(isLevelUnlocked(3, new Set([1]))).toBe(false);
         expect(isLevelUnlocked(3, new Set([1, 2]))).toBe(true);
+    });
+});
+
+describe("niveaux des Galaxies", () => {
+    it("3 leçons de tutoriel, chacune à solution unique", () => {
+        expect(GALAXIES_TUTORIAL).toBe(3);
+        expect(GALAXIES_LEVELS.length).toBeGreaterThanOrEqual(GALAXIES_TUTORIAL);
+        for (const puzzle of GALAXIES_LEVELS) {
+            const {count, aborted} = solveGalaxies(puzzle, 2);
+            expect(aborted).toBe(false);
+            expect(count).toBe(1);
+        }
+        expect(levelPuzzle("GALAXIES", 1)).toBe(GALAXIES_LEVELS[0]);
     });
 });

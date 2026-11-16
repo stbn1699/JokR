@@ -1,0 +1,52 @@
+// ---------- Tutoriel guidé des Galaxies : ombre, cases montrées et murs à tracer, dessinés sur le plateau
+.level-tutorial.galaxies {
+	// fond plein : l'ombre doit se voir quel que soit le fond de la page
+	.galaxies-board {
+		width      : var(--grid-width);
+		background : #334155;
+	}
+
+	// pas d'interaction avec le dessin du guide (le plateau reçoit les appuis)
+	.galaxies-guide {
+		pointer-events : none;
+	}
+
+	.galaxies-veil {
+		fill       : rgba(2, 6, 23, 0.78);
+		transition : fill 0.35s ease;
+
+		&.lit { fill : transparent; }
+	}
+
+	// case dont on parle : cadre doré qui pulse
+	.galaxies-focus {
+		fill         : rgba(253, 224, 71, 0.15);
+		stroke       : #fde047;
+		stroke-width : 0.7;
+		rx           : 1;
+		animation    : galaxies-focus 1.1s ease-in-out infinite;
+	}
+
+	// mur à tracer : trait doré qui pulse
+	.galaxies-target {
+		stroke         : #fde047;
+		stroke-width   : 0.9;
+		stroke-linecap : round;
+		animation      : galaxies-target 1.1s ease-in-out infinite;
+	}
+}
+
+@keyframes galaxies-target {
+	0%, 100% { stroke-opacity : 0.45; }
+	50% { stroke-opacity : 1; }
+}
+
+@keyframes galaxies-focus {
+	0%, 100% { stroke-opacity : 0.5; }
+	50% { stroke-opacity : 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.level-tutorial.galaxies .galaxies-focus,
+	.level-tutorial.galaxies .galaxies-target { animation : none; }
+}

@@ -25,6 +25,8 @@ type GalaxiesBoardProps = {
     onEndStroke: () => void;
     // Montrer les coups interdits : zones impossibles et murs à travers un point en rouge
     showErrors: boolean;
+    // Tutoriel : cases dans l'ombre (toutes sauf `lit`), cases montrées du doigt et murs à tracer (qui brillent)
+    guide?: { lit: Set<number> | null; focus: number[]; targets: Set<number> };
 };
 
 // Couleur d'une galaxie terminée (une teinte par point, bien espacées, jamais rouge : le rouge signale une erreur)
@@ -45,17 +47,18 @@ function wallSegment(wall: number, width: number, height: number): [number, numb
  * - Clavier : flèches pour déplacer la case active, Maj + flèche pour poser / retirer le mur de ce côté
  * - Une galaxie terminée (un point, symétrique) se colore toute seule
  */
-export default function GalaxiesBoard({puzzle, walls, hintWalls, analysis, disabled, onToggleWall, onPaintWall, onEndStroke, showErrors}: GalaxiesBoardProps) {
+export default function GalaxiesBoard({puzzle, walls, hintWalls, analysis, disabled, onToggleWall, onPaintWall, onEndStroke, showErrors, guide}: GalaxiesBoardProps) {
     const {width, height, dots} = puzzle;
     const [hoverWall, setHoverWall] = useState<number | null>(null);
     const [cursor, setCursor] = useState(0);
     const [focused, setFocused] = useState(false);
 
-    // Trait en cours : poser ou retirer, et dernière position (pour ne sauter aucun mur si on glisse vite)
-    const stroke = useRef<{ on: boolean; x: number; y: number } | null>(null);
+    // Trait en cours : poser ou retirer (null : pas encore décidé, appui sur un croisement de traits), et dernière
+    // position (pour ne sauter aucun mur si on glisse vite)
+    const stroke = useRef<{ on: boolean | null; x: number; y: number } | null>(null);
 
     // Mur visé à la position (x, y) de l'écran, ou null au milieu d'une case
-    const wallAtPoint = (svg: SVGSVGElement, x: number, y: number): number | null => {
+    const wallAtPoint = (svg: SVGSVGElement, x: number, y: number, cornerOk = false): number | null | "corner" => {
         const rect = svg.getBoundingClientRect();
         const fx = ((x - rect.left) / rect.width) * width;
         const fy = ((y - rect.top) / rect.height) * height;
@@ -69,15 +72,21 @@ export default function GalaxiesBoard({puzzle, walls, hintWalls, analysis, disab
         if (distance > EDGE_HIT) return null;
         // Tout près d'un coin, deux murs sont aussi proches : on ne choisit pas
         // (un trait le long d'une ligne ne pose pas de petit mur en travers à chaque coin)
-        if (sorted[1]![1] - distance < CORNER_GAP) return null;
+        if (sorted[1]![1] - distance < CORNER_GAP) return cornerOk ? "corner" : null;
         return wallOnSide(r * width + c, side, width, height);
     };
-    const wallAt = (e: PointerEvent<SVGSVGElement>) => wallAtPoint(e.currentTarget, e.clientX, e.clientY);
+    const wallAt = (e: PointerEvent<SVGSVGElement>) => wallAtPoint(e.currentTarget, e.clientX, e.clientY) as number | null;
 
     // Appui : pose ou retire le mur visé, et commence un trait
     const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
         if (disabled || (e.pointerType === "mouse" && e.button !== 0)) return;
-        const wall = wallAt(e);
+        const wall = wallAtPoint(e.currentTarget, e.clientX, e.clientY, true);
+        // sur un croisement : le trait commence, et le premier mur traversé dira s'il pose ou retire
+        if (wall === "corner") {
+            stroke.current = {on: null, x: e.clientX, y: e.clientY};
+            e.currentTarget.setPointerCapture(e.pointerId);
+            return;
+        }
         if (wall === null || hintWalls.has(wall)) return;
         const on = !walls.has(wall);
         stroke.current = {on, x: e.clientX, y: e.clientY};
@@ -97,8 +106,10 @@ export default function GalaxiesBoard({puzzle, walls, hintWalls, analysis, disab
         const dx = e.clientX - current.x, dy = e.clientY - current.y;
         const count = Math.max(1, Math.ceil(Math.hypot(dx, dy) / step));
         for (let k = 1; k <= count; k++) {
-            const wall = wallAtPoint(e.currentTarget, current.x + (dx * k) / count, current.y + (dy * k) / count);
-            if (wall !== null && !hintWalls.has(wall)) onPaintWall(wall, current.on);
+            const wall = wallAtPoint(e.currentTarget, current.x + (dx * k) / count, current.y + (dy * k) / count) as number | null;
+            if (wall === null || hintWalls.has(wall)) continue;
+            current.on ??= !walls.has(wall);
+            onPaintWall(wall, current.on);
         }
         current.x = e.clientX;
         current.y = e.clientY;
@@ -150,7 +161,7 @@ export default function GalaxiesBoard({puzzle, walls, hintWalls, analysis, disab
                 })}
 
                 {/* Aperçu du mur sous la souris */}
-                {hoverWall !== null && !hintWalls.has(hoverWall) && (() => {
+                {hoverWall !== null && !hintWalls.has(hoverWall) && (!guide || guide.targets.has(hoverWall)) && (() => {
                     const [x1, y1, x2, y2] = wallSegment(hoverWall, width, height);
                     return <line x1={x1} y1={y1} x2={x2} y2={y2} className="galaxies-wall preview"/>;
                 })()}
@@ -176,6 +187,24 @@ export default function GalaxiesBoard({puzzle, walls, hintWalls, analysis, disab
                     return <circle key={d} cx={(x / 2) * CELL} cy={(y / 2) * CELL} r={CELL * 0.22}
                                    className={`galaxies-dot ${done ? "done" : ""}`}/>;
                 })}
+
+                {/* Tutoriel : ombre sur les cases dont on ne parle pas, cases montrées et murs à tracer */}
+                {guide && (
+                    <g className="galaxies-guide">
+                        {Array.from({length: width * height}, (_, i) => (
+                            <rect key={i} x={(i % width) * CELL} y={Math.floor(i / width) * CELL} width={CELL} height={CELL}
+                                  className={`galaxies-veil ${guide.lit === null || guide.lit.has(i) ? "lit" : ""}`}/>
+                        ))}
+                        {guide.focus.map(i => (
+                            <rect key={`f${i}`} x={(i % width) * CELL + 0.8} y={Math.floor(i / width) * CELL + 0.8}
+                                  width={CELL - 1.6} height={CELL - 1.6} className="galaxies-focus"/>
+                        ))}
+                        {[...guide.targets].filter(w => !walls.has(w)).map(w => {
+                            const [x1, y1, x2, y2] = wallSegment(w, width, height);
+                            return <line key={`t${w}`} x1={x1} y1={y1} x2={x2} y2={y2} className="galaxies-target"/>;
+                        })}
+                    </g>
+                )}
             </svg>
         </div>
     );

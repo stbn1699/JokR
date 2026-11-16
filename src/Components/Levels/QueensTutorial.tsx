@@ -173,8 +173,8 @@ export default function QueensTutorial({level, tutorial}: Props) {
         }).catch((err: Error) => setError(err.message || "La validation a échoué."));
     }, [solved, puzzle, marks, done, auth, level]);
 
-    if (error) return <main className="queens-tutorial"><p className="tutorial-error" role="alert">{error}</p></main>;
-    if (!puzzle) return <main className="queens-tutorial"><Loader label="Chargement de la leçon…"/></main>;
+    if (error) return <main className="level-tutorial"><p className="tutorial-error" role="alert">{error}</p></main>;
+    if (!puzzle) return <main className="level-tutorial"><Loader label="Chargement de la leçon…"/></main>;
 
     const targets = new Set(shown?.targets ?? []);
     const spotlight = new Set([...(shown?.spotlight ?? []), ...targets]);
@@ -203,7 +203,7 @@ export default function QueensTutorial({level, tutorial}: Props) {
     const next = () => navigate(`/niveaux/QUEENS/${level + 1}`);
 
     return (
-        <main className="queens-tutorial queens">
+        <main className="level-tutorial queens">
             <div className="tutorial-top">
                 <Link to="/niveaux/QUEENS" className="tutorial-back"><FaChevronLeft aria-hidden/> Niveaux</Link>
                 <span className="tutorial-badge"><FaGraduationCap aria-hidden/> Leçon {level}{tutorial ? `/${tutorial}` : ""} · {LESSON_TITLES[level - 1] ?? "Queens"}</span>

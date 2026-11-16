@@ -1,5 +1,5 @@
-// ---------- Tutoriel guidé du Queens : la grille seule, un voile, une bulle
-.queens-tutorial {
+// ---------- Tutoriel guidé des niveaux (Queens, Galaxies) : la grille seule, un voile, une bulle
+.level-tutorial {
 	// taille de la grille : jamais plus haute que l'écran (la bulle doit rester visible dessous)
 	--grid-width   : min(26rem, calc(100vw - 2rem), 52dvh);
 	display        : flex;
@@ -163,6 +163,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.queens-tutorial .tutorial-veil .target,
-	.queens-tutorial .tutorial-bubble { animation : none; }
+	.level-tutorial .tutorial-veil .target,
+	.level-tutorial .tutorial-bubble { animation : none; }
 }

@@ -1,5 +1,7 @@
 import {QUEENS_LEVELS, QUEENS_TUTORIAL} from "./queensLevels.js";
 import type {QueensPuzzle} from "./queens.js";
+import {GALAXIES_LEVELS, GALAXIES_TUTORIAL} from "./galaxiesLevels.js";
+import type {GalaxiesPuzzle} from "./galaxies.js";
 
 /*
  * Mode Niveaux des puzzles : pour chaque jeu, une suite de grilles fixes (les mêmes pour tout le monde), du tutoriel
@@ -21,6 +23,11 @@ export const LEVEL_GAMES: Record<string, LevelGame> = {
         levels: QUEENS_LEVELS,
         tutorial: QUEENS_TUTORIAL,
         describe: p => ({size: (p as QueensPuzzle).size, hints: (p as QueensPuzzle).queens.length}),
+    },
+    GALAXIES: {
+        levels: GALAXIES_LEVELS,
+        tutorial: GALAXIES_TUTORIAL,
+        describe: p => ({size: (p as GalaxiesPuzzle).width, hints: (p as GalaxiesPuzzle).walls.length}),
     },
 };
 

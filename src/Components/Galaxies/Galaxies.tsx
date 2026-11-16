@@ -29,7 +29,8 @@ import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import "../Levels/Levels.scss";
 import {galaxiesService} from "../../Services/galaxies.service.ts";
 import type {GalaxiesPuzzle} from "../../Models/galaxies.model.ts";
 import {type SavedGalaxies, useGalaxiesGame} from "./useGalaxiesGame.ts";
@@ -122,6 +123,9 @@ export default function Galaxies({daily = false, replayDate, challengeId}: Galax
 
             <div className="options">
                 <h2 className="title">Galaxies</h2>
+                {!challenge && (
+                    <p className="queens-levels-link"><Link to="/niveaux/GALAXIES">Mode niveaux (avec tutoriel) →</Link></p>
+                )}
                 <p className="galaxies-progress">
                     {total > 0 ? <><strong>{doneCount}</strong> / {total} galaxies terminées</> : "–"}
                 </p>
