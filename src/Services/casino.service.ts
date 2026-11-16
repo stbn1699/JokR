@@ -41,6 +41,9 @@ export interface BlackjackTable {
     credits: number;
 }
 
+// Événement envoyé quand la roue du jour vient d'être lancée (le header met à jour son point orange)
+export const WHEEL_SPUN_EVENT = "jokr:wheel-spun";
+
 // Roue du jour (voir backend/src/utils/wheel.ts)
 export interface WheelStatus {
     available: boolean;

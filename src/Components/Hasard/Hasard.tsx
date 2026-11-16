@@ -10,7 +10,7 @@ import LotteryBanner from "./Lottery/LotteryBanner.tsx";
 import GameCard from "./GameCard.tsx";
 import DailyWheel from "./Wheel/DailyWheel.tsx";
 import {useWhatsNewOpen} from "../../Services/popupQueue.ts";
-import type {WheelStatus} from "../../Services/casino.service.ts";
+import {WHEEL_SPUN_EVENT, type WheelStatus} from "../../Services/casino.service.ts";
 
 /**
  * Onglet « Hasard » (/hasard) : les jeux où l'on mise ses crédits.
@@ -135,7 +135,10 @@ export default function Hasard() {
 
             {wheelOpen && wheel && !whatsNewOpen && (
                 <DailyWheel available={wheel.available} today={wheel.today} nextAt={wheel.nextAt} onClose={closeWheel}
-                            onSpun={(segment, available) => setWheel(w => w && {...w, available, today: {segment}})}/>
+                            onSpun={(segment, available) => {
+                                setWheel(w => w && {...w, available, today: {segment}});
+                                window.dispatchEvent(new Event(WHEEL_SPUN_EVENT));
+                            }}/>
             )}
         </main>
     );

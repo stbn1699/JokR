@@ -4,7 +4,8 @@
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
  * - Au centre, les catégories de jeux seulement : Puzzle (accueil, défis du jour compris) et Hasard.
- *   Un point orange sur Puzzle tant que le joueur n'a pas fini les défis du jour.
+ *   Un point orange sur Puzzle tant que le joueur n'a pas fini les défis du jour, et sur Hasard tant qu'il n'a pas
+ *   lancé la roue du jour.
  * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits (vers la boutique), Classement et Boutique en
  *   icônes (et Stats pour les administrateurs), cloche des notifications, puis l'icône de profil (contour selon le niveau) qui ouvre le menu du
  *   compte (profil, personnaliser, nouveautés, retours, mode admin et stats ; voir ProfileMenu)
@@ -29,6 +30,7 @@ import CustomizePanel from "../Shop/CustomizePanel.tsx";
 import ProfileMenu from "./ProfileMenu.tsx";
 import {useEffect, useState} from "react";
 import {dailyService} from "../../Services/daily.service.ts";
+import {casinoService, WHEEL_SPUN_EVENT} from "../../Services/casino.service.ts";
 import {formatCredits} from "../../Services/credits.ts";
 
 // Catégories de jeux (au centre du header) ; `match` dit si une adresse appartient à l'onglet
@@ -52,6 +54,25 @@ function useDailyPending(enabled: boolean, pathname: string): boolean {
     return enabled && pending;
 }
 
+// Roue du jour pas encore lancée aujourd'hui (point orange sur l'onglet Hasard) ; relu à chaque changement de page
+// et juste après un lancer
+function useWheelPending(enabled: boolean, pathname: string): boolean {
+    const [pending, setPending] = useState(false);
+    const [spins, setSpins] = useState(0);
+    useEffect(() => {
+        const onSpun = () => setSpins(n => n + 1);
+        window.addEventListener(WHEEL_SPUN_EVENT, onSpun);
+        return () => window.removeEventListener(WHEEL_SPUN_EVENT, onSpun);
+    }, []);
+    useEffect(() => {
+        if (!enabled) return;
+        const controller = new AbortController();
+        casinoService.wheel(controller.signal).then(w => setPending(w.available)).catch(() => undefined);
+        return () => controller.abort();
+    }, [enabled, pathname, spins]);
+    return enabled && pending;
+}
+
 export default function Header() {
     const navigate = useNavigate();
     const {pathname} = useLocation();
@@ -59,6 +80,7 @@ export default function Header() {
     const {isLoggedIn, adminMode} = auth;
     const [customizing, setCustomizing] = useState(false);
     const dailyPending = useDailyPending(isLoggedIn, pathname);
+    const wheelPending = useWheelPending(isLoggedIn, pathname);
     // Après une victoire : valeurs d'avant jusqu'à l'arrivée des particules, puis changement animé
     // les animations suivent le vrai compte ; en mode admin, on affiche niveau 100 et crédits illimités
     const shown = useHeaderProgress(auth.account);
@@ -92,12 +114,13 @@ export default function Header() {
                 <div className="header-tabs-track">
                     {TABS.map(tab => {
                         const active = tab.match(pathname);
-                        const dot = tab.to === "/" && dailyPending;
+                        const dot = tab.to === "/" ? dailyPending && "Défis du jour à faire"
+                            : tab.to === "/hasard" && wheelPending && "Roue du jour à lancer";
                         return (
                             <Link key={tab.to} to={tab.to} className={`header-tab ${active ? "active" : ""}`}
                                   aria-current={active ? "page" : undefined}>
                                 {tab.label}
-                                {dot && <span className="header-tab-dot" title="Défis du jour à faire" aria-label="(défis du jour à faire)"/>}
+                                {dot && <span className="header-tab-dot" title={dot} aria-label={`(${dot.toLowerCase()})`}/>}
                             </Link>
                         );
                     })}
