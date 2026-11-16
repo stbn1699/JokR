@@ -25,13 +25,3 @@
 		transform : translateY(120vh) rotate(720deg);
 	}
 }
-
-.confetti-container.fade-out {
-	animation : fadeOut 0.5s ease forwards;
-}
-
-@keyframes fadeOut {
-	to {
-		opacity : 0;
-	}
-}

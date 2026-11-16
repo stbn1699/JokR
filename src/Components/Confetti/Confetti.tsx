@@ -8,7 +8,7 @@
  * 1. Crée un conteneur en overlay plein écran
  * 2. Génère des confettis à intervalles réguliers
  * 3. Chaque confetti a une couleur, vitesse et rotation aléatoires
- * 4. Après 5 secondes, les confettis disparaissent progressivement (fade-out)
+ * 4. Après 2 secondes, plus de nouveaux confettis : les derniers finissent de tomber sous l'écran
  * 5. Le conteneur est retiré du DOM après l'animation
  */
 
@@ -18,7 +18,7 @@ import "./Confetti.scss";
 // PARAMÈTRES DE CONFIGURATION
 // =====================
 
-/** Durée totale de l'animation avant le fade-out (en millisecondes) */
+/** Durée pendant laquelle de nouveaux confettis tombent (en millisecondes) ; ceux déjà lancés finissent leur chute */
 const CONFETTI_DURATION = 2000
 
 /** Intervalle entre chaque vague de confettis (en millisecondes) */
@@ -45,7 +45,7 @@ const BASE_ROTATION = 720
  * Lance l'animation de confettis
  *
  * Crée un conteneur d'overlay et génère des confettis à intervalle régulier.
- * L'animation s'arrête automatiquement après CONFETTI_DURATION millisecondes.
+ * De nouveaux confettis tombent pendant CONFETTI_DURATION millisecondes, puis chacun disparaît une fois sous l'écran.
  */
 export function confetti() {
     // Création du conteneur qui contiendra tous les confettis
@@ -61,14 +61,8 @@ export function confetti() {
         // Si le temps est écoulé, on arrête la génération
         if (Date.now() > endTime) {
             clearInterval(confettiInterval); // Arrêt de l'intervalle
-
-            // Ajoute la classe pour démarrer l'animation de fade-out
-            container.classList.add("fade-out");
-
-            // Après le fade-out (0,5 s), on retire le conteneur du DOM
-            setTimeout(() => {
-                container.remove();
-            }, 600);
+            // Les confettis déjà lancés finissent de tomber ; le conteneur part avec le dernier
+            if (!container.hasChildNodes()) container.remove();
             return;
         }
 
@@ -98,8 +92,11 @@ export function confetti() {
             // Ajout du confetti au conteneur
             container.appendChild(confetti);
 
-            // Nettoyage : suppression du confetti après 10 secondes (largement après sa chute)
-            setTimeout(() => confetti.remove(), 10000);
+            // Retiré une fois tombé sous l'écran (fin de son animation) ; le dernier emporte le conteneur
+            confetti.addEventListener("animationend", () => {
+                confetti.remove();
+                if (Date.now() > endTime && !container.hasChildNodes()) container.remove();
+            });
         }
     }, CONFETTI_INTERVAL);
 }
