@@ -32,7 +32,8 @@ import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import "../Levels/Levels.scss";
 import {tectonicService} from "../../Services/tectonic.service.ts";
 import type {TectonicPuzzle} from "../../Models/tectonic.model.ts";
 import {type SavedTectonic, useTectonicGame} from "./useTectonicGame.ts";
@@ -202,6 +203,9 @@ export default function Tectonic({daily = false, replayDate, challengeId}: Tecto
 
             <div className="actions">
                 <h2 className="title">Actions</h2>
+                {!challenge && (
+                    <p className="queens-levels-link"><Link to="/niveaux/TECTONIC">Mode niveaux (avec tutoriel) →</Link></p>
+                )}
                 <GameTimer clock={flow.clock}/>
                 <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
                                 onUndo={game.undo} onRedo={game.redo}/>

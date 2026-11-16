@@ -1,5 +1,7 @@
 import {QUEENS_LEVELS, QUEENS_TUTORIAL} from "./queensLevels.js";
 import type {QueensPuzzle} from "./queens.js";
+import {TECTONIC_LEVELS, TECTONIC_TUTORIAL} from "./tectonicLevels.js";
+import type {TectonicPuzzle} from "./tectonic.js";
 import {SHIKAKU_LEVELS, SHIKAKU_TUTORIAL} from "./shikakuLevels.js";
 import type {ShikakuPuzzle} from "./shikaku.js";
 import {SUDOKU_LEVELS, SUDOKU_TUTORIAL} from "./sudokuLevels.js";
@@ -48,6 +50,11 @@ export const LEVEL_GAMES: Record<string, LevelGame> = {
         levels: SHIKAKU_LEVELS,
         tutorial: SHIKAKU_TUTORIAL,
         describe: p => ({size: (p as ShikakuPuzzle).width, hints: (p as ShikakuPuzzle).rects.length}),
+    },
+    TECTONIC: {
+        levels: TECTONIC_LEVELS,
+        tutorial: TECTONIC_TUTORIAL,
+        describe: p => ({size: (p as TectonicPuzzle).width, hints: (p as TectonicPuzzle).cells.filter(v => v !== null).length}),
     },
 };
 

@@ -1,0 +1,12 @@
+// ---------- Tutoriel guidé du Tectonic : la grille du jeu, à la taille du tutoriel (voile et bulle dans QueensTutorial.scss)
+.level-tutorial.tectonic .tutorial-stage.game {
+	--grid-width : min(26rem, calc(100vw - 2rem), 52dvh);
+
+	.tutorial-veil .dark { background : rgba(2, 6, 23, 0.8); }
+
+	// pas d'agrandissement des cases au survol : le voile resterait en place
+	.grid button.cell:not(:disabled):hover,
+	.grid button.cell:focus {
+		transform : none;
+	}
+}

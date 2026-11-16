@@ -7,6 +7,7 @@ import QueensTutorial from "./QueensTutorial.tsx";
 import GalaxiesTutorial from "./GalaxiesTutorial.tsx";
 import BineroTutorial from "./BineroTutorial.tsx";
 import SudokuTutorial from "./SudokuTutorial.tsx";
+import TectonicTutorial from "./TectonicTutorial.tsx";
 import ShikakuTutorial from "./ShikakuTutorial.tsx";
 
 type LessonProps = { level: number; tutorial: number | null };
@@ -17,6 +18,7 @@ const TUTORIALS: Record<string, ComponentType<LessonProps>> = {
     GALAXIES: GalaxiesTutorial,
     BINERO: BineroTutorial,
     SUDOKU: SudokuTutorial,
+    TECTONIC: TectonicTutorial,
     SHIKAKU: ShikakuTutorial,
 };
 

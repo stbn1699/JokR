@@ -10,6 +10,8 @@ import {SUDOKU_LEVELS, SUDOKU_TUTORIAL} from "./sudokuLevels.js";
 import {countSolutions} from "./sudokuSolver.js";
 import {SHIKAKU_LEVELS, SHIKAKU_TUTORIAL} from "./shikakuLevels.js";
 import {solveShikaku} from "./shikaku.js";
+import {TECTONIC_LEVELS, TECTONIC_TUTORIAL} from "./tectonicLevels.js";
+import {solveTectonic} from "./tectonic.js";
 
 describe("niveaux du Queens", () => {
     it("1000 niveaux, dont 3 leçons de tutoriel, de 4×4 à 12×12", () => {
@@ -84,5 +86,17 @@ describe("niveaux du Shikaku", () => {
             expect(count).toBe(1);
         }
         expect(levelPuzzle("SHIKAKU", 1)).toBe(SHIKAKU_LEVELS[0]);
+    });
+});
+
+describe("niveaux du Tectonic", () => {
+    it("3 leçons de tutoriel, chacune à solution unique", () => {
+        expect(TECTONIC_TUTORIAL).toBe(3);
+        for (const puzzle of TECTONIC_LEVELS) {
+            const {count, aborted} = solveTectonic(puzzle, {limit: 2});
+            expect(aborted).toBe(false);
+            expect(count).toBe(1);
+        }
+        expect(levelPuzzle("TECTONIC", 1)).toBe(TECTONIC_LEVELS[0]);
     });
 });
