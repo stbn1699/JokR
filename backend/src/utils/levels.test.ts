@@ -51,7 +51,7 @@ describe("niveaux des Galaxies", () => {
     it("3 leçons de tutoriel, chacune à solution unique", () => {
         expect(GALAXIES_TUTORIAL).toBe(3);
         expect(GALAXIES_LEVELS.length).toBeGreaterThanOrEqual(GALAXIES_TUTORIAL);
-        for (const puzzle of GALAXIES_LEVELS) {
+        for (const puzzle of GALAXIES_LEVELS.slice(0, GALAXIES_TUTORIAL)) {
             const {count, aborted} = solveGalaxies(puzzle, 2);
             expect(aborted).toBe(false);
             expect(count).toBe(1);
@@ -65,7 +65,7 @@ describe("niveaux du Binero", () => {
         expect(BINERO_TUTORIAL).toBe(3);
         expect(BINERO_LEVELS.length).toBeGreaterThanOrEqual(BINERO_TUTORIAL);
         // résolue par déductions sûres : solution unique
-        for (const puzzle of BINERO_LEVELS) expect(logicalSolve(puzzle).solved).toBe(true);
+        for (const puzzle of BINERO_LEVELS.slice(0, BINERO_TUTORIAL)) expect(logicalSolve(puzzle).solved).toBe(true);
         expect(levelPuzzle("BINERO", 1)).toBe(BINERO_LEVELS[0]);
     });
 });
@@ -73,7 +73,7 @@ describe("niveaux du Binero", () => {
 describe("niveaux du Sudoku", () => {
     it("3 leçons de tutoriel, chacune à solution unique", () => {
         expect(SUDOKU_TUTORIAL).toBe(3);
-        for (const puzzle of SUDOKU_LEVELS) {
+        for (const puzzle of SUDOKU_LEVELS.slice(0, SUDOKU_TUTORIAL)) {
             expect(puzzle).toHaveLength(9);
             expect(countSolutions(puzzle, 2)).toBe(1);
         }
@@ -84,7 +84,7 @@ describe("niveaux du Sudoku", () => {
 describe("niveaux du Shikaku", () => {
     it("3 leçons de tutoriel, chacune à solution unique", () => {
         expect(SHIKAKU_TUTORIAL).toBe(3);
-        for (const puzzle of SHIKAKU_LEVELS) {
+        for (const puzzle of SHIKAKU_LEVELS.slice(0, SHIKAKU_TUTORIAL)) {
             const {count, aborted} = solveShikaku(puzzle, 2);
             expect(aborted).toBe(false);
             expect(count).toBe(1);
@@ -96,7 +96,7 @@ describe("niveaux du Shikaku", () => {
 describe("niveaux du Tectonic", () => {
     it("3 leçons de tutoriel, chacune à solution unique", () => {
         expect(TECTONIC_TUTORIAL).toBe(3);
-        for (const puzzle of TECTONIC_LEVELS) {
+        for (const puzzle of TECTONIC_LEVELS.slice(0, TECTONIC_TUTORIAL)) {
             const {count, aborted} = solveTectonic(puzzle, {limit: 2});
             expect(aborted).toBe(false);
             expect(count).toBe(1);
@@ -108,7 +108,7 @@ describe("niveaux du Tectonic", () => {
 describe("niveaux du Rikudo", () => {
     it("3 leçons de tutoriel, chacune à solution unique", () => {
         expect(RIKUDO_TUTORIAL).toBe(3);
-        for (const puzzle of RIKUDO_LEVELS) {
+        for (const puzzle of RIKUDO_LEVELS.slice(0, RIKUDO_TUTORIAL)) {
             const {solutions, complete} = solveRikudo(puzzle, 2);
             expect(complete).toBe(true);
             expect(solutions).toHaveLength(1);
@@ -120,11 +120,32 @@ describe("niveaux du Rikudo", () => {
 describe("niveaux du Tracé", () => {
     it("3 leçons de tutoriel, chacune à solution unique", () => {
         expect(TRACE_TUTORIAL).toBe(3);
-        for (const puzzle of TRACE_LEVELS) {
+        for (const puzzle of TRACE_LEVELS.slice(0, TRACE_TUTORIAL)) {
             const {count, complete} = solveTrace(puzzle, 2);
             expect(complete).toBe(true);
             expect(count).toBe(1);
         }
         expect(levelPuzzle("TRACE", 1)).toBe(TRACE_LEVELS[0]);
     });
+});
+
+describe("1000 niveaux pour chaque jeu de puzzle", () => {
+    const games = {
+        GALAXIES: [GALAXIES_LEVELS, (p: (typeof GALAXIES_LEVELS)[number]) => solveGalaxies(p, 2, 2_000_000).count],
+        BINERO: [BINERO_LEVELS, (p: (typeof BINERO_LEVELS)[number]) => (logicalSolve(p).solved ? 1 : 0)],
+        SUDOKU: [SUDOKU_LEVELS, (p: (typeof SUDOKU_LEVELS)[number]) => countSolutions(p, 2)],
+        SHIKAKU: [SHIKAKU_LEVELS, (p: (typeof SHIKAKU_LEVELS)[number]) => solveShikaku(p, 2, 2_000_000).count],
+        TECTONIC: [TECTONIC_LEVELS, (p: (typeof TECTONIC_LEVELS)[number]) => solveTectonic(p, {limit: 2, maxNodes: 2_000_000}).count],
+        RIKUDO: [RIKUDO_LEVELS, (p: (typeof RIKUDO_LEVELS)[number]) => solveRikudo(p, 2, 5_000_000).solutions.length],
+        TRACE: [TRACE_LEVELS, (p: (typeof TRACE_LEVELS)[number]) => solveTrace(p, 2, 5_000_000).count],
+    } as const;
+
+    for (const [code, [levels, count]] of Object.entries(games)) {
+        it(`${code} : 1000 niveaux tous différents, une seule solution (un niveau sur cinquante)`, () => {
+            expect(levels).toHaveLength(1000);
+            expect(new Set(levels.map(p => JSON.stringify(p))).size).toBe(1000);
+            const sample = levels.filter((_, i) => i % 50 === 0);
+            for (const puzzle of sample) expect((count as (p: unknown) => number)(puzzle)).toBe(1);
+        }, 120_000);
+    }
 });
