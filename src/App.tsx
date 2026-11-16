@@ -23,6 +23,8 @@ import UpdateNotice from "./Components/Maintenance/UpdateNotice.tsx";
 import {useAuth} from "./Context/authContext.ts";
 import {isGameRoute} from "./Services/routes.ts";
 import PlayGame from "./Components/PlayGame/PlayGame.tsx";
+import LevelsMap from "./Components/Levels/LevelsMap.tsx";
+import LevelPlay from "./Components/Levels/LevelPlay.tsx";
 import Login from "./Components/UserSection/Login/Login.tsx";
 import Register from "./Components/UserSection/Register/Register.tsx";
 import OAuthCallback from "./Components/UserSection/OAuthCallback/OAuthCallback.tsx";
@@ -93,6 +95,8 @@ function App() {
             <Routes>
                 <Route path="/" element={<GameList/>}/>
                 <Route path="/playgame/:gameCode" element={<PlayGame/>}/>
+                <Route path="/niveaux/:gameCode" element={<LevelsMap/>}/>
+                <Route path="/niveaux/:gameCode/:level" element={<LevelPlay/>}/>
                 {/* key : changer de défi (Sudoku → Binero) remonte une page neuve */}
                 <Route path="/defi" element={<DailyHistory/>}/>
                 <Route path="/defi/:gameCode" element={<PlayGame daily key="defi"/>}/>

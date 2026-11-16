@@ -58,7 +58,7 @@ export function createDailyController(service: DailyService, friendIds: (userId:
 
             const challenge = await service.challenge(code, date);
             const {size, emptyCells} = DAILY_GAMES[code];
-            const {gameId, grid} = startPuzzle(code, challenge.puzzle, date, challenge.empty_cells);
+            const {gameId, grid} = startPuzzle(code, challenge.puzzle, {daily: date, aid: challenge.empty_cells});
             tracker.started(req, {gameId, gameCode: code, mode: "daily", gridSize: size, emptyCells});
             res.status(200).json({status: "ok", data: {date, alreadyDone: false, gameId, grid, size, emptyCells}});
         }),
@@ -90,7 +90,7 @@ export function createDailyController(service: DailyService, friendIds: (userId:
                 return;
             }
             // Pas de date "daily" : la validation la traite comme une partie normale
-            const {gameId, grid} = startPuzzle(code, challenge.puzzle, undefined, challenge.empty_cells);
+            const {gameId, grid} = startPuzzle(code, challenge.puzzle, {aid: challenge.empty_cells});
             tracker.started(req, {gameId, gameCode: code, mode: "replay", gridSize: challenge.grid_size, emptyCells: challenge.empty_cells});
             res.status(200).json({
                 status: "ok",

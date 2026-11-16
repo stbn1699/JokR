@@ -16,6 +16,8 @@ export type StoredPuzzle<P> = {
     puzzle: P;
     // Date du défi du jour si la partie en est un (AAAA-MM-JJ), sinon absent
     daily?: string;
+    // Numéro du niveau si la partie en est un (mode Niveaux), sinon absent
+    level?: number;
     cluesCount: number;
     createdAt: number;
 };
@@ -30,7 +32,7 @@ export class PuzzleStore<P> {
     private finished = new Map<string, StoredPuzzle<P> & { finishedAt: number }>();
 
     // cluesCount : nombre de chiffres donnés au départ (sert au calcul de l'XP)
-    create(puzzle: P, cluesCount: number, options: { daily?: string } = {}): string {
+    create(puzzle: P, cluesCount: number, options: { daily?: string; level?: number } = {}): string {
         this.purgeExpired();
         // Map garde l'ordre d'insertion : on supprime la plus ancienne si on est plein
         if (this.games.size >= MAX_GAMES) {

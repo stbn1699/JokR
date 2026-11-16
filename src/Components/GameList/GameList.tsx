@@ -1,4 +1,5 @@
 import "./GameList.scss"
+import {LEVEL_GAMES} from "../../Services/levels.service.ts";
 import {type CSSProperties, useEffect, useRef, useState} from "react";
 import type {Game} from "../../Models/game.model.ts";
 import {gameService} from "../../Services/game.service.ts";
@@ -159,7 +160,8 @@ export default function GameList() {
         timeoutRef.current = window.setTimeout(() => {
             // hide overlay (allows a short fade-out if desired) then navigate
             setOverlayVisible(false);
-            navigate(`/playgame/${gameCode}/`);
+            // jeux avec un mode Niveaux : la carte des niveaux d'abord (la partie libre y est accessible)
+            navigate(LEVEL_GAMES.has(gameCode) ? `/niveaux/${gameCode}` : `/playgame/${gameCode}/`);
         }, 500);
     }
 

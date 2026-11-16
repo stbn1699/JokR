@@ -12,6 +12,9 @@ export interface WinResult {
     personalBest?: boolean;
     // Défi du jour : place du joueur ; counted = false si le défi était déjà réussi aujourd'hui
     daily?: { counted: boolean; rank: number; total: number };
+    // Mode Niveaux : niveau réussi ; first = première réussite (seule à rapporter XP et crédits),
+    // tutorialDone = ce niveau termine le tutoriel (première fois)
+    level?: { level: number; first: boolean; tutorialDone: boolean };
 }
 
 // Une partie gagnée, dans l'historique du joueur (GET /users/me/results)

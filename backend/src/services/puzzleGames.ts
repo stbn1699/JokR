@@ -20,10 +20,11 @@ export type PuzzleGameCode = typeof PUZZLE_GAMES[number];
 
 export const isPuzzleGame = (code: string): code is PuzzleGameCode => (PUZZLE_GAMES as readonly string[]).includes(code);
 
-// Range la grille dans la mémoire du jeu ; `daily` = date si la partie compte pour le classement du jour
-// (`aid` : aide donnée quand elle ne se lit pas dans la grille, ex. numéros donnés en plus au Tracé)
-export function startPuzzle(code: PuzzleGameCode, puzzle: unknown, daily?: string, aid = 0): { gameId: string; grid: unknown } {
-    const options = daily ? {daily} : {};
+// Range la grille dans la mémoire du jeu. Options : `daily` = date si la partie compte pour le classement du jour,
+// `level` = numéro du niveau (mode Niveaux), `aid` = aide donnée quand elle ne se lit pas dans la grille
+// (ex. numéros donnés en plus au Tracé)
+export function startPuzzle(code: PuzzleGameCode, puzzle: unknown, {daily, level, aid = 0}: { daily?: string; level?: number; aid?: number } = {}): { gameId: string; grid: unknown } {
+    const options = {...(daily ? {daily} : {}), ...(level ? {level} : {})};
     switch (code) {
         case "SUDOKU": {
             const grid = puzzle as number[][];

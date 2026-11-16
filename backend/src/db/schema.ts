@@ -282,6 +282,15 @@ export type PokerHandsTable = {
     updated_at: ColumnType<Date, Date | undefined, Date>;
 };
 
+// Mode Niveaux des puzzles : niveaux réussis par chaque joueur
+export type PuzzleLevelProgressTable = {
+    user_id: string;
+    game_code: string;
+    level: number;
+    best_ms: number;
+    completed_at: Generated<Date>;
+};
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
@@ -305,5 +314,6 @@ export type DB = {
     lottery_bonus_tickets: LotteryBonusTicketsTable;
     blackjack_hands: BlackjackHandsTable;
     poker_hands: PokerHandsTable;
+    puzzle_level_progress: PuzzleLevelProgressTable;
 };
 

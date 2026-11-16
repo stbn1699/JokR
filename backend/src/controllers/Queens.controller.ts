@@ -9,6 +9,8 @@ import {DAILY_REWARD_MULTIPLIER, type DailyService} from "../services/Daily.serv
 import type {QueensPuzzle} from "../utils/queens.js";
 import {routeParam} from "../utils/validation.js";
 import {tracker} from "../services/tracker.js";
+import type {LevelsRepository} from "../repository/Levels.repository.js";
+import {levelGame} from "../utils/levels.js";
 
 const GAME_CODE = "QUEENS";
 
@@ -18,7 +20,9 @@ const GAME_CODE = "QUEENS";
  * - generate : génère une grille, la mémorise et renvoie { gameId, puzzle: { size, regions, queens } }
  * - status : grille de départ et temps écoulé d'une partie en cours (pour la reprendre)
  * - validate : vérifie les dames ; si le joueur est connecté (JWT), enregistre la victoire et l'XP.
- *   Chaque partie ne peut être validée qu'une fois.
+ *   Chaque partie ne peut être validée qu'une fois. Partie d'un niveau (mode Niveaux) : la réussite du niveau est
+ *   enregistrée, et l'XP et les crédits ne sont donnés qu'à la première réussite ; la réponse dit aussi
+ *   `level: { level, first, tutorialDone }` (tutorialDone : ce niveau termine le tutoriel, première fois).
  *
  * Dans les statistiques et l'historique, le nombre de dames données est rangé avec les « cases à remplir »
  * des autres jeux (colonne empty_cells).
@@ -29,6 +33,7 @@ export function createQueensController(
     progressionService: ProgressionService,
     gamesService: GamesService,
     dailyService: DailyService,
+    levels: LevelsRepository,
 ) {
     return {
         settings: asyncHandler(async (_req: Request, res: Response) => {
@@ -100,6 +105,24 @@ export function createQueensController(
             const userId = res.locals.userId;
             if (!userId) {
                 res.status(200).json({status: "ok", data: {xp: undefined, durationMs}});
+                return;
+            }
+
+            // Mode Niveaux : réussite enregistrée ; un niveau déjà réussi ne rapporte plus rien
+            if (game.level) {
+                const {first} = await levels.complete(userId, GAME_CODE, game.level, durationMs);
+                const level = {level: game.level, first, tutorialDone: first && game.level === levelGame(GAME_CODE)?.tutorial};
+                if (!first) {
+                    res.status(200).json({status: "ok", data: {xp: undefined, durationMs, level}});
+                    return;
+                }
+                const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
+                const xp = service.computeXp(baseXp, game.puzzle.size, game.cluesCount);
+                const credits = service.computeCredits(game.puzzle.size, game.cluesCount);
+                const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
+                    gridSize: game.puzzle.size, emptyCells: game.cluesCount, durationMs,
+                }, credits);
+                res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: 1, durationMs, personalBest, level}});
                 return;
             }
 

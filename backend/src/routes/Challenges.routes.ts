@@ -117,7 +117,7 @@ router.post("/:id/start", asyncHandler(async (req: Request, res: Response<unknow
     if (challenge.duration_ms !== null) {
         return void res.status(409).json({status: "error", message: "Tu as déjà relevé ce défi"});
     }
-    const {gameId, grid} = startPuzzle(challenge.game_code, challenge.puzzle, undefined, challenge.empty_cells);
+    const {gameId, grid} = startPuzzle(challenge.game_code, challenge.puzzle, {aid: challenge.empty_cells});
     await challenges.setGame(challenge.id, res.locals.userId!, gameId);
     tracker.started(req, {gameId, gameCode: challenge.game_code, mode: "free", gridSize: challenge.grid_size, emptyCells: challenge.empty_cells});
     res.status(200).json({

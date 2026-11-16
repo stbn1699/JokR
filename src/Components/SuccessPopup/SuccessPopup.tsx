@@ -1,5 +1,5 @@
 import {FaCheck, FaCoins} from "react-icons/fa";
-import {useEffect, useMemo, useRef, useState} from "react";
+import {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import "./SuccessPopup.scss";
 import {Link, useNavigate} from "react-router-dom";
 import {confetti} from "../Confetti/Confetti.tsx";
@@ -52,8 +52,17 @@ type SuccessPopupProps = {
     onNewGame: () => void;
     // Libellé du bouton "Nouvelle partie" (ex. "Partie libre" après un défi)
     newGameLabel?: string;
-    // Bouton de retour : accueil, page des défis (après un défi du jour), ou aucun (null)
-    back?: "home" | "daily" | null;
+    // Bouton de retour : accueil, page des défis (après un défi du jour), une autre page, ou aucun (null)
+    back?: "home" | "daily" | { to: string; label: string; short: string } | null;
+    // Titre et phrase sous le titre (par défaut : « <Jeu> terminé ! » et « Bravo, tu as résolu la grille. »)
+    title?: string;
+    subtitle?: ReactNode;
+    // Encadré sous le titre (ex. tutoriel terminé)
+    banner?: ReactNode;
+    // Remplace l'invitation à se connecter quand il n'y a pas d'XP (ex. niveau déjà réussi)
+    noXpNote?: ReactNode;
+    // Deuxième bouton d'action, après le bouton principal (ex. « Grille aléatoire »)
+    extraAction?: { label: string; onClick: () => void };
 };
 
 const BACK = {
@@ -82,7 +91,7 @@ const SWEEP_MS = 700;
  */
 export function SuccessPopup(props: SuccessPopupProps) {
     const {gameName, gameCode, defy, challengeId, xpAwarded, creditsAwarded, rewardMultiplier = 1, before, durationMs, personalBest, daily, onNewGame, newGameLabel = "Nouvelle partie", back = "home"} = props;
-    const backTo = back ? BACK[back] : null;
+    const backTo = back === null ? null : typeof back === "string" ? BACK[back] : back;
     const modalRef = useRef<HTMLDivElement | null>(null);
     // Points de départ des particules (XP en bleu, crédits en orange)
     const xpGainRef = useRef<HTMLSpanElement | null>(null);
@@ -235,8 +244,9 @@ export function SuccessPopup(props: SuccessPopupProps) {
                         </div>
                     </div>
                 )}
-                <h2 id="success-title">{gameName} terminé !</h2>
-                <p>Bravo, tu as résolu la grille.</p>
+                <h2 id="success-title">{props.title ?? `${gameName} terminé !`}</h2>
+                <p>{props.subtitle ?? "Bravo, tu as résolu la grille."}</p>
+                {props.banner}
 
                 <div className="success-time">
                     <span>Temps : <strong>{formatDuration(durationMs)}</strong></span>
@@ -329,6 +339,8 @@ export function SuccessPopup(props: SuccessPopupProps) {
                             </p>
                         )}
                     </div>
+                ) : props.noXpNote ? (
+                    <p className="xp-guest">{props.noXpNote}</p>
                 ) : (
                     <p className="xp-guest">
                         <Link to="/login">Connecte-toi</Link> pour gagner de l'XP à chaque victoire.
@@ -339,6 +351,11 @@ export function SuccessPopup(props: SuccessPopupProps) {
                     <button type="button" className="modal-button" onClick={() => closeWith(onNewGame)}>
                         {newGameLabel}
                     </button>
+                    {props.extraAction && (
+                        <button type="button" className="modal-button secondary" onClick={() => closeWith(props.extraAction!.onClick)}>
+                            {props.extraAction.label}
+                        </button>
+                    )}
                     <button type="button" className="modal-button secondary" onClick={() => closeWith(() => setReviewing(true))}>
                         Voir la grille
                     </button>

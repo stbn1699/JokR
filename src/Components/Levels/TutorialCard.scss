@@ -1,0 +1,127 @@
+// Encadré du tutoriel (au-dessus de la grille d'un niveau du tutoriel)
+.tutorial-card {
+	width         : min(36rem, 100%);
+	box-sizing    : border-box;
+	margin        : 0 auto 1rem;
+	border        : 2px solid #fbbf24;
+	border-radius : 12px;
+	background    : rgba(15, 23, 42, 0.85);
+	color         : #f8fafc;
+	text-align    : left;
+	box-shadow    : 0 0 1.2rem rgba(251, 191, 36, 0.25);
+	animation     : tutorial-in 0.4s cubic-bezier(.2, .9, .3, 1.2);
+
+	.tutorial-card-head {
+		display     : flex;
+		align-items : center;
+		gap         : 0.7rem;
+		width       : 100%;
+		padding     : 0.7rem 1rem;
+		border      : none;
+		background  : none;
+		color       : inherit;
+		font-family : inherit;
+		font-size   : 1.25rem;
+		text-align  : left;
+		cursor      : pointer;
+
+		strong { flex : 1; }
+	}
+
+	.tutorial-card-badge {
+		display       : inline-flex;
+		align-items   : center;
+		gap           : 0.35rem;
+		flex          : none;
+		padding       : 0.15rem 0.6rem;
+		border-radius : 999px;
+		background    : #fbbf24;
+		color         : #1f1300;
+		font-size     : 0.9rem;
+		font-weight   : 700;
+	}
+
+	.tutorial-card-body {
+		padding : 0 1rem 0.9rem;
+
+		p {
+			margin      : 0 0 0.5rem;
+			font-size   : 1.08rem;
+			line-height : 1.4;
+		}
+	}
+
+	// ce qu'il faut faire maintenant
+	.tutorial-card-goal {
+		margin-bottom : 0 !important;
+		padding       : 0.5rem 0.75rem;
+		border-left   : 4px solid #10b981;
+		border-radius : 0 8px 8px 0;
+		background    : rgba(16, 185, 129, 0.15);
+		font-weight   : 600;
+	}
+}
+
+// Un seul des deux emplacements s'affiche : dans la zone de jeu sur grand écran, au-dessus sur téléphone
+// (sur téléphone, la grille se règle sur la place restante de sa zone : l'encadré ne doit pas y être)
+.tutorial-card.above { display : none; }
+
+@media (max-width: 1100px) {
+	.tutorial-card.in-game { display : none; }
+
+	.tutorial-card.above {
+		display    : block;
+		flex       : none;
+		width      : calc(100% - 1rem);
+		margin     : 0 auto 0.5rem;
+		box-sizing : border-box;
+
+		.tutorial-card-head { font-size : 1.05rem; }
+		.tutorial-card-body p { font-size : 0.98rem; }
+	}
+
+	// la grille garde toujours de la place, même avec le tutoriel ouvert
+	.puzzle-layout.with-tutorial .game { min-height : min(70vw, 20rem); }
+}
+
+// Fin du tutoriel, dans la popup de victoire
+.tutorial-done {
+	display       : flex;
+	align-items   : center;
+	gap           : 0.9rem;
+	margin        : 0 0 1.2rem;
+	padding       : 0.8rem 1rem;
+	border        : 2px solid #fbbf24;
+	border-radius : 12px;
+	background    : rgba(251, 191, 36, 0.12);
+	text-align    : left;
+
+	svg {
+		flex      : none;
+		font-size : 2.4rem;
+		color     : #fbbf24;
+	}
+
+	p {
+		margin    : 0 !important;
+		font-size : 1.1rem !important;
+	}
+}
+
+// Partie libre du Queens : lien vers le mode Niveaux ; niveau en cours au-dessus de la grille
+.queens-levels-link {
+	margin    : 0 0 0.75rem;
+	font-size : 1.1rem;
+
+	a { color : #fbbf24; }
+}
+
+.level-label a { color : inherit; }
+
+@keyframes tutorial-in {
+	from { opacity : 0; transform : translateY(-0.6rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tutorial-card { animation : none; }
+}
