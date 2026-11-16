@@ -4,6 +4,47 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 3.0.0 — 16 novembre 2026
+
+La plus grosse mise à jour du Hasard : quatre nouveaux jeux, des loteries, une roue gratuite chaque jour, et un header tout neuf.
+
+### Nouveaux jeux
+- Machines à sous : deux machines (Classique et JokR), de 3 à 5 rouleaux et de 1 à 10 lignes de gain, lignes dessinées sur les rouleaux, lancers en série (1, 5, 10 ou 25 d'un coup)
+- Blackjack en solo contre le croupier : doubler, séparer, blackjack payé 3 pour 2
+- Keno : choisis de 1 à 10 numéros sur 40, 10 sortent, jusqu'à ×10 000 ta mise
+- Poker à 5 cartes : garde les bonnes cartes et tire une fois, de la paire de valets à la quinte flush royale (×800)
+
+### Roue du jour
+- Un lancer gratuit chaque jour : crédits, XP, une bille de Plinko offerte, une relance, ou des tickets de loterie
+- Jackpot : 1 000 crédits
+- Elle s'ouvre toute seule à ta première visite du jour sur le Hasard ; un point orange sur l'onglet Hasard te rappelle qu'elle t'attend
+
+### Loteries
+- Trois loteries en même temps : du jour, de la semaine et du mois, tirées à 23 h 59
+- Tout le monde participe : chaque tranche de 10 crédits misés sur les jeux de hasard donne un ticket
+- La cagnotte (5 % de toutes les mises) revient au ticket gagnant, prévenu par une notification
+
+### Nouveau header
+- Au centre, seulement les jeux : Puzzle et Hasard
+- Classements et Boutique passent en icônes, et un clic sur tes crédits mène à la boutique
+- Ta photo de profil ouvre un menu : profil, personnaliser, nouveautés, un bug ou une idée
+- Plus d'onglet Daily : les défis du jour sont sur la page Puzzle, avec un point orange tant que tu ne les as pas faits
+
+### Roulette
+- Bouton pour annuler ta dernière mise (un clic, un glissé ou « Reproduire ma mise » d'un coup)
+- Un clic entre deux cases mise à cheval, entre quatre cases sur le carré
+
+### Plinko
+- Tes dernières billes s'affichent à droite du plateau, comme sur les autres jeux
+
+### Page Hasard
+- Nouvelles icônes des jeux, dans le même style que celles des puzzles
+- Cartes des jeux plus grandes, bouton « Règles » toujours en haut à droite de chaque jeu
+
+### Corrections
+- Plinko : les billes ne se figent plus en plein vol
+- Plinko : le prix du bouton « Lâcher 10 billes » ne se coupe plus en deux avec les grosses mises
+
 ## 2.2.0 — 11 novembre 2026
 
 Merci à @ҜØรђเг0 et @Sansywii : la plupart des nouveautés de cette version viennent de leurs retours !
