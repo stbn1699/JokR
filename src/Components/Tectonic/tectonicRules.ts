@@ -37,7 +37,7 @@ export function regionBorders(i: number, puzzle: TectonicPuzzle) {
 }
 
 /**
- * Cases en erreur (option « Montrer les erreurs ») :
+ * Cases en erreur (option « Montrer les coups interdits ») :
  * - nombre plus grand que la taille de sa zone
  * - même nombre deux fois dans une zone
  * - même nombre dans deux cases voisines (diagonales comprises)

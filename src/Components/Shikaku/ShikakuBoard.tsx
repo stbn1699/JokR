@@ -16,7 +16,7 @@ type ShikakuBoardProps = {
     disabled: boolean;
     onDraw: (rect: Rect) => void;
     onErase: (cell: number) => void;
-    // Montrer les erreurs : rectangles faux en rouge
+    // Montrer les coups interdits : rectangles faux en rouge
     showErrors: boolean;
 };
 

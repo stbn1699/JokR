@@ -77,7 +77,7 @@ export function nextHexCell(board: HexBoard, from: number, direction: HexDirecti
 }
 
 /**
- * Cases en erreur (option "Montrer les erreurs") :
+ * Cases en erreur (option « Montrer les coups interdits ») :
  * - un nombre présent deux fois
  * - deux nombres qui se suivent, posés dans des cases non voisines
  * - un point entre deux cases remplies dont les nombres ne se suivent pas

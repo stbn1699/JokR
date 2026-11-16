@@ -23,7 +23,7 @@ type TectonicGridProps = {
     // Nombre surligné depuis le panneau de gauche
     highlightDigit: number | null;
     onSetCell: (i: number, v: TectonicCell) => void;
-    // Cases à afficher en rouge (option "Montrer les erreurs"), null si désactivé
+    // Cases à afficher en rouge (option « Montrer les coups interdits »), null si désactivé
     errors: Set<number> | null;
     // Notes au crayon (masque de bits par case) et mode notes
     notes: number[];

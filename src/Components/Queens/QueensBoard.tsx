@@ -28,7 +28,7 @@ type QueensBoardProps = {
     onSetMark: (i: number, mark: Mark) => void;
     // Glissé : une croix sur chaque case vide traversée
     onCrossIfEmpty: (i: number) => void;
-    // Dames en conflit (option « Montrer les erreurs »), null si désactivé
+    // Dames en conflit (option « Montrer les coups interdits »), null si désactivé
     errors: Set<number> | null;
     // Croix automatiques (option), null si désactivé
     autoCrosses: Set<number> | null;

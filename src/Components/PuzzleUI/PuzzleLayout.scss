@@ -360,7 +360,23 @@
 	}
 }
 
-// Option "Montrer les erreurs" (panneau Actions)
+// Option « Montrer les coups interdits » (panneau Actions), avec une ligne d'explication dessous
+.puzzle-layout .actions .errors-toggle-block {
+	display        : flex;
+	flex-direction : column;
+	align-items    : center;
+	gap            : 0.25rem;
+
+	.errors-hint {
+		max-width  : 16rem;
+		margin     : 0;
+		font-size  : 0.95rem;
+		line-height: 1.3;
+		text-align : center;
+		opacity    : 0.65;
+	}
+}
+
 .puzzle-layout .actions .errors-toggle {
 	display         : flex;
 	align-items     : center;

@@ -23,7 +23,7 @@ type GalaxiesBoardProps = {
     // Trait glissé : pose (ou retire) chaque mur traversé, puis fin du trait
     onPaintWall: (wall: number, on: boolean) => void;
     onEndStroke: () => void;
-    // Montrer les erreurs : zones impossibles et murs à travers un point en rouge
+    // Montrer les coups interdits : zones impossibles et murs à travers un point en rouge
     showErrors: boolean;
 };
 

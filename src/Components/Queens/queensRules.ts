@@ -23,7 +23,7 @@ export function regionBorders(i: number, puzzle: QueensPuzzle) {
 }
 
 /**
- * Dames en conflit (option « Montrer les erreurs ») : deux dames sur la même ligne, la même colonne,
+ * Dames en conflit (option « Montrer les coups interdits ») : deux dames sur la même ligne, la même colonne,
  * dans la même zone, ou qui se touchent (diagonales comprises).
  */
 export function queensConflicts(marks: Mark[], puzzle: QueensPuzzle | null): Set<number> {

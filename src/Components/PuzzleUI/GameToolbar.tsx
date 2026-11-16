@@ -13,7 +13,7 @@ type GameToolbarProps = {
     canRedo: boolean;
     onUndo: () => void;
     onRedo: () => void;
-    // « Montrer les erreurs » (absent : pas de bouton, ex. Tracé, où le chemin ne peut pas être faux)
+    // « Montrer les coups interdits » (absent : pas de bouton, ex. Tracé, où un coup interdit ne peut pas être joué)
     showErrors?: boolean;
     onToggleErrors?: (value: boolean) => void;
     errorCount?: number;
@@ -28,7 +28,7 @@ const keepGridFocus = (e: MouseEvent<HTMLButtonElement>) => e.preventDefault();
 
 /**
  * Barre d'outils des jeux sur téléphone (cachée sur grand écran, où le panneau Actions fait le même travail) :
- * nom du jeu, chrono, annuler / rétablir, montrer les erreurs et règles.
+ * nom du jeu, chrono, annuler / rétablir, montrer les coups interdits et règles.
  * Tout tient sur une ligne au-dessus de la grille, pour jouer sans faire défiler la page.
  */
 export default function GameToolbar(props: GameToolbarProps) {
@@ -55,7 +55,8 @@ export default function GameToolbar(props: GameToolbarProps) {
                 {props.onToggleErrors && (
                     <button type="button" className={`errors ${props.showErrors ? "active" : ""}`} aria-pressed={props.showErrors}
                             onMouseDown={keepGridFocus} onClick={() => props.onToggleErrors?.(!props.showErrors)}
-                            aria-label="Montrer les erreurs">
+                            aria-label="Montrer les coups interdits"
+                            title="Montrer les coups interdits (règles enfreintes, pas les cases mal placées)">
                         <FaExclamationTriangle aria-hidden/>
                         {props.showErrors && (props.errorCount ?? 0) > 0 && <span className="game-toolbar-count">{props.errorCount}</span>}
                     </button>

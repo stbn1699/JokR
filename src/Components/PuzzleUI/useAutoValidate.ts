@@ -1,12 +1,12 @@
 import {useEffect, useRef} from "react";
 
-export const GRID_HAS_ERRORS = "La grille est remplie mais contient une erreur.";
+export const GRID_HAS_ERRORS = "La grille est remplie mais un coup enfreint une règle.";
 
 type AutoValidateOptions = {
     // Contenu de la grille (texte) quand elle est entièrement remplie, null sinon
     filledKey: string | null;
     playing: boolean;
-    // Erreurs vues dans le navigateur (mêmes règles que « Montrer les erreurs »)
+    // Règles enfreintes vues dans le navigateur (mêmes règles que « Montrer les coups interdits »)
     hasErrors: boolean;
     submit: () => Promise<void>;
     setNotice: (message: string | null) => void;
@@ -17,7 +17,7 @@ type AutoValidateOptions = {
  * Vérifié à chaque modification de la grille : la grille complète part tout de suite au serveur.
  *
  * - Grille remplie sans erreur : envoyée au serveur, une seule fois par grille
- * - Grille remplie avec une erreur : rien n'est envoyé, un message le signale
+ * - Grille remplie avec une règle enfreinte : rien n'est envoyé, un message le signale
  * - Grille de nouveau incomplète : le message disparaît
  */
 export function useAutoValidate({filledKey, playing, hasErrors, submit, setNotice}: AutoValidateOptions) {
