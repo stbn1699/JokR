@@ -1,0 +1,168 @@
+// ---------- Tutoriel guidé du Queens : la grille seule, un voile, une bulle
+.queens-tutorial {
+	// taille de la grille : jamais plus haute que l'écran (la bulle doit rester visible dessous)
+	--grid-width   : min(26rem, calc(100vw - 2rem), 52dvh);
+	display        : flex;
+	flex-direction : column;
+	align-items    : center;
+	gap            : 1rem;
+	padding        : 1rem 1rem 2rem;
+	color          : #f9fafb;
+
+	.tutorial-top {
+		display         : flex;
+		align-items     : center;
+		justify-content : space-between;
+		gap             : 1rem;
+		width           : min(30rem, 100%);
+	}
+
+	.tutorial-back {
+		display         : inline-flex;
+		align-items     : center;
+		gap             : 0.35rem;
+		color           : inherit;
+		font-size       : 1.1rem;
+		text-decoration : none;
+		opacity         : 0.8;
+
+		&:hover { opacity : 1; }
+
+		svg { width : 1em; height : 1em; position : static; }
+	}
+
+	.tutorial-badge {
+		display       : inline-flex;
+		align-items   : center;
+		gap           : 0.4rem;
+		padding       : 0.25rem 0.8rem;
+		border-radius : 999px;
+		background    : #fbbf24;
+		color         : #1f1300;
+		font-size     : 1rem;
+		font-weight   : 700;
+
+		svg { width : 1em; height : 1em; position : static; }
+	}
+
+	// la grille et son voile, posé exactement par-dessus
+	.tutorial-stage {
+		position : relative;
+	}
+
+	.tutorial-veil {
+		position              : absolute;
+		inset                 : 3px; // bordure de la grille
+		display               : grid;
+		grid-template-columns : repeat(var(--size), 1fr);
+		grid-template-rows    : repeat(var(--size), 1fr);
+		overflow              : hidden;
+		border-radius         : 8px;
+		pointer-events        : none;
+
+		span {
+			transition : background 0.35s ease, box-shadow 0.35s ease;
+		}
+
+		.dark { background : rgba(2, 6, 23, 0.72); }
+
+		// case où il faut agir : cadre doré qui pulse
+		.target {
+			box-shadow : inset 0 0 0 3px #fde047;
+			animation  : tutorial-target 1.1s ease-in-out infinite;
+		}
+	}
+
+	// la bulle qui explique
+	.tutorial-bubble {
+		position       : relative;
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 0.7rem;
+		width          : min(30rem, 100%);
+		padding        : 1rem 1.25rem;
+		box-sizing     : border-box;
+		border         : 2px solid #fbbf24;
+		border-radius  : 14px;
+		background     : #0f172a;
+		box-shadow     : 0 0.6rem 1.6rem rgba(0, 0, 0, 0.5);
+		text-align     : center;
+		animation      : tutorial-bubble-in 0.3s cubic-bezier(.2, .9, .3, 1.3);
+
+		// petite flèche vers la grille
+		&::before {
+			content    : "";
+			position   : absolute;
+			top        : -0.65rem;
+			left       : 50%;
+			width      : 1.1rem;
+			height     : 1.1rem;
+			border-top : 2px solid #fbbf24;
+			border-left: 2px solid #fbbf24;
+			background : #0f172a;
+			transform  : translateX(-50%) rotate(45deg);
+		}
+
+		p {
+			margin      : 0;
+			font-size   : 1.2rem;
+			line-height : 1.4;
+		}
+
+		button {
+			padding       : 0.5rem 1.6rem;
+			border        : none;
+			border-radius : 999px;
+			background    : #10b981;
+			color         : #f9fafb;
+			font-family   : inherit;
+			font-size     : 1.15rem;
+			font-weight   : 700;
+			cursor        : pointer;
+
+			&:hover { background : #059669; }
+		}
+	}
+
+	.tutorial-error { color : #fca5a5; }
+}
+
+// popup de fin de leçon
+.modal.success-modal.lesson-done {
+	width     : min(28rem, calc(100vw - 2rem));
+	animation : tutorial-bubble-in 0.4s cubic-bezier(.2, .9, .3, 1.25);
+
+	.lesson-done-icon {
+		width  : 3rem;
+		height : 3rem;
+		color  : #fbbf24;
+	}
+
+	.lesson-done-xp {
+		color       : #60a5fa;
+		font-size   : 1.5rem;
+		font-weight : 700;
+	}
+
+	.modal-button svg {
+		width          : 1em;
+		height         : 1em;
+		position       : static;
+		vertical-align : -0.12em;
+	}
+}
+
+@keyframes tutorial-target {
+	0%, 100% { box-shadow : inset 0 0 0 3px #fde047; background : rgba(253, 224, 71, 0.1); }
+	50% { box-shadow : inset 0 0 0 5px #fde047; background : rgba(253, 224, 71, 0.28); }
+}
+
+@keyframes tutorial-bubble-in {
+	from { opacity : 0; transform : translateY(0.5rem) scale(0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.queens-tutorial .tutorial-veil .target,
+	.queens-tutorial .tutorial-bubble { animation : none; }
+}

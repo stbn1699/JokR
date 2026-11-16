@@ -7,8 +7,8 @@
  * - Panneau de gauche : dames placées, et comment jouer
  * - Panneau de droite : chrono, annuler / rétablir, erreurs et rappel des règles
  * - Toutes les dames bien placées : validé automatiquement par le serveur
- * - Mode Niveaux (`level`) : grille du niveau, encadré du tutoriel pour les premiers niveaux, et à la victoire
- *   « Niveau suivant » (et, à la fin du tutoriel, un bravo et le choix entre les niveaux et la grille aléatoire)
+ * - Mode Niveaux (`level`, niveaux après le tutoriel guidé) : grille du niveau, « Niveau suivant » à la victoire ;
+ *   au premier niveau après le tutoriel, une visite de l'écran (panneaux, outils) avant de lancer la grille
  */
 
 import "../PuzzleUI/PuzzleLayout.scss";
@@ -36,18 +36,39 @@ import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {Link, useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {FaGraduationCap} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
-import {guestDone, levelsService, rememberGuestLevel} from "../../Services/levels.service.ts";
-import {QUEENS_TUTORIAL_STEPS} from "../Levels/queensTutorial.ts";
-import TutorialCard from "../Levels/TutorialCard.tsx";
-import "../Levels/TutorialCard.scss";
+import {levelsService, rememberGuestLevel} from "../../Services/levels.service.ts";
+import LevelTour, {type TourStep} from "../Levels/LevelTour.tsx";
+import "../Levels/Levels.scss";
 import {queensService} from "../../Services/queens.service.ts";
 import type {QueensPuzzle} from "../../Models/queens.model.ts";
 import {type SavedQueens, useQueensGame} from "./useQueensGame.ts";
 import {autoCrossCells, QUEEN, queensConflicts} from "./queensRules.ts";
 import QueensBoard from "./QueensBoard.tsx";
 import QueensSettingsPopup from "./QueensSettingsPopup.tsx";
+
+// Visite de l'écran de jeu (premier niveau après le tutoriel)
+const TOUR_KEY = "jokr:levels:QUEENS:tour";
+const tourSeen = () => {
+    try {
+        return localStorage.getItem(TOUR_KEY) === "1";
+    } catch {
+        return false;
+    }
+};
+const rememberTour = () => {
+    try {
+        localStorage.setItem(TOUR_KEY, "1");
+    } catch {
+        // stockage indisponible : la visite pourra revenir
+    }
+};
+const TOUR: TourStep[] = [
+    {selector: ".puzzle-layout .options", text: "À gauche : ton avancement (dames posées) et le rappel des gestes."},
+    {selector: ".puzzle-layout .actions", text: "À droite : le chrono, annuler / rétablir, et des aides : les coups interdits en rouge, les croix automatiques et les règles."},
+    {selector: ".game-toolbar", text: "En haut : le chrono, annuler / rétablir, et des aides : les coups interdits, les croix automatiques et les règles."},
+    {selector: ".puzzle-layout .game", text: "Fini les leçons : cette fois tu joues seul·e, et le chrono compte. Bonne chance !"},
+];
 
 type QueensProps = {
     // Défi du jour : grille imposée, pas de popup de paramètres
@@ -64,6 +85,13 @@ type QueensProps = {
 export default function Queens({daily = false, replayDate, challengeId, level, levelInfo}: QueensProps) {
     const navigate = useNavigate();
     const {isLoggedIn} = useAuth();
+    // Visite de l'écran : au premier niveau après le tutoriel, une seule fois (retenue dans le navigateur)
+    const [touring, setTouring] = useState(() => level !== undefined && levelInfo?.tutorial !== null
+        && levelInfo?.tutorial !== undefined && level === levelInfo.tutorial + 1 && !tourSeen());
+    const endTour = () => {
+        rememberTour();
+        setTouring(false);
+    };
     // Grille imposée : défi du jour, défi d'un jour passé rejoué, défi d'un·e ami·e ou niveau
     const challenge = daily || replayDate !== undefined || challengeId !== undefined || level !== undefined;
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
@@ -72,7 +100,8 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
     const flow = useGameFlow("QUEENS", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedQueens, QueensPuzzle>(saveKey, queensService.getGame, !challenge);
     const dailyGame = useDailyGame<SavedQueens, QueensPuzzle>({
-        enabled: challenge,
+        // premier niveau après le tutoriel : la grille n'est lancée (et le chrono ne part) qu'après la visite
+        enabled: challenge && !touring,
         gameCode: "QUEENS",
         saveKey,
         fetchStatus: queensService.getGame,
@@ -96,21 +125,11 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
         [autoCross, game.marks, game.puzzle]);
     const placed = game.marks.filter(m => m === QUEEN).length;
 
-    // Mode Niveaux : encadré du tutoriel, et fin de partie (invité : progression gardée dans ce navigateur)
-    const tutorialStep = level ? QUEENS_TUTORIAL_STEPS[level - 1] : undefined;
-    const tutorialCount = levelInfo?.tutorial ?? QUEENS_TUTORIAL_STEPS.length;
+    // Mode Niveaux : fin de partie (invité : progression gardée dans ce navigateur)
     const isLastLevel = level !== undefined && levelInfo?.count !== null && levelInfo?.count !== undefined && level >= levelInfo.count;
-    const [guestFirst, setGuestFirst] = useState<boolean | null>(null);
     useEffect(() => {
-        if (!level || !flow.victory || isLoggedIn) return;
-        const first = !guestDone("QUEENS").includes(level);
-        rememberGuestLevel("QUEENS", level);
-        const timer = window.setTimeout(() => setGuestFirst(first), 0);
-        return () => window.clearTimeout(timer);
+        if (level && flow.victory && !isLoggedIn) rememberGuestLevel("QUEENS", level);
     }, [level, flow.victory, isLoggedIn]);
-    const levelResult = flow.victory?.level ?? null;
-    const firstWin = isLoggedIn ? levelResult?.first === true : guestFirst === true;
-    const tutorialDone = level !== undefined && level === tutorialCount && firstWin;
     const total = game.puzzle?.size ?? 0;
 
     // Toutes les dames bien placées : validé tout seul
@@ -143,7 +162,7 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
     );
 
     return (
-        <div className={`puzzle-layout queens ${tutorialStep ? "with-tutorial" : ""}`}>
+        <div className="puzzle-layout queens">
             <GameToolbar
                 gameName="Queens"
                 label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
@@ -173,9 +192,6 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
                 </p>
             </div>
 
-            {/* téléphone : le tutoriel au-dessus de la zone de jeu (la grille y prend toute la place restante) */}
-            {tutorialStep && <TutorialCard step={tutorialStep} index={level!} total={tutorialCount} placement="above"/>}
-
             <div className="game">
                 {daily && (
                     <p className="daily-label">
@@ -193,7 +209,6 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
                     </p>
                 )}
                 <h1 className="title">Queens</h1>
-                {tutorialStep && <TutorialCard step={tutorialStep} index={level!} total={tutorialCount} placement="in-game"/>}
                 {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
                     : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
                     : game.puzzle && (
@@ -236,24 +251,20 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
             <QueensSettingsPopup open={!challenge && flow.showSettings} onGenerate={handleGenerate}
                                  resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
 
+            {touring && <LevelTour steps={TOUR} onDone={endTour}/>}
+
             {dailyGame.done && !level && <DailyDonePopup gameCode="QUEENS" gameName="Queens" result={dailyGame.done}/>}
 
             {flow.victory && level !== undefined && (
                 <SuccessPopup gameName="Queens" gameCode="QUEENS" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={1} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
-                              title={tutorialDone ? "Bravo !" : `Niveau ${level} réussi !`}
-                              subtitle={tutorialDone ? "Le tutoriel est terminé : tu sais maintenant jouer au Queens !" : "Bien joué, la grille est résolue."}
-                              banner={tutorialDone ? (
-                                  <div className="tutorial-done">
-                                      <FaGraduationCap aria-hidden/>
-                                      <p>Continue les niveaux, de plus en plus corsés, ou génère des grilles aléatoires à ta taille.</p>
-                                  </div>
-                              ) : undefined}
+                              title={`Niveau ${level} réussi !`}
+                              subtitle="Bien joué, la grille est résolue."
                               noXpNote={isLoggedIn ? "Niveau déjà réussi : l'XP et les crédits ne sont donnés qu'à la première réussite." : undefined}
                               onNewGame={isLastLevel ? () => navigate("/niveaux/QUEENS") : () => navigate(`/niveaux/QUEENS/${level + 1}`)}
-                              newGameLabel={isLastLevel ? "Carte des niveaux" : tutorialDone ? "Continuer les niveaux" : "Niveau suivant"}
-                              extraAction={tutorialDone ? {label: "Grille aléatoire", onClick: () => navigate("/playgame/QUEENS")} : undefined}
+                              newGameLabel={isLastLevel ? "Carte des niveaux" : "Niveau suivant"}
+                              extraAction={isLastLevel ? {label: "Grille aléatoire", onClick: () => navigate("/playgame/QUEENS")} : undefined}
                               back={{to: "/niveaux/QUEENS", label: "Carte des niveaux", short: "Carte"}}/>
             )}
 

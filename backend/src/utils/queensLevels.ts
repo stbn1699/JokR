@@ -6,48 +6,51 @@ import type {QueensPuzzle} from "./queens.js";
  * - « une seule case possible » : une ligne, une colonne ou une zone n'a plus qu'une case libre
  * - « croix par déduction » : une dame ici viderait une autre ligne, colonne ou zone (zones coincées comprises)
  * - « au-delà » : ces deux techniques ne suffisent pas, il faut chercher plus loin
- * Les QUEENS_TUTORIAL premiers niveaux forment le tutoriel (textes côté site : src/Components/Levels/queensTutorial.ts).
+ * Les QUEENS_TUTORIAL premiers niveaux forment le tutoriel guidé pas à pas (src/Components/Levels/QueensTutorial.tsx) :
+ * leurs grilles sont choisies pour obliger à utiliser la leçon du niveau (voir src/Components/Levels/queensGuide.ts).
  * Ne pas modifier une grille publiée : la progression des joueurs est enregistrée par numéro de niveau.
  */
 
-export const QUEENS_TUTORIAL = 4;
+export const QUEENS_TUTORIAL = 3;
 
 export const QUEENS_LEVELS: QueensPuzzle[] = [
-    // 1 · 4×4 · tutoriel · une seule case possible
+    // 1 · 4×4 · tutoriel · commandes, une dame par ligne / colonne / zone, pas de contact
     {
         size: 4,
         regions: [
-            1, 1, 0, 0,
-            1, 1, 2, 2,
-            1, 3, 2, 2,
-            1, 3, 3, 2,
+            0, 0, 1, 1,
+            0, 0, 1, 1,
+            2, 2, 3, 3,
+            2, 2, 3, 3,
         ],
-        queens: [2, 11],
+        queens: [1],
     },
-    // 2 · 4×4 · tutoriel · une seule case possible
-    {
-        size: 4,
-        regions: [
-            1, 1, 0, 0,
-            1, 1, 1, 2,
-            1, 1, 1, 2,
-            3, 3, 1, 2,
-        ],
-        queens: [4],
-    },
-    // 3 · 5×5 · tutoriel · une seule case possible
+    // 2 · 5×5 · tutoriel · une zone sur une seule ligne
     {
         size: 5,
         regions: [
-            1, 2, 2, 0, 0,
-            1, 1, 2, 2, 0,
-            3, 1, 2, 2, 0,
-            3, 4, 2, 2, 0,
-            3, 4, 4, 2, 0,
+            0, 0, 1, 1, 1,
+            0, 1, 1, 1, 1,
+            4, 2, 3, 1, 1,
+            4, 2, 3, 3, 3,
+            4, 4, 4, 3, 3,
         ],
-        queens: [6],
+        queens: [],
     },
-    // 4 · 5×5 · tutoriel · croix par déduction
+    // 3 · 6×6 · tutoriel · deux zones sur deux lignes
+    {
+        size: 6,
+        regions: [
+            1, 1, 0, 0, 2, 2,
+            1, 3, 0, 2, 2, 2,
+            3, 3, 2, 2, 2, 4,
+            3, 3, 2, 4, 4, 4,
+            5, 5, 5, 4, 4, 4,
+            5, 5, 5, 4, 4, 4,
+        ],
+        queens: [],
+    },
+    // 4 · 5×5 · croix par déduction (premier niveau sans guide)
     {
         size: 5,
         regions: [

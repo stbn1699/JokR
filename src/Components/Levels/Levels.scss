@@ -1,0 +1,9 @@
+// Partie libre du Queens : lien vers le mode Niveaux ; niveau en cours au-dessus de la grille
+.queens-levels-link {
+	margin    : 0 0 0.75rem;
+	font-size : 1.1rem;
+
+	a { color : #fbbf24; }
+}
+
+.level-label a { color : inherit; }

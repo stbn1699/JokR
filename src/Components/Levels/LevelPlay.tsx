@@ -2,10 +2,12 @@ import {useEffect, useState} from "react";
 import {Navigate, useParams} from "react-router-dom";
 import {LEVEL_GAMES, type LevelsOverview, levelsService} from "../../Services/levels.service.ts";
 import Queens from "../Queens/Queens.tsx";
+import Loader from "../Loader/Loader.tsx";
+import QueensTutorial from "./QueensTutorial.tsx";
 
 /**
- * Partie d'un niveau (/niveaux/:gameCode/:level) : le jeu du puzzle, chargé sur la grille du niveau.
- * Le nombre de niveaux et la taille du tutoriel viennent du serveur (bouton « Niveau suivant », fin du tutoriel).
+ * Partie d'un niveau (/niveaux/:gameCode/:level) : leçon guidée pour les niveaux du tutoriel, sinon le jeu du puzzle
+ * chargé sur la grille du niveau. Le nombre de niveaux et la taille du tutoriel viennent du serveur.
  */
 export default function LevelPlay() {
     const {gameCode = "", level = ""} = useParams<{ gameCode: string; level: string }>();
@@ -22,11 +24,14 @@ export default function LevelPlay() {
 
     if (!LEVEL_GAMES.has(code) || !Number.isInteger(number) || number < 1) return <Navigate to="/" replace/>;
 
-    const info = {count: overview?.levels.length ?? null, tutorial: overview?.tutorial ?? null};
+    if (!overview) return <Loader label="Chargement du niveau…"/>;
+    const info = {count: overview.levels.length, tutorial: overview.tutorial};
     switch (code) {
         case "QUEENS":
             // key : passer au niveau suivant recharge une partie neuve
-            return <Queens key={number} level={number} levelInfo={info}/>;
+            return number <= overview.tutorial
+                ? <QueensTutorial key={number} level={number} tutorial={overview.tutorial}/>
+                : <Queens key={number} level={number} levelInfo={info}/>;
         default:
             return <Navigate to="/" replace/>;
     }

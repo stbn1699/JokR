@@ -4,11 +4,13 @@ import {solveQueens} from "./queens.js";
 import {isLevelUnlocked, levelPuzzle} from "./levels.js";
 
 describe("niveaux du Queens", () => {
-    it("10 niveaux, dont 4 de tutoriel, du plus petit au plus grand", () => {
+    it("10 niveaux, dont 3 de tutoriel ; tutoriel et niveaux vont chacun du plus petit au plus grand", () => {
         expect(QUEENS_LEVELS).toHaveLength(10);
-        expect(QUEENS_TUTORIAL).toBe(4);
-        const sizes = QUEENS_LEVELS.map(l => l.size);
-        expect([...sizes].sort((a, b) => a - b)).toEqual(sizes);
+        expect(QUEENS_TUTORIAL).toBe(3);
+        for (const part of [QUEENS_LEVELS.slice(0, QUEENS_TUTORIAL), QUEENS_LEVELS.slice(QUEENS_TUTORIAL)]) {
+            const sizes = part.map(l => l.size);
+            expect([...sizes].sort((a, b) => a - b)).toEqual(sizes);
+        }
     });
 
     it("chaque niveau a une seule solution", () => {
