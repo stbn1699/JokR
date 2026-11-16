@@ -25,6 +25,8 @@ import {wheelAvailable, type WheelItem, WheelRepository} from "../repository/Whe
 import {WHEEL_SEGMENTS, WHEEL_TOTAL_WEIGHT, wheelSegmentFor, wheelTickets} from "../utils/wheel.js";
 import {plinkoBallSets} from "../utils/plinkoBalls.js";
 import {BlackjackRepository} from "../repository/Blackjack.repository.js";
+import {PokerRepository} from "../repository/Poker.repository.js";
+import {isPokerBet, isPokerHolds, pokerView} from "../utils/poker.js";
 import {encodeKenoDraw, isKenoBet, isKenoPicks, kenoDraw, kenoHits, kenoMultiplier, kenoPayout} from "../utils/keno.js";
 import {blackjackView, isBlackjackAction, isBlackjackBet, totalBet, totalPayout} from "../utils/blackjack.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
@@ -65,6 +67,10 @@ import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, l
  * - POST /casino/keno { bet, picks } : une partie de Keno (voir backend/src/utils/keno.ts) avec 1 à 10 numéros choisis
  *   entre 1 et 40 ; 10 numéros sont tirés → { drawn, hits, multiplier, payout, credits } (drawn : dans l'ordre de sortie)
  *   Partie enregistrée sous le jeu « keno » (seed : numéros tirés, un bit chacun ; outcome : numéros trouvés).
+ * - Poker à 5 cartes en solo (vidéo poker, voir backend/src/utils/poker.ts) : le paquet reste sur le serveur.
+ *   - GET /casino/poker → { hand, recent, credits } (hand : main en cours ou null ; recent : dernières mains finies)
+ *   - POST /casino/poker { bet } : donne 5 cartes (mise retirée) → { hand, credits } ; 409 si une main est en cours
+ *   - POST /casino/poker/draw { held: [5 booléens] } : remplace les cartes non gardées, paie la main → { hand, credits }
  * - Blackjack en solo (voir backend/src/utils/blackjack.ts) : la main en cours est gardée par le serveur, le site n'en
  *   reçoit que ce que le joueur voit (pas le sabot, ni la carte cachée du croupier avant la fin).
  *   - GET /casino/blackjack → { hand, recent, credits } (hand : main en cours ou null ; recent : dernières mains finies)
@@ -81,6 +87,7 @@ const liveRoulette = new LiveRouletteRepository(db);
 const lottery = new LotteryRepository(db);
 const wheel = new WheelRepository(db);
 const blackjack = new BlackjackRepository(db);
+const poker = new PokerRepository(db);
 
 // Une bille toutes les ~0,3 s au plus, en moyenne sur une minute
 const dropLimiter = rateLimit({windowMs: 60 * 1000, limit: 200, standardHeaders: "draft-7", legacyHeaders: false,
@@ -223,6 +230,50 @@ router.post("/keno", dropLimiter, asyncHandler(async (req: Request, res: Respons
         return void res.status(credits ? 402 : 404).json({status: "error", message: credits ? "Pas assez de crédits" : "Compte introuvable"});
     }
     res.status(200).json({status: "ok", data: {...result(drawn), credits: play.credits}});
+}));
+
+// ---------- Poker à 5 cartes
+const POKER_RECENT = 6;
+
+const POKER_ERRORS = {
+    user: [404, "Compte introuvable"],
+    credits: [402, "Pas assez de crédits"],
+    active: [409, "Finis d'abord ta main en cours"],
+    none: [404, "Pas de main en cours"],
+} as const;
+
+router.get("/poker", asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
+    const me = res.locals.userId!;
+    const [hand, recent, credits] = await Promise.all([poker.active(me), poker.recent(me, POKER_RECENT), liveRoulette.credits(me)]);
+    res.status(200).json({status: "ok", data: {
+        hand: hand ? pokerView(hand) : null,
+        recent: recent.map(s => ({bet: s.bet, payout: s.payout ?? 0, hand: s.hand ?? "nothing"})),
+        credits,
+    }});
+}));
+
+router.post("/poker", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+    const bet: unknown = req.body?.bet;
+    if (!isPokerBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
+    if (maintenance.blocksNewGames()) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
+    const result = await poker.deal(res.locals.userId!, bet, res.locals.ghost === true);
+    if (!result.ok) {
+        const [status, message] = POKER_ERRORS[result.reason];
+        return void res.status(status).json({status: "error", message});
+    }
+    res.status(200).json({status: "ok", data: {hand: pokerView(result.state), credits: result.credits}});
+}));
+
+// Une main donnée se finit toujours, même pendant la préparation d'une mise à jour
+router.post("/poker/draw", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+    const held: unknown = req.body?.held;
+    if (!isPokerHolds(held)) return void res.status(400).json({status: "error", message: "Cartes gardées invalides"});
+    const result = await poker.draw(res.locals.userId!, held);
+    if (!result.ok) {
+        const [status, message] = POKER_ERRORS[result.reason];
+        return void res.status(status).json({status: "error", message});
+    }
+    res.status(200).json({status: "ok", data: {hand: pokerView(result.state), credits: result.credits}});
 }));
 
 // ---------- Blackjack

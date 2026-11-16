@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_poker)">
+<rect width="512" height="512" rx="50" fill="white"/>
+<rect x="166" y="96" width="180" height="256" rx="20" transform="rotate(-24 256 440)" fill="#FFDF88" stroke="black" stroke-width="10"/>
+<rect x="166" y="96" width="180" height="256" rx="20" transform="rotate(24 256 440)" fill="#88C9FF" stroke="black" stroke-width="10"/>
+<rect x="166" y="84" width="180" height="256" rx="20" fill="white" stroke="black" stroke-width="10"/>
+<path d="M256 268C226 242 200 220 200 192C200 172 215 158 233 158C244 158 251 164 256 172C261 164 268 158 279 158C297 158 312 172 312 192C312 220 286 242 256 268Z" fill="#F8A4A4" stroke="black" stroke-width="10" stroke-linejoin="round"/>
+</g>
+<defs>
+<clipPath id="clip_poker">
+<rect width="512" height="512" rx="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>

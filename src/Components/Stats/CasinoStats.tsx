@@ -27,6 +27,8 @@ const GAMES: Record<string, { name: string; color: string; rtp: number }> = {
     // en jouant parfaitement (voir backend/src/utils/blackjack.ts) ; en vrai un peu moins
     blackjack: {name: "Blackjack", color: "#a855f7", rtp: 0.995},
     keno: {name: "Keno", color: "#ec4899", rtp: 0.95},
+    // en jouant parfaitement (voir backend/src/utils/poker.ts)
+    poker: {name: "Poker", color: "#0ea5e9", rtp: 0.96},
 };
 const gameName = (game: string) => GAMES[game]?.name ?? game;
 // Multiplicateurs d'une case du Plinko dans les trois tableaux (prudent · équilibré · risqué)

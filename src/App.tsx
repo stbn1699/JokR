@@ -52,6 +52,7 @@ import SlotsList from "./Components/Hasard/Slots/SlotsList.tsx";
 import SlotMachinePage from "./Components/Hasard/Slots/SlotMachinePage.tsx";
 import BlackjackPage from "./Components/Hasard/Blackjack/BlackjackPage.tsx";
 import KenoPage from "./Components/Hasard/Keno/KenoPage.tsx";
+import PokerPage from "./Components/Hasard/Poker/PokerPage.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -111,6 +112,7 @@ function App() {
                 <Route path="/hasard/machines/:id" element={<SlotMachinePage/>}/>
                 <Route path="/hasard/blackjack" element={<BlackjackPage/>}/>
                 <Route path="/hasard/keno" element={<KenoPage/>}/>
+                <Route path="/hasard/poker" element={<PokerPage/>}/>
                 <Route path="/boutique" element={<ShopPage/>}/>
                 <Route path="/retour" element={<FeedbackPage/>}/>
                 <Route path="/boutique/fonds/degrades" element={<GradientsPage/>}/>

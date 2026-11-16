@@ -1,0 +1,465 @@
+// ---------- Poker : réglages à gauche, table au milieu (gains et cartes), dernières mains à droite
+.poker {
+	display         : flex;
+	justify-content : center;
+	padding         : 1.5rem 1rem 2rem;
+	color           : #f9fafb;
+
+	.poker-layout {
+		display               : grid;
+		grid-template-columns : 21rem minmax(0, 52rem) 10rem;
+		grid-template-areas   : "controls table side";
+		justify-content       : center;
+		gap                   : 1.75rem;
+		align-items           : start;
+		width                 : min(100rem, 100%);
+
+		.poker-controls { grid-area : controls; }
+		.poker-table { grid-area : table; }
+		.poker-side { grid-area : side; }
+
+		@media (max-width: 1250px) {
+			grid-template-columns : 21rem minmax(0, 52rem);
+			grid-template-areas   : "controls table" "controls side";
+		}
+
+		@media (max-width: 900px) {
+			grid-template-columns : minmax(0, 1fr);
+			grid-template-areas   : "table" "controls" "side";
+		}
+	}
+
+	.poker-controls,
+	.poker-side {
+		padding       : 1.5rem;
+		box-sizing    : border-box;
+		border        : 3px solid #f9fafb;
+		border-radius : 12px;
+		background    : #02061735;
+	}
+
+	.poker-side { padding : 1.1rem 0.9rem; }
+
+	.poker-back {
+		display         : inline-flex;
+		align-items     : center;
+		gap             : 0.35rem;
+		font-size       : 1.2rem;
+		color           : #f9fafb;
+		text-decoration : none;
+		opacity         : 0.8;
+
+		&:hover { opacity : 1; }
+	}
+
+	h1 {
+		margin      : 0.4rem 0 1rem;
+		font-size   : 2.5rem;
+		line-height : 1.1;
+	}
+
+	.poker-label {
+		display       : block;
+		margin-bottom : 0.5rem;
+		font-size     : 1.2rem;
+		opacity       : 0.85;
+	}
+
+	.poker-bets {
+		display               : grid;
+		grid-template-columns : repeat(3, 1fr);
+		gap                   : 0.6rem 0.3rem;
+	}
+
+	.poker-bet {
+		display         : flex;
+		justify-content : center;
+		padding         : 0.2rem 0;
+		border          : none;
+		background      : none;
+		cursor          : pointer;
+		transition      : transform 0.12s ease;
+
+		img {
+			width  : 3.6rem;
+			height : 3.6rem;
+			filter : drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
+		}
+
+		&:hover:not(:disabled) { transform : translateY(-2px); }
+
+		&.active {
+			transform : translateY(-5px) scale(1.1);
+
+			img { filter : drop-shadow(0 0 0.35rem #fbbf24) drop-shadow(0 0.3rem 0.35rem rgba(0, 0, 0, 0.5)); }
+		}
+
+		&:disabled {
+			opacity : 0.35;
+			cursor  : default;
+		}
+	}
+
+	.poker-main {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.4rem;
+		width           : 100%;
+		margin-top      : 1.25rem;
+		padding         : 0.85rem 1rem;
+		border          : none;
+		border-radius   : 999px;
+		background      : #10b981;
+		color           : #f9fafb;
+		font-family     : inherit;
+		font-size       : 1.5rem;
+		font-weight     : 600;
+		white-space     : nowrap;
+		cursor          : pointer;
+		transition      : transform 0.1s ease, background 0.15s ease;
+
+		&:hover:not(:disabled) { background : #059669; }
+		&:active:not(:disabled) { transform : scale(0.97); }
+
+		&:disabled {
+			background : rgba(16, 185, 129, 0.35);
+			cursor     : default;
+		}
+	}
+
+	.poker-main.draw {
+		background : #f59e0b;
+		color      : #1f1300;
+
+		&:hover:not(:disabled) { background : #fbbf24; }
+		&:disabled { background : rgba(245, 158, 11, 0.4); }
+	}
+
+	.poker-error {
+		margin    : 0.75rem 0 0;
+		color     : #fca5a5;
+		font-size : 1.05rem;
+	}
+
+	// ---------- La table : tapis bleu nuit, tableau des gains en haut
+	.poker-table {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 1rem;
+		padding        : 1.5rem 1.25rem;
+		box-sizing     : border-box;
+		border         : 6px solid #7c4a1e;
+		border-radius  : 1.5rem;
+		background     : radial-gradient(ellipse at center, #1e3a8a 0%, #172554 75%, #0f1a3d 100%);
+		box-shadow     : inset 0 0 2.5rem rgba(0, 0, 0, 0.45), 0 0.6rem 1.5rem rgba(0, 0, 0, 0.4);
+		transition     : box-shadow 0.4s ease, border-color 0.4s ease;
+
+		// main gagnée : le tapis s'illumine ; perdue : il tremble un peu
+		&.won {
+			border-color : #b45309;
+			box-shadow   : inset 0 0 3rem rgba(250, 204, 21, 0.25), 0 0 1.6rem rgba(250, 204, 21, 0.45);
+		}
+
+		&.lost { animation : poker-shake 0.4s ease-in-out; }
+	}
+
+	// zone des cartes, avec le bandeau du résultat par-dessus
+	.poker-stage {
+		position       : relative;
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 0.9rem;
+		width          : 100%;
+		padding-top    : 0.2rem;
+	}
+
+	.poker-banner {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 0.15rem;
+		min-height     : 1.6em;
+		padding        : 0.45rem 1.4rem;
+		border-radius  : 999px;
+		text-align     : center;
+		animation      : poker-banner-in 0.45s cubic-bezier(.2, .9, .3, 1.35) both;
+
+		strong { font-size : 1.7rem; line-height : 1.1; }
+		span { font-size : 1.05rem; }
+
+		&.win {
+			background : linear-gradient(90deg, #f59e0b, #fde047, #f59e0b);
+			color      : #1f1300;
+			box-shadow : 0 0 1.2rem rgba(250, 204, 21, 0.6);
+		}
+
+		&.lose {
+			background    : rgba(2, 6, 23, 0.7);
+			border        : 2px solid rgba(248, 113, 113, 0.6);
+			border-radius : 1rem;
+			color         : #fecaca;
+
+			span { color : #e2e8f0; }
+		}
+	}
+
+	.poker-banner-gain {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.35rem;
+		font-size   : 1.35rem !important;
+		font-weight : 700;
+	}
+
+	.poker-pays {
+		width           : min(30rem, 100%);
+		border-collapse : collapse;
+		font-size       : 1.05rem;
+
+		td {
+			padding : 0.2rem 0.6rem;
+			color   : #fde68a;
+		}
+
+		td:nth-child(2),
+		td:nth-child(3) { text-align : right; }
+
+		td:nth-child(3) {
+			font-weight : 600;
+			white-space : nowrap;
+		}
+
+		tr.won td {
+			background : #fbbf24;
+			color      : #1f1300;
+			animation  : poker-won 0.6s ease-in-out 3;
+
+			&:first-child { border-radius : 6px 0 0 6px; }
+			&:last-child { border-radius : 0 6px 6px 0; }
+		}
+	}
+
+	.poker-message {
+		margin     : 0;
+		min-height : 1.6em;
+		font-size  : 1.45rem;
+		font-weight: 600;
+		text-align : center;
+
+		&.win { color : #fde047; }
+		&.lose { color : #cbd5e1; }
+	}
+
+	.poker-cards {
+		display         : flex;
+		justify-content : center;
+		gap             : 0.7rem;
+		flex-wrap       : nowrap;
+	}
+
+	.poker-card {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 0.4rem;
+		padding        : 0;
+		border         : none;
+		background     : none;
+		color          : inherit;
+		font-family    : inherit;
+		cursor         : pointer;
+		transition     : transform 0.15s ease;
+
+		.bj-card {
+			width         : 7rem;
+			height        : 9.9rem;
+			border-radius : 0.5rem;
+			box-shadow    : 0 0.25rem 0.6rem rgba(0, 0, 0, 0.45);
+			animation     : poker-card-in 0.3s cubic-bezier(.2, .9, .3, 1.2) both;
+			user-select   : none;
+		}
+
+		&:disabled { cursor : default; }
+		&:hover:not(:disabled) { transform : translateY(-4px); }
+
+		// carte gardée : relevée, entourée en doré
+		&.held {
+			transform : translateY(-0.6rem);
+
+			.bj-card { box-shadow : 0 0 0 3px #fbbf24, 0 0.4rem 0.8rem rgba(0, 0, 0, 0.5); }
+		}
+
+		&.empty .bj-card { opacity : 0.35; animation : none; }
+
+		// pendant le choix : les cartes à changer s'effacent un peu
+		&.to-change .bj-card {
+			opacity   : 0.6;
+			filter    : grayscale(0.4);
+			transform : translateY(0.3rem);
+		}
+
+		// tirage : la carte non gardée s'envole…
+		&.toss .bj-card { animation : poker-toss 0.38s ease-in forwards; }
+
+		// … une nouvelle arrive face cachée…
+		&.back .bj-card { animation : poker-deal-back 0.3s cubic-bezier(.2, .9, .3, 1.2) both; }
+
+		// … puis se retourne
+		&.flip .bj-card { animation : poker-flip 0.32s ease-out both; }
+
+		// résultat : les cartes de la combinaison s'allument, les autres s'effacent
+		&.scoring {
+			transform : translateY(-0.6rem);
+
+			.bj-card {
+				box-shadow : 0 0 0 3px #fde047, 0 0 1.2rem rgba(250, 204, 21, 0.8);
+				animation  : poker-glow 1.2s ease-in-out 0.1s 2 both;
+			}
+		}
+
+		// main perdue avec une petite paire : on la montre en rouge
+		&.near .bj-card { box-shadow : 0 0 0 3px #f87171, 0 0.4rem 0.8rem rgba(0, 0, 0, 0.5); }
+
+		&.dim .bj-card {
+			opacity    : 0.5;
+			filter     : grayscale(0.5);
+			transition : opacity 0.3s ease, filter 0.3s ease;
+		}
+	}
+
+	.poker-hold {
+		min-height     : 1.3em;
+		font-size      : 1rem;
+		font-weight    : 700;
+		letter-spacing : 0.03em;
+		color          : #fbbf24;
+		text-transform : uppercase;
+	}
+
+	.poker-card:not(.held) .poker-hold { color : rgba(249, 250, 251, 0.5); }
+	.poker-card.to-change .poker-hold { color : #fca5a5; }
+
+	// carte dessinée (image absente) : même gabarit
+	.bj-card.drawn {
+		position        : relative;
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		box-sizing      : border-box;
+		border          : 1px solid #d6d3d1;
+		background      : #fafaf9;
+		color           : #1c1917;
+		font-weight     : 700;
+
+		&.red { color : #b91c1c; }
+
+		&.back {
+			border     : 3px solid #fafaf9;
+			background : repeating-linear-gradient(45deg, #b91c1c 0 6px, #991b1b 6px 12px);
+		}
+
+		.bj-card-corner {
+			position    : absolute;
+			top         : 0.3rem;
+			left        : 0.4rem;
+			font-size   : 1rem;
+			line-height : 1;
+		}
+
+		.bj-card-middle { font-size : 3rem; }
+	}
+
+	// ---------- Dernières mains
+	.poker-empty {
+		margin    : 0;
+		font-size : 0.95rem;
+		opacity   : 0.6;
+	}
+
+	.poker-recent {
+		display               : grid;
+		grid-template-columns : 1fr;
+		gap                   : 0.4rem;
+		margin                : 0;
+		padding               : 0;
+		list-style            : none;
+
+		@media (max-width: 1250px) {
+			grid-template-columns : repeat(auto-fill, minmax(7rem, 1fr));
+		}
+
+		li {
+			display        : flex;
+			flex-direction : column;
+			align-items    : center;
+			padding        : 0.3rem;
+			border-radius  : 8px;
+			background     : rgba(2, 6, 23, 0.5);
+			font-size      : 1.1rem;
+			text-align     : center;
+
+			small { font-size : 0.8rem; opacity : 0.65; }
+
+			&.win span { color : #34d399; }
+			&.even span { color : #fbbf24; }
+			&.loss span { color : #f87171; }
+
+			// dernière main : arrive en rebondissant
+			&.fresh { animation : poker-banner-in 0.4s cubic-bezier(.2, .9, .3, 1.35); }
+		}
+	}
+
+	@media (max-width: 600px) {
+		.poker-banner strong { font-size : 1.3rem; }
+		.poker-banner span { font-size : 0.9rem; }
+		.poker-table { padding : 1rem 0.5rem; }
+		.poker-pays { font-size : 0.9rem; }
+		.poker-cards { gap : 0.3rem; }
+		.poker-card .bj-card { width : 3.9rem; height : 5.5rem; }
+		.poker-hold { font-size : 0.75rem; }
+	}
+}
+
+@keyframes poker-card-in {
+	from { opacity : 0; transform : translateY(-1.2rem) rotate(-5deg) scale(0.9); }
+}
+
+@keyframes poker-won {
+	50% { background : #fde68a; }
+}
+
+@keyframes poker-toss {
+	to { opacity : 0; transform : translateY(-3rem) rotate(12deg) scale(0.8); }
+}
+
+@keyframes poker-deal-back {
+	from { opacity : 0; transform : translateY(-2rem) scale(0.9); }
+}
+
+@keyframes poker-flip {
+	0% { transform : rotateY(90deg) scale(1.05); }
+	100% { transform : rotateY(0) scale(1); }
+}
+
+@keyframes poker-glow {
+	50% { box-shadow : 0 0 0 4px #fef08a, 0 0 2rem rgba(250, 204, 21, 1); }
+}
+
+@keyframes poker-banner-in {
+	from { opacity : 0; transform : scale(0.6); }
+}
+
+@keyframes poker-shake {
+	20%, 60% { transform : translateX(-6px); }
+	40%, 80% { transform : translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.poker .poker-card .bj-card,
+	.poker .poker-pays tr.won td,
+	.poker .poker-table.lost,
+	.poker .poker-banner { animation : none !important; }
+}

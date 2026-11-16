@@ -2,6 +2,21 @@ import {api} from "../api/api.ts";
 import type {RouletteBet} from "../../backend/src/utils/roulette.ts";
 import type {PlinkoRisk} from "../../backend/src/utils/plinko.ts";
 import type {BlackjackAction, BlackjackView, HandOutcome} from "../../backend/src/utils/blackjack.ts";
+import type {PokerHand, PokerView} from "../../backend/src/utils/poker.ts";
+
+// Poker à 5 cartes : la main vue par le joueur (voir backend/src/utils/poker.ts) et son solde
+export interface PokerPlay {
+    hand: PokerView;
+    credits: number;
+}
+
+export interface PokerTable {
+    // main donnée pas encore tirée (reprise en revenant sur la page), ou null
+    hand: PokerView | null;
+    // dernières mains finies, la plus récente d'abord
+    recent: { bet: number; payout: number; hand: PokerHand }[];
+    credits: number;
+}
 
 // Keno : numéros tirés (dans l'ordre de sortie), numéros trouvés, gain et solde
 export interface KenoResult {
@@ -155,6 +170,24 @@ export const casinoService = {
     // Lance la roue du jour (409 si déjà lancée aujourd'hui) → case tirée, solde, niveau et XP après le gain
     spinWheel(): Promise<WheelSpin> {
         return api<WheelSpin>("/casino/wheel", {method: "POST"});
+    },
+
+    poker(signal?: AbortSignal): Promise<PokerTable> {
+        return api<PokerTable>("/casino/poker", {method: "GET"}, signal);
+    },
+
+    // Donne 5 cartes (mise retirée)
+    pokerDeal(bet: number): Promise<PokerPlay> {
+        return api<PokerPlay>("/casino/poker", {
+            method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({bet}),
+        });
+    },
+
+    // Remplace les cartes non gardées et paie la main
+    pokerDraw(held: boolean[]): Promise<PokerPlay> {
+        return api<PokerPlay>("/casino/poker/draw", {
+            method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({held}),
+        });
     },
 
     keno(bet: number, picks: number[]): Promise<KenoResult> {

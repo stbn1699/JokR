@@ -14,6 +14,7 @@ import {maintenanceService, type PresenceBody} from "./maintenance.service.ts";
  * - slots : rouleaux en train de tourner (busy)
  * - blackjack : main en cours (busy)
  * - keno : numéros en train de sortir (busy)
+ * - poker : main donnée, pas encore tirée (busy)
  *
  * Mise à jour activée : l'onglet passe sur l'écran « Mise à jour en cours » (App.tsx) dès qu'il n'a plus rien
  * en cours — tout de suite hors des pages de jeu, à la dernière bille, à la fin du dernier tour de roulette,
@@ -24,7 +25,7 @@ import {maintenanceService, type PresenceBody} from "./maintenance.service.ts";
 
 export type Activity =
     | { page: "puzzle"; gameCode: string; challenge: boolean; startedAt: number | null }
-    | { page: "roulette" | "plinko" | "slots" | "blackjack" | "keno"; busy: boolean };
+    | { page: "roulette" | "plinko" | "slots" | "blackjack" | "keno" | "poker"; busy: boolean };
 
 export type SiteMaintenance = {
     on: boolean;

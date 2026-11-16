@@ -3,6 +3,7 @@ import {useEffect, useState} from "react";
 import {PLINKO_MAX_MULTIPLIER} from "../../../backend/src/utils/plinko.ts";
 import {SLOT_MACHINES, slotTopPays} from "../../../backend/src/utils/slots.ts";
 import {KENO_TOP_MULTIPLIER} from "../../../backend/src/utils/keno.ts";
+import {POKER_PAYTABLE} from "../../../backend/src/utils/poker.ts";
 import {useAuth} from "../../Context/authContext.ts";
 import {casinoService} from "../../Services/casino.service.ts";
 import LotteryBanner from "./Lottery/LotteryBanner.tsx";
@@ -128,6 +129,8 @@ export default function Hasard() {
                           tags={[{text: "blackjack payé 3 pour 2", kind: "gain"}]}/>
                 <GameCard to="/hasard/keno" icon="/gameIcons/KENO.svg" name="Keno" text="Choisis jusqu'à 10 numéros, 10 sortent"
                           tags={[{text: <>jusqu'à ×{KENO_TOP_MULTIPLIER.toLocaleString("fr-FR")} ta mise</>, kind: "gain"}]}/>
+                <GameCard to="/hasard/poker" icon="/gameIcons/POKER.svg" name="Poker" text="5 cartes, garde les bonnes et tire une fois"
+                          tags={[{text: <>quinte flush royale ×{POKER_PAYTABLE[0]!.pays}</>, kind: "gain"}]}/>
             </div>
 
             {wheelOpen && wheel && !whatsNewOpen && (
