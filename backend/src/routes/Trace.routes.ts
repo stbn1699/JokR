@@ -9,6 +9,7 @@ import {ProgressionService} from "../services/Progression.service.js";
 import {GamesService} from "../services/Games.service.js";
 import {GamesRepository} from "../repository/Games.repository.js";
 import {optionalAuth} from "../middleware/auth.js";
+import {LevelsRepository} from "../repository/Levels.repository.js";
 
 const router = Router();
 const db = createDb(pool);
@@ -18,7 +19,7 @@ const controller = createTraceController(
     traceStore,
     new ProgressionService(db),
     new GamesService(new GamesRepository(db)),
-    createDailyService(db),
+    createDailyService(db), new LevelsRepository(db),
 );
 
 // GET /trace/settings (tailles, plages de numéros donnés en plus et XP associée)

@@ -14,6 +14,8 @@ type TraceBoardProps = {
     onEnd: () => void;
     // un pas au clavier
     onStep: (cell: number) => void;
+    // Tutoriel : cases dans l'ombre (toutes sauf `lit`) et case où avancer (qui pulse)
+    guide?: { lit: Set<number> | null; target: number | null };
 };
 
 const ARROWS: Record<string, [number, number]> = {ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1]};
@@ -26,7 +28,7 @@ const ARROWS: Record<string, [number, number]> = {ArrowUp: [-1, 0], ArrowDown: [
  * - Appuyer sur une case voisine du bout : le chemin y avance
  * - Clavier : flèches pour avancer depuis le bout (ou reculer en revenant sur ses pas)
  */
-export default function TraceBoard({puzzle, path, walls, disabled, solved, onBegin, onEnter, onEnd, onStep}: TraceBoardProps) {
+export default function TraceBoard({puzzle, path, walls, disabled, solved, onBegin, onEnter, onEnd, onStep, guide}: TraceBoardProps) {
     const {size, numbers} = puzzle;
     const dragging = useRef(false);
     const valueAt = new Map(numbers.map(n => [n.cell, n.value]));
@@ -88,6 +90,8 @@ export default function TraceBoard({puzzle, path, walls, disabled, solved, onBeg
                     r < size - 1 && hasWall(walls, cell, cell + size) ? "w-bottom" : "",
                     c > 0 && hasWall(walls, cell, cell - 1) ? "w-left" : "",
                     c < size - 1 && hasWall(walls, cell, cell + 1) ? "w-right" : "",
+                    guide && cell === guide.target ? "guide-target" : "",
+                    guide && cell !== guide.target && guide.lit !== null && !guide.lit.has(cell) ? "veil-dark" : "",
                 ].join(" ");
                 return <div key={cell} className={classes} data-cell={cell} role="gridcell"
                             aria-label={valueAt.has(cell) ? `Numéro ${valueAt.get(cell)}` : undefined}/>;

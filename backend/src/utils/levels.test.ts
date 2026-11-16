@@ -14,6 +14,8 @@ import {TECTONIC_LEVELS, TECTONIC_TUTORIAL} from "./tectonicLevels.js";
 import {solveTectonic} from "./tectonic.js";
 import {RIKUDO_LEVELS, RIKUDO_TUTORIAL} from "./rikudoLevels.js";
 import {solveRikudo} from "./rikudo.js";
+import {TRACE_LEVELS, TRACE_TUTORIAL} from "./traceLevels.js";
+import {solveTrace} from "./trace.js";
 
 describe("niveaux du Queens", () => {
     it("1000 niveaux, dont 3 leçons de tutoriel, de 4×4 à 12×12", () => {
@@ -112,5 +114,17 @@ describe("niveaux du Rikudo", () => {
             expect(solutions).toHaveLength(1);
         }
         expect(levelPuzzle("RIKUDO", 1)).toBe(RIKUDO_LEVELS[0]);
+    });
+});
+
+describe("niveaux du Tracé", () => {
+    it("3 leçons de tutoriel, chacune à solution unique", () => {
+        expect(TRACE_TUTORIAL).toBe(3);
+        for (const puzzle of TRACE_LEVELS) {
+            const {count, complete} = solveTrace(puzzle, 2);
+            expect(complete).toBe(true);
+            expect(count).toBe(1);
+        }
+        expect(levelPuzzle("TRACE", 1)).toBe(TRACE_LEVELS[0]);
     });
 });

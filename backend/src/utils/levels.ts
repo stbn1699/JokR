@@ -1,5 +1,7 @@
 import {QUEENS_LEVELS, QUEENS_TUTORIAL} from "./queensLevels.js";
 import type {QueensPuzzle} from "./queens.js";
+import {TRACE_LEVELS, TRACE_TUTORIAL} from "./traceLevels.js";
+import type {TracePuzzle} from "./trace.js";
 import {RIKUDO_LEVELS, RIKUDO_TUTORIAL} from "./rikudoLevels.js";
 import type {RikudoPuzzle} from "./rikudo.js";
 import {TECTONIC_LEVELS, TECTONIC_TUTORIAL} from "./tectonicLevels.js";
@@ -62,6 +64,11 @@ export const LEVEL_GAMES: Record<string, LevelGame> = {
         levels: RIKUDO_LEVELS,
         tutorial: RIKUDO_TUTORIAL,
         describe: p => ({size: (p as RikudoPuzzle).cells.length, hints: (p as RikudoPuzzle).cells.filter(v => v !== null).length}),
+    },
+    TRACE: {
+        levels: TRACE_LEVELS,
+        tutorial: TRACE_TUTORIAL,
+        describe: p => ({size: (p as TracePuzzle).size, hints: 0}),
     },
 };
 

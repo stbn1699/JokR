@@ -7,6 +7,7 @@ import QueensTutorial from "./QueensTutorial.tsx";
 import GalaxiesTutorial from "./GalaxiesTutorial.tsx";
 import BineroTutorial from "./BineroTutorial.tsx";
 import SudokuTutorial from "./SudokuTutorial.tsx";
+import TraceTutorial from "./TraceTutorial.tsx";
 import RikudoTutorial from "./RikudoTutorial.tsx";
 import TectonicTutorial from "./TectonicTutorial.tsx";
 import ShikakuTutorial from "./ShikakuTutorial.tsx";
@@ -19,6 +20,7 @@ const TUTORIALS: Record<string, ComponentType<LessonProps>> = {
     GALAXIES: GalaxiesTutorial,
     BINERO: BineroTutorial,
     SUDOKU: SudokuTutorial,
+    TRACE: TraceTutorial,
     RIKUDO: RikudoTutorial,
     TECTONIC: TectonicTutorial,
     SHIKAKU: ShikakuTutorial,
