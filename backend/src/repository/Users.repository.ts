@@ -1,4 +1,5 @@
 import type {Kysely, Transaction} from "kysely";
+import {WELCOME_CREDITS} from "../utils/credits.js";
 import type {DB} from "../db/schema.js";
 import type {User} from "../models/User.model.js";
 import type {NewUser} from "../models/NewUser.model.js";
@@ -120,30 +121,48 @@ export class UsersRepository {
     }
 
     // Crée un joueur sans mot de passe et lui lie son compte externe, en une seule transaction
+    // (avec le cadeau de bienvenue, voir welcome)
     async createWithIdentity(username: string, email: string | null, profile: ExternalProfile, avatar?: string): Promise<User> {
         return this.db.transaction().execute(async trx => {
             const user = await trx.insertInto('users')
-                .values({username, email, password: null, user_xp: 0, user_level: 1, ...(avatar ? {avatar} : {})})
+                .values({username, email, password: null, user_xp: 0, user_level: 1, credits: WELCOME_CREDITS, ...(avatar ? {avatar} : {})})
                 .returningAll()
                 .executeTakeFirstOrThrow();
             await this.addIdentity(user.id, profile, trx);
+            await this.welcome(user.id, trx);
             return user;
         });
     }
 
-    // Crée un nouvel utilisateur (s'attend à recevoir le mot de passe déjà hashé)
+    // Crée un nouvel utilisateur (s'attend à recevoir le mot de passe déjà hashé), avec le cadeau de bienvenue
     async create(user: NewUser): Promise<User> {
-        return this.db
-            .insertInto("users")
-            .values({
-                username: user.username,
-                email: user.email,
-                password: user.password,
-                user_xp: 0,
-                user_level: 1,
-                ...(user.avatar ? {avatar: user.avatar} : {}),
-            })
-            .returningAll()
-            .executeTakeFirstOrThrow();
+        return this.db.transaction().execute(async trx => {
+            const created = await trx
+                .insertInto("users")
+                .values({
+                    username: user.username,
+                    email: user.email,
+                    password: user.password,
+                    user_xp: 0,
+                    user_level: 1,
+                    credits: WELCOME_CREDITS,
+                    ...(user.avatar ? {avatar: user.avatar} : {}),
+                })
+                .returningAll()
+                .executeTakeFirstOrThrow();
+            await this.welcome(created.id, trx);
+            return created;
+        });
+    }
+
+    /*
+     * Cadeau de bienvenue : les crédits sont donnés à la création du compte (WELCOME_CREDITS), et une notification
+     * « welcome » le dit au joueur : à sa première connexion, le site l'affiche dans une popup.
+     */
+    private async welcome(userId: string, trx: Kysely<DB>) {
+        await trx.insertInto("notifications")
+            .values({user_id: userId, kind: "welcome", ref: "welcome", data: JSON.stringify({credits: WELCOME_CREDITS})})
+            .onConflict(oc => oc.columns(["user_id", "kind", "ref"]).doNothing())
+            .execute();
     }
 }

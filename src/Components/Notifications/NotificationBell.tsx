@@ -15,18 +15,8 @@
 import "./Notifications.scss";
 import {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
-import {FaBell, FaFlagCheckered, FaMedal, FaTicketAlt, FaTimes, FaUserFriends} from "react-icons/fa";
-import {
-    type AppNotification,
-    type ChallengeNotification,
-    type DailyResultsNotification,
-    type FriendNotification,
-    isDailyResults,
-    isFriendNotification,
-    isLotteryWin,
-    type LotteryWinNotification,
-    lotteryName,
-} from "../../Services/notification.service.ts";
+import {FaBell, FaFlagCheckered, FaGift, FaMedal, FaTicketAlt, FaTimes, FaUserFriends} from "react-icons/fa";
+import {type AppNotification, type ChallengeNotification, type DailyResultsNotification, type FriendNotification, isDailyResults, isFriendNotification, isLotteryWin, type LotteryWinNotification, lotteryName, isWelcome} from "../../Services/notification.service.ts";
 import {challengePath} from "../../Services/challenge.service.ts";
 import {shareTime} from "../../Services/share.ts";
 import {friendsStore, useFriends} from "../../Services/friends.service.ts";
@@ -35,6 +25,7 @@ import Avatar from "../Avatar/Avatar.tsx";
 import {formatDuration} from "../../Services/format.ts";
 import {useNotifications} from "./useNotifications.ts";
 import DailyRewardPopup from "./DailyRewardPopup.tsx";
+import WelcomePopup from "./WelcomePopup.tsx";
 import {useAuth} from "../../Context/authContext.ts";
 import {useWhatsNewOpen} from "../../Services/popupQueue.ts";
 
@@ -72,10 +63,12 @@ function dailySummary(n: DailyResultsNotification) {
 }
 
 export default function NotificationBell({enabled}: { enabled: boolean }) {
-    const {items, rewards, unread, toast, closeToast, markAllRead, markRead} = useNotifications(enabled);
+    const {items, rewards, welcome, unread, toast, closeToast, markAllRead, markRead} = useNotifications(enabled);
     const [open, setOpen] = useState(false);
     // Popup des XP fermée pendant cette visite (le serveur les marque vues)
     const [rewardsClosed, setRewardsClosed] = useState(false);
+    // popup de bienvenue fermée pendant cette visite (la notification est aussi marquée lue sur le serveur)
+    const [welcomeClosed, setWelcomeClosed] = useState(false);
     // Profil chargé : niveau et XP actuels connus (pour rejouer l'animation du header)
     const profileLoaded = useAuth().username !== null;
     // La popup des nouveautés passe d'abord
@@ -155,7 +148,15 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
                 </div>
             )}
 
-            {rewards.length > 0 && !rewardsClosed && profileLoaded && !whatsNewOpen && (
+            {/* nouveau compte : le cadeau de bienvenue passe avant tout le reste */}
+            {welcome && !welcomeClosed && profileLoaded && !whatsNewOpen && (
+                <WelcomePopup credits={welcome.data.credits} onClose={() => {
+                    setWelcomeClosed(true);
+                    markRead([welcome.id]);
+                }}/>
+            )}
+
+            {(!welcome || welcomeClosed) && rewards.length > 0 && !rewardsClosed && profileLoaded && !whatsNewOpen && (
                 <DailyRewardPopup rewards={rewards} onClose={() => {
                     setRewardsClosed(true);
                     markRead(rewards.map(r => r.id));
@@ -178,6 +179,11 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
                             <>
                                 <strong>Défis du {dayLabel(toast.data.date)} terminés</strong>
                                 <span>{dailySummary(toast)}</span>
+                            </>
+                        ) : isWelcome(toast) ? (
+                            <>
+                                <strong>Bienvenue sur JokR !</strong>
+                                <span>+{fr(toast.data.credits)} crédits offerts</span>
                             </>
                         ) : !isFriendNotification(toast) ? (
                             <>
@@ -208,6 +214,17 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
 
 function NotificationItem({notification, onNavigate}: { notification: AppNotification; onNavigate: () => void }) {
     if (isLotteryWin(notification)) return <LotteryItem notification={notification} onNavigate={onNavigate}/>;
+    if (isWelcome(notification)) {
+        return (
+            <div className="notif-daily notif-lottery">
+                <div className="notif-daily-head">
+                    <span><FaGift aria-hidden/> Bienvenue sur JokR !</span>
+                    <small>{ago(notification.createdAt)}</small>
+                </div>
+                <p className="notif-daily-xp">+{fr(notification.data.credits)} crédits offerts</p>
+            </div>
+        );
+    }
     if (isFriendNotification(notification)) return <FriendItem notification={notification} onNavigate={onNavigate}/>;
     if (!isDailyResults(notification)) return <ChallengeItem notification={notification} onNavigate={onNavigate}/>;
     const n = notification;

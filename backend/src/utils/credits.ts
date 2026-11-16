@@ -4,6 +4,9 @@
  * premier tiers (plus facile) = 1 crédit, deuxième = 2, dernier tiers (plus difficile) = 3.
  */
 
+// Crédits offerts à la création d'un compte (cadeau de bienvenue, annoncé par une popup à la première connexion)
+export const WELCOME_CREDITS = 500;
+
 export const MIN_CREDITS = 1;
 export const MAX_CREDITS = 3;
 

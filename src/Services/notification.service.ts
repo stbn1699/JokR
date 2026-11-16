@@ -53,7 +53,13 @@ export interface LotteryWinNotification extends BaseNotification {
     data: { kind: "day" | "week" | "month"; date: string; prize: number; tickets: number; totalTickets: number; totalBet: number };
 }
 
-export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification | LotteryWinNotification;
+// Cadeau de bienvenue (création du compte) : les crédits sont déjà ajoutés ; annoncé par une popup à la première connexion
+export interface WelcomeNotification extends BaseNotification {
+    kind: "welcome";
+    data: { credits: number };
+}
+
+export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification | LotteryWinNotification | WelcomeNotification;
 
 export const isFriendNotification = (n: AppNotification): n is FriendNotification =>
     n.kind === "friend_request" || n.kind === "friend_accepted";
@@ -61,6 +67,8 @@ export const isFriendNotification = (n: AppNotification): n is FriendNotificatio
 export const isDailyResults = (n: AppNotification): n is DailyResultsNotification => n.kind === "daily_results";
 
 export const isLotteryWin = (n: AppNotification): n is LotteryWinNotification => n.kind === "lottery_win";
+
+export const isWelcome = (n: AppNotification): n is WelcomeNotification => n.kind === "welcome";
 
 // « la loterie du jour », « de la semaine », « du mois »
 export const lotteryName = (kind: LotteryWinNotification["data"]["kind"]) =>

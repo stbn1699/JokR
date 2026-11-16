@@ -1,5 +1,14 @@
 import {useCallback, useEffect, useState} from "react";
-import {type AppNotification, type DailyResultsNotification, isDailyResults, isFriendNotification, notificationService, notificationXp} from "../../Services/notification.service.ts";
+import {
+    type AppNotification,
+    type DailyResultsNotification,
+    isDailyResults,
+    isFriendNotification,
+    isWelcome,
+    notificationService,
+    notificationXp,
+    type WelcomeNotification,
+} from "../../Services/notification.service.ts";
 import {friendsStore} from "../../Services/friends.service.ts";
 
 // Nouvelles notifications : vérifiées toutes les 3 minutes, et en revenant sur l'onglet
@@ -29,6 +38,7 @@ function rememberToasted(ids: string[]) {
  * - `toast` : la plus récente des notifications non lues pas encore annoncées pendant cette visite
  *   (sauf celles qui rapportent de l'XP : elles ont leur propre popup, voir `rewards`)
  * - `rewards` : résultats des défis non vus qui rapportent de l'XP
+ * - `welcome` : cadeau de bienvenue pas encore vu (popup à la première connexion)
  * - markAllRead : appelée à l'ouverture du panneau (le compteur retombe à 0)
  */
 export function useNotifications(enabled: boolean) {
@@ -41,7 +51,8 @@ export function useNotifications(enabled: boolean) {
         setItems(list.items);
         setUnread(list.unread);
         const seen = toasted();
-        const fresh = list.items.find(n => n.readAt === null && !seen.includes(n.id) && notificationXp(n) === 0);
+        // pas de toast pour celles qui ont leur popup (XP des défis, bienvenue)
+        const fresh = list.items.find(n => n.readAt === null && !seen.includes(n.id) && notificationXp(n) === 0 && !isWelcome(n));
         // Nouvelle demande ou amitié acceptée : les listes d'amis changent
         if (list.items.some(n => isFriendNotification(n) && n.readAt === null)) friendsStore.refresh().catch(() => undefined);
         if (fresh) {
@@ -85,6 +96,7 @@ export function useNotifications(enabled: boolean) {
         rewards: enabled
             ? items.filter((n): n is DailyResultsNotification => isDailyResults(n) && n.readAt === null && notificationXp(n) > 0)
             : [],
+        welcome: enabled ? items.find((n): n is WelcomeNotification => isWelcome(n) && n.readAt === null) ?? null : null,
         unread: enabled ? unread : 0,
         toast: enabled ? toast : null,
         closeToast: () => setToast(null),
