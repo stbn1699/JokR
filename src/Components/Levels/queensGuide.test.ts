@@ -29,6 +29,15 @@ describe("guide du tutoriel du Queens", () => {
         expect(solveWithGuide(lesson3!, ["attacks", "single", "confined1", "confined2"]).solved).toBe(true);
     });
 
+    it("niveaux 4 à 120 : seulement les techniques du tutoriel, en continuité", () => {
+        const tutorialRules = ["attacks", "single", "confined1", "confined2"] as const;
+        for (const level of QUEENS_LEVELS.slice(QUEENS_TUTORIAL, 120)) {
+            expect(solveWithGuide(level, [...tutorialRules]).solved).toBe(true);
+            // chaque niveau a besoin d'au moins une technique du tutoriel (pas que les bases)
+            expect(solveWithGuide(level, ["attacks", "single"]).solved).toBe(false);
+        }
+    });
+
     it("les cases à barrer ne contiennent jamais la dame de la solution", () => {
         for (const lesson of QUEENS_LEVELS.slice(0, QUEENS_TUTORIAL)) {
             let marks = startMarks(lesson);

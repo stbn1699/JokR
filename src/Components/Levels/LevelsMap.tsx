@@ -1,6 +1,7 @@
 /**
  * Carte des niveaux d'un puzzle (/niveaux/:gameCode), façon jeu d'aventure : un chemin sinueux qui descend, avec un
- * rond par niveau. Niveaux réussis en or (avec le meilleur temps), le prochain à jouer qui pulse, les suivants
+ * rond par niveau, découpé en mondes de WORLD niveaux (flèches pour passer de l'un à l'autre ; on arrive sur le monde
+ * du niveau à jouer). Niveaux réussis en or (avec le meilleur temps), le prochain à jouer qui pulse, les suivants
  * verrouillés. Les premiers forment le tutoriel (chapeau de diplômé). En haut : progression et accès à la partie
  * libre (grille aléatoire). Joueur connecté : progression du serveur ; invité : celle de ce navigateur.
  */
@@ -8,7 +9,7 @@
 import "./LevelsMap.scss";
 import {type CSSProperties, useEffect, useMemo, useRef, useState} from "react";
 import {Link, Navigate, useNavigate, useParams} from "react-router-dom";
-import {FaCheck, FaChevronLeft, FaDice, FaGraduationCap, FaLock, FaStar} from "react-icons/fa";
+import {FaArrowDown, FaCheck, FaChevronLeft, FaChevronRight, FaDice, FaGraduationCap, FaLock, FaStar} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {formatDuration} from "../../Services/format.ts";
 import {guestDone, LEVEL_GAMES, type LevelsOverview, levelsService} from "../../Services/levels.service.ts";
@@ -20,6 +21,8 @@ const WIDTH = 400;
 const STEP = 150;
 const TOP = 140;
 const AMPLITUDE = 120;
+// niveaux par monde
+const WORLD = 50;
 const xOf = (i: number) => WIDTH / 2 + AMPLITUDE * Math.sin(i * 1.15);
 const yOf = (i: number) => TOP + i * STEP;
 
@@ -44,6 +47,8 @@ export default function LevelsMap() {
     const [overview, setOverview] = useState<LevelsOverview | null>(null);
     const [error, setError] = useState<string | null>(null);
     const currentRef = useRef<HTMLButtonElement>(null);
+    // monde affiché (null : celui du niveau à jouer)
+    const [chosenWorld, setChosenWorld] = useState<number | null>(null);
 
     useEffect(() => {
         if (!LEVEL_GAMES.has(code)) return;
@@ -65,20 +70,32 @@ export default function LevelsMap() {
     const doneCount = levels.filter(l => l.done).length;
     const current = levels.find((l, i) => !l.done && (i === 0 || levels[i - 1]!.done))?.level ?? null;
 
-    // On arrive sur la carte au niveau à jouer
+    const worlds = Math.max(1, Math.ceil(levels.length / WORLD));
+    const world = chosenWorld ?? Math.floor(((current ?? levels.length) - 1) / WORLD);
+
+    // On arrive sur la carte au niveau à jouer ; en changeant de monde, en haut du chemin
     useEffect(() => {
-        if (current !== null) currentRef.current?.scrollIntoView({block: "center", behavior: "smooth"});
-    }, [current]);
+        if (chosenWorld === null && current !== null) currentRef.current?.scrollIntoView({block: "center", behavior: "smooth"});
+    }, [current, chosenWorld]);
 
     if (!LEVEL_GAMES.has(code)) return <Navigate to={`/playgame/${code}`} replace/>;
 
     const name = DAILY_GAME_NAMES[code] ?? code;
     const tutorial = overview?.tutorial ?? 0;
     const count = levels.length;
-    // un rond de plus à la fin : « Bientôt d'autres niveaux »
-    const points = Array.from({length: count + 1}, (_, i) => [xOf(i), yOf(i)] as [number, number]);
-    const height = yOf(count) + TOP;
-    const reached = Math.min(count - 1, doneCount);
+    // niveaux de ce monde, et un rond de plus à la fin (monde suivant, ou « bientôt d'autres niveaux »)
+    const first = world * WORLD;
+    const shown = levels.slice(first, first + WORLD);
+    const lastWorld = world >= worlds - 1;
+    const points = Array.from({length: shown.length + 1}, (_, i) => [xOf(i), yOf(i)] as [number, number]);
+    const height = yOf(shown.length) + TOP;
+    const reachedHere = shown.filter(l => l.done).length;
+    const reached = Math.min(shown.length - (lastWorld ? 1 : 0), reachedHere);
+    const nextWorldOpen = !lastWorld && (levels[first + WORLD - 1]?.done ?? false);
+    const goWorld = (w: number) => {
+        setChosenWorld(w);
+        window.scrollTo({top: 0, behavior: "smooth"});
+    };
 
     return (
         <main className="levels-map">
@@ -97,6 +114,20 @@ export default function LevelsMap() {
                 <button type="button" className="levels-free" onClick={() => navigate(`/playgame/${code}`)}>
                     <FaDice aria-hidden/> Grille aléatoire
                 </button>
+                {worlds > 1 && (
+                    <nav className="levels-worlds" aria-label="Mondes">
+                        <button type="button" disabled={world === 0} aria-label="Monde précédent" onClick={() => goWorld(world - 1)}>
+                            <FaChevronLeft aria-hidden/>
+                        </button>
+                        <span>
+                            <strong>Monde {world + 1}</strong> / {worlds}
+                            <small>niveaux {first + 1} à {Math.min(count, first + WORLD)}</small>
+                        </span>
+                        <button type="button" disabled={lastWorld} aria-label="Monde suivant" onClick={() => goWorld(world + 1)}>
+                            <FaChevronRight aria-hidden/>
+                        </button>
+                    </nav>
+                )}
                 {!isLoggedIn && (
                     <p className="levels-guest">
                         <Link to="/login">Connecte-toi</Link> pour garder ta progression partout et gagner de l'XP à chaque niveau.
@@ -111,21 +142,21 @@ export default function LevelsMap() {
                             <svg viewBox={`0 0 ${WIDTH} ${height}`} preserveAspectRatio="none" aria-hidden>
                                 <path className="levels-road" d={smoothPath(points)}/>
                                 <path className="levels-road-dash" d={smoothPath(points)}/>
-                                {doneCount > 0 && <path className="levels-road-done" d={smoothPath(points.slice(0, reached + 1))}/>}
+                                {reached > 0 && <path className="levels-road-done" d={smoothPath(points.slice(0, reached + 1))}/>}
                             </svg>
 
-                            {tutorial > 0 && (
+                            {world === 0 && tutorial > 0 && (
                                 <span className="levels-chapter" style={{top: `${yOf(0) - 118}px`}}>
                                     <FaGraduationCap aria-hidden/> Tutoriel
                                 </span>
                             )}
-                            {tutorial > 0 && tutorial < count && (
+                            {world === 0 && tutorial > 0 && tutorial < count && (
                                 <span className="levels-chapter" style={{top: `${yOf(tutorial - 1) + 72}px`}}>
                                     <FaStar aria-hidden/> Niveaux
                                 </span>
                             )}
 
-                            {levels.map((l, i) => {
+                            {shown.map((l, i) => {
                                 const unlocked = l.done || l.level === current;
                                 const state = l.done ? "done" : l.level === current ? "current" : "locked";
                                 return (
@@ -147,10 +178,20 @@ export default function LevelsMap() {
                                 );
                             })}
 
-                            <div className="levels-node soon" style={{left: `${(xOf(count) / WIDTH) * 100}%`, top: `${yOf(count)}px`}}>
-                                <span className="levels-soon">…</span>
-                                <span className="levels-label">Bientôt d'autres niveaux</span>
-                            </div>
+                            {lastWorld ? (
+                                <div className="levels-node soon" style={{left: `${(xOf(shown.length) / WIDTH) * 100}%`, top: `${yOf(shown.length)}px`}}>
+                                    <span className="levels-soon">…</span>
+                                    <span className="levels-label">Bientôt d'autres niveaux</span>
+                                </div>
+                            ) : (
+                                <div className={`levels-node next-world ${nextWorldOpen ? "open" : ""}`}
+                                     style={{left: `${(xOf(shown.length) / WIDTH) * 100}%`, top: `${yOf(shown.length)}px`}}>
+                                    <button type="button" aria-label={`Monde ${world + 2}`} onClick={() => goWorld(world + 1)}>
+                                        <FaArrowDown aria-hidden/>
+                                    </button>
+                                    <span className="levels-label">Monde {world + 2}</span>
+                                </div>
+                            )}
                         </div>
                     )}
         </main>

@@ -301,3 +301,58 @@
 	width  : 1em;
 	height : 1em;
 }
+
+// ---------- Mondes (50 niveaux chacun)
+.levels-worlds {
+	display         : flex;
+	align-items     : center;
+	justify-content : space-between;
+	gap             : 0.6rem;
+
+	span {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		font-size      : 1.25rem;
+
+		small {
+			font-size : 0.95rem;
+			opacity   : 0.75;
+		}
+	}
+
+	button {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		width           : 2.6rem;
+		height          : 2.6rem;
+		border          : 2px solid rgba(249, 250, 251, 0.5);
+		border-radius   : 50%;
+		background      : transparent;
+		color           : inherit;
+		cursor          : pointer;
+
+		&:hover:not(:disabled) { border-color : #fbbf24; }
+		&:disabled { opacity : 0.3; cursor : default; }
+
+		svg { position : static; width : 1em; height : 1em; }
+	}
+}
+
+// au bout du chemin d'un monde : passer au suivant
+.levels-node.next-world {
+	button {
+		width      : 4.2rem;
+		height     : 4.2rem;
+		background : #334155;
+		font-size  : 1.4rem;
+
+		svg { position : static; width : 1.4rem; height : 1.4rem; }
+	}
+
+	&.open button {
+		background : radial-gradient(circle at 35% 30%, #fef3c7, #f59e0b 60%, #b45309);
+		color      : #422006;
+	}
+}

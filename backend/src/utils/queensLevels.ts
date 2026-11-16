@@ -1,7 +1,9 @@
 import type {QueensPuzzle} from "./queens.js";
+import {QUEENS_LEVEL_DATA} from "./queensLevelData.js";
 
 /*
- * Niveaux du Queens (mode Niveaux) : grilles fixes, les mêmes pour tout le monde, de plus en plus difficiles.
+ * Niveaux du Queens (mode Niveaux) : 1000 grilles fixes, les mêmes pour tout le monde, de plus en plus difficiles.
+ * Ici les leçons du tutoriel ; les niveaux suivants sont dans queensLevelData.ts (une ligne par niveau).
  * Générées une fois pour toutes puis choisies selon la technique qu'il faut pour les résoudre :
  * - « une seule case possible » : une ligne, une colonne ou une zone n'a plus qu'une case libre
  * - « croix par déduction » : une dame ici viderait une autre ligne, colonne ou zone (zones coincées comprises)
@@ -13,7 +15,8 @@ import type {QueensPuzzle} from "./queens.js";
 
 export const QUEENS_TUTORIAL = 3;
 
-export const QUEENS_LEVELS: QueensPuzzle[] = [
+// Leçons du tutoriel (grilles choisies pour obliger à utiliser leur technique)
+const QUEENS_LESSONS: QueensPuzzle[] = [
     // 1 · 4×4 · tutoriel · commandes, une dame par ligne / colonne / zone, pas de contact
     {
         size: 4,
@@ -50,100 +53,12 @@ export const QUEENS_LEVELS: QueensPuzzle[] = [
         ],
         queens: [],
     },
-    // 4 · 5×5 · croix par déduction (premier niveau sans guide)
-    {
-        size: 5,
-        regions: [
-            0, 0, 1, 1, 1,
-            0, 2, 2, 1, 3,
-            0, 2, 4, 3, 3,
-            2, 2, 4, 4, 3,
-            4, 4, 4, 3, 3,
-        ],
-        queens: [],
-    },
-    // 5 · 6×6 · une seule case possible
-    {
-        size: 6,
-        regions: [
-            0, 2, 2, 2, 2, 2,
-            0, 0, 2, 2, 2, 1,
-            2, 2, 2, 2, 3, 3,
-            2, 2, 2, 2, 3, 3,
-            4, 4, 4, 5, 5, 3,
-            4, 4, 4, 5, 5, 3,
-        ],
-        queens: [],
-    },
-    // 6 · 6×6 · croix par déduction
-    {
-        size: 6,
-        regions: [
-            3, 0, 0, 0, 0, 0,
-            3, 1, 0, 0, 2, 2,
-            3, 3, 4, 0, 0, 2,
-            3, 4, 4, 2, 2, 2,
-            4, 4, 4, 5, 2, 5,
-            4, 4, 4, 5, 5, 5,
-        ],
-        queens: [],
-    },
-    // 7 · 7×7 · croix par déduction
-    {
-        size: 7,
-        regions: [
-            2, 2, 2, 0, 0, 0, 1,
-            2, 2, 2, 2, 3, 0, 1,
-            2, 6, 3, 3, 3, 0, 0,
-            2, 6, 6, 6, 3, 3, 3,
-            4, 4, 6, 3, 3, 5, 5,
-            4, 6, 6, 3, 3, 5, 5,
-            4, 6, 6, 6, 3, 3, 5,
-        ],
-        queens: [],
-    },
-    // 8 · 7×7 · au-delà des déductions simples
-    {
-        size: 7,
-        regions: [
-            0, 1, 1, 2, 2, 2, 2,
-            0, 1, 1, 1, 2, 4, 2,
-            0, 0, 0, 4, 2, 4, 2,
-            3, 3, 5, 4, 4, 4, 4,
-            6, 5, 5, 6, 4, 4, 4,
-            6, 5, 5, 6, 6, 4, 4,
-            6, 6, 6, 6, 6, 4, 4,
-        ],
-        queens: [],
-    },
-    // 9 · 8×8 · croix par déduction
-    {
-        size: 8,
-        regions: [
-            2, 2, 2, 2, 1, 1, 0, 0,
-            2, 2, 2, 1, 1, 1, 0, 0,
-            2, 4, 4, 4, 1, 1, 3, 0,
-            4, 4, 4, 1, 1, 3, 3, 0,
-            4, 4, 4, 6, 3, 3, 3, 3,
-            4, 4, 4, 6, 5, 3, 3, 3,
-            6, 4, 6, 6, 5, 3, 5, 5,
-            6, 6, 6, 6, 5, 5, 5, 7,
-        ],
-        queens: [],
-    },
-    // 10 · 8×8 · au-delà des déductions simples
-    {
-        size: 8,
-        regions: [
-            2, 2, 2, 0, 0, 1, 1, 1,
-            2, 2, 0, 0, 1, 1, 1, 1,
-            2, 2, 2, 0, 1, 1, 1, 1,
-            3, 2, 2, 2, 2, 2, 2, 1,
-            3, 3, 2, 4, 2, 2, 1, 1,
-            3, 6, 6, 4, 7, 7, 5, 7,
-            6, 6, 4, 4, 7, 7, 7, 7,
-            6, 6, 6, 7, 7, 7, 7, 7,
-        ],
-        queens: [],
-    },
 ];
+
+// "<taille>:<zone de chaque case en base 36>" → grille sans dame donnée
+function decode(line: string): QueensPuzzle {
+    const [size, cells] = line.split(":") as [string, string];
+    return {size: Number(size), regions: [...cells].map(c => parseInt(c, 36)), queens: []};
+}
+
+export const QUEENS_LEVELS: QueensPuzzle[] = [...QUEENS_LESSONS, ...QUEENS_LEVEL_DATA.map(decode)];
