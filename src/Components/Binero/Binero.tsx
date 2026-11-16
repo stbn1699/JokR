@@ -31,6 +31,8 @@ import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
+import LevelVictory, {type LevelInfo} from "../Levels/LevelVictory.tsx";
+import {levelsService} from "../../Services/levels.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {Link, useNavigate} from "react-router-dom";
 import "../Levels/Levels.scss";
@@ -48,14 +50,17 @@ type BineroProps = {
     replayDate?: string;
     // Défi d'un·e ami·e : sa grille, à faire à son tour (partie normale, hors classement)
     challengeId?: string;
+    // Mode Niveaux : numéro du niveau (après le tutoriel guidé), nombre de niveaux et du tutoriel
+    level?: number;
+    levelInfo?: LevelInfo;
 };
 
-export default function Binero({daily = false, replayDate, challengeId}: BineroProps) {
+export default function Binero({daily = false, replayDate, challengeId, level, levelInfo}: BineroProps) {
     const navigate = useNavigate();
     // Grille imposée : défi du jour, ou défi d'un jour passé rejoué
-    const challenge = daily || replayDate !== undefined || challengeId !== undefined;
+    const challenge = daily || replayDate !== undefined || challengeId !== undefined || level !== undefined;
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
-    const saveKey = challengeId ? `BINERO:challenge:${challengeId}` : replayDate ? `BINERO:replay:${replayDate}` : daily ? "BINERO:daily" : "BINERO";
+    const saveKey = level ? `BINERO:level:${level}` : challengeId ? `BINERO:challenge:${challengeId}` : replayDate ? `BINERO:replay:${replayDate}` : daily ? "BINERO:daily" : "BINERO";
     const game = useBineroGame(saveKey);
     const flow = useGameFlow("BINERO", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedBinero, BineroCell[][]>(saveKey, bineroService.getGame, !challenge);
@@ -65,7 +70,8 @@ export default function Binero({daily = false, replayDate, challengeId}: BineroP
         saveKey,
         fetchStatus: bineroService.getGame,
         emptySave: gameId => ({gameId, size: 0, values: []}),
-        start: challengeId ? () => challengeService.start(challengeId)
+        start: level ? () => levelsService.start("BINERO", level)
+            : challengeId ? () => challengeService.start(challengeId)
             : replayDate ? () => dailyService.replay("BINERO", replayDate) : undefined,
         onLoad: (grid, saved, elapsedMs) => {
             game.restore(grid, saved);
@@ -122,7 +128,7 @@ export default function Binero({daily = false, replayDate, challengeId}: BineroP
         <div className="puzzle-layout binero">
             <GameToolbar
                 gameName="Binero"
-                label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
                     : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
@@ -151,6 +157,11 @@ export default function Binero({daily = false, replayDate, challengeId}: BineroP
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
+                {level && (
+                    <p className="daily-label level-label">
+                        <Link to="/niveaux/BINERO">Niveaux</Link> · Niveau {level}{levelInfo?.count ? ` sur ${levelInfo.count}` : ""}
+                    </p>
+                )}
                 <h1 className="title">Binero</h1>
                 {!challenge && (
                     <p className="queens-levels-link"><Link to="/niveaux/BINERO">Mode niveaux (avec tutoriel) →</Link></p>
@@ -194,9 +205,11 @@ export default function Binero({daily = false, replayDate, challengeId}: BineroP
             <BineroSettingsPopup open={!challenge && flow.showSettings} onGenerate={handleGenerate}
                                  resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
 
-            {dailyGame.done && <DailyDonePopup gameCode="BINERO" gameName="Binero" result={dailyGame.done}/>}
+            {dailyGame.done && !level && <DailyDonePopup gameCode="BINERO" gameName="Binero" result={dailyGame.done}/>}
 
-            {flow.victory && (
+            {level !== undefined && <LevelVictory gameCode="BINERO" gameName="Binero" level={level} info={levelInfo} victory={flow.victory}/>}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Binero" gameCode="BINERO" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}

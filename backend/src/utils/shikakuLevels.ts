@@ -1,9 +1,11 @@
 import type {ShikakuPuzzle} from "./shikaku.js";
+import {SHIKAKU_LEVEL_DATA} from "./shikakuLevelData.js";
+import {decodeShikaku} from "./levelCodes.js";
 
 /*
  * Niveaux du Shikaku (mode Niveaux) : grilles fixes, les mêmes pour tout le monde, de plus en plus difficiles.
- * Pour l'instant, les leçons du tutoriel guidé pas à pas (src/Components/Levels/ShikakuTutorial.tsx).
- * Leurs grilles sont choisies pour obliger à utiliser la leçon du niveau (voir src/Components/Levels/shikakuGuide.ts) :
+ * Les SHIKAKU_TUTORIAL premiers niveaux sont les leçons du tutoriel guidé pas à pas (src/Components/Levels/ShikakuTutorial.tsx).
+ * Les grilles des leçons sont choisies pour obliger à utiliser la leçon du niveau (voir src/Components/Levels/shikakuGuide.ts) :
  * 1. le seul rectangle : un nombre n'a qu'une place possible
  * 2. la case orpheline : une case qu'un seul nombre peut atteindre lui revient
  * 3. les cases sûres : les cases communes à toutes les places possibles d'un nombre lui reviennent
@@ -12,7 +14,8 @@ import type {ShikakuPuzzle} from "./shikaku.js";
 
 export const SHIKAKU_TUTORIAL = 3;
 
-export const SHIKAKU_LEVELS: ShikakuPuzzle[] = [
+// Leçons du tutoriel (grilles choisies pour obliger à utiliser leur technique)
+const SHIKAKU_LESSONS: ShikakuPuzzle[] = [
     // 1 · 4×4 · le seul rectangle
     {
         width: 4, height: 4, rects: [],
@@ -29,3 +32,5 @@ export const SHIKAKU_LEVELS: ShikakuPuzzle[] = [
         clues: [{cell: 1, area: 3}, {cell: 4, area: 2}, {cell: 7, area: 3}, {cell: 12, area: 4}, {cell: 14, area: 4}],
     },
 ];
+
+export const SHIKAKU_LEVELS: ShikakuPuzzle[] = [...SHIKAKU_LESSONS, ...SHIKAKU_LEVEL_DATA.map(decodeShikaku)];

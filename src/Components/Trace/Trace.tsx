@@ -25,6 +25,8 @@ import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
+import LevelVictory, {type LevelInfo} from "../Levels/LevelVictory.tsx";
+import {levelsService} from "../../Services/levels.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {Link, useNavigate} from "react-router-dom";
 import "../Levels/Levels.scss";
@@ -42,12 +44,15 @@ type TraceProps = {
     replayDate?: string;
     // Défi d'un·e ami·e : sa grille, à faire à son tour (partie normale, hors classement)
     challengeId?: string;
+    // Mode Niveaux : numéro du niveau (après le tutoriel guidé), nombre de niveaux et du tutoriel
+    level?: number;
+    levelInfo?: LevelInfo;
 };
 
-export default function Trace({daily = false, replayDate, challengeId}: TraceProps) {
+export default function Trace({daily = false, replayDate, challengeId, level, levelInfo}: TraceProps) {
     const navigate = useNavigate();
-    const challenge = daily || replayDate !== undefined || challengeId !== undefined;
-    const saveKey = challengeId ? `TRACE:challenge:${challengeId}` : replayDate ? `TRACE:replay:${replayDate}` : daily ? "TRACE:daily" : "TRACE";
+    const challenge = daily || replayDate !== undefined || challengeId !== undefined || level !== undefined;
+    const saveKey = level ? `TRACE:level:${level}` : challengeId ? `TRACE:challenge:${challengeId}` : replayDate ? `TRACE:replay:${replayDate}` : daily ? "TRACE:daily" : "TRACE";
     const game = useTraceGame(saveKey);
     const flow = useGameFlow("TRACE", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedTrace, TracePuzzle>(saveKey, traceService.getGame, !challenge);
@@ -57,7 +62,8 @@ export default function Trace({daily = false, replayDate, challengeId}: TracePro
         saveKey,
         fetchStatus: traceService.getGame,
         emptySave: gameId => ({gameId, path: []}),
-        start: challengeId ? () => challengeService.start(challengeId)
+        start: level ? () => levelsService.start("TRACE", level)
+            : challengeId ? () => challengeService.start(challengeId)
             : replayDate ? () => dailyService.replay("TRACE", replayDate) : undefined,
         onLoad: (puzzle, saved, elapsedMs) => {
             game.restore(puzzle, saved);
@@ -103,7 +109,7 @@ export default function Trace({daily = false, replayDate, challengeId}: TracePro
         <div className="puzzle-layout trace">
             <GameToolbar
                 gameName="Tracé"
-                label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
                     : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
@@ -139,6 +145,11 @@ export default function Trace({daily = false, replayDate, challengeId}: TracePro
                 )}
                 {replayDate && <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>}
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
+                {level && (
+                    <p className="daily-label level-label">
+                        <Link to="/niveaux/TRACE">Niveaux</Link> · Niveau {level}{levelInfo?.count ? ` sur ${levelInfo.count}` : ""}
+                    </p>
+                )}
                 <h1 className="title">Tracé</h1>
                 {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
                     : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
@@ -173,9 +184,11 @@ export default function Trace({daily = false, replayDate, challengeId}: TracePro
             <TraceSettingsPopup open={!challenge && flow.showSettings} onGenerate={handleGenerate}
                                 resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
 
-            {dailyGame.done && <DailyDonePopup gameCode="TRACE" gameName="Tracé" result={dailyGame.done}/>}
+            {dailyGame.done && !level && <DailyDonePopup gameCode="TRACE" gameName="Tracé" result={dailyGame.done}/>}
 
-            {flow.victory && (
+            {level !== undefined && <LevelVictory gameCode="TRACE" gameName="Tracé" level={level} info={levelInfo} victory={flow.victory}/>}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Tracé" gameCode="TRACE" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}

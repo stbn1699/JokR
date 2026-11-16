@@ -2,6 +2,14 @@ import {type ComponentType, useEffect, useState} from "react";
 import {Navigate, useParams} from "react-router-dom";
 import {LEVEL_GAMES, type LevelsOverview, levelsService} from "../../Services/levels.service.ts";
 import Queens from "../Queens/Queens.tsx";
+import Binero from "../Binero/Binero.tsx";
+import Galaxies from "../Galaxies/Galaxies.tsx";
+import Rikudo from "../Rikudo/Rikudo.tsx";
+import Shikaku from "../Shikaku/Shikaku.tsx";
+import Sudoku from "../Sudoku/Sudoku.tsx";
+import Tectonic from "../Tectonic/Tectonic.tsx";
+import Trace from "../Trace/Trace.tsx";
+import type {LevelInfo} from "./LevelVictory.tsx";
 import Loader from "../Loader/Loader.tsx";
 import QueensTutorial from "./QueensTutorial.tsx";
 import GalaxiesTutorial from "./GalaxiesTutorial.tsx";
@@ -26,9 +34,23 @@ const TUTORIALS: Record<string, ComponentType<LessonProps>> = {
     SHIKAKU: ShikakuTutorial,
 };
 
+type LevelGameProps = { level: number; levelInfo: LevelInfo };
+
+// Jeu de chaque puzzle, chargé sur la grille d'un niveau (niveaux après le tutoriel)
+const GAMES: Record<string, ComponentType<LevelGameProps>> = {
+    QUEENS: Queens,
+    GALAXIES: Galaxies,
+    BINERO: Binero,
+    SUDOKU: Sudoku,
+    TRACE: Trace,
+    RIKUDO: Rikudo,
+    TECTONIC: Tectonic,
+    SHIKAKU: Shikaku,
+};
+
 /**
  * Partie d'un niveau (/niveaux/:gameCode/:level) : leçon guidée pour les niveaux du tutoriel, sinon le jeu du puzzle
- * chargé sur la grille du niveau (pour l'instant, seul le Queens a des niveaux après son tutoriel).
+ * chargé sur la grille du niveau.
  * Le nombre de niveaux et la taille du tutoriel viennent du serveur.
  */
 export default function LevelPlay() {
@@ -52,8 +74,7 @@ export default function LevelPlay() {
     // key : passer au niveau suivant recharge une partie neuve
     const Lesson = TUTORIALS[code];
     if (Lesson && number <= overview.tutorial) return <Lesson key={number} level={number} tutorial={overview.tutorial}/>;
-    if (code === "QUEENS") {
-        return <Queens key={number} level={number} levelInfo={{count: overview.levels.length, tutorial: overview.tutorial}}/>;
-    }
-    return <Navigate to={`/niveaux/${code}`} replace/>;
+    const Game = GAMES[code];
+    if (!Game) return <Navigate to={`/niveaux/${code}`} replace/>;
+    return <Game key={number} level={number} levelInfo={{count: overview.levels.length, tutorial: overview.tutorial}}/>;
 }

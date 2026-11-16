@@ -1,7 +1,10 @@
+import {SUDOKU_LEVEL_DATA} from "./sudokuLevelData.js";
+import {decodeSudoku} from "./levelCodes.js";
+
 /*
  * Niveaux du Sudoku (mode Niveaux) : grilles fixes, les mêmes pour tout le monde, de plus en plus difficiles.
- * Pour l'instant, les leçons du tutoriel guidé pas à pas (src/Components/Levels/SudokuTutorial.tsx).
- * Leurs grilles sont choisies pour obliger à utiliser la leçon du niveau (voir src/Components/Levels/sudokuGuide.ts) :
+ * Les SUDOKU_TUTORIAL premiers niveaux sont les leçons du tutoriel guidé pas à pas (src/Components/Levels/SudokuTutorial.tsx).
+ * Les grilles des leçons sont choisies pour obliger à utiliser la leçon du niveau (voir src/Components/Levels/sudokuGuide.ts) :
  * 1. le dernier chiffre : une ligne, une colonne ou un carré n'a plus qu'une case vide
  * 2. la seule place : dans un carré (ou une ligne, une colonne), un chiffre n'a plus qu'une case possible
  * 3. le seul chiffre : une case voit déjà les huit autres chiffres
@@ -13,7 +16,8 @@ export const SUDOKU_TUTORIAL = 3;
 // une ligne par rangée, "." : case à remplir
 const grid = (rows: string): number[][] => rows.trim().split(/\s+/).map(row => [...row].map(x => (x === "." ? 0 : Number(x))));
 
-export const SUDOKU_LEVELS: number[][][] = [
+// Leçons du tutoriel (grilles choisies pour obliger à utiliser leur technique)
+const SUDOKU_LESSONS: number[][][] = [
     // 1 · le dernier chiffre
     grid(`
         3.6714259
@@ -51,3 +55,5 @@ export const SUDOKU_LEVELS: number[][][] = [
         835...462
     `),
 ];
+
+export const SUDOKU_LEVELS: number[][][] = [...SUDOKU_LESSONS, ...SUDOKU_LEVEL_DATA.map(decodeSudoku)];

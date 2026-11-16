@@ -28,6 +28,8 @@ import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
+import LevelVictory, {type LevelInfo} from "../Levels/LevelVictory.tsx";
+import {levelsService} from "../../Services/levels.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {Link, useNavigate} from "react-router-dom";
 import "../Levels/Levels.scss";
@@ -44,14 +46,17 @@ type GalaxiesProps = {
     replayDate?: string;
     // Défi d'un·e ami·e : sa grille, à faire à son tour (partie normale, hors classement)
     challengeId?: string;
+    // Mode Niveaux : numéro du niveau (après le tutoriel guidé), nombre de niveaux et du tutoriel
+    level?: number;
+    levelInfo?: LevelInfo;
 };
 
-export default function Galaxies({daily = false, replayDate, challengeId}: GalaxiesProps) {
+export default function Galaxies({daily = false, replayDate, challengeId, level, levelInfo}: GalaxiesProps) {
     const navigate = useNavigate();
     // Grille imposée : défi du jour, ou défi d'un jour passé rejoué
-    const challenge = daily || replayDate !== undefined || challengeId !== undefined;
+    const challenge = daily || replayDate !== undefined || challengeId !== undefined || level !== undefined;
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
-    const saveKey = challengeId ? `GALAXIES:challenge:${challengeId}` : replayDate ? `GALAXIES:replay:${replayDate}` : daily ? "GALAXIES:daily" : "GALAXIES";
+    const saveKey = level ? `GALAXIES:level:${level}` : challengeId ? `GALAXIES:challenge:${challengeId}` : replayDate ? `GALAXIES:replay:${replayDate}` : daily ? "GALAXIES:daily" : "GALAXIES";
     const game = useGalaxiesGame(saveKey);
     const flow = useGameFlow("GALAXIES", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedGalaxies, GalaxiesPuzzle>(saveKey, galaxiesService.getGame, !challenge);
@@ -61,7 +66,8 @@ export default function Galaxies({daily = false, replayDate, challengeId}: Galax
         saveKey,
         fetchStatus: galaxiesService.getGame,
         emptySave: gameId => ({gameId, walls: []}),
-        start: challengeId ? () => challengeService.start(challengeId)
+        start: level ? () => levelsService.start("GALAXIES", level)
+            : challengeId ? () => challengeService.start(challengeId)
             : replayDate ? () => dailyService.replay("GALAXIES", replayDate) : undefined,
         onLoad: (puzzle, saved, elapsedMs) => {
             game.restore(puzzle, saved);
@@ -112,7 +118,7 @@ export default function Galaxies({daily = false, replayDate, challengeId}: Galax
         <div className="puzzle-layout galaxies">
             <GameToolbar
                 gameName="Galaxies"
-                label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
                     : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
@@ -146,6 +152,11 @@ export default function Galaxies({daily = false, replayDate, challengeId}: Galax
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
+                {level && (
+                    <p className="daily-label level-label">
+                        <Link to="/niveaux/GALAXIES">Niveaux</Link> · Niveau {level}{levelInfo?.count ? ` sur ${levelInfo.count}` : ""}
+                    </p>
+                )}
                 <h1 className="title">Galaxies</h1>
                 {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
                     : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
@@ -185,9 +196,11 @@ export default function Galaxies({daily = false, replayDate, challengeId}: Galax
             <GalaxiesSettingsPopup open={!challenge && flow.showSettings} onGenerate={handleGenerate}
                                    resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
 
-            {dailyGame.done && <DailyDonePopup gameCode="GALAXIES" gameName="Galaxies" result={dailyGame.done}/>}
+            {dailyGame.done && !level && <DailyDonePopup gameCode="GALAXIES" gameName="Galaxies" result={dailyGame.done}/>}
 
-            {flow.victory && (
+            {level !== undefined && <LevelVictory gameCode="GALAXIES" gameName="Galaxies" level={level} info={levelInfo} victory={flow.victory}/>}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Galaxies" gameCode="GALAXIES" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}

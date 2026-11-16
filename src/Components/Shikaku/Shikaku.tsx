@@ -28,6 +28,8 @@ import {useDailyGame} from "../PuzzleUI/useDailyGame.ts";
 import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
+import LevelVictory, {type LevelInfo} from "../Levels/LevelVictory.tsx";
+import {levelsService} from "../../Services/levels.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {Link, useNavigate} from "react-router-dom";
 import "../Levels/Levels.scss";
@@ -44,14 +46,17 @@ type ShikakuProps = {
     replayDate?: string;
     // Défi d'un·e ami·e : sa grille, à faire à son tour (partie normale, hors classement)
     challengeId?: string;
+    // Mode Niveaux : numéro du niveau (après le tutoriel guidé), nombre de niveaux et du tutoriel
+    level?: number;
+    levelInfo?: LevelInfo;
 };
 
-export default function Shikaku({daily = false, replayDate, challengeId}: ShikakuProps) {
+export default function Shikaku({daily = false, replayDate, challengeId, level, levelInfo}: ShikakuProps) {
     const navigate = useNavigate();
     // Grille imposée : défi du jour, ou défi d'un jour passé rejoué
-    const challenge = daily || replayDate !== undefined || challengeId !== undefined;
+    const challenge = daily || replayDate !== undefined || challengeId !== undefined || level !== undefined;
     // Sauvegardes séparées (on peut avoir une partie libre et un défi en cours en parallèle)
-    const saveKey = challengeId ? `SHIKAKU:challenge:${challengeId}` : replayDate ? `SHIKAKU:replay:${replayDate}` : daily ? "SHIKAKU:daily" : "SHIKAKU";
+    const saveKey = level ? `SHIKAKU:level:${level}` : challengeId ? `SHIKAKU:challenge:${challengeId}` : replayDate ? `SHIKAKU:replay:${replayDate}` : daily ? "SHIKAKU:daily" : "SHIKAKU";
     const game = useShikakuGame(saveKey);
     const flow = useGameFlow("SHIKAKU", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedShikaku, ShikakuPuzzle>(saveKey, shikakuService.getGame, !challenge);
@@ -61,7 +66,8 @@ export default function Shikaku({daily = false, replayDate, challengeId}: Shikak
         saveKey,
         fetchStatus: shikakuService.getGame,
         emptySave: gameId => ({gameId, rects: []}),
-        start: challengeId ? () => challengeService.start(challengeId)
+        start: level ? () => levelsService.start("SHIKAKU", level)
+            : challengeId ? () => challengeService.start(challengeId)
             : replayDate ? () => dailyService.replay("SHIKAKU", replayDate) : undefined,
         onLoad: (puzzle, saved, elapsedMs) => {
             game.restore(puzzle, saved);
@@ -109,7 +115,7 @@ export default function Shikaku({daily = false, replayDate, challengeId}: Shikak
         <div className="puzzle-layout shikaku">
             <GameToolbar
                 gameName="Shikaku"
-                label={daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
                     : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
@@ -143,6 +149,11 @@ export default function Shikaku({daily = false, replayDate, challengeId}: Shikak
                     <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
                 )}
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
+                {level && (
+                    <p className="daily-label level-label">
+                        <Link to="/niveaux/SHIKAKU">Niveaux</Link> · Niveau {level}{levelInfo?.count ? ` sur ${levelInfo.count}` : ""}
+                    </p>
+                )}
                 <h1 className="title">Shikaku</h1>
                 {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
                     : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
@@ -181,9 +192,11 @@ export default function Shikaku({daily = false, replayDate, challengeId}: Shikak
             <ShikakuSettingsPopup open={!challenge && flow.showSettings} onGenerate={handleGenerate}
                                   resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}/>
 
-            {dailyGame.done && <DailyDonePopup gameCode="SHIKAKU" gameName="Shikaku" result={dailyGame.done}/>}
+            {dailyGame.done && !level && <DailyDonePopup gameCode="SHIKAKU" gameName="Shikaku" result={dailyGame.done}/>}
 
-            {flow.victory && (
+            {level !== undefined && <LevelVictory gameCode="SHIKAKU" gameName="Shikaku" level={level} info={levelInfo} victory={flow.victory}/>}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Shikaku" gameCode="SHIKAKU" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
