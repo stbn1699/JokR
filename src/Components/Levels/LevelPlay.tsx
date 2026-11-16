@@ -5,6 +5,7 @@ import Queens from "../Queens/Queens.tsx";
 import Loader from "../Loader/Loader.tsx";
 import QueensTutorial from "./QueensTutorial.tsx";
 import GalaxiesTutorial from "./GalaxiesTutorial.tsx";
+import BineroTutorial from "./BineroTutorial.tsx";
 
 /**
  * Partie d'un niveau (/niveaux/:gameCode/:level) : leçon guidée pour les niveaux du tutoriel, sinon le jeu du puzzle
@@ -38,6 +39,11 @@ export default function LevelPlay() {
             return number <= overview.tutorial && number <= overview.levels.length
                 ? <GalaxiesTutorial key={number} level={number} tutorial={overview.tutorial}/>
                 : <Navigate to="/niveaux/GALAXIES" replace/>;
+        case "BINERO":
+            // pour l'instant, seulement les leçons du tutoriel
+            return number <= overview.tutorial && number <= overview.levels.length
+                ? <BineroTutorial key={number} level={number} tutorial={overview.tutorial}/>
+                : <Navigate to="/niveaux/BINERO" replace/>;
         default:
             return <Navigate to="/" replace/>;
     }

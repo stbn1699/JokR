@@ -32,7 +32,8 @@ import DailyDonePopup from "../PuzzleUI/DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import "../Levels/Levels.scss";
 import {bineroService} from "../../Services/binero.service.ts";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
 import BineroGrid from "./BineroGrid.tsx";
@@ -151,6 +152,9 @@ export default function Binero({daily = false, replayDate, challengeId}: BineroP
                 )}
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
                 <h1 className="title">Binero</h1>
+                {!challenge && (
+                    <p className="queens-levels-link"><Link to="/niveaux/BINERO">Mode niveaux (avec tutoriel) →</Link></p>
+                )}
                 {skeletonSize !== null ? <GridSkeleton size={skeletonSize}/>
                     : dailyGame.loading ? <Loader size="small" label="Chargement du défi…"/>
                     : game.size > 0 && (

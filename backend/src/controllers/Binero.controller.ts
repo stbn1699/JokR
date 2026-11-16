@@ -9,6 +9,8 @@ import {DAILY_REWARD_MULTIPLIER, type DailyService} from "../services/Daily.serv
 import {type BineroGrid, countBineroClues} from "../utils/binero.js";
 import {routeParam} from "../utils/validation.js";
 import {tracker} from "../services/tracker.js";
+import type {LevelsRepository} from "../repository/Levels.repository.js";
+import {levelGame} from "../utils/levels.js";
 
 const GAME_CODE = "BINERO";
 
@@ -26,6 +28,7 @@ export function createBineroController(
     progressionService: ProgressionService,
     gamesService: GamesService,
     dailyService: DailyService,
+    levels: LevelsRepository,
 ) {
     return {
         settings: asyncHandler(async (_req: Request, res: Response) => {
@@ -98,6 +101,23 @@ export function createBineroController(
             const userId = res.locals.userId;
             if (!userId) {
                 res.status(200).json({status: "ok", data: {xp: undefined, durationMs}});
+                return;
+            }
+
+            // Mode Niveaux : réussite enregistrée ; un niveau déjà réussi ne rapporte plus rien
+            if (game.level) {
+                const {first} = await levels.complete(userId, GAME_CODE, game.level, durationMs);
+                const level = {level: game.level, first, tutorialDone: first && game.level === levelGame(GAME_CODE)?.tutorial};
+                if (!first) {
+                    res.status(200).json({status: "ok", data: {xp: undefined, durationMs, level}});
+                    return;
+                }
+                const empty = size * size - game.cluesCount;
+                const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
+                const xp = service.computeXp(baseXp, size, empty);
+                const credits = service.computeCredits(size, empty);
+                const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {gridSize: size, emptyCells: empty, durationMs}, credits);
+                res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: 1, durationMs, personalBest, level}});
                 return;
             }
 

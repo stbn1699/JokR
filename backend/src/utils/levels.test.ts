@@ -4,6 +4,8 @@ import {solveQueens} from "./queens.js";
 import {isLevelUnlocked, levelPuzzle} from "./levels.js";
 import {GALAXIES_LEVELS, GALAXIES_TUTORIAL} from "./galaxiesLevels.js";
 import {solveGalaxies} from "./galaxies.js";
+import {BINERO_LEVELS, BINERO_TUTORIAL} from "./bineroLevels.js";
+import {logicalSolve} from "./binero.js";
 
 describe("niveaux du Queens", () => {
     it("1000 niveaux, dont 3 leçons de tutoriel, de 4×4 à 12×12", () => {
@@ -45,5 +47,15 @@ describe("niveaux des Galaxies", () => {
             expect(count).toBe(1);
         }
         expect(levelPuzzle("GALAXIES", 1)).toBe(GALAXIES_LEVELS[0]);
+    });
+});
+
+describe("niveaux du Binero", () => {
+    it("3 leçons de tutoriel, chacune à solution unique", () => {
+        expect(BINERO_TUTORIAL).toBe(3);
+        expect(BINERO_LEVELS.length).toBeGreaterThanOrEqual(BINERO_TUTORIAL);
+        // résolue par déductions sûres : solution unique
+        for (const puzzle of BINERO_LEVELS) expect(logicalSolve(puzzle).solved).toBe(true);
+        expect(levelPuzzle("BINERO", 1)).toBe(BINERO_LEVELS[0]);
     });
 });

@@ -2,6 +2,8 @@ import {QUEENS_LEVELS, QUEENS_TUTORIAL} from "./queensLevels.js";
 import type {QueensPuzzle} from "./queens.js";
 import {GALAXIES_LEVELS, GALAXIES_TUTORIAL} from "./galaxiesLevels.js";
 import type {GalaxiesPuzzle} from "./galaxies.js";
+import {BINERO_LEVELS, BINERO_TUTORIAL} from "./bineroLevels.js";
+import {type BineroGrid, countBineroClues} from "./binero.js";
 
 /*
  * Mode Niveaux des puzzles : pour chaque jeu, une suite de grilles fixes (les mêmes pour tout le monde), du tutoriel
@@ -28,6 +30,11 @@ export const LEVEL_GAMES: Record<string, LevelGame> = {
         levels: GALAXIES_LEVELS,
         tutorial: GALAXIES_TUTORIAL,
         describe: p => ({size: (p as GalaxiesPuzzle).width, hints: (p as GalaxiesPuzzle).walls.length}),
+    },
+    BINERO: {
+        levels: BINERO_LEVELS,
+        tutorial: BINERO_TUTORIAL,
+        describe: p => ({size: (p as BineroGrid).length, hints: countBineroClues(p as BineroGrid)}),
     },
 };
 

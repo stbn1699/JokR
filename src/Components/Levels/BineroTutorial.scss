@@ -1,0 +1,15 @@
+// ---------- Tutoriel guidé du Binero : la grille du jeu, à la taille du tutoriel (voile et bulle dans QueensTutorial.scss)
+.level-tutorial.binero .tutorial-stage.game {
+	--grid-width : min(26rem, calc(100vw - 2rem), 52dvh);
+
+	// fond plein : le voile doit se voir quel que soit le fond de la page
+	.grid { background : #475569; }
+
+	.tutorial-veil .dark { background : rgba(2, 6, 23, 0.85); }
+
+	// pas d'agrandissement des cases au survol : le voile resterait en place
+	.grid button.cell:not(:disabled):hover,
+	.grid button.cell:focus {
+		transform : none;
+	}
+}
