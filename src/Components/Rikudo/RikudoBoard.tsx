@@ -39,7 +39,8 @@ type RikudoBoardProps = {
     pendingCell: number | null;
     onPendingChange: (cell: number | null) => void;
     // Tutoriel : cases dans l'ombre (toutes sauf `lit`) et case à remplir (qui pulse)
-    guide?: { lit: Set<number> | null; target: number | null };
+    guide?: { lit: Set<number> | null; target: number | null };    // Tutoriel : case choisie d'avance (undefined : le plateau ne s'en occupe pas)
+    focusCell?: number | null;
 };
 
 /**
@@ -52,8 +53,19 @@ type RikudoBoardProps = {
  * - Les points entre deux cases imposent que leurs nombres se suivent.
  */
 export default function RikudoBoard(props: RikudoBoardProps) {
-    const {board, values, links, isClue, revealed, disabled, selectedCell, highlightNumber} = props;
+    const {board, values, links, isClue, revealed, disabled, selectedCell, highlightNumber, focusCell} = props;
     const cells = useRef<(HTMLButtonElement | null)[]>([]);
+
+    // Tutoriel : la case à remplir est choisie d'avance (focus : le clavier y écrit) ; null : plus aucune case choisie
+    useEffect(() => {
+        if (focusCell === undefined) return;
+        const active = document.activeElement;
+        if (focusCell === null) {
+            if (active instanceof HTMLElement && cells.current.includes(active as HTMLButtonElement)) active.blur();
+        } else if (cells.current[focusCell] !== active) {
+            cells.current[focusCell]?.focus({preventScroll: true});
+        }
+    }, [focusCell, values]);
     const typing = useRef<{ cell: number; text: string; at: number } | null>(null);
     const pendingTimer = useRef<number | null>(null);
     const {onPendingChange} = props;

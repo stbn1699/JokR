@@ -88,11 +88,12 @@ export default function BineroTutorial({level, tutorial}: Props) {
     }, [level]);
 
     const loaded = size > 0;
-    const solved = loaded && values.every(v => v !== null);
     // Étape en cours : figée jusqu'à ce que ses cases aient le bon chiffre (en passant par 0 pour mettre un 1,
     // le guide verrait sinon une autre étape)
     const [step, setStep] = useState<BineroStep | null>(null);
     const stepDone = (s: BineroStep) => s.targets.every(t => values[t.cell] === t.digit);
+    // grille pleine avec la dernière étape juste (pleine avec un mauvais chiffre : on attend la correction)
+    const solved = loaded && values.every(v => v !== null) && (step === null || stepDone(step));
     useEffect(() => {
         if (!loaded || solved || (step && !stepDone(step))) return;
         // le guide ne voit que les chiffres justes (une case en cours de cycle compte comme vide)
@@ -137,7 +138,7 @@ export default function BineroTutorial({level, tutorial}: Props) {
         let text = explain(step, !seen.has(step.rule), size);
         // leçon 1 : on apprend le geste sur la première case
         if (level === 1 && values.filter((v, i) => v !== null && !clues.has(i)).length === 0) {
-            text += " Touche la case qui pulse pour la choisir, puis touche-la encore : elle passe à 0, puis à 1 (au clavier : tape 0 ou 1).";
+            text += " Touche la case qui pulse : elle passe à 0, puis à 1 (au clavier : tape 0 ou 1).";
         }
         return {text, spotlight: step.spotlight, targets: cells};
     }, [loaded, solved, intro, intros, step, explained, seen, level, values, clues, size]);
@@ -174,6 +175,9 @@ export default function BineroTutorial({level, tutorial}: Props) {
     const targets = new Set(shown?.targets ?? []);
     const spotlight = new Set([...(shown?.spotlight ?? []), ...targets]);
     const veiled = shown !== null && spotlight.size < values.length;
+    // case choisie d'avance : celle touchée si elle reste à remplir, sinon la première case qui pulse pas encore juste
+    const unfinished = (step?.targets ?? []).filter(t => targets.has(t.cell) && values[t.cell] !== t.digit).map(t => t.cell);
+    const focusCell = selected !== null && unfinished.includes(selected) ? selected : unfinished[0] ?? null;
     // seules les cases qui pulsent répondent
     const setCell = (i: number, v: BineroCell) => {
         if (solved || !targets.has(i)) return;
@@ -197,7 +201,8 @@ export default function BineroTutorial({level, tutorial}: Props) {
 
             <div className={`tutorial-stage game ${veiled ? "veiled" : ""}`} style={{"--size": size} as CSSProperties}>
                 <BineroGrid size={size} values={values} isClue={i => clues.has(i)} revealed={values.length} disabled={solved}
-                            selectedCell={selected} onSelectCell={setSelected} highlightDigit={null} onSetCell={setCell} errors={null}/>
+                            selectedCell={focusCell} onSelectCell={setSelected} highlightDigit={null} onSetCell={setCell} errors={null}
+                            focusCell={solved ? null : focusCell} oneTap/>
                 {/* voile : sombre partout sauf les cases dont on parle ; les cases à remplir pulsent */}
                 <div className="tutorial-veil" aria-hidden>
                     {values.map((_, i) => (

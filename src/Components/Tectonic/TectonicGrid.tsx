@@ -1,4 +1,4 @@
-import {type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent, useMemo, useRef} from "react";
+import {type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent, useEffect, useMemo, useRef} from "react";
 import type {TectonicCell, TectonicPuzzle} from "../../Models/tectonic.model.ts";
 import {type Direction, nextEditableIndex} from "../PuzzleUI/gridGeometry.ts";
 import {hasNote, regionBorders, regionSizes} from "./tectonicRules.ts";
@@ -28,7 +28,9 @@ type TectonicGridProps = {
     // Notes au crayon (masque de bits par case) et mode notes
     notes: number[];
     notesMode: boolean;
-    onToggleNote: (i: number, digit: number) => void;
+    onToggleNote: (i: number, digit: number) => void;    // Tutoriel : case choisie d'avance (undefined : la grille ne s'en occupe pas) ; oneTap : un appui suffit pour la changer
+    focusCell?: number | null;
+    oneTap?: boolean;
 };
 
 const NOTE_DIGITS = [1, 2, 3, 4, 5];
@@ -45,12 +47,23 @@ const NOTE_DIGITS = [1, 2, 3, 4, 5];
  *   (et un appui sur la case ne fait que la sélectionner).
  */
 export default function TectonicGrid(props: TectonicGridProps) {
-    const {puzzle, values, isClue, revealed, disabled, selectedCell, highlightDigit} = props;
+    const {puzzle, values, isClue, revealed, disabled, selectedCell, highlightDigit, focusCell} = props;
     const {width, regions} = puzzle;
     const sizes = useMemo(() => regionSizes(regions), [regions]);
     const borders = useMemo(() => regions.map((_, i) => regionBorders(i, puzzle)), [regions, puzzle]);
     const colors = useMemo(() => regionColorIndices(regions, width), [regions, width]);
     const cells = useRef<(HTMLButtonElement | null)[]>([]);
+
+    // Tutoriel : la case à remplir est choisie d'avance (focus : le clavier y écrit) ; null : plus aucune case choisie
+    useEffect(() => {
+        if (focusCell === undefined) return;
+        const active = document.activeElement;
+        if (focusCell === null) {
+            if (active instanceof HTMLElement && cells.current.includes(active as HTMLButtonElement)) active.blur();
+        } else if (cells.current[focusCell] !== active) {
+            cells.current[focusCell]?.focus({preventScroll: true});
+        }
+    }, [focusCell, values]);
 
     // On note sur le bouton s'il avait déjà le focus au moment de l'appui
     // (si non, l'appui ne fait que sélectionner la case)
@@ -59,7 +72,7 @@ export default function TectonicGrid(props: TectonicGridProps) {
     };
 
     const cycle = (e: MouseEvent<HTMLButtonElement>, i: number) => {
-        if (e.currentTarget.dataset.wasSelected !== "true" || props.notesMode) return;
+        if ((!props.oneTap && e.currentTarget.dataset.wasSelected !== "true") || props.notesMode) return;
         const max = sizes[regions[i]!] ?? 1;
         const current = values[i] ?? 0;
         props.onSetCell(i, current >= max ? null : current + 1);

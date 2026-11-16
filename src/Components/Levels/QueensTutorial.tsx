@@ -61,6 +61,16 @@ function explain(step: GuideStep, first: boolean): string {
     }
 }
 
+// Les dames ne partagent ni ligne, ni colonne, ni zone, et ne se touchent pas
+function queensFit(puzzle: QueensPuzzle, marks: GuideMark[]): boolean {
+    const queens = marks.flatMap((m, i) => (m === 2 ? [i] : []));
+    const n = puzzle.size;
+    return queens.every((a, k) => queens.slice(k + 1).every(b => {
+        const [ra, ca, rb, cb] = [Math.floor(a / n), a % n, Math.floor(b / n), b % n];
+        return ra !== rb && ca !== cb && puzzle.regions[a] !== puzzle.regions[b] && (Math.abs(ra - rb) > 1 || Math.abs(ca - cb) > 1);
+    }));
+}
+
 export default function QueensTutorial({level, tutorial}: Props) {
     const navigate = useNavigate();
     const auth = useAuth();
@@ -88,7 +98,8 @@ export default function QueensTutorial({level, tutorial}: Props) {
         };
     }, [level]);
 
-    const solved = marks.length > 0 && puzzle !== null && marks.filter(m => m === 2).length === puzzle.size;
+    // toutes les dames posées, sans qu'aucune en gêne une autre (une dame mal placée : on attend la correction)
+    const solved = marks.length > 0 && puzzle !== null && marks.filter(m => m === 2).length === puzzle.size && queensFit(puzzle, marks);
     // Étape en cours : figée jusqu'à ce que ses cases soient toutes marquées (le premier clic d'une dame pose une
     // croix : sans ça, le guide croirait la case exclue et changerait d'étape)
     const [step, setStep] = useState<GuideStep | null>(null);

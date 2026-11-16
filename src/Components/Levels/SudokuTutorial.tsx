@@ -11,7 +11,7 @@ import {type CSSProperties, type KeyboardEvent, useEffect, useMemo, useRef, useS
 import {gameService} from "../../Services/game.service.ts";
 import LessonFrame, {type Bubble} from "./LessonFrame.tsx";
 import {useLesson} from "./useLesson.ts";
-import {nextSudokuStep, type SudokuStep} from "./sudokuGuide.ts";
+import {nextSudokuStep, SUDOKU_GROUPS, type SudokuStep} from "./sudokuGuide.ts";
 
 type Props = { level: number; tutorial: number | null };
 
@@ -43,7 +43,6 @@ export default function SudokuTutorial({level, tutorial}: Props) {
     const [clues, setClues] = useState<Set<number>>(new Set());
     const [wrong, setWrong] = useState<{ cell: number; digit: number } | null>(null);
     const [misses, setMisses] = useState(0);
-    const [selected, setSelected] = useState<number | null>(null);
     const [intro, setIntro] = useState(0);
     const [explained, setExplained] = useState<string | null>(null);
     const [seen, setSeen] = useState<Set<string>>(new Set());
@@ -74,7 +73,6 @@ export default function SudokuTutorial({level, tutorial}: Props) {
             setSeen(s => new Set(s).add(previous.split(":")[0]!));
             setMisses(0);
             setWrong(null);
-            setSelected(null);
         }, 0);
         return () => window.clearTimeout(timer);
     }, [stepKey]);
@@ -102,6 +100,10 @@ export default function SudokuTutorial({level, tutorial}: Props) {
     let bubble: Bubble | null = null;
     let lit: number[] = [];
     let target: number | null = null;
+    // case dont on parle pendant une explication (en lumière, mais pas encore à remplir)
+    let focus: number | null = null;
+    // cases où le chiffre cherché est interdit (la seule place)
+    let blocked: number[] = [];
     if (loaded && !solved) {
         const all = values.map((_, i) => i);
         if (intro < intros.length) {
@@ -112,21 +114,26 @@ export default function SudokuTutorial({level, tutorial}: Props) {
             if (step.rule === "naked" && first && explained !== stepKey) {
                 bubble = {text: "Regarde cette case : sa ligne, sa colonne et son carré sont en lumière…", button: "Je vois", onButton: () => setExplained(stepKey)};
                 lit = step.spotlight;
+                focus = step.cell;
             } else {
                 let text = explain(step, first, misses);
                 if (level === 1 && values.filter((v, i) => v !== 0 && !clues.has(i)).length === 0) {
-                    text += " Touche la case qui pulse, puis ce chiffre sur le pavé (ou tape-le au clavier).";
+                    text += " Touche ce chiffre sur le pavé (ou tape-le au clavier).";
                 }
                 if (wrong && wrong.cell === step.cell) text = `Pas le ${wrong.digit} : il est déjà dans sa ligne, sa colonne ou son carré. ${text}`;
                 bubble = {text};
                 lit = step.spotlight;
                 target = step.cell;
+                if (step.rule === "hidden") {
+                    const group = SUDOKU_GROUPS.find(g => g.kind === step.group && g.cells.includes(step.cell))!;
+                    blocked = group.cells.filter(i => values[i] === 0 && i !== step.cell);
+                }
             }
         }
     }
 
     const put = (digit: number) => {
-        if (target === null || selected !== target || !step) return;
+        if (target === null || !step) return;
         if (digit === step.digit) {
             setValues(v => v.map((x, i) => (i === target ? digit : x)));
             setWrong(null);
@@ -142,7 +149,13 @@ export default function SudokuTutorial({level, tutorial}: Props) {
         }
     };
 
-    const litSet = new Set([...lit, ...(target === null ? [] : [target])]);
+    // case à remplir choisie d'avance : elle prend le focus (le clavier y écrit)
+    useEffect(() => {
+        if (target !== null) cells.current[target]?.focus({preventScroll: true});
+    }, [target]);
+
+    const litSet = new Set([...lit, ...[target, focus].filter((c): c is number => c !== null)]);
+    const blockedSet = new Set(blocked);
     const veiled = bubble !== null && litSet.size < 81;
 
     return (
@@ -152,7 +165,7 @@ export default function SudokuTutorial({level, tutorial}: Props) {
                 <div className="sudoku-lesson-grid">
                     {values.map((v, i) => {
                         const isWrong = wrong?.cell === i;
-                        const classes = ["cell", clues.has(i) ? "given" : "", i === selected ? "selected" : "", isWrong ? "wrong" : "",
+                        const classes = ["cell", clues.has(i) ? "given" : "", i === target ? "selected" : "", isWrong ? "wrong" : "",
                             i % 9 === 2 || i % 9 === 5 ? "box-right" : "", Math.floor(i / 9) === 2 || Math.floor(i / 9) === 5 ? "box-bottom" : ""];
                         return (
                             <button key={i} type="button" className={classes.join(" ")} disabled={clues.has(i) || solved}
@@ -160,7 +173,7 @@ export default function SudokuTutorial({level, tutorial}: Props) {
                                         cells.current[i] = el;
                                     }}
                                     aria-label={`Ligne ${Math.floor(i / 9) + 1}, colonne ${i % 9 + 1}`}
-                                    onClick={() => setSelected(i === target ? i : null)} onKeyDown={onKeyDown}>
+                                    onKeyDown={onKeyDown}>
                                 {v !== 0 ? v : isWrong ? wrong.digit : ""}
                             </button>
                         );
@@ -168,13 +181,13 @@ export default function SudokuTutorial({level, tutorial}: Props) {
                 </div>
                 <div className="tutorial-veil" aria-hidden>
                     {values.map((_, i) => (
-                        <span key={i} className={i === target ? "target" : litSet.has(i) || !veiled ? "lit" : "dark"}/>
+                        <span key={i} className={i === target || i === focus ? "target" : blockedSet.has(i) ? "blocked" : litSet.has(i) || !veiled ? "lit" : "dark"}/>
                     ))}
                 </div>
             </div>
             <div className="sudoku-lesson-pad" aria-label="Chiffres">
                 {DIGITS.map(d => (
-                    <button key={d} type="button" disabled={target === null || selected !== target} onClick={() => {
+                    <button key={d} type="button" disabled={target === null} onClick={() => {
                         put(d);
                         if (target !== null) cells.current[target]?.focus();
                     }}>{d}</button>

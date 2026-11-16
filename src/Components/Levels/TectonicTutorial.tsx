@@ -41,7 +41,6 @@ export default function TectonicTutorial({level, tutorial}: Props) {
     const lesson = useLesson<TectonicPuzzle>("TECTONIC", level);
     const puzzle = lesson.grid;
     const [values, setValues] = useState<TectonicCell[]>([]);
-    const [selected, setSelected] = useState<number | null>(null);
     const [intro, setIntro] = useState(0);
     const [explained, setExplained] = useState<string | null>(null);
     const [seen, setSeen] = useState<Set<string>>(new Set());
@@ -53,10 +52,11 @@ export default function TectonicTutorial({level, tutorial}: Props) {
     }, [puzzle]);
 
     const loaded = puzzle !== null && values.length === puzzle.cells.length;
-    const solved = loaded && values.every(v => v !== null);
     // Étape en cours : figée jusqu'à ce que sa case ait le bon nombre (en faisant défiler les nombres, la case passe
     // par d'autres valeurs : le guide verrait sinon une autre étape)
     const [step, setStep] = useState<TectonicStep | null>(null);
+    // grille pleine avec la dernière case juste (pleine avec un mauvais nombre : on attend la correction)
+    const solved = loaded && values.every(v => v !== null) && (step === null || values[step.cell] === step.digit);
     useEffect(() => {
         if (!loaded || solved || (step && values[step.cell] !== step.digit)) return;
         const next = nextTectonicStep(puzzle, values);
@@ -98,6 +98,10 @@ export default function TectonicTutorial({level, tutorial}: Props) {
     let bubble: Bubble | null = null;
     let lit: number[] = [];
     let target: number | null = null;
+    // case dont on parle pendant une explication (en lumière, mais pas encore à remplir)
+    let focus: number | null = null;
+    // cases où le nombre cherché est interdit (la seule place)
+    let blocked: number[] = [];
     if (loaded && !solved) {
         if (intro < intros.length) {
             bubble = {text: intros[intro]!, button: intro === 0 ? "C'est parti" : "Suivant", onButton: () => setIntro(n => n + 1)};
@@ -107,20 +111,25 @@ export default function TectonicTutorial({level, tutorial}: Props) {
             if (step.rule === "naked" && first && explained !== stepKey) {
                 bubble = {text: "Regarde cette case : sa zone et les cases qui la touchent sont en lumière…", button: "Je vois", onButton: () => setExplained(stepKey)};
                 lit = step.spotlight;
+                focus = step.cell;
             } else {
                 const zoneSize = puzzle.regions.filter(z => z === puzzle.regions[step.cell]).length;
                 let text = explain(step, first, zoneSize);
                 if (level === 1 && values.every((v, i) => v === null || puzzle.cells[i] !== null)) {
-                    text += " Touche la case qui pulse pour la choisir, puis touche-la encore pour faire défiler les nombres (au clavier : tape le nombre).";
+                    text += " Touche la case qui pulse pour faire défiler les nombres (au clavier : tape le nombre).";
                 }
                 bubble = {text};
                 lit = step.spotlight;
                 target = step.cell;
+                if (step.rule === "hidden") {
+                    blocked = values.flatMap((v, i) => (v === null && i !== step.cell && puzzle.regions[i] === puzzle.regions[step.cell] ? [i] : []));
+                }
             }
         }
     }
 
-    const litSet = new Set([...lit, ...(target === null ? [] : [target])]);
+    const litSet = new Set([...lit, ...[target, focus].filter((c): c is number => c !== null)]);
+    const blockedSet = new Set(blocked);
     const veiled = bubble !== null && litSet.size < values.length;
     // seule la case qui pulse répond
     const setCell = (i: number, v: TectonicCell) => {
@@ -134,11 +143,12 @@ export default function TectonicTutorial({level, tutorial}: Props) {
             {loaded && (
                 <div className={`tutorial-stage game ${veiled ? "veiled" : ""}`} style={{"--size": puzzle.width} as CSSProperties}>
                     <TectonicGrid puzzle={puzzle} values={values} isClue={i => puzzle.cells[i] !== null} revealed={values.length}
-                                  disabled={solved} selectedCell={selected} onSelectCell={setSelected} highlightDigit={null}
-                                  onSetCell={setCell} errors={null} notes={[]} notesMode={false} onToggleNote={() => undefined}/>
+                                  disabled={solved} selectedCell={target} onSelectCell={() => undefined} highlightDigit={null}
+                                  onSetCell={setCell} errors={null} notes={[]} notesMode={false} onToggleNote={() => undefined}
+                                  focusCell={solved ? null : target} oneTap/>
                     <div className="tutorial-veil" aria-hidden>
                         {values.map((_, i) => (
-                            <span key={i} className={i === target ? "target" : litSet.has(i) || !veiled ? "lit" : "dark"}/>
+                            <span key={i} className={i === target || i === focus ? "target" : blockedSet.has(i) ? "blocked" : litSet.has(i) || !veiled ? "lit" : "dark"}/>
                         ))}
                     </div>
                 </div>

@@ -25,6 +25,9 @@ export type RikudoStep = {
     // "near" : nombres posés juste avant et juste après (pour l'explication)
     before?: number;
     after?: number;
+    // "link" : la case reliée par le point au nombre posé (direct), ou le point qui écarte les autres places (exclude)
+    via?: "direct" | "exclude";
+    linkedTo?: number;
 };
 
 const ALL: RikudoRule[] = ["gap", "near", "link"];
@@ -96,11 +99,25 @@ export function nextRikudoStep(p: RikudoGuidePuzzle, values: (number | null)[], 
     }
 
     if (allowed.includes("link")) {
+        // le point relie la case vide à un nombre posé : elle prend celui des deux voisins de ce nombre qui manque encore
+        for (const c of empties) {
+            for (const d of linked(c)) {
+                const w = values[d];
+                if (w === null || w === undefined) continue;
+                const options = [w - 1, w + 1].filter(x => x >= 1 && x <= n && !pos.has(x));
+                if (options.length !== 1) continue;
+                const v = options[0]!;
+                const other = [w - 1, w + 1].find(x => x !== v && pos.has(x));
+                return {rule: "link", via: "direct", cell: c, value: v, linkedTo: d,
+                    spotlight: [c, d, ...(other === undefined ? [] : [pos.get(other)!])]};
+            }
+        }
+        // les points écartent les autres places du nombre
         for (const v of missing) {
             const cand = candidates(v, true);
             if (cand.length !== 1) continue;
             const c = cand[0]!;
-            return {rule: "link", cell: c, value: v, spotlight: [c, ...linked(c), ...[v - 1, v + 1].flatMap(w => (pos.has(w) ? [pos.get(w)!] : []))]};
+            return {rule: "link", via: "exclude", cell: c, value: v, spotlight: [c, ...p.links.flat(), ...[v - 1, v + 1].flatMap(w => (pos.has(w) ? [pos.get(w)!] : []))]};
         }
     }
     return null;

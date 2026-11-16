@@ -7,7 +7,7 @@ import type {RikudoPuzzle} from "./rikudo.js";
  * (voir src/Components/Levels/rikudoGuide.ts) :
  * 1. le chaînon manquant : entre le 5 et le 7, le 6 touche les deux
  * 2. la bonne distance : un nombre reste à portée des nombres posés avant et après lui
- * 3. les points : deux cases reliées par un point ont des nombres qui se suivent
+ * 3. les points : une case reliée par un point à un nombre posé prend le nombre juste avant ou juste après
  * Ne pas modifier une grille publiée : la progression des joueurs est enregistrée par numéro de niveau.
  */
 
@@ -21,5 +21,5 @@ export const RIKUDO_LEVELS: RikudoPuzzle[] = [
     // 2 · la bonne distance
     {radius: 2, links: [], cells: [4, _, _, _, 5, _, 1, _, 18, _, _, 15, 14, 11, 9, 13, 12, _]},
     // 3 · les points
-    {radius: 2, links: [[0, 1]], cells: [_, _, _, 17, 15, 12, _, 18, _, 9, _, 1, 3, 6, _, 2, _, _]},
+    {radius: 2, links: [[1, 2], [15, 16], [13, 17]], cells: [18, 1, _, 17, _, _, 4, _, 15, _, 5, 13, _, 9, _, _, 10, _]},
 ];

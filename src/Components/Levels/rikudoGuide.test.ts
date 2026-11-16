@@ -26,7 +26,11 @@ describe("guide du tutoriel du Rikudo", () => {
     });
 
     it("leçon 3 : commence par un point, et en a besoin", () => {
-        expect(nextRikudoStep(lesson3!, lesson3!.cells)?.rule).toBe("link");
+        // le point touche la case à remplir (le tutoriel montre ce point)
+        const first = nextRikudoStep(lesson3!, lesson3!.cells);
+        expect(first?.rule).toBe("link");
+        expect(first?.via).toBe("direct");
+        expect(lesson3!.links.some(l => l.includes(first!.cell) && l.includes(first!.linkedTo!))).toBe(true);
         expect(solveRikudoWithGuide(lesson3!, lesson3!.cells, ["gap", "near"]).solved).toBe(false);
     });
 });

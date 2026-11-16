@@ -1,4 +1,4 @@
-import {type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent, useRef} from "react";
+import {type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent, useEffect, useRef} from "react";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
 import {type Direction, isPeer, nextEditableIndex} from "../PuzzleUI/gridGeometry.ts";
 
@@ -22,7 +22,9 @@ type BineroGridProps = {
     highlightDigit: number | null;
     onSetCell: (i: number, v: BineroCell) => void;
     // Cases à afficher en rouge (option « Montrer les coups interdits »), null si désactivé
-    errors: Set<number> | null;
+    errors: Set<number> | null;    // Tutoriel : case choisie d'avance (undefined : la grille ne s'en occupe pas) ; oneTap : un appui suffit pour la changer
+    focusCell?: number | null;
+    oneTap?: boolean;
 };
 
 /**
@@ -34,8 +36,19 @@ type BineroGridProps = {
  * - La case sélectionnée éclaircit sa ligne et sa colonne.
  */
 export default function BineroGrid(props: BineroGridProps) {
-    const {size, values, isClue, revealed, disabled, selectedCell, highlightDigit} = props;
+    const {size, values, isClue, revealed, disabled, selectedCell, highlightDigit, focusCell} = props;
     const cells = useRef<(HTMLButtonElement | null)[]>([]);
+
+    // Tutoriel : la case à remplir est choisie d'avance (focus : le clavier y écrit) ; null : plus aucune case choisie
+    useEffect(() => {
+        if (focusCell === undefined) return;
+        const active = document.activeElement;
+        if (focusCell === null) {
+            if (active instanceof HTMLElement && cells.current.includes(active as HTMLButtonElement)) active.blur();
+        } else if (cells.current[focusCell] !== active) {
+            cells.current[focusCell]?.focus({preventScroll: true});
+        }
+    }, [focusCell, values]);
     // On note sur le bouton s'il avait déjà le focus au moment de l'appui
     // (si non, l'appui ne fait que sélectionner la case)
     const onPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
@@ -43,7 +56,7 @@ export default function BineroGrid(props: BineroGridProps) {
     };
 
     const cycle = (e: MouseEvent<HTMLButtonElement>, i: number) => {
-        if (e.currentTarget.dataset.wasSelected !== "true") return;
+        if (!props.oneTap && e.currentTarget.dataset.wasSelected !== "true") return;
         const next: BineroCell = values[i] === null ? 0 : values[i] === 0 ? 1 : null;
         props.onSetCell(i, next);
     };

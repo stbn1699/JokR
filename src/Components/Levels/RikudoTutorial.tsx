@@ -21,7 +21,7 @@ type Props = { level: number; tutorial: number | null };
 
 const TITLES = ["Le chaînon manquant", "La bonne distance", "Les points"];
 
-function explain(step: RikudoStep, first: boolean): string {
+function explain(step: RikudoStep, first: boolean, values: RikudoCell[]): string {
     const v = step.value;
     switch (step.rule) {
         case "gap":
@@ -35,10 +35,18 @@ function explain(step: RikudoStep, first: boolean): string {
                 ? `Où va le ${v} ? Il doit ${parts.join(", et ")} : une seule case vide convient.`
                 : `Une seule case vide est à bonne distance pour le ${v}.`;
         }
-        case "link":
-            return first
-                ? `Le point entre ces deux cases veut dire que leurs nombres se suivent : regarde ce qui est déjà posé, il ne reste que le ${v} pour cette case.`
-                : `Grâce au point, cette case ne peut prendre que le ${v}.`;
+        case "link": {
+            if (step.via === "exclude") {
+                return `Un point oblige ses deux cases à se suivre : le ${v} ne tient sur aucune autre case vide. Il va ici.`;
+            }
+            const w = values[step.linkedTo!]!;
+            const other = w - 1 === v ? w + 1 : w - 1;
+            const intro = "Le point entre ces deux cases veut dire que leurs nombres se suivent";
+            if (!first) return `Grâce au point, cette case va avec le ${w} : c'est le ${v}.`;
+            return other < 1 || other > values.length
+                ? `${intro} : à côté du ${w}, ce ne peut être que le ${v}.`
+                : `${intro} : à côté du ${w}, il faut le ${w - 1} ou le ${w + 1}. Or le ${other} est déjà posé ailleurs : c'est le ${v}.`;
+        }
     }
 }
 
@@ -47,7 +55,6 @@ export default function RikudoTutorial({level, tutorial}: Props) {
     const puzzle = lesson.grid;
     const board = useMemo(() => (puzzle ? hexBoard(puzzle.radius) : null), [puzzle]);
     const [values, setValues] = useState<RikudoCell[]>([]);
-    const [selected, setSelected] = useState<number | null>(null);
     const [wrong, setWrong] = useState<number | null>(null);
     const [pending, setPending] = useState<number | null>(null);
     const [intro, setIntro] = useState(0);
@@ -60,9 +67,10 @@ export default function RikudoTutorial({level, tutorial}: Props) {
     }, [puzzle]);
 
     const loaded = puzzle !== null && board !== null && values.length === puzzle.cells.length;
-    const solved = loaded && values.every(v => v !== null);
     // Étape en cours : figée jusqu'à ce que sa case ait le bon nombre (au clavier, 1 puis 6 passe par le 1)
     const [step, setStep] = useState<RikudoStep | null>(null);
+    // plateau plein avec la dernière case juste (plein avec un mauvais nombre : on attend la correction)
+    const solved = loaded && values.every(v => v !== null) && (step === null || values[step.cell] === step.value);
     useEffect(() => {
         if (!loaded || solved || (step && values[step.cell] !== step.value)) return;
         const next = nextRikudoStep(puzzle, values);
@@ -111,9 +119,9 @@ export default function RikudoTutorial({level, tutorial}: Props) {
         if (intro < intros.length) {
             bubble = {text: intros[intro]!, button: intro === 0 ? "C'est parti" : "Suivant", onButton: () => setIntro(n => n + 1)};
         } else if (step) {
-            let text = explain(step, !seen.has(step.rule));
+            let text = explain(step, !seen.has(step.rule), values);
             if (level === 1 && values.every((v, i) => v === null || puzzle.cells[i] !== null)) {
-                text += " Touche la case qui pulse, puis ce nombre sous le plateau (ou tape-le au clavier).";
+                text += " Touche ce nombre sous le plateau (ou tape-le au clavier).";
             }
             if (wrong !== null) text = `Pas le ${wrong} ! ${text}`;
             bubble = {text};
@@ -129,7 +137,7 @@ export default function RikudoTutorial({level, tutorial}: Props) {
         setValues(old => old.map((x, k) => (k === i ? v : x)));
     };
     const pick = (v: number) => {
-        if (target === null || selected !== target || !step) return;
+        if (target === null || !step) return;
         if (v === step.value) setCell(target, v);
         else setWrong(v);
     };
@@ -140,16 +148,15 @@ export default function RikudoTutorial({level, tutorial}: Props) {
             {loaded && (
                 <div className="game rikudo-lesson-board">
                     <RikudoBoard board={board} values={values} links={puzzle.links} isClue={i => puzzle.cells[i] !== null}
-                                 revealed={values.length} disabled={solved} selectedCell={selected} onSelectCell={i => {
-                        if (i !== null) setSelected(i);
-                    }} highlightNumber={null} onSetCell={setCell} errors={null} pendingCell={pending} onPendingChange={setPending}
-                                 guide={bubble ? {lit: lit === null ? null : new Set(lit), target} : undefined}/>
+                                 revealed={values.length} disabled={solved} selectedCell={target} onSelectCell={() => undefined} highlightNumber={null} onSetCell={setCell} errors={null} pendingCell={pending} onPendingChange={setPending}
+                                 guide={bubble ? {lit: lit === null ? null : new Set(lit), target} : undefined}
+                                 focusCell={solved ? null : target}/>
                 </div>
             )}
             {loaded && !solved && (
                 <div className="rikudo-lesson-pad" aria-label="Nombres à placer">
                     {missing.map(v => (
-                        <button key={v} type="button" disabled={target === null || selected !== target} onClick={() => pick(v)}>{v}</button>
+                        <button key={v} type="button" disabled={target === null} onClick={() => pick(v)}>{v}</button>
                     ))}
                 </div>
             )}
