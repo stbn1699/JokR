@@ -25,6 +25,7 @@ import {wheelAvailable, type WheelItem, WheelRepository} from "../repository/Whe
 import {WHEEL_SEGMENTS, WHEEL_TOTAL_WEIGHT, wheelSegmentFor, wheelTickets} from "../utils/wheel.js";
 import {plinkoBallSets} from "../utils/plinkoBalls.js";
 import {BlackjackRepository} from "../repository/Blackjack.repository.js";
+import {encodeKenoDraw, isKenoBet, isKenoPicks, kenoDraw, kenoHits, kenoMultiplier, kenoPayout} from "../utils/keno.js";
 import {blackjackView, isBlackjackAction, isBlackjackBet, totalBet, totalPayout} from "../utils/blackjack.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
 import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, lotteryPrize, nextLotteryDraw} from "../utils/lottery.js";
@@ -61,6 +62,9 @@ import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, l
  *     XP après le gain ; item : bille offerte ; tickets : tickets de loterie offerts ; available : encore un lancer
  *     aujourd'hui) ; 409 si plus de lancer.
  *     Mode admin : la roue tourne autant qu'on veut, sans rien donner ni enregistrer.
+ * - POST /casino/keno { bet, picks } : une partie de Keno (voir backend/src/utils/keno.ts) avec 1 à 10 numéros choisis
+ *   entre 1 et 40 ; 10 numéros sont tirés → { drawn, hits, multiplier, payout, credits } (drawn : dans l'ordre de sortie)
+ *   Partie enregistrée sous le jeu « keno » (seed : numéros tirés, un bit chacun ; outcome : numéros trouvés).
  * - Blackjack en solo (voir backend/src/utils/blackjack.ts) : la main en cours est gardée par le serveur, le site n'en
  *   reçoit que ce que le joueur voit (pas le sabot, ni la carte cachée du croupier avant la fin).
  *   - GET /casino/blackjack → { hand, recent, credits } (hand : main en cours ou null ; recent : dernières mains finies)
@@ -189,6 +193,36 @@ router.post("/wheel", asyncHandler(async (_req: Request, res: Response<unknown, 
     const available = wheelAvailable(await wheel.spinsOn(res.locals.userId!, date));
     res.status(200).json({status: "ok", data: {segment, credits: result.credits, level: result.level, xp: result.xp,
         item: result.item, creditsWon: result.creditsWon, tickets: result.tickets, available}});
+}));
+
+// ---------- Keno
+router.post("/keno", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+    const bet: unknown = req.body?.bet;
+    const picks: unknown = req.body?.picks;
+    if (!isKenoBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
+    if (!isKenoPicks(picks)) return void res.status(400).json({status: "error", message: "Choisis de 1 à 10 numéros entre 1 et 40"});
+    if (maintenance.blocksNewGames()) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
+
+    const result = (drawn: number[]) => {
+        const hits = kenoHits(picks, drawn);
+        return {drawn, hits, multiplier: kenoMultiplier(picks.length, hits), payout: kenoPayout(bet, picks.length, hits)};
+    };
+    // mode admin : le tirage a lieu pour de vrai, mais rien n'est retiré, gagné ni enregistré
+    if (res.locals.ghost) {
+        const credits = await liveRoulette.credits(res.locals.userId!);
+        return void res.status(200).json({status: "ok", data: {...result(kenoDraw(n => randomInt(n))), credits}});
+    }
+    let drawn: number[] = [];
+    const play = await casino.play(res.locals.userId!, "keno", bet, () => {
+        drawn = kenoDraw(n => randomInt(n));
+        const r = result(drawn);
+        return {seed: encodeKenoDraw(drawn), outcome: r.hits, payout: r.payout};
+    });
+    if (!play.ok) {
+        const credits = play.reason === "credits";
+        return void res.status(credits ? 402 : 404).json({status: "error", message: credits ? "Pas assez de crédits" : "Compte introuvable"});
+    }
+    res.status(200).json({status: "ok", data: {...result(drawn), credits: play.credits}});
 }));
 
 // ---------- Blackjack

@@ -39,7 +39,7 @@ const DEVICE_LABELS = {mobile: "Téléphone", tablet: "Tablette", desktop: "Ordi
  */
 
 // Jeux de hasard proposés dans le filtre
-const CASINO_GAMES = [{code: "plinko", name: "Plinko"}, {code: "roulette", name: "Roulette"}, {code: "slots", name: "Machines à sous"}, {code: "blackjack", name: "Blackjack"}];
+const CASINO_GAMES = [{code: "plinko", name: "Plinko"}, {code: "roulette", name: "Roulette"}, {code: "slots", name: "Machines à sous"}, {code: "blackjack", name: "Blackjack"}, {code: "keno", name: "Keno"}];
 export default function Stats() {
     const {isLoggedIn, isAdmin, username} = useAuth();
     const [params, setParams] = useSearchParams();

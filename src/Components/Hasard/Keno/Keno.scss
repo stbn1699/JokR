@@ -1,0 +1,346 @@
+// ---------- Keno : réglages à gauche, grille au milieu, gains et derniers tirages à droite
+.keno {
+	display         : flex;
+	justify-content : center;
+	padding         : 1.5rem 1rem 2rem;
+	color           : #f9fafb;
+
+	.keno-layout {
+		display               : grid;
+		grid-template-columns : 21rem minmax(0, 44rem) 12rem;
+		grid-template-areas   : "controls board side";
+		justify-content       : center;
+		gap                   : 1.75rem;
+		align-items           : start;
+		width                 : min(96rem, 100%);
+
+		.keno-controls { grid-area : controls; }
+		.keno-board { grid-area : board; }
+		.keno-side { grid-area : side; }
+
+		// écran moyen : gains et derniers tirages sous la grille
+		@media (max-width: 1250px) {
+			grid-template-columns : 21rem minmax(0, 44rem);
+			grid-template-areas   : "controls board" "controls side";
+		}
+
+		// téléphone : la grille d'abord
+		@media (max-width: 900px) {
+			grid-template-columns : minmax(0, 1fr);
+			grid-template-areas   : "board" "controls" "side";
+		}
+	}
+
+	.keno-controls,
+	.keno-board,
+	.keno-side {
+		padding       : 1.5rem;
+		box-sizing    : border-box;
+		border        : 3px solid #f9fafb;
+		border-radius : 12px;
+		background    : #02061735;
+	}
+
+	.keno-side { padding : 1.1rem 0.9rem; }
+
+	.keno-back {
+		display         : inline-flex;
+		align-items     : center;
+		gap             : 0.35rem;
+		font-size       : 1.2rem;
+		color           : #f9fafb;
+		text-decoration : none;
+		opacity         : 0.8;
+
+		&:hover { opacity : 1; }
+	}
+
+	h1 {
+		margin      : 0.4rem 0 1rem;
+		font-size   : 2.5rem;
+		line-height : 1.1;
+	}
+
+	.keno-label {
+		display       : block;
+		margin-bottom : 0.5rem;
+		font-size     : 1.2rem;
+		opacity       : 0.85;
+
+		small { font-size : 0.9rem; opacity : 0.8; }
+	}
+
+	.keno-bets {
+		display               : grid;
+		grid-template-columns : repeat(3, 1fr);
+		gap                   : 0.6rem 0.3rem;
+		margin-bottom         : 1rem;
+	}
+
+	.keno-bet {
+		display         : flex;
+		justify-content : center;
+		padding         : 0.2rem 0;
+		border          : none;
+		background      : none;
+		cursor          : pointer;
+		transition      : transform 0.12s ease;
+
+		img {
+			width  : 3.6rem;
+			height : 3.6rem;
+			filter : drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
+		}
+
+		&:hover:not(:disabled) { transform : translateY(-2px); }
+
+		&.active {
+			transform : translateY(-5px) scale(1.1);
+
+			img { filter : drop-shadow(0 0 0.35rem #fbbf24) drop-shadow(0 0.3rem 0.35rem rgba(0, 0, 0, 0.5)); }
+		}
+
+		&:disabled {
+			opacity : 0.35;
+			cursor  : default;
+		}
+	}
+
+	.keno-tools {
+		display               : grid;
+		grid-template-columns : 1fr 1fr;
+		gap                   : 0.5rem;
+
+		button {
+			display         : inline-flex;
+			align-items     : center;
+			justify-content : center;
+			gap             : 0.4rem;
+			padding         : 0.5rem 0;
+			border          : 2px solid rgba(251, 191, 36, 0.45);
+			border-radius   : 999px;
+			background      : transparent;
+			color           : inherit;
+			font-family     : inherit;
+			font-size       : 1.1rem;
+			cursor          : pointer;
+
+			&:hover:not(:disabled) { background : rgba(251, 191, 36, 0.15); }
+
+			&:disabled {
+				opacity : 0.4;
+				cursor  : default;
+			}
+		}
+	}
+
+	.keno-play {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.4rem;
+		width           : 100%;
+		margin-top      : 1.25rem;
+		padding         : 0.85rem 1rem;
+		border          : none;
+		border-radius   : 999px;
+		background      : #10b981;
+		color           : #f9fafb;
+		font-family     : inherit;
+		font-size       : 1.5rem;
+		font-weight     : 600;
+		white-space     : nowrap;
+		cursor          : pointer;
+		transition      : transform 0.1s ease, background 0.15s ease;
+
+		&:hover:not(:disabled) { background : #059669; }
+		&:active:not(:disabled) { transform : scale(0.97); }
+
+		&:disabled {
+			background : rgba(16, 185, 129, 0.35);
+			cursor     : default;
+		}
+	}
+
+	.keno-error {
+		margin    : 0.75rem 0 0;
+		color     : #fca5a5;
+		font-size : 1.05rem;
+	}
+
+	// ---------- La grille
+	.keno-status {
+		margin     : 0 0 1rem;
+		min-height : 1.5em;
+		font-size  : 1.4rem;
+		font-weight: 600;
+		text-align : center;
+
+		&.win { color : #fde047; }
+		&.push { color : #e5e7eb; }
+		&.lose { color : #fca5a5; }
+	}
+
+	.keno-grid {
+		display               : grid;
+		grid-template-columns : repeat(8, 1fr);
+		gap                   : 0.5rem;
+	}
+
+	.keno-cell {
+		aspect-ratio  : 1;
+		border        : 2px solid rgba(249, 250, 251, 0.35);
+		border-radius : 0.7rem;
+		background    : rgba(2, 6, 23, 0.45);
+		color         : #f9fafb;
+		font-family   : inherit;
+		font-size     : 1.5rem;
+		font-weight   : 600;
+		cursor        : pointer;
+		transition    : transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+
+		&:hover:not(:disabled) {
+			border-color : #fbbf24;
+			transform    : translateY(-2px);
+		}
+
+		&:disabled { cursor : default; }
+		&:disabled:not(.picked):not(.hit):not(.out) { opacity : 0.5; }
+
+		// choisi
+		&.picked {
+			border-color : #fbbf24;
+			background   : rgba(251, 191, 36, 0.25);
+			color        : #fde68a;
+		}
+
+		// tiré, pas choisi
+		&.out {
+			border-color : #e2e8f0;
+			background   : #cbd5e1;
+			color        : #0f172a;
+			animation    : keno-out 0.25s ease-out;
+		}
+
+		// choisi et tiré : trouvé
+		&.hit {
+			border-color : #fde047;
+			background   : #f59e0b;
+			color        : #1f1300;
+			box-shadow   : 0 0 0.8rem rgba(250, 204, 21, 0.7);
+			animation    : keno-hit 0.35s cubic-bezier(.2, .9, .3, 1.4);
+		}
+	}
+
+	// les 10 numéros tirés, dans l'ordre de sortie
+	.keno-drawn {
+		display         : flex;
+		flex-wrap       : wrap;
+		justify-content : center;
+		gap             : 0.4rem;
+		margin-top      : 1.25rem;
+	}
+
+	.keno-ball {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		width           : 2.6rem;
+		height          : 2.6rem;
+		border-radius   : 50%;
+		background      : radial-gradient(circle at 35% 30%, #f8fafc, #94a3b8);
+		color           : #0f172a;
+		font-size       : 1.15rem;
+		font-weight     : 700;
+		box-shadow      : 0 0.15rem 0.35rem rgba(0, 0, 0, 0.45);
+		animation       : keno-ball-in 0.25s cubic-bezier(.2, .9, .3, 1.3);
+
+		&.hit { background : radial-gradient(circle at 35% 30%, #fef9c3, #f59e0b); }
+
+		&.empty {
+			background : transparent;
+			border     : 2px dashed rgba(249, 250, 251, 0.25);
+			box-shadow : none;
+			animation  : none;
+		}
+	}
+
+	// ---------- Gains et derniers tirages
+	.keno-empty {
+		margin    : 0 0 0.5rem;
+		font-size : 0.95rem;
+		opacity   : 0.6;
+	}
+
+	.keno-pays {
+		width           : 100%;
+		border-collapse : collapse;
+		font-size       : 1.05rem;
+
+		td { padding : 0.25rem 0.35rem; }
+		td:last-child { text-align : right; color : #fbbf24; font-weight : 600; }
+
+		tr.won td {
+			background : rgba(250, 204, 21, 0.25);
+
+			&:first-child { border-radius : 6px 0 0 6px; }
+			&:last-child { border-radius : 0 6px 6px 0; }
+		}
+	}
+
+	.keno-recent-title { margin-top : 1.1rem; }
+
+	.keno-recent {
+		display               : grid;
+		grid-template-columns : 1fr;
+		gap                   : 0.4rem;
+		margin                : 0;
+		padding               : 0;
+		list-style            : none;
+
+		@media (max-width: 1250px) {
+			grid-template-columns : repeat(auto-fill, minmax(6rem, 1fr));
+		}
+
+		li {
+			display        : flex;
+			flex-direction : column;
+			align-items    : center;
+			padding        : 0.3rem;
+			border-radius  : 8px;
+			background     : rgba(2, 6, 23, 0.5);
+			font-size      : 1.1rem;
+
+			small { font-size : 0.8rem; opacity : 0.65; }
+
+			&.win span { color : #34d399; }
+			&.even span { color : #fbbf24; }
+			&.loss span { color : #f87171; }
+		}
+	}
+
+	@media (max-width: 600px) {
+		.keno-board { padding : 1rem 0.75rem; }
+		.keno-grid { gap : 0.3rem; }
+		.keno-cell { font-size : 1.1rem; border-radius : 0.5rem; }
+		.keno-ball { width : 2.1rem; height : 2.1rem; font-size : 0.95rem; }
+	}
+}
+
+@keyframes keno-out {
+	from { transform : scale(0.85); }
+}
+
+@keyframes keno-hit {
+	0% { transform : scale(0.8); }
+	60% { transform : scale(1.15); }
+}
+
+@keyframes keno-ball-in {
+	from { opacity : 0; transform : translateY(-0.8rem) scale(0.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.keno .keno-cell,
+	.keno .keno-ball { animation : none; }
+}

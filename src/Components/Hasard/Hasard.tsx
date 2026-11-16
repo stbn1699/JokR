@@ -2,6 +2,7 @@ import "./Hasard.scss";
 import {useEffect, useState} from "react";
 import {PLINKO_MAX_MULTIPLIER} from "../../../backend/src/utils/plinko.ts";
 import {SLOT_MACHINES, slotTopPays} from "../../../backend/src/utils/slots.ts";
+import {KENO_TOP_MULTIPLIER} from "../../../backend/src/utils/keno.ts";
 import {useAuth} from "../../Context/authContext.ts";
 import {casinoService} from "../../Services/casino.service.ts";
 import LotteryBanner from "./Lottery/LotteryBanner.tsx";
@@ -125,6 +126,8 @@ export default function Hasard() {
                           text={`${SLOT_MACHINES.length} machines, chacune son thème`} tags={[{text: <>jusqu'à ×{Math.max(...SLOT_MACHINES.map(slotTopPays)).toLocaleString("fr-FR")} par ligne</>, kind: "gain"}]}/>
                 <GameCard to="/hasard/blackjack" icon="/gameIcons/BLACKJACK.svg" name="Blackjack" text="En solo contre le croupier : fais 21 sans dépasser"
                           tags={[{text: "blackjack payé 3 pour 2", kind: "gain"}]}/>
+                <GameCard to="/hasard/keno" icon="/gameIcons/KENO.svg" name="Keno" text="Choisis jusqu'à 10 numéros, 10 sortent"
+                          tags={[{text: <>jusqu'à ×{KENO_TOP_MULTIPLIER.toLocaleString("fr-FR")} ta mise</>, kind: "gain"}]}/>
             </div>
 
             {wheelOpen && wheel && !whatsNewOpen && (

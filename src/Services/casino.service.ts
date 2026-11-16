@@ -3,6 +3,15 @@ import type {RouletteBet} from "../../backend/src/utils/roulette.ts";
 import type {PlinkoRisk} from "../../backend/src/utils/plinko.ts";
 import type {BlackjackAction, BlackjackView, HandOutcome} from "../../backend/src/utils/blackjack.ts";
 
+// Keno : numéros tirés (dans l'ordre de sortie), numéros trouvés, gain et solde
+export interface KenoResult {
+    drawn: number[];
+    hits: number;
+    multiplier: number;
+    payout: number;
+    credits: number;
+}
+
 // Blackjack : ce que voit le joueur de la main (voir backend/src/utils/blackjack.ts) et son solde
 export interface BlackjackPlay {
     hand: BlackjackView;
@@ -146,6 +155,12 @@ export const casinoService = {
     // Lance la roue du jour (409 si déjà lancée aujourd'hui) → case tirée, solde, niveau et XP après le gain
     spinWheel(): Promise<WheelSpin> {
         return api<WheelSpin>("/casino/wheel", {method: "POST"});
+    },
+
+    keno(bet: number, picks: number[]): Promise<KenoResult> {
+        return api<KenoResult>("/casino/keno", {
+            method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({bet, picks}),
+        });
     },
 
     blackjack(signal?: AbortSignal): Promise<BlackjackTable> {

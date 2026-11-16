@@ -32,7 +32,7 @@ export default function LotteryPage() {
                     <h1>Loterie</h1>
                     <RulesButton title="Règles des loteries"><LotteryRules/></RulesButton>
                 </div>
-                <p className="lottery-sub">Chaque tranche de 10 crédits misés au Plinko, à la roulette ou aux machines à sous te donne un ticket.</p>
+                <p className="lottery-sub">Chaque tranche de 10 crédits misés aux jeux de hasard te donne un ticket.</p>
 
                 {error && <p className="lottery-error" role="alert">{error}</p>}
                 {!lotteries ? !error && <Loader label="Chargement des loteries…"/> : (

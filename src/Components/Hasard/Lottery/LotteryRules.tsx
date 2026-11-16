@@ -6,7 +6,7 @@ export default function LotteryRules() {
             <h3>Le principe</h3>
             <p>
                 Trois loteries tournent en même temps : une du jour, une de la semaine et une du mois. Tu n'as rien à
-                acheter : tes mises au Plinko, à la roulette et aux machines à sous te donnent des tickets.
+                acheter : tes mises au Plinko, à la roulette, aux machines à sous, au blackjack et au Keno te donnent des tickets.
             </p>
             <ul>
                 <li>Chaque tranche de {LOTTERY_TICKET_CREDITS} crédits misés sur la période te donne un ticket, dans les trois loteries à la fois.</li>
