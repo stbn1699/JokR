@@ -1,0 +1,51 @@
+// ---------- Tutoriel guidé du Rikudo : le plateau du jeu, ombre et case qui pulse (bulle dans QueensTutorial.scss)
+.level-tutorial.rikudo {
+	.rikudo-lesson-board {
+		--board-width : min(28rem, calc(100vw - 2rem), 60dvh);
+	}
+
+	// chemin tracé et repères : discrets pendant le tutoriel (le voile ne les couvre pas)
+	.rikudo-overlay { opacity : 0.4; }
+
+	.hex {
+		transition : filter 0.35s ease;
+
+		&.veil-dark { filter : brightness(0.3); }
+
+		// case à remplir : fond doré qui pulse (le contour est impossible avec clip-path)
+		&.guide-target:not(:focus) { animation : rikudo-target 1.1s ease-in-out infinite; }
+	}
+
+	.rikudo-lesson-pad {
+		display         : flex;
+		flex-wrap       : wrap;
+		justify-content : center;
+		gap             : 0.35rem;
+		width           : min(30rem, 100%);
+
+		button {
+			width         : 2.8rem;
+			height        : 2.8rem;
+			border        : 2px solid rgba(249, 250, 251, 0.4);
+			border-radius : 10px;
+			background    : #0f172a;
+			color         : #f9fafb;
+			font-family   : inherit;
+			font-size     : 1.25rem;
+			font-weight   : 700;
+			cursor        : pointer;
+
+			&:hover:not(:disabled) { border-color : #fbbf24; }
+			&:disabled { opacity : 0.35; cursor : default; }
+		}
+	}
+}
+
+@keyframes rikudo-target {
+	0%, 100% { background : rgba(253, 224, 71, 0.25); }
+	50% { background : rgba(253, 224, 71, 0.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.level-tutorial.rikudo .hex.guide-target { animation : none; background : rgba(253, 224, 71, 0.45); }
+}

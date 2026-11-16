@@ -38,6 +38,8 @@ type RikudoBoardProps = {
     // Case dont la saisie n'est pas finie (un 2e chiffre peut encore suivre) : ni erreur, ni trait
     pendingCell: number | null;
     onPendingChange: (cell: number | null) => void;
+    // Tutoriel : cases dans l'ombre (toutes sauf `lit`) et case à remplir (qui pulse)
+    guide?: { lit: Set<number> | null; target: number | null };
 };
 
 /**
@@ -150,6 +152,8 @@ export default function RikudoBoard(props: RikudoBoardProps) {
                     && Math.abs(value - selectedValue) === 1 ? "chain-highlight" : "",
                     shown && highlightNumber !== null && value === highlightNumber ? "same-number-highlight" : "",
                     shown && props.errors?.has(i) ? "conflict" : "",
+                    props.guide && i === props.guide.target ? "guide-target" : "",
+                    props.guide && i !== props.guide.target && props.guide.lit !== null && !props.guide.lit.has(i) ? "veil-dark" : "",
                 ];
                 const style = {...cellStyle, ...position(x, y)} as CSSProperties;
 
