@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_60_255)">
+<rect width="512" height="512" rx="50" fill="white"/>
+<rect x="172.5" y="-1.5" width="165" height="515" stroke-width="3" stroke="black"/>
+<line x1="4.37114e-07" y1="170" x2="336" y2="170" stroke-width="10" stroke="black"/>
+<line x1="174" y1="334" x2="512" y2="334" stroke-width="10" stroke="black"/>
+<rect x="-1.50001" y="169.5" width="515" height="164" stroke-width="3" stroke="black"/>
+<rect x="52" y="227" width="375" height="55" rx="27.5" fill="#FFDF88"/>
+<rect x="44" y="399" width="407" height="55" rx="27.5" fill="#FFDF88"/>
+<rect x="68" y="59" width="375" height="55" rx="27.5" fill="#FFDF88"/>
+<rect x="44" y="227" width="55" height="224" rx="27.5" fill="#FFDF88"/>
+<rect x="396" y="59" width="55" height="224" rx="27.5" fill="#FFDF88"/>
+<circle cx="86" cy="88" r="38" fill="white" stroke-width="24" stroke="black"/>
+<circle cx="427" cy="251" r="38" fill="white" stroke-width="24" stroke="black"/>
+<circle cx="427" cy="427" r="38" fill="white" stroke-width="24" stroke="black"/>
+</g>
+<defs>
+<clipPath id="clip0_60_255">
+<rect width="512" height="512" rx="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -4,7 +4,7 @@
  *   en dessous (trois premiers compris, avec niveau et détails)
  * - Par jeu et défi du jour : même sélecteur de jeu (GameSelector) ; pour le défi, date choisie
  *   comme sur la page Daily (mois avec flèches, bandeau des jours)
- * L'onglet est dans l'adresse (?onglet=xp|credits|jeu|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens
+ * L'onglet est dans l'adresse (?onglet=xp|credits|jeu|defi&jeu=sudoku|binero|rikudo|tectonic|galaxies|shikaku|queens|trace
  * [&mois=AAAA-MM][&date=AAAA-MM-JJ]) pour pouvoir y renvoyer (ex. classement d'un défi passé).
  * Anciennes adresses (?onglet=sudoku...) : ouvrent l'onglet « Par jeu » sur ce jeu.
  * Un clic sur un joueur (icône ou pseudo) ouvre sa page (/joueur/:pseudo).
@@ -49,6 +49,7 @@ const GAMES = [
     {id: "galaxies", label: "Galaxies"},
     {id: "shikaku", label: "Shikaku"},
     {id: "queens", label: "Queens"},
+    {id: "trace", label: "Tracé"},
 ] as const;
 type GameId = typeof GAMES[number]["id"];
 

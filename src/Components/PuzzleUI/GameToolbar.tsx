@@ -13,9 +13,10 @@ type GameToolbarProps = {
     canRedo: boolean;
     onUndo: () => void;
     onRedo: () => void;
-    showErrors: boolean;
-    onToggleErrors: (value: boolean) => void;
-    errorCount: number;
+    // « Montrer les erreurs » (absent : pas de bouton, ex. Tracé, où le chemin ne peut pas être faux)
+    showErrors?: boolean;
+    onToggleErrors?: (value: boolean) => void;
+    errorCount?: number;
     // Règles du jeu, affichées dans une popup (bouton « ? »)
     rules?: ReactNode;
     // Option propre au jeu (ex. croix automatiques du Queens), bouton à bascule avant les règles
@@ -51,12 +52,14 @@ export default function GameToolbar(props: GameToolbarProps) {
                         aria-label="Rétablir">
                     <FaRedo aria-hidden/>
                 </button>
-                <button type="button" className={`errors ${props.showErrors ? "active" : ""}`} aria-pressed={props.showErrors}
-                        onMouseDown={keepGridFocus} onClick={() => props.onToggleErrors(!props.showErrors)}
-                        aria-label="Montrer les erreurs">
-                    <FaExclamationTriangle aria-hidden/>
-                    {props.showErrors && props.errorCount > 0 && <span className="game-toolbar-count">{props.errorCount}</span>}
-                </button>
+                {props.onToggleErrors && (
+                    <button type="button" className={`errors ${props.showErrors ? "active" : ""}`} aria-pressed={props.showErrors}
+                            onMouseDown={keepGridFocus} onClick={() => props.onToggleErrors?.(!props.showErrors)}
+                            aria-label="Montrer les erreurs">
+                        <FaExclamationTriangle aria-hidden/>
+                        {props.showErrors && (props.errorCount ?? 0) > 0 && <span className="game-toolbar-count">{props.errorCount}</span>}
+                    </button>
+                )}
                 {props.extraToggle && (
                     <button type="button" className={`extra ${props.extraToggle.active ? "active" : ""}`}
                             aria-pressed={props.extraToggle.active} aria-label={props.extraToggle.label}

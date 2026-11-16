@@ -16,6 +16,7 @@ import Tectonic from "../Tectonic/Tectonic.tsx";
 import Galaxies from "../Galaxies/Galaxies.tsx";
 import Shikaku from "../Shikaku/Shikaku.tsx";
 import Queens from "../Queens/Queens.tsx";
+import Trace from "../Trace/Trace.tsx";
 import DailyLoginRequired from "../PuzzleUI/DailyLoginRequired.tsx";
 import {useAuth} from "../../Context/authContext.ts";
 
@@ -64,6 +65,8 @@ export default function PlayGame({daily = false, challengeGame, challengeId}: { 
                 return <Shikaku daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "QUEENS":
                 return <Queens daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
+            case "TRACE":
+                return <Trace daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

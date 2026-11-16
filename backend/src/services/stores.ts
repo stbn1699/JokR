@@ -5,6 +5,7 @@ import type {TectonicPuzzle} from "../utils/tectonic.js";
 import type {GalaxiesPuzzle} from "../utils/galaxies.js";
 import type {ShikakuPuzzle} from "../utils/shikaku.js";
 import type {QueensPuzzle} from "../utils/queens.js";
+import type {TracePuzzle} from "../utils/trace.js";
 
 /*
  * Parties en cours, une mémoire par jeu, partagées entre les routes du jeu
@@ -20,3 +21,5 @@ export const galaxiesStore = new PuzzleStore<GalaxiesPuzzle>();
 export const shikakuStore = new PuzzleStore<ShikakuPuzzle>();
 // Queens : cluesCount = nombre de dames données en aide
 export const queensStore = new PuzzleStore<QueensPuzzle>();
+// Tracé : cluesCount = nombre de numéros donnés en plus
+export const traceStore = new PuzzleStore<TracePuzzle>();

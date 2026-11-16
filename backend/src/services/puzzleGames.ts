@@ -1,12 +1,13 @@
 import {countClues} from "./Sudoku.service.js";
 import {toApiGrid} from "./Binero.service.js";
 import {type BineroGrid, countBineroClues} from "../utils/binero.js";
-import {bineroStore, galaxiesStore, queensStore, rikudoStore, shikakuStore, sudokuStore, tectonicStore} from "./stores.js";
+import {bineroStore, galaxiesStore, queensStore, rikudoStore, shikakuStore, sudokuStore, tectonicStore, traceStore} from "./stores.js";
 import {countRikudoClues, type RikudoPuzzle} from "../utils/rikudo.js";
 import {countTectonicClues, type TectonicPuzzle} from "../utils/tectonic.js";
 import type {GalaxiesPuzzle} from "../utils/galaxies.js";
 import type {ShikakuPuzzle} from "../utils/shikaku.js";
 import type {QueensPuzzle} from "../utils/queens.js";
+import type {TracePuzzle} from "../utils/trace.js";
 
 /*
  * Parties lancées à partir d'une grille déjà connue (défi du jour, défi rejoué, défi entre amis) :
@@ -14,13 +15,14 @@ import type {QueensPuzzle} from "../utils/queens.js";
  * Les grilles sont gardées telles que le serveur les génère (ex. Binero avant conversion pour le site).
  */
 
-export const PUZZLE_GAMES = ["SUDOKU", "BINERO", "RIKUDO", "TECTONIC", "GALAXIES", "SHIKAKU", "QUEENS"] as const;
+export const PUZZLE_GAMES = ["SUDOKU", "BINERO", "RIKUDO", "TECTONIC", "GALAXIES", "SHIKAKU", "QUEENS", "TRACE"] as const;
 export type PuzzleGameCode = typeof PUZZLE_GAMES[number];
 
 export const isPuzzleGame = (code: string): code is PuzzleGameCode => (PUZZLE_GAMES as readonly string[]).includes(code);
 
 // Range la grille dans la mémoire du jeu ; `daily` = date si la partie compte pour le classement du jour
-export function startPuzzle(code: PuzzleGameCode, puzzle: unknown, daily?: string): { gameId: string; grid: unknown } {
+// (`aid` : aide donnée quand elle ne se lit pas dans la grille, ex. numéros donnés en plus au Tracé)
+export function startPuzzle(code: PuzzleGameCode, puzzle: unknown, daily?: string, aid = 0): { gameId: string; grid: unknown } {
     const options = daily ? {daily} : {};
     switch (code) {
         case "SUDOKU": {
@@ -47,6 +49,10 @@ export function startPuzzle(code: PuzzleGameCode, puzzle: unknown, daily?: strin
             const queens = puzzle as QueensPuzzle;
             return {gameId: queensStore.create(queens, queens.queens.length, options), grid: queens};
         }
+        case "TRACE": {
+            const trace = puzzle as TracePuzzle;
+            return {gameId: traceStore.create(trace, aid, options), grid: trace};
+        }
         case "BINERO": {
             const grid = puzzle as BineroGrid;
             return {gameId: bineroStore.create(grid, countBineroClues(grid), options), grid: toApiGrid(grid)};
@@ -58,7 +64,7 @@ export function startPuzzle(code: PuzzleGameCode, puzzle: unknown, daily?: strin
 export function finishedPuzzle(code: PuzzleGameCode, gameId: string): unknown {
     const stores = {
         SUDOKU: sudokuStore, BINERO: bineroStore, RIKUDO: rikudoStore, TECTONIC: tectonicStore,
-        GALAXIES: galaxiesStore, SHIKAKU: shikakuStore, QUEENS: queensStore,
+        GALAXIES: galaxiesStore, SHIKAKU: shikakuStore, QUEENS: queensStore, TRACE: traceStore,
     } as const;
     return stores[code].getFinished(gameId)?.puzzle ?? null;
 }

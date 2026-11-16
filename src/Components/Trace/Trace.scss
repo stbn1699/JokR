@@ -1,0 +1,114 @@
+// Plateau du Tracé (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.trace {
+	.game {
+		// Même largeur que les autres grilles, moins sur un écran étroit
+		--grid-width : min(36rem, calc(100vw - 2rem));
+	}
+
+	.trace-progress,
+	.trace-next {
+		margin    : 0 0 0.6rem;
+		font-size : 1.3rem;
+
+		strong { color : #fbbf24; }
+	}
+
+	.trace-clear {
+		padding       : 0.5rem 1rem;
+		border        : 2px solid rgba(249, 250, 251, 0.4);
+		border-radius : 999px;
+		background    : transparent;
+		color         : inherit;
+		font-family   : inherit;
+		font-size     : 1.05rem;
+		cursor        : pointer;
+
+		&:hover:not(:disabled) { border-color : #fbbf24; }
+		&:disabled { opacity : 0.4; cursor : default; }
+	}
+
+	.trace-board {
+		--cell                : calc(var(--grid-width) / var(--size));
+		position              : relative;
+		display               : grid;
+		grid-template-columns : repeat(var(--size), var(--cell));
+		grid-template-rows    : repeat(var(--size), var(--cell));
+		overflow              : hidden;
+		border                : 3px solid #0f172a;
+		border-radius         : 10px;
+		background            : #f8fafc;
+		// tracer au doigt : pas de défilement de la page sous le doigt
+		touch-action          : none;
+		user-select           : none;
+		outline               : none;
+		cursor                : pointer;
+
+		&:focus-visible { box-shadow : 0 0 0 3px #1d4ed8; }
+	}
+
+	.trace-cell {
+		box-sizing : border-box;
+		border     : 1px solid #cbd5e1;
+		transition : background 0.12s ease;
+
+		// case déjà couverte par le chemin
+		&.on { background : #fef3c7; }
+
+		// murs : traits épais sombres
+		&.w-top { border-top : 4px solid #0f172a; }
+		&.w-bottom { border-bottom : 4px solid #0f172a; }
+		&.w-left { border-left : 4px solid #0f172a; }
+		&.w-right { border-right : 4px solid #0f172a; }
+	}
+
+	// le chemin, par-dessus les cases
+	.trace-path {
+		position       : absolute;
+		inset          : 0;
+		width          : 100%;
+		height         : 100%;
+		pointer-events : none;
+
+		polyline {
+			fill            : none;
+			stroke          : #f59e0b;
+			stroke-width    : 0.34;
+			stroke-linecap  : round;
+			stroke-linejoin : round;
+			transition      : stroke 0.3s ease;
+		}
+
+		.trace-head { fill : #b45309; }
+	}
+
+	// numéros : pastilles sombres, au-dessus du chemin
+	.trace-number {
+		position        : absolute;
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		width           : calc(var(--cell) * 0.6);
+		height          : calc(var(--cell) * 0.6);
+		border-radius   : 50%;
+		background      : #0f172a;
+		color           : #f8fafc;
+		font-size       : calc(var(--cell) * 0.32);
+		font-weight     : 700;
+		transform       : translate(-50%, -50%);
+		pointer-events  : none;
+		transition      : background 0.2s ease, transform 0.2s ease;
+
+		// numéro atteint par le chemin
+		&.reached {
+			background : #b45309;
+			transform  : translate(-50%, -50%) scale(1.08);
+		}
+	}
+
+	// chemin complet et juste : il passe au vert
+	.trace-board.solved {
+		.trace-path polyline { stroke : #10b981; }
+		.trace-cell.on { background : #d1fae5; }
+		.trace-number.reached { background : #047857; }
+	}
+}

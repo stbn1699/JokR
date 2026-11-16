@@ -19,7 +19,7 @@ import {filterFromParams, filterParams, type StatsFilter, timelineTitle} from ".
 
 import Loader from "../Loader/Loader.tsx";
 // Une couleur fixe par jeu (vérifiée lisible et distincte, daltonisme compris) ; les autres jeux en gris
-const GAME_COLORS: Record<string, string> = {SUDOKU: "#3987e5", BINERO: "#e46f24", RIKUDO: "#1baf7a", TECTONIC: "#9085e9", GALAXIES: "#d55181", SHIKAKU: "#c98500", QUEENS: "#008300"};
+const GAME_COLORS: Record<string, string> = {SUDOKU: "#3987e5", BINERO: "#e46f24", RIKUDO: "#1baf7a", TECTONIC: "#9085e9", GALAXIES: "#d55181", SHIKAKU: "#c98500", QUEENS: "#008300", TRACE: "#0ea5e9"};
 const OTHER_COLOR = "#94a3b8";
 const gameColor = (code: string) => GAME_COLORS[code] ?? OTHER_COLOR;
 
@@ -320,7 +320,7 @@ function StatsContent({data, filter}: { data: StatsData; filter: StatsFilter }) 
             {/* ---------- Réglages */}
             <section className="stats-section">
                 <h2>Réglages choisis</h2>
-                <p className="stats-note">Taille de grille et nombre de cases à remplir (aide donnée pour les Galaxies, le Shikaku et le Queens), toutes parties confondues.</p>
+                <p className="stats-note">Taille de grille et nombre de cases à remplir (aide donnée pour les Galaxies, le Shikaku, le Queens et le Tracé), toutes parties confondues.</p>
                 <div className="stats-configs">
                     {data.games.map(g => {
                         const rows = data.configs.filter(c => c.gameCode === g.code).sort((a, b) => b.started - a.started);
@@ -329,7 +329,7 @@ function StatsContent({data, filter}: { data: StatsData; filter: StatsFilter }) 
                             <div key={g.code} className="stats-table-wrap">
                                 <table className="stats-table">
                                     <caption><i className="stats-dot" style={{background: gameColor(g.code)}}/>{g.name}</caption>
-                                    <thead><tr><th>Taille</th><th>{g.code === "GALAXIES" ? "Murs donnés" : g.code === "SHIKAKU" ? "Rectangles donnés" : g.code === "QUEENS" ? "Dames données" : "Cases"}</th><th>Lancées</th><th>Réussite</th><th>Temps médian</th></tr></thead>
+                                    <thead><tr><th>Taille</th><th>{g.code === "GALAXIES" ? "Murs donnés" : g.code === "SHIKAKU" ? "Rectangles donnés" : g.code === "QUEENS" ? "Dames données" : g.code === "TRACE" ? "Numéros en plus" : "Cases"}</th><th>Lancées</th><th>Réussite</th><th>Temps médian</th></tr></thead>
                                     <tbody>
                                     {rows.map(c => (
                                         <tr key={`${c.gridSize}-${c.emptyCells}`}>

@@ -2,7 +2,7 @@ import type {NextFunction, Request, Response} from "express";
 import {maintenance, MAINTENANCE_MESSAGE} from "../services/maintenance.js";
 
 // Requêtes qui lancent une nouvelle partie de puzzle : nouvelle grille, défi du jour (ou rejoué), défi d'un ami
-const NEW_GAME = /^\/(?:sudoku\/generateSudoku|(?:binero|rikudo|tectonic|galaxies|shikaku|queens)\/generate|daily\/[^/]+\/(?:start|replay\/[^/]+)|challenges\/[^/]+\/start)\/?$/;
+const NEW_GAME = /^\/(?:sudoku\/generateSudoku|(?:binero|rikudo|tectonic|galaxies|shikaku|queens|trace)\/generate|daily\/[^/]+\/(?:start|replay\/[^/]+)|challenges\/[^/]+\/start)\/?$/;
 
 export const isNewGameRequest = (method: string, path: string): boolean => method === "POST" && NEW_GAME.test(path);
 

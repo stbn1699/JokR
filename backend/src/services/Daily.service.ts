@@ -6,6 +6,7 @@ import type {TectonicService} from "./Tectonic.service.js";
 import type {GalaxiesService} from "./Galaxies.service.js";
 import type {ShikakuService} from "./Shikaku.service.js";
 import type {QueensService} from "./Queens.service.js";
+import type {TraceService} from "./Trace.service.js";
 
 /*
  * Défi du jour : une grille par jeu et par jour, la même pour tout le monde.
@@ -28,6 +29,8 @@ export const DAILY_GAMES = {
     SHIKAKU: {size: 10, emptyCells: 0},
     // Queens : size = côté, emptyCells = nombre de dames données en aide
     QUEENS: {size: 8, emptyCells: 0},
+    // Tracé : size = côté, emptyCells = numéros donnés en plus
+    TRACE: {size: 7, emptyCells: 1},
 } as const;
 
 export type DailyGameCode = keyof typeof DAILY_GAMES;
@@ -47,6 +50,7 @@ export class DailyService {
         private galaxies: GalaxiesService,
         private shikaku: ShikakuService,
         private queens: QueensService,
+        private trace: TraceService,
     ) {
     }
 
@@ -79,6 +83,8 @@ export class DailyService {
                 return this.shikaku.generate(size, emptyCells);
             case "QUEENS":
                 return this.queens.generate(size, emptyCells);
+            case "TRACE":
+                return this.trace.generate(size, emptyCells);
         }
     }
 
