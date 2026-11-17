@@ -1,10 +1,13 @@
 /**
  * Carte des niveaux d'un puzzle (/niveaux/:gameCode), façon jeu d'aventure : un chemin sinueux qui descend, avec un
  * rond par niveau, découpé en mondes de WORLD niveaux (flèches pour passer de l'un à l'autre ; un monde s'ouvre
- * quand le précédent est fini, tous en mode admin ; on arrive sur le monde du niveau à jouer). Niveaux réussis en or (avec le meilleur temps), le prochain à jouer qui pulse, les suivants
- * verrouillés. Les premiers forment le tutoriel (chapeau de diplômé). En haut : progression et accès à la partie
- * libre (grille aléatoire) ; quand cet encart sort de l'écran, une version compacte (jeu, réussites, monde) reste fixée
- * en haut, sous le header s'il est affiché. La page s'ouvre en haut, sans défilement automatique. Joueur connecté : progression du serveur ; invité : celle de ce navigateur.
+ * quand le précédent est fini, tous en mode admin ; on arrive sur le monde du niveau à jouer). Chaque monde a son
+ * nom, son décor et ses couleurs (worlds.ts, WorldBackdrop) : la plaine, la forêt, la rivière…
+ * Niveaux réussis en or partout (avec le meilleur temps), le prochain à jouer qui pulse à la couleur du monde, les
+ * suivants verrouillés dans la matière du monde. Les premiers forment le tutoriel (chapeau de diplômé). En haut :
+ * progression et accès à la partie libre (grille aléatoire) ; quand cet encart sort de l'écran, une version compacte
+ * (jeu, réussites, monde) reste fixée en haut, sous le header s'il est affiché. La page s'ouvre en haut, sans
+ * défilement automatique. Joueur connecté : progression du serveur ; invité : celle de ce navigateur.
  */
 
 import "./LevelsMap.scss";
@@ -16,6 +19,8 @@ import {formatDuration} from "../../Services/format.ts";
 import {guestDone, LEVEL_GAMES, type LevelsOverview, levelsService} from "../../Services/levels.service.ts";
 import {DAILY_GAME_NAMES} from "../../Services/dailyGames.ts";
 import Loader from "../Loader/Loader.tsx";
+import WorldBackdrop from "./WorldBackdrop.tsx";
+import {type World, worldAt} from "./worlds.ts";
 
 // Géométrie du chemin (unités du SVG : 400 de large, STEP entre deux niveaux)
 const WIDTH = 400;
@@ -28,6 +33,11 @@ const PINNED_FROM = 90;
 const WORLD = 50;
 const xOf = (i: number) => WIDTH / 2 + AMPLITUDE * Math.sin(i * 1.15);
 const yOf = (i: number) => TOP + i * STEP;
+
+// Couleurs d'un monde, en variables CSS (ronds, route, encart)
+const worldVars = (w: World) => ({
+    "--w-accent": w.accent, "--w-ink": w.ink, "--w-road": w.road, "--w-stone": w.stone,
+}) as CSSProperties;
 
 // Courbe douce qui passe par les points (Catmull-Rom → Bézier)
 function smoothPath(points: [number, number][]): string {
@@ -99,6 +109,7 @@ export default function LevelsMap() {
     const reachedHere = shown.filter(l => l.done).length;
     const reached = Math.min(shown.length - (lastWorld ? 1 : 0), reachedHere);
     // monde suivant ouvert une fois le dernier niveau de celui-ci réussi (mode admin : toujours)
+    const theme = worldAt(world);
     const nextWorldOpen = !lastWorld && (adminMode || (levels[first + WORLD - 1]?.done ?? false));
     // en changeant de monde, on repart du haut du chemin
     const goWorld = (w: number) => {
@@ -116,7 +127,7 @@ export default function LevelsMap() {
                 <FaChevronLeft aria-hidden/>
             </button>
             <span>
-                <strong>Monde {world + 1}</strong>
+                <span className="levels-world-title"><strong>Monde {world + 1}</strong> · {theme.name}</span>
                 <small>niveaux {first + 1} à {Math.min(count, first + WORLD)}</small>
             </span>
             <button type="button" disabled={!nextWorldOpen} aria-label="Monde suivant" onClick={() => goWorld(world + 1)}>
@@ -126,7 +137,8 @@ export default function LevelsMap() {
     );
 
     return (
-        <main className="levels-map">
+        <main className="levels-map" style={worldVars(theme)}>
+            <WorldBackdrop world={theme}/>
             <header className="levels-head" ref={headRef}>
                 <Link to="/" className="levels-back"><FaChevronLeft aria-hidden/> Puzzles</Link>
                 <div className="levels-title">
@@ -169,11 +181,17 @@ export default function LevelsMap() {
                     : (
                         <div className="levels-trail" style={{"--h": `${height}px`} as CSSProperties}>
                             <svg viewBox={`0 0 ${WIDTH} ${height}`} preserveAspectRatio="none" aria-hidden>
+                                <path className="levels-road-edge" d={smoothPath(points)}/>
                                 <path className="levels-road" d={smoothPath(points)}/>
                                 <path className="levels-road-dash" d={smoothPath(points)}/>
                                 {reached > 0 && <path className="levels-road-done" d={smoothPath(points.slice(0, reached + 1))}/>}
                             </svg>
 
+                            {world > 0 && (
+                                <span className="levels-chapter" style={{top: `${yOf(0) - 118}px`}}>
+                                    Monde {world + 1} · {theme.name}
+                                </span>
+                            )}
                             {world === 0 && tutorial > 0 && (
                                 <span className="levels-chapter" style={{top: `${yOf(0) - 118}px`}}>
                                     <FaGraduationCap aria-hidden/> Tutoriel
@@ -214,13 +232,13 @@ export default function LevelsMap() {
                                 </div>
                             ) : (
                                 <div className={`levels-node next-world ${nextWorldOpen ? "open" : ""}`}
-                                     style={{left: `${(xOf(shown.length) / WIDTH) * 100}%`, top: `${yOf(shown.length)}px`}}>
+                                     style={{...worldVars(worldAt(world + 1)), left: `${(xOf(shown.length) / WIDTH) * 100}%`, top: `${yOf(shown.length)}px`}}>
                                     <button type="button" disabled={!nextWorldOpen}
                                             aria-label={`Monde ${world + 2}${nextWorldOpen ? "" : ", verrouillé"}`}
                                             onClick={() => goWorld(world + 1)}>
                                         {nextWorldOpen ? <FaArrowDown aria-hidden/> : <FaLock aria-hidden/>}
                                     </button>
-                                    <span className="levels-label">Monde {world + 2}</span>
+                                    <span className="levels-label">Monde {world + 2} · {worldAt(world + 1).name}</span>
                                 </div>
                             )}
                         </div>
