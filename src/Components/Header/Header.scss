@@ -15,6 +15,12 @@
 	box-shadow    : 0 0.4rem 1.2rem rgba(0, 0, 0, 0.35);
 	transition    : transform 0.25s ease;
 
+	// Pages où il s'efface : collé exactement à sa place de départ (top = marge du haut), il ne remonte pas
+	// de quelques pixels avec la page avant de disparaître
+	&.auto-hide {
+		top : 1rem;
+	}
+
 	// Caché en descendant dans la page (voir useHideOnScroll) : il remonte hors de l'écran, ombre comprise
 	&.scrolled-away {
 		transform : translateY(calc(-100% - 2.5rem));
@@ -351,6 +357,10 @@ body:has([aria-modal="true"]) .header.scrolled-away {
 		padding    : 0.4rem 0.75rem;
 		min-height : 3.5rem;
 
+		&.auto-hide {
+			top : 0.5rem;
+		}
+
 		.logo {
 			height : 2.2rem;
 		}
@@ -432,6 +442,10 @@ body:has([aria-modal="true"]) .header.scrolled-away {
 		height     : 3rem;
 		margin     : 0.4rem;
 		padding    : 0 0.75rem;
+
+		&.auto-hide {
+			top : 0.4rem;
+		}
 
 		.logo {
 			height : 1.9rem;

@@ -86,7 +86,8 @@ export default function Header() {
     const dailyPending = useDailyPending(isLoggedIn, pathname);
     const wheelPending = useWheelPending(isLoggedIn, pathname);
     // Hors des deux pages d'accueil (Puzzle et Hasard) : caché quand on descend, de retour dès qu'on remonte
-    const autoHidden = useHideOnScroll(pathname !== "/" && pathname !== "/hasard", pathname);
+    const autoHide = pathname !== "/" && pathname !== "/hasard";
+    const autoHidden = useHideOnScroll(autoHide, pathname);
     // Après une victoire : valeurs d'avant jusqu'à l'arrivée des particules, puis changement animé
     // les animations suivent le vrai compte ; en mode admin, on affiche niveau 100 et crédits illimités
     const shown = useHeaderProgress(auth.account);
@@ -108,7 +109,7 @@ export default function Header() {
     return (
         <>
         {adminMode && createPortal(<div className="admin-mode-frame" aria-hidden><span>Mode admin</span></div>, document.body)}
-        <div className={`header ${isGameRoute(pathname) ? "in-game" : ""} ${autoHidden ? "scrolled-away" : ""}`}>
+        <div className={`header ${isGameRoute(pathname) ? "in-game" : ""} ${autoHide ? "auto-hide" : ""} ${autoHidden ? "scrolled-away" : ""}`}>
             <img
                 src="/JokR_Logo_Full.svg"
                 alt="logo"
