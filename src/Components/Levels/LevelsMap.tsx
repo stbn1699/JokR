@@ -34,6 +34,16 @@ const WORLD = 50;
 const xOf = (i: number) => WIDTH / 2 + AMPLITUDE * Math.sin(i * 1.15);
 const yOf = (i: number) => TOP + i * STEP;
 
+// Monde d'arrivée sur la carte d'un jeu, gardé dans ce navigateur
+const worldKey = (code: string) => `jokr.levels.world.${code}`;
+function rememberedWorld(code: string): number {
+    try {
+        return Math.max(0, Number(localStorage.getItem(worldKey(code))) || 0);
+    } catch {
+        return 0;
+    }
+}
+
 // Couleurs d'un monde, en variables CSS (ronds, route, encart)
 const worldVars = (w: World) => ({
     "--w-accent": w.accent, "--w-ink": w.ink, "--w-road": w.road, "--w-stone": w.stone,
@@ -93,7 +103,18 @@ export default function LevelsMap() {
     const current = levels.find((l, i) => !l.done && (i === 0 || levels[i - 1]!.done))?.level ?? null;
 
     const worlds = Math.max(1, Math.ceil(levels.length / WORLD));
-    const world = chosenWorld ?? Math.floor(((current ?? levels.length) - 1) / WORLD);
+    // monde d'arrivée : celui du niveau à jouer ; pendant le chargement, le dernier vu pour ce jeu (sinon on
+    // afficherait un instant le décor d'un autre monde avant le bon)
+    const arrivalWorld = overview ? Math.max(0, Math.floor(((current ?? levels.length) - 1) / WORLD)) : null;
+    const world = chosenWorld ?? arrivalWorld ?? rememberedWorld(code);
+    useEffect(() => {
+        if (arrivalWorld === null) return;
+        try {
+            localStorage.setItem(worldKey(code), String(arrivalWorld));
+        } catch {
+            // stockage indisponible (navigation privée…) : on repartira de la Plaine au prochain chargement
+        }
+    }, [code, arrivalWorld]);
 
     if (!LEVEL_GAMES.has(code)) return <Navigate to={`/playgame/${code}`} replace/>;
 
