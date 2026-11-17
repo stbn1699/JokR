@@ -3,7 +3,8 @@
  * rond par niveau, découpé en mondes de WORLD niveaux (flèches pour passer de l'un à l'autre ; on arrive sur le monde
  * du niveau à jouer). Niveaux réussis en or (avec le meilleur temps), le prochain à jouer qui pulse, les suivants
  * verrouillés. Les premiers forment le tutoriel (chapeau de diplômé). En haut : progression et accès à la partie
- * libre (grille aléatoire). Joueur connecté : progression du serveur ; invité : celle de ce navigateur.
+ * libre (grille aléatoire) ; quand cet encart sort de l'écran, une version compacte (jeu, réussites, monde) reste fixée
+ * en haut, sous le header s'il est affiché. La page s'ouvre en haut, sans défilement automatique. Joueur connecté : progression du serveur ; invité : celle de ce navigateur.
  */
 
 import "./LevelsMap.scss";
@@ -21,6 +22,8 @@ const WIDTH = 400;
 const STEP = 150;
 const TOP = 140;
 const AMPLITUDE = 120;
+// l'encart compact apparaît quand le bas de l'encart du haut remonte au-dessus de cette hauteur (px)
+const PINNED_FROM = 90;
 // niveaux par monde
 const WORLD = 50;
 const xOf = (i: number) => WIDTH / 2 + AMPLITUDE * Math.sin(i * 1.15);
@@ -46,7 +49,16 @@ export default function LevelsMap() {
     const navigate = useNavigate();
     const [overview, setOverview] = useState<LevelsOverview | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const currentRef = useRef<HTMLButtonElement>(null);
+    const headRef = useRef<HTMLElement>(null);
+    // encart du haut sorti de l'écran : sa version compacte reste fixée en haut
+    const [pinned, setPinned] = useState(false);
+    useEffect(() => {
+        // dès que l'encart passe sous la place de sa version compacte (environ 90 px)
+        const onScroll = () => setPinned((headRef.current?.getBoundingClientRect().bottom ?? PINNED_FROM) < PINNED_FROM);
+        onScroll();
+        window.addEventListener("scroll", onScroll, {passive: true});
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
     // monde affiché (null : celui du niveau à jouer)
     const [chosenWorld, setChosenWorld] = useState<number | null>(null);
 
@@ -73,11 +85,6 @@ export default function LevelsMap() {
     const worlds = Math.max(1, Math.ceil(levels.length / WORLD));
     const world = chosenWorld ?? Math.floor(((current ?? levels.length) - 1) / WORLD);
 
-    // On arrive sur la carte au niveau à jouer ; en changeant de monde, en haut du chemin
-    useEffect(() => {
-        if (chosenWorld === null && current !== null) currentRef.current?.scrollIntoView({block: "center", behavior: "smooth"});
-    }, [current, chosenWorld]);
-
     if (!LEVEL_GAMES.has(code)) return <Navigate to={`/playgame/${code}`} replace/>;
 
     const name = DAILY_GAME_NAMES[code] ?? code;
@@ -92,14 +99,34 @@ export default function LevelsMap() {
     const reachedHere = shown.filter(l => l.done).length;
     const reached = Math.min(shown.length - (lastWorld ? 1 : 0), reachedHere);
     const nextWorldOpen = !lastWorld && (adminMode || (levels[first + WORLD - 1]?.done ?? false));
+    // en changeant de monde, on repart du haut du chemin
     const goWorld = (w: number) => {
         setChosenWorld(w);
         window.scrollTo({top: 0, behavior: "smooth"});
     };
+    const progress = (
+        <div className="levels-progress" aria-hidden>
+            <span style={{width: count ? `${(doneCount / count) * 100}%` : 0}}/>
+        </div>
+    );
+    const worldNav = worlds > 1 && (
+        <nav className="levels-worlds" aria-label="Mondes">
+            <button type="button" disabled={world === 0} aria-label="Monde précédent" onClick={() => goWorld(world - 1)}>
+                <FaChevronLeft aria-hidden/>
+            </button>
+            <span>
+                <strong>Monde {world + 1}</strong> / {worlds}
+                <small>niveaux {first + 1} à {Math.min(count, first + WORLD)}</small>
+            </span>
+            <button type="button" disabled={lastWorld} aria-label="Monde suivant" onClick={() => goWorld(world + 1)}>
+                <FaChevronRight aria-hidden/>
+            </button>
+        </nav>
+    );
 
     return (
         <main className="levels-map">
-            <header className="levels-head">
+            <header className="levels-head" ref={headRef}>
                 <Link to="/" className="levels-back"><FaChevronLeft aria-hidden/> Puzzles</Link>
                 <div className="levels-title">
                     <img src={`/gameIcons/${code}.svg`} alt="" aria-hidden/>
@@ -108,26 +135,11 @@ export default function LevelsMap() {
                         <p>Niveaux · {doneCount} / {count || "…"} réussis</p>
                     </div>
                 </div>
-                <div className="levels-progress" aria-hidden>
-                    <span style={{width: count ? `${(doneCount / count) * 100}%` : 0}}/>
-                </div>
+                {progress}
                 <button type="button" className="levels-free" onClick={() => navigate(`/playgame/${code}`)}>
                     <FaDice aria-hidden/> Grille aléatoire
                 </button>
-                {worlds > 1 && (
-                    <nav className="levels-worlds" aria-label="Mondes">
-                        <button type="button" disabled={world === 0} aria-label="Monde précédent" onClick={() => goWorld(world - 1)}>
-                            <FaChevronLeft aria-hidden/>
-                        </button>
-                        <span>
-                            <strong>Monde {world + 1}</strong> / {worlds}
-                            <small>niveaux {first + 1} à {Math.min(count, first + WORLD)}</small>
-                        </span>
-                        <button type="button" disabled={lastWorld} aria-label="Monde suivant" onClick={() => goWorld(world + 1)}>
-                            <FaChevronRight aria-hidden/>
-                        </button>
-                    </nav>
-                )}
+                {worldNav}
                 {adminMode && (
                     <p className="levels-guest">Mode admin : tous les niveaux sont ouverts, mais aucune réussite n'est enregistrée.</p>
                 )}
@@ -137,6 +149,19 @@ export default function LevelsMap() {
                     </p>
                 )}
             </header>
+
+            {/* version compacte, fixée en haut tant que l'encart est hors de l'écran */}
+            <div className={`levels-pinned ${pinned ? "shown" : ""}`} aria-hidden={!pinned} inert={!pinned}>
+                <div className="levels-pinned-row">
+                    <img src={`/gameIcons/${code}.svg`} alt="" aria-hidden/>
+                    <div className="levels-pinned-title">
+                        <strong>{name}</strong>
+                        <span>{doneCount} / {count || "…"} réussis</span>
+                    </div>
+                    {worldNav}
+                </div>
+                {progress}
+            </div>
 
             {error ? <p className="levels-error" role="alert">{error}</p>
                 : !overview ? <Loader label="Chargement des niveaux…"/>
@@ -166,8 +191,7 @@ export default function LevelsMap() {
                                 return (
                                     <div key={l.level} className={`levels-node ${state}`}
                                          style={{left: `${(xOf(i) / WIDTH) * 100}%`, top: `${yOf(i)}px`}}>
-                                        <button type="button" ref={l.level === current ? currentRef : undefined}
-                                                disabled={!unlocked}
+                                        <button type="button" disabled={!unlocked}
                                                 aria-label={`Niveau ${l.level}${l.done ? ", réussi" : unlocked ? ", à jouer" : ", verrouillé"}`}
                                                 onClick={() => navigate(`/niveaux/${code}/${l.level}`)}>
                                             {state === "locked" ? <FaLock aria-hidden/> : <span className="levels-num">{l.level}</span>}

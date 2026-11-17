@@ -32,7 +32,7 @@ import TierUpPopup from "../Avatar/TierUpPopup.tsx";
 import LevelBubble from "../Avatar/LevelBubble.tsx";
 import CustomizePanel from "../Shop/CustomizePanel.tsx";
 import ProfileMenu from "./ProfileMenu.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {dailyService} from "../../Services/daily.service.ts";
 import {casinoService, WHEEL_SPUN_EVENT} from "../../Services/casino.service.ts";
 import {formatCredits} from "../../Services/credits.ts";
@@ -88,6 +88,21 @@ export default function Header() {
     // Hors des deux pages d'accueil (Puzzle et Hasard) : caché quand on descend, de retour dès qu'on remonte
     const autoHide = pathname !== "/" && pathname !== "/hasard";
     const autoHidden = useHideOnScroll(autoHide, pathname);
+    // Place occupée en haut de l'écran par le header collé (0 quand il est caché), en variable CSS --header-space :
+    // ce qui se fixe en haut de la page (ex. l'encart compact des niveaux) se cale dessous
+    const headerRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const header = headerRef.current;
+        if (!header) return;
+        const update = () => {
+            const space = autoHidden ? 0 : (parseFloat(getComputedStyle(header).top) || 0) + header.offsetHeight;
+            document.documentElement.style.setProperty("--header-space", `${space}px`);
+        };
+        update();
+        const observer = new ResizeObserver(update);
+        observer.observe(header);
+        return () => observer.disconnect();
+    }, [autoHidden, pathname]);
     // Après une victoire : valeurs d'avant jusqu'à l'arrivée des particules, puis changement animé
     // les animations suivent le vrai compte ; en mode admin, on affiche niveau 100 et crédits illimités
     const shown = useHeaderProgress(auth.account);
@@ -109,7 +124,7 @@ export default function Header() {
     return (
         <>
         {adminMode && createPortal(<div className="admin-mode-frame" aria-hidden><span>Mode admin</span></div>, document.body)}
-        <div className={`header ${isGameRoute(pathname) ? "in-game" : ""} ${autoHide ? "auto-hide" : ""} ${autoHidden ? "scrolled-away" : ""}`}>
+        <div ref={headerRef} className={`header ${isGameRoute(pathname) ? "in-game" : ""} ${autoHide ? "auto-hide" : ""} ${autoHidden ? "scrolled-away" : ""}`}>
             <img
                 src="/JokR_Logo_Full.svg"
                 alt="logo"
