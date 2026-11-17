@@ -4,6 +4,7 @@ import type {AuthLocals} from "../middleware/auth.js";
 import type {LeaderboardRepository} from "../repository/Leaderboard.repository.js";
 import type {GamesService} from "../services/Games.service.js";
 import {routeParam} from "../utils/validation.js";
+import {levelGame} from "../utils/levels.js";
 import type {FriendsRepository} from "../repository/Friends.repository.js";
 
 const TOP = 20;
@@ -60,7 +61,9 @@ export function createLeaderboardController(repo: LeaderboardRepository, games: 
                 repo.topGame(code, TOP, members),
                 userId ? repo.gameRankOf(userId, code) : Promise.resolve(null),
             ]);
-            res.status(200).json({status: "ok", data: {entries: withRank(entries), me}});
+            // nombre de niveaux du jeu (mode Niveaux), pour afficher le niveau à faire sans dépasser le dernier
+            const levelCount = levelGame(code)?.levels.length;
+            res.status(200).json({status: "ok", data: {entries: withRank(entries), me, levelCount}});
         }),
     };
 }

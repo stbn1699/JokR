@@ -83,6 +83,12 @@ export const levelInWorld = (level: number) => ({
     number: ((level - 1) % WORLD_SIZE) + 1,
 });
 
+/**
+ * Niveau que le joueur doit faire : celui qui suit ses niveaux réussis (ils se font dans l'ordre), même s'il n'a pas
+ * encore ouvert son monde. Après le niveau 50, c'est le niveau 1 du monde 2. Tout fini : le dernier niveau du jeu.
+ */
+export const currentLevel = (done: number, count: number) => Math.max(1, Math.min(done + 1, count));
+
 // « Monde 2 - Niveau 6 »
 export function levelName(level: number): string {
     const {world, number} = levelInWorld(level);

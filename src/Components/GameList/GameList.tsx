@@ -1,6 +1,6 @@
 import "./GameList.scss"
 import {LEVEL_GAMES, type LevelsSummary, levelsService} from "../../Services/levels.service.ts";
-import {levelInWorld, worldAt, WORLD_SIZE} from "../Levels/worlds.ts";
+import {currentLevel, levelInWorld, worldAt, WORLD_SIZE} from "../Levels/worlds.ts";
 import WorldBackdrop from "../Levels/WorldBackdrop.tsx";
 import {type CSSProperties, useEffect, useRef, useState} from "react";
 import type {Game} from "../../Models/game.model.ts";
@@ -58,12 +58,12 @@ function GameListSkeleton() {
 }
 
 /**
- * Jeu avec un mode Niveaux : le monde du dernier niveau réussi, avec son décor en fond (opaque), et ce niveau.
+ * Jeu avec un mode Niveaux : le monde du niveau à faire, avec son décor en fond (opaque), et ce niveau.
  * Les particules du décor ne bougent que pendant le survol (il y a 8 décors sur l'accueil).
  */
 function LevelsStatsPanel({levels}: { levels: LevelsSummary }) {
-    // dernier niveau réussi, numéroté dans son monde (comme au classement) : « Monde 2 », « Niveau 6 / 50 »
-    const {world: worldNumber, number} = levelInWorld(levels.highest);
+    // niveau à faire, numéroté dans son monde (comme au classement) : « Monde 2 », « Niveau 1 / 50 » après le 50
+    const {world: worldNumber, number} = levelInWorld(currentLevel(levels.done, levels.count));
     const index = worldNumber - 1;
     const world = worldAt(index);
     const worldLevels = Math.min(WORLD_SIZE, levels.count - index * WORLD_SIZE);

@@ -31,7 +31,7 @@ import {daysOfMonth, longDate} from "../DailyHistory/calendar.ts";
 
 import Loader from "../Loader/Loader.tsx";
 import Avatar from "../Avatar/Avatar.tsx";
-import {levelInWorld, levelName, worldAt} from "../Levels/worlds.ts";
+import {currentLevel, levelInWorld, levelName, worldAt} from "../Levels/worlds.ts";
 import WorldBackdrop from "../Levels/WorldBackdrop.tsx";
 // `short` : libellé sur téléphone
 const TABS = [
@@ -79,10 +79,13 @@ const ordinal = (rank: number) => <>{rank}<sup>{rank === 1 ? "er" : "e"}</sup></
 
 // Une ligne de classement, prête à afficher (XP, jeu ou défi)
 // userLevel : niveau global du joueur (contour et numéro sur son icône)
-// Classement d'un jeu : dernier niveau réussi (« Monde 2 - Niveau 6 ») ; les niveaux se font dans l'ordre
-const reached = (levels: number) => levels > 0 ? levelName(levels) : "Aucun niveau";
+// Classement d'un jeu : niveau à faire (« Monde 2 - Niveau 1 » une fois le 50 réussi) ; count : niveaux du jeu
+const reached = (levels: number, count: number | undefined) => count ? levelName(currentLevel(levels, count)) : "Aucun niveau";
+// Monde de ce niveau (à partir de 0), pour le décor derrière la ligne
+const reachedWorld = (levels: number, count: number | undefined) =>
+    count ? levelInWorld(currentLevel(levels, count)).world - 1 : undefined;
 
-// world : classement d'un jeu, monde du dernier niveau réussi (à partir de 0), dont le décor passe derrière la ligne
+// world : classement d'un jeu, monde du niveau à faire (à partir de 0), dont le décor passe derrière la ligne
 type Row = { rank: number; username: string; avatar: string; userLevel: number; main: ReactNode; detail?: ReactNode; world?: number };
 
 /**
@@ -204,8 +207,8 @@ export default function Leaderboard() {
         ? board.entries.map(e => ({
             rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel,
             // Classé par niveaux réussis (mode Niveaux), puis par victoires
-            main: <>{reached(e.levels ?? 0)}</>,
-            world: e.levels ? levelInWorld(e.levels).world - 1 : undefined,
+            main: <>{reached(e.levels ?? 0, board.levelCount)}</>,
+            world: reachedWorld(e.levels ?? 0, board.levelCount),
         }))
         : board
         ? board.entries.map(e => ({
@@ -221,7 +224,7 @@ export default function Leaderboard() {
     const me = board?.me && tab === "credits"
         ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · {(board.me.credits ?? 0).toLocaleString("fr-FR")} crédit{(board.me.credits ?? 0) > 1 ? "s" : ""}</>
         : board?.me && tab === "jeu"
-        ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · {reached(board.me.levels ?? 0)}</>
+        ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · {reached(board.me.levels ?? 0, board.levelCount)}</>
         : board?.me
         ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · niveau {board.me.level}</>
         : daily?.me

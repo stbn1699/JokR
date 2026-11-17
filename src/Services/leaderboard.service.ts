@@ -21,6 +21,8 @@ export interface Leaderboard {
     entries: LeaderboardEntry[];
     // Place du joueur connecté (null si invité ou jamais classé)
     me: { rank: number; total: number; level: number; xp?: number; gamesWon?: number; levels?: number; credits?: number } | null;
+    // Seulement pour le classement d'un jeu qui a un mode Niveaux : nombre de niveaux du jeu
+    levelCount?: number;
 }
 
 export const leaderboardService = {
