@@ -138,7 +138,7 @@ export default function LevelsMap() {
 
     return (
         <main className="levels-map" style={worldVars(theme)}>
-            <WorldBackdrop world={theme}/>
+            <WorldBackdrop index={world} world={theme}/>
             <header className="levels-head" ref={headRef}>
                 <Link to="/" className="levels-back"><FaChevronLeft aria-hidden/> Puzzles</Link>
                 <div className="levels-title">
