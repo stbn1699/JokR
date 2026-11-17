@@ -19,7 +19,7 @@ const BURST_MS = 1300;
 type Props = {
     // monde ouvert (à partir de 0) ; le précédent vient d'être terminé
     world: number;
-    // nombre de niveaux du jeu (pour « niveaux 51 à 100 »)
+    // nombre de niveaux du jeu (pour « 50 niveaux », moins dans le dernier monde)
     count: number;
     onClose: () => void;
 };
@@ -66,7 +66,7 @@ export default function WorldUnlockPopup({world, count, onClose}: Props) {
                     Nouveau monde : <span className="world-unlock-name">{to.name}</span> !
                 </h2>
                 <p className="world-unlock-sub">
-                    Monde {world + 1} · niveaux {first} à {last}
+                    Monde {world + 1} · {last - first + 1} niveaux
                 </p>
 
                 <div className="modal-buttons">

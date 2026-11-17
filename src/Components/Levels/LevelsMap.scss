@@ -544,6 +544,16 @@
 	}
 }
 
+// Décor dans un cadre (fête du nouveau monde, survol des jeux sur l'accueil) au lieu de tout l'écran :
+// le cadre doit être en `container-type: inline-size`, les hauteurs suivent sa largeur
+.world-backdrop.framed {
+	position : absolute;
+	z-index  : 0;
+
+	svg.world-sky { height : 37.5cqw; }
+	svg.world-ground { height : 31.25cqw; }
+}
+
 // particules : chaque monde a les siennes (feuilles, pétales, éclats, flocons, bulles, braises…)
 .world-particles {
 	position : absolute;

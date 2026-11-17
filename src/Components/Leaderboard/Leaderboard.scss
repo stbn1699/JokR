@@ -268,6 +268,56 @@
 				color      : #fbbf24;
 				font-weight : 700;
 			}
+
+			// Classement d'un jeu : décor du monde du joueur derrière la ligne (voir RowWorld)
+			&.has-world {
+				position  : relative;
+				isolation : isolate;
+				overflow  : hidden;
+
+				> :not(.leaderboard-world) {
+					position : relative;
+					z-index  : 1;
+				}
+
+				.leaderboard-main {
+					text-shadow : 0 1px 0.4rem rgba(0, 0, 0, 0.9);
+				}
+			}
+		}
+	}
+
+	// Le décor sur la moitié droite de la ligne (plus petit : l'horizon, sol et arbres, tient dans la hauteur) ;
+	// transparent côté pseudo, visible vers le monde et le niveau
+	.leaderboard-world {
+		position       : absolute;
+		inset          : 0 0 0 auto;
+		z-index        : 0;
+		width          : 60%;
+		pointer-events : none;
+		opacity        : 0.35;
+		container-type : inline-size;
+		mask-image     : linear-gradient(to right, transparent, #000 65%);
+		transition     : opacity 0.3s ease;
+
+		// décor entier (2 × 1 environ), la ligne centrée un peu sous l'horizon
+		.world-backdrop.framed {
+			inset  : auto 0;
+			top    : calc(50% - 24cqw);
+			height : 50cqw;
+		}
+
+		// immobile tant que la ligne n'est pas survolée
+		* {
+			animation-play-state : paused;
+		}
+	}
+
+	.leaderboard-list li.has-world:hover .leaderboard-world {
+		opacity : 1;
+
+		* {
+			animation-play-state : running;
 		}
 	}
 

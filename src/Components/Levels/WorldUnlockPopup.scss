@@ -129,15 +129,6 @@
 	}
 }
 
-// L'écran de la carte suit la fenêtre : décor dans un cadre au lieu de tout l'écran
-.world-backdrop.framed {
-	position : absolute;
-	z-index  : 0;
-
-	svg.world-sky { height : 37.5cqw; }
-	svg.world-ground { height : 31.25cqw; }
-}
-
 @keyframes world-unlock-in {
 	from {
 		opacity   : 0;

@@ -1,5 +1,7 @@
 import "./GameList.scss"
-import {LEVEL_GAMES} from "../../Services/levels.service.ts";
+import {LEVEL_GAMES, type LevelsSummary, levelsService} from "../../Services/levels.service.ts";
+import {levelInWorld, worldAt, WORLD_SIZE} from "../Levels/worlds.ts";
+import WorldBackdrop from "../Levels/WorldBackdrop.tsx";
 import {type CSSProperties, useEffect, useRef, useState} from "react";
 import type {Game} from "../../Models/game.model.ts";
 import {gameService} from "../../Services/game.service.ts";
@@ -56,13 +58,39 @@ function GameListSkeleton() {
 }
 
 /**
- * Stats du joueur sur un jeu : niveau, barre d'XP, victoires.
+ * Jeu avec un mode Niveaux : le monde du dernier niveau réussi, avec son décor en fond (opaque), et ce niveau.
+ * Les particules du décor ne bougent que pendant le survol (il y a 8 décors sur l'accueil).
+ */
+function LevelsStatsPanel({levels}: { levels: LevelsSummary }) {
+    // dernier niveau réussi, numéroté dans son monde (comme au classement) : « Monde 2 », « Niveau 6 / 50 »
+    const {world: worldNumber, number} = levelInWorld(levels.highest);
+    const index = worldNumber - 1;
+    const world = worldAt(index);
+    const worldLevels = Math.min(WORLD_SIZE, levels.count - index * WORLD_SIZE);
+    return (
+        <div className="game-stats world" style={{"--w-accent": world.accent, "--w-ink": world.ink} as CSSProperties}>
+            <WorldBackdrop index={index} world={world} framed/>
+            <div className="game-stats-row" style={{"--k": 0} as CSSProperties}>
+                <span className="game-stats-value world-number">Monde {index + 1}</span>
+                <span className="game-stats-world-name">{world.name}</span>
+            </div>
+            <div className="game-stats-row" style={{"--k": 1} as CSSProperties}>
+                <span className="game-stats-world-levels">Niveau {number} / {worldLevels}</span>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Stats du joueur sur un jeu : son monde et ses niveaux réussis (LevelsStatsPanel). Jeu sans mode Niveaux : niveau
+ * du jeu, barre d'XP et victoires (l'XP par jeu reste calculée, elle ne s'affiche juste plus pour les puzzles).
  * Souris : panneau qui recouvre exactement la carte au survol (la barre se remplit, les lignes arrivent
  * l'une après l'autre). Écran tactile : petite ligne sous la carte.
  * Sans stat (aucune victoire sur ce jeu) : « Pas encore joué ».
  */
-function GameStatsPanel({stat}: { stat?: GameStats }) {
-    if (!stat || !stat.games_won) {
+function GameStatsPanel({stat, levels}: { stat?: GameStats; levels?: LevelsSummary }) {
+    if (levels?.done) return <LevelsStatsPanel levels={levels}/>;
+    if (!stat?.games_won) {
         return (
             <div className="game-stats empty">
                 <div className="game-stats-row" style={{"--k": 0} as CSSProperties}>
@@ -75,10 +103,10 @@ function GameStatsPanel({stat}: { stat?: GameStats }) {
             </div>
         );
     }
-    const level = stat.game_level ?? 0;
-    const xp = stat.game_xp ?? 0;
+    const level = stat?.game_level ?? 0;
+    const xp = stat?.game_xp ?? 0;
     const next = xpToNextLevel(level);
-    const won = stat.games_won ?? 0;
+    const won = stat?.games_won ?? 0;
     return (
         <div className="game-stats" style={{"--xp": Math.min(1, xp / next)} as CSSProperties}>
             <div className="game-stats-row" style={{"--k": 0} as CSSProperties}>
@@ -100,6 +128,8 @@ function GameStatsPanel({stat}: { stat?: GameStats }) {
 export default function GameList() {
     const [games, setGames] = useState<Game[]>([])
     const [userStats, setUserStats] = useState<GameStats[] | null>(null)
+    // progression du mode Niveaux, par jeu (null : pas chargée, ou indisponible)
+    const [levelsSummary, setLevelsSummary] = useState<Record<string, LevelsSummary> | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null);
     const [overlayVisible, setOverlayVisible] = useState(false);
@@ -120,10 +150,17 @@ export default function GameList() {
                 ? gameStatsService.getStatsByUserId(userId)
                 : Promise.resolve(null);
 
-        Promise.all([gamesPromise, statsPromise])
-            .then(([gamesResult, statsResult]) => {
+        // un souci sur les niveaux ne doit pas empêcher l'accueil de s'afficher
+        const levelsPromise =
+            userId
+                ? levelsService.summary(controller.signal).catch(() => null)
+                : Promise.resolve(null);
+
+        Promise.all([gamesPromise, statsPromise, levelsPromise])
+            .then(([gamesResult, statsResult, levelsResult]) => {
                 setGames(gamesResult);
                 setUserStats(statsResult);
+                setLevelsSummary(levelsResult);
                 rememberGameCount(gamesResult.length);
             })
             .catch((err) => {
@@ -194,7 +231,7 @@ export default function GameList() {
                                 </div>
 
                                 {/* stats chargées : celles du jeu, ou « pas encore joué » */}
-                                {userId && userStats && <GameStatsPanel stat={stat}/>}
+                                {userId && userStats && <GameStatsPanel stat={stat} levels={levelsSummary?.[game.code]}/>}
                             </div>
 
                             {/* Défi du jour de ce jeu (invité : ouvre l'invitation à créer un compte) */}

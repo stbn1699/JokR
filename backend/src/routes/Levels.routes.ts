@@ -4,13 +4,14 @@ import {createDb} from "../db/kysely.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import {optionalAuth, type AuthLocals} from "../middleware/auth.js";
 import {LevelsRepository} from "../repository/Levels.repository.js";
-import {isLevelUnlocked, levelGame, levelPuzzle} from "../utils/levels.js";
+import {isLevelUnlocked, LEVEL_GAMES, levelGame, levelPuzzle} from "../utils/levels.js";
 import {isPuzzleGame, startPuzzle} from "../services/puzzleGames.js";
 import {routeParam} from "../utils/validation.js";
 import {tracker} from "../services/tracker.js";
 
 /*
  * Mode Niveaux des puzzles (voir backend/src/utils/levels.ts)
+ * - GET /levels → résumé de chaque jeu pour l'accueil : { [jeu]: { count, tutorial, done, highest } }
  * - GET /levels/:game → { tutorial, levels: [{ level, size, hints, done, bestMs }] } (done : réussi par le joueur
  *   connecté ; invité : rien de réussi, le site garde sa progression dans le navigateur)
  * - POST /levels/:game/:level/start → { date: "", alreadyDone: false, gameId, grid, size, emptyCells } (même forme
@@ -21,6 +22,19 @@ const router = Router();
 const repo = new LevelsRepository(createDb(pool));
 
 const gameParam = (req: Request) => (routeParam(req.params, "game") ?? "").toUpperCase();
+
+// Résumé de tous les jeux (accueil) : { [jeu]: { count, tutorial, done, highest } } ; invité : rien de réussi
+router.get("/", optionalAuth, asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
+    const userId = res.locals.ghost ? undefined : res.locals.userId;
+    const progress = new Map((userId ? await repo.summary(userId) : []).map(p => [p.gameCode, p]));
+    const data = Object.fromEntries(Object.entries(LEVEL_GAMES).map(([code, game]) => [code, {
+        count: game.levels.length,
+        tutorial: game.tutorial,
+        done: progress.get(code)?.done ?? 0,
+        highest: progress.get(code)?.highest ?? 0,
+    }]));
+    res.status(200).json({status: "ok", data});
+}));
 
 router.get("/:game", optionalAuth, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
     const code = gameParam(req);

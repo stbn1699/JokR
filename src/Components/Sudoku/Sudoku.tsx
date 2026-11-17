@@ -41,6 +41,7 @@ import {gameService} from "../../Services/game.service.ts";
 import SudokuSettingsPopup from "./SudokuSettingsPopup.tsx";
 import SudokuGrid from "./SudokuGrid.tsx";
 import DigitPanel from "../PuzzleUI/DigitPanel.tsx";
+import {levelName} from "../Levels/worlds.ts";
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -127,7 +128,7 @@ export default function Sudoku({daily = false, replayDate, challengeId, level, l
         <div className="puzzle-layout sudoku">
             <GameToolbar
                 gameName="Sudoku"
-                label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                label={level ? levelName(level) : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
                     : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && canUndo} canRedo={playing && canRedo}
@@ -153,7 +154,7 @@ export default function Sudoku({daily = false, replayDate, challengeId, level, l
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
                 {level && (
                     <p className="daily-label level-label">
-                        <Link to="/niveaux/SUDOKU">Niveaux</Link> · Niveau {level}{levelInfo?.count ? ` sur ${levelInfo.count}` : ""}
+                        <Link to="/niveaux/SUDOKU">Niveaux</Link> · {levelName(level)}
                     </p>
                 )}
                 <h1 className="title">Sudoku</h1>

@@ -40,6 +40,7 @@ import {bineroService} from "../../Services/binero.service.ts";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
 import BineroGrid from "./BineroGrid.tsx";
 import BineroSettingsPopup from "./BineroSettingsPopup.tsx";
+import {levelName} from "../Levels/worlds.ts";
 
 const DIGITS = [0, 1];
 
@@ -128,7 +129,7 @@ export default function Binero({daily = false, replayDate, challengeId, level, l
         <div className="puzzle-layout binero">
             <GameToolbar
                 gameName="Binero"
-                label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                label={level ? levelName(level) : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
                     : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
@@ -159,7 +160,7 @@ export default function Binero({daily = false, replayDate, challengeId, level, l
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
                 {level && (
                     <p className="daily-label level-label">
-                        <Link to="/niveaux/BINERO">Niveaux</Link> · Niveau {level}{levelInfo?.count ? ` sur ${levelInfo.count}` : ""}
+                        <Link to="/niveaux/BINERO">Niveaux</Link> · {levelName(level)}
                     </p>
                 )}
                 <h1 className="title">Binero</h1>

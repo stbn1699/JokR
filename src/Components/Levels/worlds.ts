@@ -75,6 +75,21 @@ export const worldAt = (index: number): World => WORLDS[((index % WORLDS.length)
 export const WORLD_SIZE = 50;
 
 /**
+ * Numérotation affichée : de 1 à 50 dans chaque monde (le niveau 56 du jeu est le niveau 6 du monde 2).
+ * Les adresses et le serveur gardent le numéro dans le jeu (1 à 1000).
+ */
+export const levelInWorld = (level: number) => ({
+    world: Math.floor((level - 1) / WORLD_SIZE) + 1,
+    number: ((level - 1) % WORLD_SIZE) + 1,
+});
+
+// « Monde 2 - Niveau 6 »
+export function levelName(level: number): string {
+    const {world, number} = levelInWorld(level);
+    return `Monde ${world} - Niveau ${number}`;
+}
+
+/**
  * Niveau qui termine un monde (50, 100…) et qui n'est pas le dernier du jeu : à sa réussite, pas de « Niveau suivant »
  * mais l'arrivée dans le monde suivant (fête sur la carte, voir WorldUnlockPopup). Renvoie le monde ouvert (à partir
  * de 0), ou null.

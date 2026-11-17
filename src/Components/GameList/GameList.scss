@@ -143,6 +143,60 @@
 		&.won svg {
 			color : #fbbf24;
 		}
+
+	}
+
+	// Jeu avec un mode Niveaux : le décor du monde en cours en fond, opaque, bordure à sa couleur
+	.game-stats.world {
+		gap             : 0.6rem;
+		overflow        : hidden;
+		border          : 2px solid var(--w-accent);
+		background      : #020617;
+		backdrop-filter : none;
+		container-type  : inline-size;
+		text-align      : center;
+
+		// voile sombre au centre, pour lire le texte sur n'importe quel décor
+		&::after {
+			content        : "";
+			position       : absolute;
+			inset          : 0;
+			z-index        : 0;
+			background     : radial-gradient(ellipse 90% 50% at 50% 50%, rgba(2, 6, 23, 0.72), transparent);
+			pointer-events : none;
+		}
+
+		.game-stats-row {
+			position    : relative;
+			z-index     : 1;
+			gap         : 0.15rem;
+			text-shadow : 0 2px 0.5rem rgba(0, 0, 0, 0.85);
+		}
+
+		.world-number {
+			font-size : 2.2rem;
+		}
+
+		.game-stats-world-name {
+			font-size   : 1.15rem;
+			font-weight : 700;
+			opacity     : 0.9;
+		}
+
+		.game-stats-world-levels {
+			padding       : 0.25rem 0.8rem;
+			border-radius : 999px;
+			background    : var(--w-accent);
+			color         : var(--w-ink);
+			font-size     : 1.05rem;
+			font-weight   : 700;
+			text-shadow   : none;
+		}
+	}
+
+	// particules et petits mouvements du décor : seulement pendant le survol
+	.game-card:not(:hover) .game-stats.world .world-backdrop * {
+		animation-play-state : paused;
 	}
 
 	// Barre d'XP du jeu : se remplit à l'ouverture du panneau

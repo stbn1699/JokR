@@ -31,6 +31,8 @@ import {daysOfMonth, longDate} from "../DailyHistory/calendar.ts";
 
 import Loader from "../Loader/Loader.tsx";
 import Avatar from "../Avatar/Avatar.tsx";
+import {levelInWorld, levelName, worldAt} from "../Levels/worlds.ts";
+import WorldBackdrop from "../Levels/WorldBackdrop.tsx";
 // `short` : libellé sur téléphone
 const TABS = [
     {id: "xp", label: "XP globale", short: "XP"},
@@ -77,7 +79,24 @@ const ordinal = (rank: number) => <>{rank}<sup>{rank === 1 ? "er" : "e"}</sup></
 
 // Une ligne de classement, prête à afficher (XP, jeu ou défi)
 // userLevel : niveau global du joueur (contour et numéro sur son icône)
-type Row = { rank: number; username: string; avatar: string; userLevel: number; main: ReactNode; detail?: ReactNode };
+// Classement d'un jeu : dernier niveau réussi (« Monde 2 - Niveau 6 ») ; les niveaux se font dans l'ordre
+const reached = (levels: number) => levels > 0 ? levelName(levels) : "Aucun niveau";
+
+// world : classement d'un jeu, monde du dernier niveau réussi (à partir de 0), dont le décor passe derrière la ligne
+type Row = { rank: number; username: string; avatar: string; userLevel: number; main: ReactNode; detail?: ReactNode; world?: number };
+
+/**
+ * Décor du monde derrière une ligne du classement d'un jeu, un peu comme un fond de profil Discord : invisible côté
+ * pseudo, il apparaît vers « Monde 2 - Niveau 6 ». Léger et immobile ; au survol de la ligne, opaque et animé.
+ */
+function RowWorld({index}: { index: number }) {
+    const world = worldAt(index);
+    return (
+        <span className="leaderboard-world" aria-hidden>
+            <WorldBackdrop index={index} world={world} framed/>
+        </span>
+    );
+}
 
 export default function Leaderboard() {
     const {username, userId} = useAuth();
@@ -181,15 +200,19 @@ export default function Leaderboard() {
             main: <span className="leaderboard-credits"><FaCoins aria-hidden/> {(e.credits ?? 0).toLocaleString("fr-FR")}</span>,
             detail: <>Niveau {e.level}</>,
         }))
+        : board && tab === "jeu"
+        ? board.entries.map(e => ({
+            rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel,
+            // Classé par niveaux réussis (mode Niveaux), puis par victoires
+            main: <>{reached(e.levels ?? 0)}</>,
+            world: e.levels ? levelInWorld(e.levels).world - 1 : undefined,
+        }))
         : board
         ? board.entries.map(e => ({
             rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel,
             // Classé par niveau puis par XP dans le niveau
             main: <>Niveau {e.level}</>,
-            detail: <>
-                {e.xp.toLocaleString("fr-FR")} XP
-                {tab !== "xp" && e.gamesWon !== undefined && <> · {e.gamesWon} victoire{e.gamesWon > 1 ? "s" : ""}</>}
-            </>,
+            detail: <>{e.xp.toLocaleString("fr-FR")} XP</>,
         }))
         : daily
             ? daily.entries.map(e => ({rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel, main: formatDuration(e.durationMs)}))
@@ -197,6 +220,8 @@ export default function Leaderboard() {
     const podium = rows?.slice(0, 3) ?? [];
     const me = board?.me && tab === "credits"
         ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · {(board.me.credits ?? 0).toLocaleString("fr-FR")} crédit{(board.me.credits ?? 0) > 1 ? "s" : ""}</>
+        : board?.me && tab === "jeu"
+        ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · {reached(board.me.levels ?? 0)}</>
         : board?.me
         ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · niveau {board.me.level}</>
         : daily?.me
@@ -299,7 +324,8 @@ export default function Leaderboard() {
                 {!loading && !error && rows && rows.length > 0 && (
                     <ol className="leaderboard-list fade-in">
                         {rows.map(row => (
-                            <li key={row.rank + row.username} className={rowClass(row.username)}>
+                            <li key={row.rank + row.username} className={`${rowClass(row.username)} ${row.world !== undefined ? "has-world" : ""}`}>
+                                {row.world !== undefined && <RowWorld index={row.world}/>}
                                 <span className="leaderboard-rank">{ordinal(row.rank)}</span>
                                 <Link to={playerPath(row.username)} className="leaderboard-player" title={`Voir le profil de ${row.username}`}>
                                     <Avatar seed={row.avatar} fallback={row.username} size={2.7}

@@ -36,6 +36,7 @@ import {type SavedTrace, useTraceGame} from "./useTraceGame.ts";
 import {lastValue, nextValue} from "./traceRules.ts";
 import TraceBoard from "./TraceBoard.tsx";
 import TraceSettingsPopup from "./TraceSettingsPopup.tsx";
+import {levelName} from "../Levels/worlds.ts";
 
 type TraceProps = {
     // Défi du jour : grille imposée, pas de popup de paramètres
@@ -109,7 +110,7 @@ export default function Trace({daily = false, replayDate, challengeId, level, le
         <div className="puzzle-layout trace">
             <GameToolbar
                 gameName="Tracé"
-                label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                label={level ? levelName(level) : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
                     : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
@@ -147,7 +148,7 @@ export default function Trace({daily = false, replayDate, challengeId, level, le
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
                 {level && (
                     <p className="daily-label level-label">
-                        <Link to="/niveaux/TRACE">Niveaux</Link> · Niveau {level}{levelInfo?.count ? ` sur ${levelInfo.count}` : ""}
+                        <Link to="/niveaux/TRACE">Niveaux</Link> · {levelName(level)}
                     </p>
                 )}
                 <h1 className="title">Tracé</h1>

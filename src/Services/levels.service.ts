@@ -12,6 +12,8 @@ export const LEVEL_GAMES = new Set(["QUEENS", "GALAXIES", "BINERO", "SUDOKU", "S
 
 export type LevelInfo = { level: number; size: number; hints: number; done: boolean; bestMs: number | null };
 export type LevelsOverview = { tutorial: number; levels: LevelInfo[] };
+// Résumé d'un jeu pour l'accueil : niveaux réussis et le plus haut réussi
+export type LevelsSummary = { count: number; tutorial: number; done: number; highest: number };
 
 const guestKey = (gameCode: string) => `jokr:levels:${gameCode}`;
 
@@ -36,6 +38,10 @@ export function rememberGuestLevel(gameCode: string, level: number) {
 }
 
 export const levelsService = {
+    summary(signal?: AbortSignal): Promise<Record<string, LevelsSummary>> {
+        return api<Record<string, LevelsSummary>>("/levels", {method: "GET"}, signal);
+    },
+
     overview(gameCode: string, signal?: AbortSignal): Promise<LevelsOverview> {
         return api<LevelsOverview>(`/levels/${encodeURIComponent(gameCode)}`, {method: "GET"}, signal);
     },

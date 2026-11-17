@@ -5,11 +5,17 @@ export type Ranking = { rank: number; total: number };
 
 /*
  * Classements : XP globale (users), crédits (users) et par jeu (game_stats).
- * Ordre : niveau puis XP décroissants (puis nom, pour départager) ; crédits décroissants pour les crédits.
+ * Ordre : niveau puis XP décroissants (puis nom, pour départager) ; crédits décroissants pour les crédits ;
+ * par jeu : niveaux réussis (mode Niveaux) puis victoires décroissants.
  * `members` (filtre « Amis ») : seulement ces joueurs, chacun avec sa place dans le classement complet
  * (rank, ex aequo compris), sans limite de 20.
  */
 export const MEMBERS_LIMIT = 200;
+
+// Niveaux réussis par le joueur de cette ligne de game_stats, dans ce jeu (0 pour un jeu sans mode Niveaux)
+const LEVELS_DONE = sql<number>`(select count(*)::int from puzzle_level_progress p
+    where p.user_id = game_stats.user_id and p.game_code = game_stats.game_code)`;
+
 export class LeaderboardRepository {
     constructor(private db: Kysely<DB>) {
     }
@@ -108,7 +114,8 @@ export class LeaderboardRepository {
                     .select([
                         "users.id", "users.username", "users.avatar", "users.user_level as userLevel",
                         "game_stats.game_level as level", "game_stats.game_xp as xp", "game_stats.games_won as gamesWon",
-                        sql<number>`rank() over (order by game_stats.game_level desc, game_stats.game_xp desc)`.as("rank"),
+                        LEVELS_DONE.as("levels"),
+                        sql<number>`rank() over (order by ${LEVELS_DONE} desc, game_stats.games_won desc)`.as("rank"),
                     ])
                     .where("game_stats.game_code", "=", gameCode)
                     .as("r"))
@@ -129,35 +136,39 @@ export class LeaderboardRepository {
                 "game_stats.game_level as level",
                 "game_stats.game_xp as xp",
                 "game_stats.games_won as gamesWon",
+                LEVELS_DONE.as("levels"),
             ])
             .where("game_stats.game_code", "=", gameCode)
-            .orderBy("game_stats.game_level", "desc")
-            .orderBy("game_stats.game_xp", "desc")
+            .orderBy(LEVELS_DONE, "desc")
+            .orderBy("game_stats.games_won", "desc")
             .orderBy("users.username", "asc")
             .limit(limit)
             .execute();
     }
 
     // Place d'un joueur au classement d'un jeu (null s'il n'y a jamais gagné)
-    async gameRankOf(userId: string, gameCode: string): Promise<(Ranking & { level: number; xp: number; gamesWon: number }) | null> {
+    async gameRankOf(userId: string, gameCode: string): Promise<(Ranking & { level: number; xp: number; gamesWon: number; levels: number }) | null> {
         const me = await this.db
             .selectFrom("game_stats")
-            .select(["game_level", "game_xp", "games_won"])
+            .select(["game_level", "game_xp", "games_won", LEVELS_DONE.as("levels")])
             .where("user_id", "=", userId)
             .where("game_code", "=", gameCode)
             .executeTakeFirst();
         if (!me) return null;
 
+        // devant lui : plus de niveaux réussis, ou autant et plus de victoires
         const row = await this.db
-            .selectFrom("game_stats")
+            .selectFrom(eb => eb.selectFrom("game_stats")
+                .select(["games_won", LEVELS_DONE.as("levels")])
+                .where("game_code", "=", gameCode)
+                .as("s"))
             .select(eb => [
                 eb.fn.countAll<string>().as("total"),
-                eb.fn.count<string>("user_id").filterWhere(eb.or([
-                    eb("game_level", ">", me.game_level),
-                    eb.and([eb("game_level", "=", me.game_level), eb("game_xp", ">", me.game_xp)]),
+                eb.fn.countAll<string>().filterWhere(eb.or([
+                    eb("levels", ">", me.levels),
+                    eb.and([eb("levels", "=", me.levels), eb("games_won", ">", me.games_won)]),
                 ])).as("ahead"),
             ])
-            .where("game_code", "=", gameCode)
             .executeTakeFirstOrThrow();
         return {
             rank: Number(row.ahead) + 1,
@@ -165,6 +176,7 @@ export class LeaderboardRepository {
             level: me.game_level,
             xp: me.game_xp,
             gamesWon: me.games_won,
+            levels: me.levels,
         };
     }
 }

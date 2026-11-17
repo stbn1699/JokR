@@ -11,7 +11,7 @@ import {useAuth} from "../../Context/authContext.ts";
 import {rememberGuestLevel} from "../../Services/levels.service.ts";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import type {Victory} from "../PuzzleUI/useGameFlow.ts";
-import {worldOpenedBy} from "./worlds.ts";
+import {levelName, worldOpenedBy} from "./worlds.ts";
 
 // Numéro du niveau joué, et nombre de niveaux / du tutoriel (null tant qu'inconnus)
 export type LevelInfo = { count: number | null; tutorial: number | null };
@@ -41,7 +41,7 @@ export default function LevelVictory({gameCode, gameName, level, info, victory}:
         <SuccessPopup gameName={gameName} gameCode={gameCode} xpAwarded={victory.xpAwarded} creditsAwarded={victory.creditsAwarded}
                       rewardMultiplier={1} before={victory.before}
                       durationMs={victory.durationMs} personalBest={victory.personalBest}
-                      title={`Niveau ${level} réussi !`}
+                      title={`${levelName(level)} réussi !`}
                       subtitle="Bien joué, la grille est résolue."
                       noXpNote={adminMode ? "Mode admin : rien n'est enregistré." : isLoggedIn ? "Niveau déjà réussi : l'XP et les crédits ne sont donnés qu'à la première réussite." : undefined}
                       onNewGame={isLast ? () => navigate(map)

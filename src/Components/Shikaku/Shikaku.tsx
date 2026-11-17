@@ -38,6 +38,7 @@ import type {ShikakuPuzzle} from "../../Models/shikaku.model.ts";
 import {type SavedShikaku, useShikakuGame} from "./useShikakuGame.ts";
 import ShikakuBoard from "./ShikakuBoard.tsx";
 import ShikakuSettingsPopup from "./ShikakuSettingsPopup.tsx";
+import {levelName} from "../Levels/worlds.ts";
 
 type ShikakuProps = {
     // Défi du jour : grille imposée, pas de popup de paramètres
@@ -115,7 +116,7 @@ export default function Shikaku({daily = false, replayDate, challengeId, level, 
         <div className="puzzle-layout shikaku">
             <GameToolbar
                 gameName="Shikaku"
-                label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                label={level ? levelName(level) : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
                     : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
@@ -151,7 +152,7 @@ export default function Shikaku({daily = false, replayDate, challengeId, level, 
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
                 {level && (
                     <p className="daily-label level-label">
-                        <Link to="/niveaux/SHIKAKU">Niveaux</Link> · Niveau {level}{levelInfo?.count ? ` sur ${levelInfo.count}` : ""}
+                        <Link to="/niveaux/SHIKAKU">Niveaux</Link> · {levelName(level)}
                     </p>
                 )}
                 <h1 className="title">Shikaku</h1>

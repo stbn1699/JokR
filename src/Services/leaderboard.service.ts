@@ -10,8 +10,9 @@ export interface LeaderboardEntry {
     // niveau sur ce classement : global (XP) ou sur le jeu
     level: number;
     xp: number;
-    // Seulement pour le classement d'un jeu
+    // Seulement pour le classement d'un jeu : victoires et niveaux réussis (le classement suit les niveaux)
     gamesWon?: number;
+    levels?: number;
     // Seulement pour le classement des crédits
     credits?: number;
 }
@@ -19,7 +20,7 @@ export interface LeaderboardEntry {
 export interface Leaderboard {
     entries: LeaderboardEntry[];
     // Place du joueur connecté (null si invité ou jamais classé)
-    me: { rank: number; total: number; level: number; xp?: number; gamesWon?: number; credits?: number } | null;
+    me: { rank: number; total: number; level: number; xp?: number; gamesWon?: number; levels?: number; credits?: number } | null;
 }
 
 export const leaderboardService = {

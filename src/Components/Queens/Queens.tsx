@@ -46,7 +46,7 @@ import {type SavedQueens, useQueensGame} from "./useQueensGame.ts";
 import {autoCrossCells, QUEEN, queensConflicts} from "./queensRules.ts";
 import QueensBoard from "./QueensBoard.tsx";
 import QueensSettingsPopup from "./QueensSettingsPopup.tsx";
-import {worldOpenedBy} from "../Levels/worlds.ts";
+import {worldOpenedBy, levelName} from "../Levels/worlds.ts";
 
 // Visite de l'écran de jeu (premier niveau après le tutoriel)
 const TOUR_KEY = "jokr:levels:QUEENS:tour";
@@ -168,7 +168,7 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
         <div className="puzzle-layout queens">
             <GameToolbar
                 gameName="Queens"
-                label={level ? `Niveau ${level}` : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+                label={level ? levelName(level) : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
                     : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined}
                 clock={flow.clock}
                 canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
@@ -208,7 +208,7 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
                 {challengeId && <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p>}
                 {level && (
                     <p className="daily-label level-label">
-                        <Link to="/niveaux/QUEENS">Niveaux</Link> · Niveau {level}{levelInfo?.count ? ` sur ${levelInfo.count}` : ""}
+                        <Link to="/niveaux/QUEENS">Niveaux</Link> · {levelName(level)}
                     </p>
                 )}
                 <h1 className="title">Queens</h1>
@@ -262,7 +262,7 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
                 <SuccessPopup gameName="Queens" gameCode="QUEENS" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
                               rewardMultiplier={1} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
-                              title={`Niveau ${level} réussi !`}
+                              title={`${levelName(level)} réussi !`}
                               subtitle="Bien joué, la grille est résolue."
                               noXpNote={adminMode ? "Mode admin : rien n'est enregistré." : isLoggedIn ? "Niveau déjà réussi : l'XP et les crédits ne sont donnés qu'à la première réussite." : undefined}
                               onNewGame={isLastLevel ? () => navigate("/niveaux/QUEENS")

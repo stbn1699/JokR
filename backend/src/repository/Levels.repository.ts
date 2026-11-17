@@ -15,6 +15,14 @@ export class LevelsRepository {
         return rows.map(r => ({level: r.level, bestMs: r.best_ms}));
     }
 
+    // Pour chaque jeu : nombre de niveaux réussis et le plus haut réussi (accueil)
+    async summary(userId: string): Promise<{ gameCode: string; done: number; highest: number }[]> {
+        const rows = await this.db.selectFrom("puzzle_level_progress")
+            .select(eb => ["game_code", eb.fn.countAll<string>().as("done"), eb.fn.max("level").as("highest")])
+            .where("user_id", "=", userId).groupBy("game_code").execute();
+        return rows.map(r => ({gameCode: r.game_code, done: Number(r.done), highest: Number(r.highest)}));
+    }
+
     /**
      * Niveau réussi : enregistré, ou meilleur temps mis à jour. `first` : c'est la première réussite de ce niveau
      * (seule celle-ci rapporte de l'XP et des crédits).

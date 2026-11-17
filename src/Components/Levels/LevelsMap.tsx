@@ -21,7 +21,7 @@ import {DAILY_GAME_NAMES} from "../../Services/dailyGames.ts";
 import Loader from "../Loader/Loader.tsx";
 import WorldBackdrop from "./WorldBackdrop.tsx";
 import WorldUnlockPopup from "./WorldUnlockPopup.tsx";
-import {type World, worldAt, WORLD_SIZE} from "./worlds.ts";
+import {levelInWorld, levelName, type World, worldAt, WORLD_SIZE} from "./worlds.ts";
 
 // Géométrie du chemin (unités du SVG : 400 de large, STEP entre deux niveaux)
 const WIDTH = 400;
@@ -186,7 +186,7 @@ export default function LevelsMap() {
             </button>
             <span>
                 <span className="levels-world-title"><strong>Monde {world + 1}</strong> · {theme.name}</span>
-                <small>niveaux {first + 1} à {Math.min(count, first + WORLD_SIZE)}</small>
+                <small>{Math.min(count, first + WORLD_SIZE) - first} niveaux</small>
             </span>
             <button type="button" disabled={!nextWorldOpen} aria-label="Monde suivant" onClick={() => goWorld(world + 1)}>
                 <FaChevronRight aria-hidden/>
@@ -271,9 +271,9 @@ export default function LevelsMap() {
                                     <div key={l.level} className={`levels-node ${state}`}
                                          style={{left: `${(xOf(i) / WIDTH) * 100}%`, top: `${yOf(i)}px`}}>
                                         <button type="button" disabled={!unlocked}
-                                                aria-label={`Niveau ${l.level}${l.done ? ", réussi" : unlocked ? ", à jouer" : ", verrouillé"}`}
+                                                aria-label={`${levelName(l.level)}${l.done ? ", réussi" : unlocked ? ", à jouer" : ", verrouillé"}`}
                                                 onClick={() => navigate(`/niveaux/${code}/${l.level}`)}>
-                                            {state === "locked" ? <FaLock aria-hidden/> : <span className="levels-num">{l.level}</span>}
+                                            {state === "locked" ? <FaLock aria-hidden/> : <span className="levels-num">{levelInWorld(l.level).number}</span>}
                                             {l.done && <span className="levels-check"><FaCheck aria-hidden/></span>}
                                             {l.level <= tutorial && <span className="levels-cap"><FaGraduationCap aria-hidden/></span>}
                                         </button>

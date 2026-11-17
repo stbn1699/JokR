@@ -12,7 +12,7 @@ const TOP = 20;
  * Classements (20 premiers) + place du joueur connecté, même s'il n'est pas dans le top
  * - xp : niveau / XP globale
  * - credits : crédits du joueur (ceux qu'il a, pas ceux gagnés au total)
- * - game : niveau / XP sur un jeu
+ * - game : niveaux réussis sur un jeu (mode Niveaux), puis victoires
  * ?amis=1 (joueur connecté) : seulement lui et ses amis, chacun avec sa place dans le classement complet
  */
 export function createLeaderboardController(repo: LeaderboardRepository, games: GamesService, friends: FriendsRepository) {

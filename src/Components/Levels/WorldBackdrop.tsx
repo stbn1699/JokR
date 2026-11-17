@@ -6,6 +6,7 @@
  * Les particules et les petits mouvements s'arrêtent si l'utilisateur préfère réduire les animations.
  */
 
+import "./LevelsMap.scss";
 import type {CSSProperties, ReactNode} from "react";
 import {WorldScene} from "./worldScenes.tsx";
 import type {ParticleKind, World} from "./worlds.ts";
