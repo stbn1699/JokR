@@ -4,6 +4,11 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 3.1.2 — 17 novembre 2026
+
+### Mode Niveaux
+- L'accueil et le classement d'un jeu montrent maintenant le niveau à faire, plus le dernier réussi : une fois le niveau 50 fini, tu es au « Monde 2 - Niveau 1 », même avant d'avoir ouvert le monde
+
 ## 3.1.1 — 17 novembre 2026
 
 Les mondes prennent plus de place : une fête quand tu en ouvres un, ton monde sur l'accueil, et des classements par jeu basés sur le mode Niveaux.
