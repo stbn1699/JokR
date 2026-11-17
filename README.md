@@ -112,7 +112,7 @@ pnpm dev               # http://localhost:5173
 | racine     | `pnpm test`      | tests du front (Vitest)                 |
 | racine     | `pnpm test:all`  | tests du front et de l'API              |
 | racine     | `pnpm migrate`   | migrations Flyway                       |
-| racine     | `pnpm docker:image` | image Docker exportée dans `jokr-image.tar` |
+| racine     | `pnpm docker:image` | image Docker exportée dans `jokr-<version>.tar` |
 | `backend/` | `pnpm dev`       | API avec rechargement automatique       |
 | `backend/` | `pnpm typecheck` | vérification des types de l'API         |
 | `backend/` | `pnpm test`      | tests de l'API (Vitest)                 |
@@ -137,15 +137,17 @@ Docker Desktop doit être lancé.
 pnpm docker:image
 ```
 
-Cela produit `jokr-image.tar` (~135 Mo) à la racine du projet. L'image est construite pour les NAS Intel/AMD
-(`linux/amd64`, la grande majorité des Synology). Pour un modèle ARM, remplacer par `linux/arm64` dans le script.
+Cela produit `jokr-<version>.tar` (~135 Mo, ex : `jokr-3.1.1.tar`) à la racine du projet, avec la version de
+`package.json`. L'image y porte deux tags : `jokr:<version>`, pour voir dans Container Manager quelle version
+tourne, et `jokr:latest`, celui qu'utilise le `docker-compose.yml`. L'image est construite pour les NAS Intel/AMD
+(`linux/amd64`, la grande majorité des Synology). Pour un modèle ARM, remplacer par `linux/arm64` dans `scripts/docker-image.mjs`.
 
 ### Première installation
 
 1. **Dossier** : dans File Station, créer un dossier (ex : `docker/jokr`) et y déposer
    `deploy/docker-compose.yml` ainsi qu'un fichier `.env` copié depuis `deploy/.env.example`
    et rempli (mot de passe Postgres, `JWT_SECRET`, port).
-2. **Image** : Container Manager → Image → Ajouter → Ajouter à partir d'un fichier → `jokr-image.tar`.
+2. **Image** : Container Manager → Image → Ajouter → Ajouter à partir d'un fichier → `jokr-<version>.tar`.
 3. **Projet** : Container Manager → Projet → Créer, nom `jokr`, chemin = le dossier de l'étape 1,
    source « Utiliser le docker-compose.yml existant ». Valider : la base et le site démarrent.
    Le site répond sur `http://ip-du-nas:8080`.
@@ -158,8 +160,8 @@ Les données de la base sont dans le sous-dossier `data/postgres` du projet.
 ### Mettre à jour
 
 1. Sur le PC : `pnpm docker:image`.
-2. Container Manager → Image → Ajouter → Ajouter à partir d'un fichier → le nouveau `jokr-image.tar`
-   (il remplace `jokr:latest`).
+2. Container Manager → Image → Ajouter → Ajouter à partir d'un fichier → le nouveau `jokr-<version>.tar`
+   (il remplace `jokr:latest` ; l'image apparaît aussi sous `jokr:<version>`).
 3. Sur le site, en administrateur : Statistiques → onglet **En direct**. Regarder qui est où (puzzles, roulette,
    Plinko, reste du site), puis « Fermer le site pour la mise à jour ». Le serveur refuse toute nouvelle partie et
    chaque joueur passe sur l'écran « Mise à jour en cours » une fois sa partie finie : tout de suite hors partie,

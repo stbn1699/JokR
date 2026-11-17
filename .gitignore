@@ -27,6 +27,6 @@ dist-ssr
 package-lock.json
 
 # Déploiement : image exportée et fichiers locaux du NAS
-jokr-image.tar
+jokr-*.tar
 deploy/.env
 deploy/data

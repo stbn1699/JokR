@@ -20,7 +20,7 @@ services:
       retries: 10
 
   app:
-    # Image importée à la main dans Container Manager (fichier jokr-image.tar)
+    # Image importée à la main dans Container Manager (fichier jokr-<version>.tar)
     image: jokr:latest
     restart: unless-stopped
     depends_on:
