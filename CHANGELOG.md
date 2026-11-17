@@ -4,6 +4,41 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 3.1.0 — 17 novembre 2026
+
+Le mode Niveaux arrive dans tous les puzzles : 1000 niveaux par jeu, un tutoriel guidé pour apprendre, et 20 mondes à traverser. Et un nouveau jeu, le Tracé !
+
+### Nouveau jeu : le Tracé
+- Relie les numéros dans l'ordre par un seul chemin qui passe par toutes les cases, sans traverser les murs
+- Grilles de 5×5 à 8×8, toutes avec une seule solution
+- Tracé au doigt ou à la souris, défi du jour, défi entre amis, classements et statistiques
+
+### Mode Niveaux
+- Dans les 8 puzzles : 1000 niveaux par jeu, du plus doux au plus dur, chacun avec une seule solution
+- Un tutoriel guidé pour commencer : la grille, une bulle qui explique et les cases à jouer qui clignotent, sans chrono
+- Les premiers niveaux n'utilisent que les techniques du tutoriel, puis les grilles grandissent et deviennent plus rusées
+- XP et crédits à la première réussite de chaque niveau, et le suivant se débloque
+- 20 mondes de 50 niveaux, de la Plaine au Cosmos, chacun avec son nom, ses couleurs et son décor animé (vaches et moulin, pingouins, volcan, îles flottantes, fusée…)
+- Un monde s'ouvre quand le précédent est terminé
+- En descendant sur la carte, un encart compact reste en haut avec ta progression
+
+### Hasard
+- Une visite guidée de l'interface est proposée la première fois que tu ouvres un jeu de hasard
+- Tu peux la relancer à tout moment depuis le bouton « Règles »
+
+### Nouveaux comptes
+- 500 crédits offerts à la création du compte, annoncés par une fenêtre de bienvenue
+
+### Affichage
+- Les écrans réglés à 125 % ou 150 % dans Windows, et le zoom Ctrl + molette, gardent la même mise en page qu'un écran 1920×1080 à 100 %
+- Sur téléphone et tablette, un écran indique que JokR y arrive bientôt : en attendant, il faut un ordinateur pour jouer
+- Le header s'efface quand tu descends dans une page (hors Puzzle et Hasard) et revient dès que tu remontes
+- Les confettis de victoire tombent moins longtemps
+
+### Corrections
+- « Montrer les erreurs » devient « Montrer les coups interdits » : l'option signale les règles enfreintes, pas les cases mal placées — merci à @Astaros
+- Une grille remplie mais fausse ne disparaît plus (Binero, Tectonic, Rikudo, Queens)
+
 ## 3.0.0 — 16 novembre 2026
 
 La plus grosse mise à jour du Hasard : quatre nouveaux jeux, des loteries, une roue gratuite chaque jour, et un header tout neuf.
