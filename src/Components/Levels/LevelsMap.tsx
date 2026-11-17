@@ -12,7 +12,7 @@
 
 import "./LevelsMap.scss";
 import {type CSSProperties, useEffect, useMemo, useRef, useState} from "react";
-import {Link, Navigate, useNavigate, useParams} from "react-router-dom";
+import {Link, Navigate, useLocation, useNavigate, useParams} from "react-router-dom";
 import {FaArrowDown, FaCheck, FaChevronLeft, FaChevronRight, FaDice, FaGraduationCap, FaLock, FaStar} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {formatDuration} from "../../Services/format.ts";
@@ -20,7 +20,8 @@ import {guestDone, LEVEL_GAMES, type LevelsOverview, levelsService} from "../../
 import {DAILY_GAME_NAMES} from "../../Services/dailyGames.ts";
 import Loader from "../Loader/Loader.tsx";
 import WorldBackdrop from "./WorldBackdrop.tsx";
-import {type World, worldAt} from "./worlds.ts";
+import WorldUnlockPopup from "./WorldUnlockPopup.tsx";
+import {type World, worldAt, WORLD_SIZE} from "./worlds.ts";
 
 // Géométrie du chemin (unités du SVG : 400 de large, STEP entre deux niveaux)
 const WIDTH = 400;
@@ -29,8 +30,6 @@ const TOP = 140;
 const AMPLITUDE = 120;
 // l'encart compact apparaît quand le bas de l'encart du haut remonte au-dessus de cette hauteur (px)
 const PINNED_FROM = 90;
-// niveaux par monde
-const WORLD = 50;
 const xOf = (i: number) => WIDTH / 2 + AMPLITUDE * Math.sin(i * 1.15);
 const yOf = (i: number) => TOP + i * STEP;
 
@@ -39,6 +38,16 @@ const worldKey = (code: string) => `jokr.levels.world.${code}`;
 function rememberedWorld(code: string): number {
     try {
         return Math.max(0, Number(localStorage.getItem(worldKey(code))) || 0);
+    } catch {
+        return 0;
+    }
+}
+
+// Dernier monde ouvert déjà fêté pour un jeu (WorldUnlockPopup), gardé dans ce navigateur
+const celebratedKey = (code: string) => `jokr.levels.celebrated.${code}`;
+function celebratedWorld(code: string): number {
+    try {
+        return Math.max(0, Number(localStorage.getItem(celebratedKey(code))) || 0);
     } catch {
         return 0;
     }
@@ -102,11 +111,10 @@ export default function LevelsMap() {
     const doneCount = levels.filter(l => l.done).length;
     const current = levels.find((l, i) => !l.done && (i === 0 || levels[i - 1]!.done))?.level ?? null;
 
-    const worlds = Math.max(1, Math.ceil(levels.length / WORLD));
+    const worlds = Math.max(1, Math.ceil(levels.length / WORLD_SIZE));
     // monde d'arrivée : celui du niveau à jouer ; pendant le chargement, le dernier vu pour ce jeu (sinon on
     // afficherait un instant le décor d'un autre monde avant le bon)
-    const arrivalWorld = overview ? Math.max(0, Math.floor(((current ?? levels.length) - 1) / WORLD)) : null;
-    const world = chosenWorld ?? arrivalWorld ?? rememberedWorld(code);
+    const arrivalWorld = overview ? Math.max(0, Math.floor(((current ?? levels.length) - 1) / WORLD_SIZE)) : null;
     useEffect(() => {
         if (arrivalWorld === null) return;
         try {
@@ -116,14 +124,43 @@ export default function LevelsMap() {
         }
     }, [code, arrivalWorld]);
 
+    // Fête du nouveau monde : le dernier niveau d'un monde vient d'être réussi (arrivée depuis sa popup de victoire,
+    // ou progression qui le montre), et ce monde n'a pas encore été fêté sur ce navigateur. Mode admin : rien n'est
+    // enregistré, la fête vient seulement de la popup de victoire, à chaque fois.
+    const location = useLocation();
+    const openedFromVictory = (location.state as { worldOpened?: number } | null)?.worldOpened ?? 0;
+    // monde fêté sur cette page (en plus de celui gardé dans le navigateur, relu à chaque rendu)
+    const [closedWorld, setClosedWorld] = useState(0);
+    let opened = 0;
+    for (let w = 1; w * WORLD_SIZE < levels.length; w++) {
+        if (levels[w * WORLD_SIZE - 1]?.done) opened = w;
+    }
+    const target = !overview ? 0 : adminMode ? openedFromVictory : Math.max(opened, openedFromVictory);
+    const celebrate = target > 0 && target > closedWorld && (adminMode || target > celebratedWorld(code)) ? target : null;
+    // pendant la fête, la carte montre déjà le nouveau monde
+    const world = celebrate ?? chosenWorld ?? arrivalWorld ?? rememberedWorld(code);
+    const endCelebration = () => {
+        if (celebrate !== null && !adminMode) {
+            try {
+                localStorage.setItem(celebratedKey(code), String(celebrate));
+            } catch {
+                // stockage indisponible : la fête pourra revenir, sans gravité
+            }
+        }
+        setClosedWorld(celebrate ?? 0);
+        setChosenWorld(celebrate);
+        // un rechargement de la page ne la relance pas
+        navigate(location.pathname, {replace: true, state: null});
+    };
+
     if (!LEVEL_GAMES.has(code)) return <Navigate to={`/playgame/${code}`} replace/>;
 
     const name = DAILY_GAME_NAMES[code] ?? code;
     const tutorial = overview?.tutorial ?? 0;
     const count = levels.length;
     // niveaux de ce monde, et un rond de plus à la fin (monde suivant, ou « bientôt d'autres niveaux »)
-    const first = world * WORLD;
-    const shown = levels.slice(first, first + WORLD);
+    const first = world * WORLD_SIZE;
+    const shown = levels.slice(first, first + WORLD_SIZE);
     const lastWorld = world >= worlds - 1;
     const points = Array.from({length: shown.length + 1}, (_, i) => [xOf(i), yOf(i)] as [number, number]);
     const height = yOf(shown.length) + TOP;
@@ -131,7 +168,7 @@ export default function LevelsMap() {
     const reached = Math.min(shown.length - (lastWorld ? 1 : 0), reachedHere);
     // monde suivant ouvert une fois le dernier niveau de celui-ci réussi (mode admin : toujours)
     const theme = worldAt(world);
-    const nextWorldOpen = !lastWorld && (adminMode || (levels[first + WORLD - 1]?.done ?? false));
+    const nextWorldOpen = !lastWorld && (adminMode || (levels[first + WORLD_SIZE - 1]?.done ?? false));
     // en changeant de monde, on repart du haut du chemin
     const goWorld = (w: number) => {
         setChosenWorld(w);
@@ -149,7 +186,7 @@ export default function LevelsMap() {
             </button>
             <span>
                 <span className="levels-world-title"><strong>Monde {world + 1}</strong> · {theme.name}</span>
-                <small>niveaux {first + 1} à {Math.min(count, first + WORLD)}</small>
+                <small>niveaux {first + 1} à {Math.min(count, first + WORLD_SIZE)}</small>
             </span>
             <button type="button" disabled={!nextWorldOpen} aria-label="Monde suivant" onClick={() => goWorld(world + 1)}>
                 <FaChevronRight aria-hidden/>
@@ -196,6 +233,8 @@ export default function LevelsMap() {
                 </div>
                 {progress}
             </div>
+
+            {celebrate !== null && <WorldUnlockPopup world={celebrate} count={count} onClose={endCelebration}/>}
 
             {error ? <p className="levels-error" role="alert">{error}</p>
                 : !overview ? <Loader label="Chargement des niveaux…"/>

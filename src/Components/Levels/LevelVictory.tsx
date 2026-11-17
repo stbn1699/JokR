@@ -11,6 +11,7 @@ import {useAuth} from "../../Context/authContext.ts";
 import {rememberGuestLevel} from "../../Services/levels.service.ts";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import type {Victory} from "../PuzzleUI/useGameFlow.ts";
+import {worldOpenedBy} from "./worlds.ts";
 
 // Numéro du niveau joué, et nombre de niveaux / du tutoriel (null tant qu'inconnus)
 export type LevelInfo = { count: number | null; tutorial: number | null };
@@ -28,6 +29,8 @@ export default function LevelVictory({gameCode, gameName, level, info, victory}:
     const {isLoggedIn, adminMode} = useAuth();
     const map = `/niveaux/${gameCode}`;
     const isLast = info?.count !== null && info?.count !== undefined && level >= info.count;
+    // dernier niveau d'un monde : pas de « Niveau suivant », on part fêter le nouveau monde sur la carte
+    const opened = worldOpenedBy(level, info?.count);
 
     useEffect(() => {
         if (victory && !isLoggedIn) rememberGuestLevel(gameCode, level);
@@ -41,8 +44,10 @@ export default function LevelVictory({gameCode, gameName, level, info, victory}:
                       title={`Niveau ${level} réussi !`}
                       subtitle="Bien joué, la grille est résolue."
                       noXpNote={adminMode ? "Mode admin : rien n'est enregistré." : isLoggedIn ? "Niveau déjà réussi : l'XP et les crédits ne sont donnés qu'à la première réussite." : undefined}
-                      onNewGame={isLast ? () => navigate(map) : () => navigate(`${map}/${level + 1}`)}
-                      newGameLabel={isLast ? "Carte des niveaux" : "Niveau suivant"}
+                      onNewGame={isLast ? () => navigate(map)
+                          : opened !== null ? () => navigate(map, {state: {worldOpened: opened}})
+                              : () => navigate(`${map}/${level + 1}`)}
+                      newGameLabel={isLast ? "Carte des niveaux" : opened !== null ? "Monde suivant" : "Niveau suivant"}
                       extraAction={isLast ? {label: "Grille aléatoire", onClick: () => navigate(`/playgame/${gameCode}`)} : undefined}
                       back={{to: map, label: "Carte des niveaux", short: "Carte"}}/>
     );

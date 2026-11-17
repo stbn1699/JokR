@@ -46,6 +46,7 @@ import {type SavedQueens, useQueensGame} from "./useQueensGame.ts";
 import {autoCrossCells, QUEEN, queensConflicts} from "./queensRules.ts";
 import QueensBoard from "./QueensBoard.tsx";
 import QueensSettingsPopup from "./QueensSettingsPopup.tsx";
+import {worldOpenedBy} from "../Levels/worlds.ts";
 
 // Visite de l'écran de jeu (premier niveau après le tutoriel)
 const TOUR_KEY = "jokr:levels:QUEENS:tour";
@@ -127,6 +128,8 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
 
     // Mode Niveaux : fin de partie (invité : progression gardée dans ce navigateur)
     const isLastLevel = level !== undefined && levelInfo?.count !== null && levelInfo?.count !== undefined && level >= levelInfo.count;
+    // dernier niveau d'un monde : pas de « Niveau suivant », on part fêter le nouveau monde sur la carte
+    const worldOpened = level === undefined ? null : worldOpenedBy(level, levelInfo?.count);
     useEffect(() => {
         if (level && flow.victory && !isLoggedIn) rememberGuestLevel("QUEENS", level);
     }, [level, flow.victory, isLoggedIn]);
@@ -262,8 +265,10 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
                               title={`Niveau ${level} réussi !`}
                               subtitle="Bien joué, la grille est résolue."
                               noXpNote={adminMode ? "Mode admin : rien n'est enregistré." : isLoggedIn ? "Niveau déjà réussi : l'XP et les crédits ne sont donnés qu'à la première réussite." : undefined}
-                              onNewGame={isLastLevel ? () => navigate("/niveaux/QUEENS") : () => navigate(`/niveaux/QUEENS/${level + 1}`)}
-                              newGameLabel={isLastLevel ? "Carte des niveaux" : "Niveau suivant"}
+                              onNewGame={isLastLevel ? () => navigate("/niveaux/QUEENS")
+                                  : worldOpened !== null ? () => navigate("/niveaux/QUEENS", {state: {worldOpened}})
+                                      : () => navigate(`/niveaux/QUEENS/${level + 1}`)}
+                              newGameLabel={isLastLevel ? "Carte des niveaux" : worldOpened !== null ? "Monde suivant" : "Niveau suivant"}
                               extraAction={isLastLevel ? {label: "Grille aléatoire", onClick: () => navigate("/playgame/QUEENS")} : undefined}
                               back={{to: "/niveaux/QUEENS", label: "Carte des niveaux", short: "Carte"}}/>
             )}

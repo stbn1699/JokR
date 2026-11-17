@@ -1,0 +1,231 @@
+// Fête du nouveau monde (WorldUnlockPopup) : le cadenas éclate à 1,3 s, le nouveau monde s'ouvre en cercle
+.world-unlock-overlay {
+	z-index    : 120;
+	background : rgba(2, 6, 23, 0.7);
+}
+
+.modal.success-modal.world-unlock {
+	width        : min(40rem, calc(100vw - 2rem));
+	border       : 2px solid var(--w-accent);
+	box-shadow   : 0 0 2.5rem color-mix(in srgb, var(--w-accent) 35%, transparent), 0 1rem 2rem rgba(0, 0, 0, 0.6);
+	text-align   : center;
+	animation    : world-unlock-in 0.4s cubic-bezier(.2, .9, .3, 1.2), world-unlock-border 1.3s steps(1) backwards;
+
+	.world-unlock-kicker {
+		margin         : 0 0 0.9rem;
+		font-size      : 1.05rem;
+		letter-spacing : 0.12em;
+		text-transform : uppercase;
+		opacity        : 0.7;
+	}
+
+	h2 {
+		margin    : 1.1rem 0 0.25rem;
+		font-size : 2rem;
+		animation : world-unlock-title 0.55s cubic-bezier(.2, .9, .3, 1.5) 1.45s backwards;
+	}
+
+	.world-unlock-name {
+		color       : var(--w-accent);
+		font-weight : 800;
+		text-shadow : 0 0 1rem color-mix(in srgb, var(--w-accent) 55%, transparent);
+	}
+
+	.world-unlock-sub {
+		margin    : 0 0 0.5rem;
+		font-size : 1.15rem;
+		opacity   : 0.75;
+		animation : world-unlock-title 0.4s ease 1.65s backwards;
+	}
+
+	.modal-button.world-unlock-go {
+		background  : var(--w-accent);
+		color       : var(--w-ink);
+		font-weight : 700;
+		animation   : world-unlock-title 0.4s ease 1.8s backwards;
+	}
+}
+
+// Fenêtre sur les deux mondes, l'un sur l'autre
+.world-unlock-window {
+	position       : relative;
+	height         : 16rem;
+	overflow       : hidden;
+	border-radius  : 14px;
+	box-shadow     : inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+	container-type : inline-size;
+
+	.world-unlock-old,
+	.world-unlock-new {
+		position : absolute;
+		inset    : 0;
+	}
+
+	// le monde terminé s'assombrit un peu en attendant
+	.world-unlock-old {
+		animation : world-unlock-old 1.3s ease forwards;
+	}
+
+	// le nouveau s'ouvre en cercle depuis le cadenas
+	.world-unlock-new {
+		clip-path : circle(0 at 50% 50%);
+		animation : world-unlock-reveal 0.9s cubic-bezier(.3, .7, .2, 1) 1.3s forwards;
+	}
+
+	// éclair blanc à l'éclatement
+	.world-unlock-flash {
+		position   : absolute;
+		inset      : 0;
+		background : radial-gradient(circle at 50% 50%, #fff, color-mix(in srgb, var(--w-accent) 60%, transparent) 40%, transparent 70%);
+		opacity    : 0;
+		animation  : world-unlock-flash 0.7s ease-out 1.3s;
+	}
+
+	// onde de choc
+	.world-unlock-wave {
+		position      : absolute;
+		top           : 50%;
+		left          : 50%;
+		width         : 5rem;
+		height        : 5rem;
+		margin        : -2.5rem 0 0 -2.5rem;
+		border        : 3px solid #fff;
+		border-radius : 50%;
+		opacity       : 0;
+		animation     : world-unlock-wave 0.8s ease-out 1.3s;
+	}
+
+	// cadenas : tremble, s'ouvre, puis s'envole
+	.world-unlock-lock {
+		position        : absolute;
+		top             : 50%;
+		left            : 50%;
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		width           : 5rem;
+		height          : 5rem;
+		margin          : -2.5rem 0 0 -2.5rem;
+		border          : 3px solid var(--w-old);
+		border-radius   : 50%;
+		background      : rgba(2, 6, 23, 0.75);
+		box-shadow      : 0 0 1.5rem rgba(0, 0, 0, 0.5);
+		color           : #fbbf24;
+		font-size       : 2.1rem;
+		animation       : world-unlock-shake 1.3s ease-in-out, world-unlock-burst 0.6s ease-in 1.3s forwards;
+
+		svg {
+			position : absolute;
+		}
+
+		.open {
+			opacity   : 0;
+			animation : world-unlock-swap 0.01s linear 1.05s forwards;
+		}
+
+		.closed {
+			animation : world-unlock-swap 0.01s linear 1.05s reverse forwards;
+		}
+	}
+}
+
+// L'écran de la carte suit la fenêtre : décor dans un cadre au lieu de tout l'écran
+.world-backdrop.framed {
+	position : absolute;
+	z-index  : 0;
+
+	svg.world-sky { height : 37.5cqw; }
+	svg.world-ground { height : 31.25cqw; }
+}
+
+@keyframes world-unlock-in {
+	from {
+		opacity   : 0;
+		transform : scale(0.9);
+	}
+}
+
+// la bordure prend la couleur du nouveau monde à l'éclatement
+@keyframes world-unlock-border {
+	from { border-color : var(--w-old); }
+}
+
+@keyframes world-unlock-old {
+	to { filter : brightness(0.6) saturate(0.7); }
+}
+
+@keyframes world-unlock-reveal {
+	to { clip-path : circle(75% at 50% 50%); }
+}
+
+@keyframes world-unlock-flash {
+	0% { opacity : 1; }
+	100% { opacity : 0; }
+}
+
+@keyframes world-unlock-wave {
+	0% {
+		opacity   : 1;
+		transform : scale(1);
+	}
+	100% {
+		opacity   : 0;
+		transform : scale(5);
+	}
+}
+
+@keyframes world-unlock-shake {
+	0%, 20% { transform : scale(0.6); opacity : 0; }
+	30% { transform : scale(1); opacity : 1; }
+	45%, 55%, 65%, 75% { transform : rotate(-12deg); }
+	50%, 60%, 70%, 80% { transform : rotate(12deg); }
+	90% { transform : scale(1.15); }
+	100% { transform : scale(1); }
+}
+
+@keyframes world-unlock-burst {
+	30% {
+		opacity   : 1;
+		transform : scale(1.3);
+	}
+	100% {
+		opacity   : 0;
+		transform : translateY(-3rem) scale(0.4) rotate(25deg);
+	}
+}
+
+@keyframes world-unlock-swap {
+	from { opacity : 0; }
+	to { opacity : 1; }
+}
+
+@keyframes world-unlock-title {
+	from {
+		opacity   : 0;
+		transform : scale(0.7);
+	}
+}
+
+// Animations réduites : directement le nouveau monde
+@media (prefers-reduced-motion: reduce) {
+	.modal.success-modal.world-unlock,
+	.modal.success-modal.world-unlock h2,
+	.modal.success-modal.world-unlock .world-unlock-sub,
+	.modal.success-modal.world-unlock .modal-button.world-unlock-go,
+	.world-unlock-window .world-unlock-old {
+		animation : none;
+	}
+
+	.world-unlock-window {
+		.world-unlock-new {
+			clip-path : none;
+			animation : none;
+		}
+
+		.world-unlock-flash,
+		.world-unlock-wave,
+		.world-unlock-lock {
+			display : none;
+		}
+	}
+}

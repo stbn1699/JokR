@@ -70,3 +70,16 @@ export const WORLDS: World[] = [
 
 // monde n (à partir de 0) ; au-delà de 20 mondes, on recommence
 export const worldAt = (index: number): World => WORLDS[((index % WORLDS.length) + WORLDS.length) % WORLDS.length]!;
+
+// niveaux par monde
+export const WORLD_SIZE = 50;
+
+/**
+ * Niveau qui termine un monde (50, 100…) et qui n'est pas le dernier du jeu : à sa réussite, pas de « Niveau suivant »
+ * mais l'arrivée dans le monde suivant (fête sur la carte, voir WorldUnlockPopup). Renvoie le monde ouvert (à partir
+ * de 0), ou null.
+ */
+export function worldOpenedBy(level: number, count: number | null | undefined): number | null {
+    if (level % WORLD_SIZE !== 0 || count === null || count === undefined || level >= count) return null;
+    return level / WORLD_SIZE;
+}

@@ -37,9 +37,10 @@ function particleStyle(i: number, kind: ParticleKind): CSSProperties {
     } as CSSProperties;
 }
 
-export default function WorldBackdrop({index, world}: { index: number; world: World }) {
+// framed : dans un cadre (fenêtre de la fête du nouveau monde) au lieu de tout l'écran
+export default function WorldBackdrop({index, world, framed}: { index: number; world: World; framed?: boolean }) {
     return (
-        <div className="world-backdrop" aria-hidden
+        <div className={`world-backdrop ${framed ? "framed" : ""}`} aria-hidden
              style={{background: `linear-gradient(${world.sky[0]}, ${world.sky[1]} 70%)`}}>
             <WorldScene index={index} world={world} part="sky"/>
             <WorldScene index={index} world={world} part="ground"/>
