@@ -4,6 +4,22 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 3.1.1 — 17 novembre 2026
+
+Les mondes prennent plus de place : une fête quand tu en ouvres un, ton monde sur l'accueil, et des classements par jeu basés sur le mode Niveaux.
+
+### Mode Niveaux
+- Au dernier niveau d'un monde, « Niveau suivant » devient « Monde suivant » : sur la carte, le cadenas éclate et le nouveau monde s'ouvre avec des confettis
+- Les niveaux sont numérotés de 1 à 50 dans chaque monde : « Monde 2 - Niveau 6 » au lieu de « Niveau 56 »
+
+### Accueil
+- Sur chaque puzzle, ta carte affiche ton monde actuel avec son décor, son nom et ton dernier niveau réussi
+- Le décor s'anime au survol de la carte
+
+### Classements
+- Le classement d'un jeu se fait maintenant sur les niveaux réussis, puis sur les victoires
+- Chaque ligne indique le dernier niveau atteint, avec le décor de son monde en fond, qui s'anime au survol
+
 ## 3.1.0 — 17 novembre 2026
 
 Le mode Niveaux arrive dans tous les puzzles : 1000 niveaux par jeu, un tutoriel guidé pour apprendre, et 20 mondes à traverser. Et un nouveau jeu, le Tracé !
