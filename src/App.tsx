@@ -20,6 +20,8 @@ import {useEffect} from "react";
 import MaintenanceScreen from "./Components/Maintenance/MaintenanceScreen.tsx";
 import {markSent, showsUpdateScreen, useMaintenance} from "./Services/maintenance.ts";
 import UpdateNotice from "./Components/Maintenance/UpdateNotice.tsx";
+import SmallScreen from "./Components/SmallScreen/SmallScreen.tsx";
+import {useSmallScreen} from "./Services/useSmallScreen.ts";
 import {useAuth} from "./Context/authContext.ts";
 import {isGameRoute} from "./Services/routes.ts";
 import PlayGame from "./Components/PlayGame/PlayGame.tsx";
@@ -77,6 +79,7 @@ function App() {
         if (updateScreen && site.on) markSent();
     }, [updateScreen, site.on]);
     const inGame = isGameRoute(pathname);
+    const smallScreen = useSmallScreen();
 
     // Nouvelle page : on repart du haut (sinon on garde la position de la page précédente, ex. le lien
     // Nouveautés tout en bas sur téléphone). Retour arrière / avant : le navigateur garde sa position.
@@ -85,6 +88,8 @@ function App() {
         if (navigationType !== "POP") window.scrollTo(0, 0);
     }, [pathname, navigationType]);
 
+    // Téléphone, tablette ou fenêtre trop étroite : le site n'est pas encore prévu pour (voir index.css)
+    if (smallScreen) return <SmallScreen/>;
     if (updateScreen) return <MaintenanceScreen/>;
 
     return (

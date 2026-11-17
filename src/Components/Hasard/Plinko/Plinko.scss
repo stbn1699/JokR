@@ -18,13 +18,13 @@
 		.plinko-side { grid-area : side; }
 
 		// écran moyen : dernières billes sous le plateau
-		@media (max-width: 1250px) {
+		@media (max-width: 999px) {
 			grid-template-columns : 21rem minmax(0, 60rem);
 			grid-template-areas   : "controls board" "controls side";
 		}
 
 		// téléphone et tablette : le plateau d'abord, puis les réglages et les dernières billes
-		@media (max-width: 960px) {
+		@media (max-width: 999px) {
 			grid-template-columns : minmax(0, 1fr);
 			grid-template-areas   : "board" "controls" "side";
 		}
@@ -292,7 +292,7 @@
 		padding               : 0;
 		list-style            : none;
 
-		@media (max-width: 1250px) {
+		@media (max-width: 999px) {
 			grid-template-columns : repeat(auto-fill, minmax(5.5rem, 1fr));
 		}
 

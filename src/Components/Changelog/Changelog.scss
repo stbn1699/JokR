@@ -107,7 +107,7 @@
 }
 
 // Pas assez de place à gauche de la boîte : le bouton passe au-dessus
-@media (max-width: 1000px) {
+@media (max-width: 999px) {
 	.changelog .changelog-back {
 		position      : static;
 		margin-bottom : 0.75rem;

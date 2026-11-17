@@ -202,7 +202,7 @@
 
 // ---------- Écrans étroits (tablette, téléphone) ----------
 // La grille passe en haut, puis les chiffres (sur une ligne), puis les actions.
-@media (max-width: 1100px) {
+@media (max-width: 999px) {
 	.puzzle-layout {
 		flex-direction : column;
 		align-items    : center;
@@ -456,7 +456,7 @@
 // Téléphone et tablette : la partie tient dans l'écran, sans défilement
 // barre d'outils / grille (prend toute la place restante) / pavé
 // =====================================================================
-@media (max-width: 1100px) {
+@media (max-width: 999px) {
 	.app-root.in-game {
 		display        : flex;
 		flex-direction : column;

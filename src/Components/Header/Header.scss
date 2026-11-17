@@ -327,8 +327,8 @@ body:has([aria-modal="true"]) .header.scrolled-away {
 	}
 }
 // Écran moyen : les onglets passent sur une 2e ligne du header (plus de place au centre)
-// (logo + onglets + zone joueur ne tiennent sur une ligne qu'au-delà d'environ 1150 px)
-@media (max-width: 1150px) {
+// (sous 1000 px le site laisse place à l'écran « petit écran », voir index.css : gardé pour une future version téléphone)
+@media (max-width: 999px) {
 	.header {
 		flex-wrap  : wrap;
 		height     : auto;

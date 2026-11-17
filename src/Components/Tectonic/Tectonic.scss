@@ -133,7 +133,7 @@
 }
 
 // Téléphone : la grille remplit la zone de jeu, le pavé (1 à 5, effacer) tient sur une ligne
-@media (max-width: 1100px) {
+@media (max-width: 999px) {
 	.puzzle-layout.tectonic {
 		.game {
 			// - 6px : bordure de la grille (3px de chaque côté)

@@ -33,7 +33,7 @@
 		width                 : 100%;
 
 		// Tablette et téléphone : la roue, puis le tapis, puis les mises du tour
-		@media (max-width: 1150px) {
+		@media (max-width: 999px) {
 			grid-template-columns : minmax(0, 1fr);
 
 			.roulette-side {

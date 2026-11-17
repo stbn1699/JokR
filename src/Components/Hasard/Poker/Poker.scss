@@ -18,7 +18,7 @@
 		.poker-table { grid-area : table; }
 		.poker-side { grid-area : side; }
 
-		@media (max-width: 1250px) {
+		@media (max-width: 999px) {
 			grid-template-columns : 21rem minmax(0, 52rem);
 			grid-template-areas   : "controls table" "controls side";
 		}
@@ -387,7 +387,7 @@
 		padding               : 0;
 		list-style            : none;
 
-		@media (max-width: 1250px) {
+		@media (max-width: 999px) {
 			grid-template-columns : repeat(auto-fill, minmax(7rem, 1fr));
 		}
 

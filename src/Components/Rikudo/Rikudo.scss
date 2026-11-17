@@ -210,7 +210,7 @@
 }
 
 // Écrans étroits : les nombres passent sous le plateau, en lignes plus serrées
-@media (max-width: 1100px) {
+@media (max-width: 999px) {
 	.rikudo .options {
 		.number-pad {
 			grid-template-columns : repeat(var(--number-columns, 6), 1fr);
@@ -232,7 +232,7 @@
 
 // Téléphone : le plateau remplit la zone de jeu (en gardant ses proportions),
 // les nombres forment une bande sur deux lignes qu'on fait défiler, avec Effacer à droite
-@media (max-width: 1100px) {
+@media (max-width: 999px) {
 	.puzzle-layout.rikudo {
 		.game .rikudo-board {
 			width : min(100cqw, calc(100cqh * var(--board-ratio)));

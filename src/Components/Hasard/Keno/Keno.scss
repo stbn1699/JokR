@@ -19,7 +19,7 @@
 		.keno-side { grid-area : side; }
 
 		// écran moyen : gains et derniers tirages sous la grille
-		@media (max-width: 1250px) {
+		@media (max-width: 999px) {
 			grid-template-columns : 21rem minmax(0, 44rem);
 			grid-template-areas   : "controls board" "controls side";
 		}
@@ -298,7 +298,7 @@
 		padding               : 0;
 		list-style            : none;
 
-		@media (max-width: 1250px) {
+		@media (max-width: 999px) {
 			grid-template-columns : repeat(auto-fill, minmax(6rem, 1fr));
 		}
 

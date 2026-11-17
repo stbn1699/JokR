@@ -93,7 +93,7 @@
 }
 
 // Téléphone : le plateau remplit la zone de jeu ; l'avancement tient sur une ligne sous le plateau
-@media (max-width: 1100px) {
+@media (max-width: 999px) {
 	.puzzle-layout.galaxies {
 		.game {
 			--grid-width : min(100cqw, 100cqh);

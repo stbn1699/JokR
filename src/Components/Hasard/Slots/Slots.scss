@@ -19,7 +19,7 @@
 		.slots-side { grid-area : side; }
 
 		// écran moyen : derniers lancers sous la machine
-		@media (max-width: 1150px) {
+		@media (max-width: 999px) {
 			grid-template-columns : 21rem auto;
 			grid-template-areas   : "controls machine" "controls side";
 		}
@@ -222,7 +222,7 @@
 		padding               : 0;
 		list-style            : none;
 
-		@media (max-width: 1150px) {
+		@media (max-width: 999px) {
 			grid-template-columns : repeat(auto-fill, minmax(4.6rem, 1fr));
 		}
 
@@ -289,7 +289,7 @@
 	// (entre les réglages et les derniers lancers, à côté des réglages, ou sur toute la largeur sur téléphone)
 	--cell        : min(8.5rem, calc((100vw - 43rem) / var(--reels, 3)));
 
-	@media (max-width: 1150px) {
+	@media (max-width: 999px) {
 		--cell : min(8.5rem, calc((100vw - 31rem) / var(--reels, 3)));
 	}
 
