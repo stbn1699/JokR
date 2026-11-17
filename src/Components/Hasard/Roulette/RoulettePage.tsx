@@ -28,6 +28,7 @@ import {useStoredFlag} from "../../PuzzleUI/useStoredFlag.ts";
 import RouletteTable from "./RouletteTable.tsx";
 import RouletteRules from "./RouletteRules.tsx";
 import RulesButton from "../RulesButton.tsx";
+import {TOURS} from "../tours.ts";
 import LiveBets from "./LiveBets.tsx";
 import RoundDetail from "./RoundDetail.tsx";
 import {useMaintenance} from "../../../Services/maintenance.ts";
@@ -370,7 +371,7 @@ export default function RoulettePage() {
                     <section className="roulette-play">
                         <div className="casino-title">
                             <h1>Roulette</h1>
-                            <RulesButton title="Règles de la roulette"><RouletteRules/></RulesButton>
+                            <RulesButton tour={TOURS.ROULETTE} title="Règles de la roulette"><RouletteRules/></RulesButton>
                         </div>
 
                         {/* où en est le tour : mises ouvertes (compte à rebours), roue lancée, résultat */}

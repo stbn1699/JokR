@@ -31,6 +31,7 @@ import {
     slotMachine,
 } from "../../../../backend/src/utils/slots.ts";
 import RulesButton from "../RulesButton.tsx";
+import {TOURS} from "../tours.ts";
 import SlotReels, {type SlotReelsHandle} from "./SlotReels.tsx";
 import SlotRules from "./SlotRules.tsx";
 import {useStoredFlag} from "../../PuzzleUI/useStoredFlag.ts";
@@ -263,7 +264,7 @@ export default function SlotMachinePage() {
                     <Link to="/hasard/machines" className="slots-back"><FaChevronLeft aria-hidden/> Machines à sous</Link>
                     <div className="casino-title">
                         <h1>{machine.name}</h1>
-                        <RulesButton title={`Règles · ${machine.name}`}><SlotRules machine={machine} reels={reelCount} lines={lineCount}/></RulesButton>
+                        <RulesButton tour={TOURS.SLOTS} title={`Règles · ${machine.name}`}><SlotRules machine={machine} reels={reelCount} lines={lineCount}/></RulesButton>
                     </div>
 
                     <span className="slots-label">Mise</span>

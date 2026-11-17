@@ -19,6 +19,7 @@ import {useChipImage} from "../../../Services/chipSets.ts";
 import {useMaintenance} from "../../../Services/maintenance.ts";
 import {useActivity} from "../../../Services/useActivity.ts";
 import RulesButton from "../RulesButton.tsx";
+import {TOURS} from "../tours.ts";
 import BlackjackRules from "./BlackjackRules.tsx";
 import PlayingCard from "./PlayingCard.tsx";
 
@@ -124,7 +125,7 @@ export default function BlackjackPage() {
                     <Link to="/hasard" className="bj-back"><FaChevronLeft aria-hidden/> Hasard</Link>
                     <div className="casino-title">
                         <h1>Blackjack</h1>
-                        <RulesButton title="Règles du blackjack"><BlackjackRules/></RulesButton>
+                        <RulesButton tour={TOURS.BLACKJACK} title="Règles du blackjack"><BlackjackRules/></RulesButton>
                     </div>
 
                     <span className="bj-label">Mise</span>

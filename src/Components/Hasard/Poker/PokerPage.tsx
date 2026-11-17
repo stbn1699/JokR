@@ -33,6 +33,7 @@ import {useMaintenance} from "../../../Services/maintenance.ts";
 import {useActivity} from "../../../Services/useActivity.ts";
 import {confetti} from "../../Confetti/Confetti.tsx";
 import RulesButton from "../RulesButton.tsx";
+import {TOURS} from "../tours.ts";
 import PlayingCard from "../Blackjack/PlayingCard.tsx";
 import PokerRules from "./PokerRules.tsx";
 
@@ -201,7 +202,7 @@ export default function PokerPage() {
                     <Link to="/hasard" className="poker-back"><FaChevronLeft aria-hidden/> Hasard</Link>
                     <div className="casino-title">
                         <h1>Poker</h1>
-                        <RulesButton title="Règles du poker"><PokerRules/></RulesButton>
+                        <RulesButton tour={TOURS.POKER} title="Règles du poker"><PokerRules/></RulesButton>
                     </div>
 
                     <span className="poker-label">Mise</span>

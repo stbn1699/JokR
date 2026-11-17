@@ -15,6 +15,7 @@ import {useLotteries} from "./useLotteries.ts";
 import {chance, countdown, drawLabel, fmt, LOTTERY_NAMES, shortDate} from "./lotteryFormat.ts";
 import {playerPath} from "../../../Services/player.service.ts";
 import RulesButton from "../RulesButton.tsx";
+import {TOURS} from "../tours.ts";
 import LotteryRules from "./LotteryRules.tsx";
 import Loader from "../../Loader/Loader.tsx";
 
@@ -30,7 +31,7 @@ export default function LotteryPage() {
                 <Link to="/hasard" className="lottery-back"><FaChevronLeft aria-hidden/> Hasard</Link>
                 <div className="casino-title">
                     <h1>Loterie</h1>
-                    <RulesButton title="Règles des loteries"><LotteryRules/></RulesButton>
+                    <RulesButton tour={TOURS.LOTTERY} title="Règles des loteries"><LotteryRules/></RulesButton>
                 </div>
                 <p className="lottery-sub">Chaque tranche de 10 crédits misés aux jeux de hasard te donne un ticket.</p>
 

@@ -17,6 +17,7 @@ import {useChipImage} from "../../../Services/chipSets.ts";
 import {useMaintenance} from "../../../Services/maintenance.ts";
 import {useActivity} from "../../../Services/useActivity.ts";
 import RulesButton from "../RulesButton.tsx";
+import {TOURS} from "../tours.ts";
 import KenoRules from "./KenoRules.tsx";
 
 // délai entre deux numéros tirés
@@ -125,7 +126,7 @@ export default function KenoPage() {
                     <Link to="/hasard" className="keno-back"><FaChevronLeft aria-hidden/> Hasard</Link>
                     <div className="casino-title">
                         <h1>Keno</h1>
-                        <RulesButton title="Règles du Keno"><KenoRules/></RulesButton>
+                        <RulesButton tour={TOURS.KENO} title="Règles du Keno"><KenoRules/></RulesButton>
                     </div>
 
                     <span className="keno-label">Mise</span>

@@ -28,6 +28,7 @@ import {DEFAULT_PLINKO_RISK, isPlinkoRisk, PLINKO_BETS, PLINKO_RISKS, type Plink
 import PlinkoBoard, {type PlinkoBoardHandle} from "./PlinkoBoard.tsx";
 import PlinkoRules from "./PlinkoRules.tsx";
 import RulesButton from "../RulesButton.tsx";
+import {TOURS} from "../tours.ts";
 import {RISK_LABELS} from "./plinkoRisks.ts";
 import {useStoredFlag} from "../../PuzzleUI/useStoredFlag.ts";
 import {useMaintenance} from "../../../Services/maintenance.ts";
@@ -202,7 +203,7 @@ export default function PlinkoPage() {
                     <Link to="/hasard" className="plinko-back"><FaChevronLeft aria-hidden/> Hasard</Link>
                     <div className="casino-title">
                         <h1>Plinko</h1>
-                        <RulesButton title="Règles du Plinko"><PlinkoRules/></RulesButton>
+                        <RulesButton tour={TOURS.PLINKO} title="Règles du Plinko"><PlinkoRules/></RulesButton>
                     </div>
                     <p className="plinko-sub">Lâche une bille : la case où elle tombe multiplie ta mise.</p>
 
