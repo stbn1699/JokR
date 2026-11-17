@@ -11,6 +11,9 @@
  *   compte (profil, personnaliser, nouveautés, retours, mode admin et stats ; voir ProfileMenu)
  * - Invité : icône pour aller à la page de connexion
  *
+ * Hors des pages Puzzle (/) et Hasard (/hasard), il s'efface quand on descend dans la page et revient dès qu'on
+ * remonte (voir useHideOnScroll).
+ *
  * Les infos viennent de l'AuthContext : le header se met à jour dès qu'elles changent.
  */
 
@@ -22,6 +25,7 @@ import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
 import {isGameRoute} from "../../Services/routes.ts";
 import {useHeaderProgress} from "./useHeaderProgress.ts";
+import {useHideOnScroll} from "./useHideOnScroll.ts";
 import {createPortal} from "react-dom";
 import {useTierUp} from "../Avatar/useTierUp.ts";
 import TierUpPopup from "../Avatar/TierUpPopup.tsx";
@@ -81,6 +85,8 @@ export default function Header() {
     const [customizing, setCustomizing] = useState(false);
     const dailyPending = useDailyPending(isLoggedIn, pathname);
     const wheelPending = useWheelPending(isLoggedIn, pathname);
+    // Hors des deux pages d'accueil (Puzzle et Hasard) : caché quand on descend, de retour dès qu'on remonte
+    const autoHidden = useHideOnScroll(pathname !== "/" && pathname !== "/hasard", pathname);
     // Après une victoire : valeurs d'avant jusqu'à l'arrivée des particules, puis changement animé
     // les animations suivent le vrai compte ; en mode admin, on affiche niveau 100 et crédits illimités
     const shown = useHeaderProgress(auth.account);
@@ -102,7 +108,7 @@ export default function Header() {
     return (
         <>
         {adminMode && createPortal(<div className="admin-mode-frame" aria-hidden><span>Mode admin</span></div>, document.body)}
-        <div className={`header ${isGameRoute(pathname) ? "in-game" : ""}`}>
+        <div className={`header ${isGameRoute(pathname) ? "in-game" : ""} ${autoHidden ? "scrolled-away" : ""}`}>
             <img
                 src="/JokR_Logo_Full.svg"
                 alt="logo"

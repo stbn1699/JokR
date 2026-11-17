@@ -13,6 +13,17 @@
 	top           : 0.5rem;
 	z-index       : 30;
 	box-shadow    : 0 0.4rem 1.2rem rgba(0, 0, 0, 0.35);
+	transition    : transform 0.25s ease;
+
+	// Caché en descendant dans la page (voir useHideOnScroll) : il remonte hors de l'écran, ombre comprise
+	&.scrolled-away {
+		transform : translateY(calc(-100% - 2.5rem));
+	}
+
+	// … mais jamais quand on le parcourt au clavier (ou qu'un de ses menus est ouvert)
+	&.scrolled-away:focus-within {
+		transform : none;
+	}
 
 	/* Logo */
 	.logo {
@@ -287,7 +298,17 @@
 	}
 }
 
+// Visite guidée ouverte : le header reste en place, sans glisser (elle mesure ses éléments, ex. les crédits)
+body:has([aria-modal="true"]) .header.scrolled-away {
+	transform  : none;
+	transition : none;
+}
+
 @media (prefers-reduced-motion: reduce) {
+	.header {
+		transition : none;
+	}
+
 	.header .usersection {
 		.level-progress-fill,
 		.credits {
