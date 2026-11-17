@@ -1,7 +1,7 @@
 /**
  * Carte des niveaux d'un puzzle (/niveaux/:gameCode), façon jeu d'aventure : un chemin sinueux qui descend, avec un
- * rond par niveau, découpé en mondes de WORLD niveaux (flèches pour passer de l'un à l'autre ; on arrive sur le monde
- * du niveau à jouer). Niveaux réussis en or (avec le meilleur temps), le prochain à jouer qui pulse, les suivants
+ * rond par niveau, découpé en mondes de WORLD niveaux (flèches pour passer de l'un à l'autre ; un monde s'ouvre
+ * quand le précédent est fini, tous en mode admin ; on arrive sur le monde du niveau à jouer). Niveaux réussis en or (avec le meilleur temps), le prochain à jouer qui pulse, les suivants
  * verrouillés. Les premiers forment le tutoriel (chapeau de diplômé). En haut : progression et accès à la partie
  * libre (grille aléatoire) ; quand cet encart sort de l'écran, une version compacte (jeu, réussites, monde) reste fixée
  * en haut, sous le header s'il est affiché. La page s'ouvre en haut, sans défilement automatique. Joueur connecté : progression du serveur ; invité : celle de ce navigateur.
@@ -98,6 +98,7 @@ export default function LevelsMap() {
     const height = yOf(shown.length) + TOP;
     const reachedHere = shown.filter(l => l.done).length;
     const reached = Math.min(shown.length - (lastWorld ? 1 : 0), reachedHere);
+    // monde suivant ouvert une fois le dernier niveau de celui-ci réussi (mode admin : toujours)
     const nextWorldOpen = !lastWorld && (adminMode || (levels[first + WORLD - 1]?.done ?? false));
     // en changeant de monde, on repart du haut du chemin
     const goWorld = (w: number) => {
@@ -115,10 +116,10 @@ export default function LevelsMap() {
                 <FaChevronLeft aria-hidden/>
             </button>
             <span>
-                <strong>Monde {world + 1}</strong> / {worlds}
+                <strong>Monde {world + 1}</strong>
                 <small>niveaux {first + 1} à {Math.min(count, first + WORLD)}</small>
             </span>
-            <button type="button" disabled={lastWorld} aria-label="Monde suivant" onClick={() => goWorld(world + 1)}>
+            <button type="button" disabled={!nextWorldOpen} aria-label="Monde suivant" onClick={() => goWorld(world + 1)}>
                 <FaChevronRight aria-hidden/>
             </button>
         </nav>
@@ -214,8 +215,10 @@ export default function LevelsMap() {
                             ) : (
                                 <div className={`levels-node next-world ${nextWorldOpen ? "open" : ""}`}
                                      style={{left: `${(xOf(shown.length) / WIDTH) * 100}%`, top: `${yOf(shown.length)}px`}}>
-                                    <button type="button" aria-label={`Monde ${world + 2}`} onClick={() => goWorld(world + 1)}>
-                                        <FaArrowDown aria-hidden/>
+                                    <button type="button" disabled={!nextWorldOpen}
+                                            aria-label={`Monde ${world + 2}${nextWorldOpen ? "" : ", verrouillé"}`}
+                                            onClick={() => goWorld(world + 1)}>
+                                        {nextWorldOpen ? <FaArrowDown aria-hidden/> : <FaLock aria-hidden/>}
                                     </button>
                                     <span className="levels-label">Monde {world + 2}</span>
                                 </div>
