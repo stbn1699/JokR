@@ -164,8 +164,26 @@
 .rules-foot {
 	display         : flex;
 	justify-content : flex-end;
+	align-items     : center;
+	gap             : 0.75rem;
 	padding         : 0.75rem 1.5rem 1.1rem;
 	border-top      : 1px solid rgba(255, 255, 255, 0.08);
+}
+
+// relance la visite guidée de l'interface : discret, à gauche
+.rules-tour {
+	margin-right : auto;
+	padding      : 0.4rem 0;
+	border       : none;
+	background   : none;
+	color        : #fbbf24;
+	font-family  : inherit;
+	font-size    : 1.05rem;
+	text-decoration : underline;
+	cursor       : pointer;
+	opacity      : 0.85;
+
+	&:hover { opacity : 1; }
 }
 
 .rules-ok {

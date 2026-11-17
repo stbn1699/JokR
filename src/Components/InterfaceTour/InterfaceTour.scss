@@ -1,0 +1,123 @@
+// Visite guidée de l'interface : voile percé autour des éléments, flèche, bulle (et la question du début)
+.interface-tour {
+	position : fixed;
+	inset    : 0;
+	z-index  : 200;
+}
+
+.interface-tour-veil {
+	position : fixed;
+	inset    : 0;
+}
+
+// cadre doré autour de chaque élément montré
+.interface-tour-frame {
+	fill         : none;
+	stroke       : #fbbf24;
+	stroke-width : 3;
+}
+
+.interface-tour-arrow {
+	stroke         : #fbbf24;
+	stroke-width   : 3;
+	stroke-linecap : round;
+}
+
+.interface-tour-bubble,
+.interface-tour-ask {
+	display        : flex;
+	flex-direction : column;
+	gap            : 0.6rem;
+	width          : min(24rem, calc(100vw - 1.5rem));
+	padding        : 1rem 1.2rem;
+	box-sizing     : border-box;
+	border         : 2px solid #fbbf24;
+	border-radius  : 14px;
+	background     : #0f172a;
+	box-shadow     : 0 0.6rem 1.6rem rgba(0, 0, 0, 0.5);
+	color          : #f9fafb;
+	animation      : interface-tour-in 0.25s ease-out;
+
+	p {
+		margin      : 0;
+		font-size   : 1.15rem;
+		line-height : 1.4;
+	}
+}
+
+.interface-tour-bubble {
+	position : fixed;
+}
+
+.interface-tour-count {
+	font-size   : 0.95rem;
+	font-weight : 700;
+	color       : #fbbf24;
+}
+
+.interface-tour-buttons {
+	display         : flex;
+	flex-wrap       : wrap;
+	justify-content : flex-end;
+	align-items     : center;
+	gap             : 0.5rem;
+
+	button {
+		padding       : 0.45rem 1.2rem;
+		border        : none;
+		border-radius : 999px;
+		background    : #10b981;
+		color         : #f9fafb;
+		font-family   : inherit;
+		font-size     : 1.05rem;
+		font-weight   : 700;
+		cursor        : pointer;
+
+		&:hover { background : #059669; }
+
+		&.secondary {
+			border      : 1px solid rgba(255, 255, 255, 0.25);
+			background  : transparent;
+			font-weight : 400;
+
+			&:hover { border-color : #fbbf24; }
+		}
+
+		// « Passer » : discret, à gauche
+		&.link {
+			margin-right : auto;
+			padding      : 0.45rem 0.3rem;
+			background   : transparent;
+			font-weight  : 400;
+			opacity      : 0.75;
+
+			&:hover { opacity : 1; }
+		}
+	}
+}
+
+// la question « Voulez-vous un petit tutoriel ? »
+.interface-tour-ask-overlay {
+	position        : fixed;
+	inset           : 0;
+	z-index         : 200;
+	display         : flex;
+	align-items     : center;
+	justify-content : center;
+	padding         : 1rem;
+	background      : rgba(2, 6, 23, 0.6);
+
+	h2 {
+		margin    : 0;
+		font-size : 1.5rem;
+	}
+}
+
+@keyframes interface-tour-in {
+	from { opacity : 0; transform : translateY(0.4rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.interface-tour-bubble,
+	.interface-tour-ask { animation : none; }
+}
