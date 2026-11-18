@@ -4,6 +4,46 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 3.2.0 — 18 novembre 2026
+
+Les succès arrivent : 561 défis à relever dans tout le site, chacun avec sa récompense. Et la boutique fait peau neuve, avec des améliorations qui changent les jeux eux-mêmes.
+
+### Succès
+- 561 succès dans 11 catégories : fortune, profil, boutique, défis du jour, mode Niveaux, puzzles, hasard, social, secrets, troll et méta
+- Chaque succès rapporte des crédits selon sa difficulté : de 25 (Bronze) à 10 000 (Légendaire)
+- Une carte s'affiche en haut à droite dès qu'un succès est débloqué, et la récompense s'ajoute tout de suite au solde
+- Nouvelle page « Succès » dans le menu du profil : progression par catégorie et par palier, recherche, filtre débloqués / à débloquer, et une barre d'avancement sur chaque succès en cours
+- Des succès secrets restent cachés tant qu'ils ne sont pas débloqués, et quelques-uns sont là pour rire (« La définition de la folie »…)
+- Ce que tu as déjà atteint (solde, niveau, mondes ouverts, objets achetés…) est débloqué dès ta prochaine visite
+
+### Boutique
+- Nouvelle boutique sur une seule page : les rubriques à gauche, les objets au centre, l'aperçu à droite
+- Nouvelle rubrique Améliorations, avec des niveaux à acheter l'un après l'autre :
+  - Machines à sous : colonnes (jusqu'à 5), lignes de gain (jusqu'à 10) et lancers en série (jusqu'à 100)
+  - Plinko : difficultés Équilibré, Risqué et le nouveau tableau Extrême (×41 aux bords), et jusqu'à 100 billes par lancer
+  - Keno : jusqu'à 15 numéros cochés, avec de nouveaux gains de 11 à 15 numéros
+  - Roulette : mise par case jusqu'à 10 000 crédits et mise par tour jusqu'à 50 000
+  - Loterie : ticket moins cher, jusqu'à 7 crédits
+  - Roue du jour : jusqu'à 3 tours par jour
+  - Boutique : remise jusqu'à −15 % sur tous les achats
+- Sans amélioration, les machines à sous démarrent à 3 colonnes et 1 ligne, le Plinko au tableau Prudent et le Keno à 10 numéros : un choix pas encore débloqué porte un cadenas et mène à la boutique
+- Effets de victoire, joués à la fin d'une grille : feux d'artifice, pluie de jetons, étoiles, pluie de cartes et bulles (les confettis restent offerts)
+- Fonds à motifs : 12 motifs (rayures, damier, pois, cartes, puzzle…) à combiner avec 16 couleurs
+- Fonds animés : nuit étoilée, aurore lente, pluie fine, flocons et lucioles
+- Nouveaux fonds en image : casino, espace, paysages et saisons
+- Nouvelles billes de Plinko : effets, fruits, gemmes, métaux, planètes, sports et verre
+- Nouveaux jeux de jetons : céramique, fondateurs, japonais, métaux, minimaliste, néon, pierres, pirate et planètes
+
+### Personnaliser
+- Nouvelle page « Personnaliser » dans le menu du profil : fond du site, bille de Plinko, jetons et effet de victoire, parmi ce que tu possèdes, avec l'aperçu de ce que tu utilises
+
+### Puzzles
+- Un bouton « Vider la grille » sous Annuler / Rétablir, sur les 8 puzzles, avec une confirmation : la grille et les notes s'effacent, le chrono continue
+
+### Affichage
+- À partir de 10 000, le solde s'écrit en court (12,3k ; 1,5M) ; le montant exact s'affiche au survol
+- Barres de défilement plus discrètes sur tout le site
+
 ## 3.1.2 — 17 novembre 2026
 
 ### Mode Niveaux
