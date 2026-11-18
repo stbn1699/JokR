@@ -222,6 +222,7 @@
 
 		// Crédits du joueur, à côté du niveau (un clic mène à la boutique)
 		.credits {
+			position        : relative;
 			display         : flex;
 			align-items     : center;
 			gap             : 0.35rem;
@@ -242,6 +243,57 @@
 			&.bump {
 				color       : #ea580c;
 				text-shadow : 0 0 10px rgba(249, 115, 22, 0.55);
+			}
+
+			// bulle du survol : le solde exact
+			.credits-tip {
+				position       : absolute;
+				top            : calc(100% + 0.6rem);
+				left           : 50%;
+				z-index        : 20;
+				display        : flex;
+				flex-direction : column;
+				align-items    : center;
+				gap            : 0.15rem;
+				padding        : 0.5rem 0.8rem;
+				border-radius  : 10px;
+				background     : #1c1917;
+				color          : #f4e5cb;
+				font-size      : 1rem;
+				font-weight    : 400;
+				white-space    : nowrap;
+				box-shadow     : 0 0.4rem 1rem rgba(0, 0, 0, 0.35);
+				opacity        : 0;
+				transform      : translate(-50%, -0.25rem);
+				transition     : opacity 0.15s ease, transform 0.15s ease;
+				pointer-events : none;
+
+				b {
+					color     : #fbbf24;
+					font-size : 1.2rem;
+				}
+
+				small {
+					font-size : 0.8rem;
+					opacity   : 0.65;
+				}
+
+				// petite pointe vers les crédits
+				&::before {
+					content             : "";
+					position            : absolute;
+					top                 : -0.35rem;
+					left                : 50%;
+					border              : 0.35rem solid transparent;
+					border-top          : 0;
+					border-bottom-color : #1c1917;
+					transform           : translateX(-50%);
+				}
+			}
+
+			&:hover .credits-tip, &:focus-visible .credits-tip {
+				opacity   : 1;
+				transform : translate(-50%, 0);
 			}
 		}
 

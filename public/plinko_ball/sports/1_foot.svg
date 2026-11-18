@@ -1,0 +1,32 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<clipPath id="bille"><circle cx="500" cy="500" r="500"/></clipPath>
+<radialGradient id="volume" cx="420" cy="380" r="640" gradientUnits="userSpaceOnUse">
+  <stop offset="0.5" stop-color="black" stop-opacity="0"/><stop offset="1" stop-color="black" stop-opacity="0.5"/>
+</radialGradient>
+<radialGradient id="reflet" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="white" stop-opacity="0.85"/><stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+
+</defs>
+<g id="bille-foot" clip-path="url(#bille)">
+<g id="surface">
+  <circle cx="500" cy="500" r="500" fill="#f7f7f5"/>
+  <path d="M500 330 L500 170" stroke="#1a1a1a" stroke-width="12"/>
+  <path d="M662 447 L814 398" stroke="#1a1a1a" stroke-width="12"/>
+  <path d="M600 638 L694 767" stroke="#1a1a1a" stroke-width="12"/>
+  <path d="M400 638 L306 767" stroke="#1a1a1a" stroke-width="12"/>
+  <path d="M338 447 L186 398" stroke="#1a1a1a" stroke-width="12"/>
+  <path d="M500.0 330.0 L661.7 447.5 L599.9 637.5 L400.1 637.5 L338.3 447.5 Z" fill="#1a1a1a"/>
+  <path d="M652.8 289.7 L594.7 110.8 L746.9 0.2 L899.0 110.8 L840.9 289.7 Z" fill="#1a1a1a"/>
+  <path d="M747.3 580.3 L899.4 469.8 L1051.6 580.3 L993.5 759.2 L805.4 759.2 Z" fill="#1a1a1a"/>
+  <path d="M500.0 760.0 L652.2 870.6 L594.0 1049.4 L406.0 1049.4 L347.8 870.6 Z" fill="#1a1a1a"/>
+  <path d="M252.7 580.3 L194.6 759.2 L6.5 759.2 L-51.6 580.3 L100.6 469.8 Z" fill="#1a1a1a"/>
+  <path d="M347.2 289.7 L159.1 289.7 L101.0 110.8 L253.1 0.2 L405.3 110.8 Z" fill="#1a1a1a"/>
+</g>
+<g id="ombrage">
+  <circle cx="500" cy="500" r="500" fill="url(#volume)"/>
+  <ellipse cx="340" cy="290" rx="170" ry="120" fill="url(#reflet)" opacity="0.7" transform="rotate(-35 340 290)"/>
+</g>
+</g>
+</svg>

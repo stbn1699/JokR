@@ -141,5 +141,7 @@ export function useTraceGame(saveKey = "TRACE") {
     return {
         loadingSize, puzzle, path, walls, solution, isGenerating, generate, begin, enter, end, step, clear, validate,
         undo, redo, canUndo: past.length > 0, canRedo: future.length > 0, restore,
+        // Chemin tracé au-delà du 1
+        hasInput: path.length > 1,
     };
 }

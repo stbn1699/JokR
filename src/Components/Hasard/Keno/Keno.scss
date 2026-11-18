@@ -70,6 +70,25 @@
 		small { font-size : 0.9rem; opacity : 0.8; }
 	}
 
+	// plus de numéros : l'amélioration de la boutique
+	.keno-more {
+		display         : inline-flex;
+		align-items     : center;
+		gap             : 0.35rem;
+		margin          : -0.2rem 0 0.6rem;
+		color           : inherit;
+		font-size       : 0.95rem;
+		text-decoration : none;
+		opacity         : 0.6;
+
+		svg { font-size : 0.8em; }
+
+		&:hover {
+			color   : #fbbf24;
+			opacity : 1;
+		}
+	}
+
 	.keno-bets {
 		display               : grid;
 		grid-template-columns : repeat(3, 1fr);

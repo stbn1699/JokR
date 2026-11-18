@@ -20,6 +20,7 @@ export type SavedRikudo = { gameId: string; values: RikudoCell[] };
  * - setCell(i, v) : le joueur pose un nombre ou vide une case (sans effet sur un nombre donné)
  * - validate() : envoie la grille au serveur (qui calcule l'XP si le joueur est connecté)
  * - undo() / redo() : annule / rétablit le dernier coup
+ * - reset() : vide le plateau (les nombres donnés restent) ; hasInput : le joueur a rempli des cases
  * - restore(puzzle, saved) : reprend une partie sauvegardée
  */
 export function useRikudoGame(saveKey = "RIKUDO") {
@@ -103,6 +104,16 @@ export function useRikudoGame(saveKey = "RIKUDO") {
         return move?.index ?? null;
     };
 
+    // Saisies du joueur (hors nombres donnés)
+    const hasInput = values.some((v, i) => v !== null && !isClue(i));
+
+    // Vide le plateau : retour aux seuls nombres donnés, historique effacé (le chrono continue)
+    const reset = () => {
+        if (!puzzle || isGenerating) return;
+        setValues(puzzle.cells);
+        history.clear();
+    };
+
     const restore = (saved: RikudoPuzzle, data: SavedRikudo) => {
         stopAnimation();
         gameIdRef.current = data.gameId;
@@ -132,6 +143,6 @@ export function useRikudoGame(saveKey = "RIKUDO") {
     return {
         loadingSize,
         puzzle, board, values, revealed, isGenerating, isClue, generate, setCell, validate,
-        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
+        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore, reset, hasInput,
     };
 }

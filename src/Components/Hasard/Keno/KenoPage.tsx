@@ -8,8 +8,9 @@
 import "./Keno.scss";
 import {useEffect, useState} from "react";
 import {Link, Navigate} from "react-router-dom";
-import {FaChevronLeft, FaCoins, FaDice, FaEraser} from "react-icons/fa";
+import {FaChevronLeft, FaCoins, FaDice, FaEraser, FaLock} from "react-icons/fa";
 import {KENO_BETS, KENO_MAX_PICKS, KENO_NUMBERS, KENO_PAYTABLE} from "../../../../backend/src/utils/keno.ts";
+import {useUpgradeValue} from "../../../Services/upgrades.ts";
 import {useAuth} from "../../../Context/authContext.ts";
 import {ApiError} from "../../../api/api.ts";
 import {casinoService, type KenoResult} from "../../../Services/casino.service.ts";
@@ -44,6 +45,8 @@ export default function KenoPage() {
     const [recent, setRecent] = useState<Recent[]>([]);
     const [nextId, setNextId] = useState(1);
     const {setCredits} = auth;
+    // numéros qu'on peut cocher : 10, puis 12 et 15 avec l'amélioration « Numéros cochés »
+    const maxPicks = useUpgradeValue("keno-picks");
 
     const drawing = !!result && shown < result.drawn.length;
     const done = !!result && !drawing;
@@ -79,7 +82,7 @@ export default function KenoPage() {
     const toggle = (n: number) => {
         if (busy) return;
         clearDraw();
-        setPicks(p => p.includes(n) ? p.filter(x => x !== n) : p.length >= KENO_MAX_PICKS ? p : [...p, n]);
+        setPicks(p => p.includes(n) ? p.filter(x => x !== n) : p.length >= maxPicks ? p : [...p, n]);
     };
 
     const quickPick = () => {
@@ -140,7 +143,10 @@ export default function KenoPage() {
                         ))}
                     </div>
 
-                    <span className="keno-label">Numéros : <strong>{picks.length}</strong> / {KENO_MAX_PICKS}</span>
+                    <span className="keno-label">Numéros : <strong>{picks.length}</strong> / {maxPicks}</span>
+                    {maxPicks < KENO_MAX_PICKS && (
+                        <Link to="/boutique/ameliorations-keno" className="keno-more"><FaLock aria-hidden/> Jusqu'à {KENO_MAX_PICKS} numéros dans la boutique</Link>
+                    )}
                     <div className="keno-tools">
                         <button type="button" disabled={busy} onClick={quickPick}><FaDice aria-hidden/> Au hasard</button>
                         <button type="button" disabled={busy || picks.length === 0} onClick={() => {
@@ -161,7 +167,7 @@ export default function KenoPage() {
 
                 <section className="keno-board" aria-label="Grille du Keno">
                     <p className={`keno-status ${done ? (net > 0 ? "win" : net === 0 ? "push" : "lose") : ""}`} aria-live="polite">
-                        {!result ? (picks.length === 0 ? "Choisis de 1 à 10 numéros" : `${picks.length} numéro${picks.length > 1 ? "s" : ""} choisi${picks.length > 1 ? "s" : ""}`)
+                        {!result ? (picks.length === 0 ? `Choisis de 1 à ${maxPicks} numéros` : `${picks.length} numéro${picks.length > 1 ? "s" : ""} choisi${picks.length > 1 ? "s" : ""}`)
                             : drawing ? `${hitsSoFar} trouvé${hitsSoFar > 1 ? "s" : ""}…`
                                 : result.payout > 0 ? `${result.hits} trouvé${result.hits > 1 ? "s" : ""} : ${pays(result.multiplier)}, +${fr(result.payout)}`
                                     : `${result.hits} trouvé${result.hits > 1 ? "s" : ""} : perdu`}
@@ -173,7 +179,7 @@ export default function KenoPage() {
                             const state = picked && isOut ? "hit" : isOut ? "out" : picked ? "picked" : "";
                             return (
                                 <button key={n} type="button" className={`keno-cell ${state}`} aria-pressed={picked}
-                                        disabled={busy || (!picked && picks.length >= KENO_MAX_PICKS)} onClick={() => toggle(n)}>
+                                        disabled={busy || (!picked && picks.length >= maxPicks)} onClick={() => toggle(n)}>
                                     {n}
                                 </button>
                             );

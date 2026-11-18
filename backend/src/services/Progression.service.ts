@@ -1,3 +1,5 @@
+import {achievements} from "./achievements/index.js";
+import {puzzleWon} from "./achievements/events.js";
 import type {Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
 import {addXp} from "../utils/leveling.js";
@@ -25,6 +27,12 @@ export class ProgressionService {
      * (même jeu, même taille, même nombre de cases à remplir).
      */
     async recordWin(userId: string, gameCode: string, xpGained: number, result: GameResult, creditsGained = 0): Promise<{ personalBest: boolean }> {
+        const win = await this.save(userId, gameCode, xpGained, result, creditsGained);
+        void achievements.track(userId, ctx => puzzleWon(ctx, {gameCode, gridSize: result.gridSize, credits: creditsGained}));
+        return win;
+    }
+
+    private async save(userId: string, gameCode: string, xpGained: number, result: GameResult, creditsGained: number): Promise<{ personalBest: boolean }> {
         return this.db.transaction().execute(async (trx) => {
             // Crée la ligne de stats si c'est la première victoire sur ce jeu
             await trx

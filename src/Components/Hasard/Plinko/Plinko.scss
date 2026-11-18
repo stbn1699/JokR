@@ -82,10 +82,10 @@
 		opacity       : 0.85;
 	}
 
-	// Tableaux de gains : trois boutons côte à côte, couleur du plus sûr (vert) au plus risqué (rouge)
+	// Tableaux de gains : deux par ligne, couleur du plus sûr (vert) au plus risqué (violet)
 	.plinko-risks {
 		display               : grid;
-		grid-template-columns : repeat(3, 1fr);
+		grid-template-columns : repeat(2, 1fr);
 		gap                   : 0.4rem;
 	}
 
@@ -103,6 +103,7 @@
 
 		&.medium { --risk : #f59e0b; }
 		&.high { --risk : #ef4444; }
+		&.extreme { --risk : #a855f7; }
 
 		&:hover:not(:disabled) {
 			background : color-mix(in srgb, var(--risk) 18%, transparent);
@@ -120,11 +121,26 @@
 			cursor  : not-allowed;
 			opacity : 0.4;
 		}
+
+		// pas encore débloqué : cadenas, et un clic mène à la boutique
+		&.locked {
+			display         : inline-flex;
+			align-items     : center;
+			justify-content : center;
+			gap             : 0.3rem;
+			border-style    : dashed;
+			opacity         : 0.45;
+
+			svg { font-size : 0.8em; }
+
+			&:hover:not(:disabled) { opacity : 0.9; }
+		}
 	}
 
-	// Billes par lancer (×1, ×5, ×10) : mêmes boutons que les tableaux, en bleu
+	// Billes par lancer (×1 à ×100) : mêmes boutons que les tableaux, en bleu, trois par ligne
 	.plinko-counts {
-		margin-bottom : 1rem;
+		grid-template-columns : repeat(3, 1fr);
+		margin-bottom         : 1rem;
 
 		.plinko-risk { --risk : #38bdf8; }
 	}

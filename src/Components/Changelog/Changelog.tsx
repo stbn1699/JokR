@@ -6,6 +6,8 @@ import "./Changelog.scss";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import changelog from "../../../CHANGELOG.md?raw";
 import {parseChangelog, splitMentions} from "./parseChangelog.ts";
+import {useEffect} from "react";
+import {achievementsService} from "../../Services/achievements.service.ts";
 
 // Texte du changelog : les @pseudo deviennent des liens vers le profil du joueur
 function Rich({text}: { text: string }) {
@@ -18,6 +20,8 @@ const versions = parseChangelog(changelog);
 
 export default function Changelog() {
     const navigate = useNavigate();
+    // succès « Curieux »
+    useEffect(() => achievementsService.report("changelog"), []);
     // Arrivé directement sur la page (lien partagé, rafraîchissement) : pas de page précédente dans le site
     const hasPrevious = useLocation().key !== "default";
 

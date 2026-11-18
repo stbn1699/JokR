@@ -3,8 +3,9 @@
  * de gain (1, 3, 5 ou 10 : moins de lignes, chaque ligne vaut plus), lancer (bouton ou barre d'espace), les rouleaux
  * qui s'arrêtent l'un après l'autre, les lignes gagnantes et le gain, les derniers lancers (colonne de droite).
  * Colonnes et lignes sont retenues dans le navigateur ; les lignes jouées sont tracées sur les rouleaux.
- * Lancers en série : 1, 5, 10 ou 25 lancers d'affilée (50 et 100 sous cadenas, à débloquer plus tard dans la
- * boutique). La machine enchaîne seule, avec une courte pause pour voir chaque résultat ; « Arrêter » laisse finir le
+ * Au départ : 3 colonnes et 1 ligne ; le reste se débloque dans la boutique (Améliorations, voir
+ * backend/src/utils/upgrades.ts). Un choix pas encore débloqué a un cadenas et mène à la boutique.
+ * Lancers en série : 1, 5 ou 10 lancers d'affilée (25, 50 et 100 se débloquent dans la boutique). La machine enchaîne seule, avec une courte pause pour voir chaque résultat ; « Arrêter » laisse finir le
  * lancer en cours. La série s'arrête aussi faute de crédits ou à l'approche d'une mise à jour. Bilan de la série.
  *
  * Le serveur tire les arrêts, encaisse la mise et paie tout de suite ; le site anime les rouleaux jusqu'à ces
@@ -14,7 +15,7 @@
 
 import "./Slots.scss";
 import {useCallback, useEffect, useRef, useState} from "react";
-import {Link, Navigate, useParams} from "react-router-dom";
+import {Link, Navigate, useNavigate, useParams} from "react-router-dom";
 import {FaChevronLeft, FaCoins, FaLock, FaStop} from "react-icons/fa";
 import {useAuth} from "../../../Context/authContext.ts";
 import {ApiError} from "../../../api/api.ts";
@@ -35,6 +36,10 @@ import {TOURS} from "../tours.ts";
 import SlotReels, {type SlotReelsHandle} from "./SlotReels.tsx";
 import SlotRules from "./SlotRules.tsx";
 import {useStoredFlag} from "../../PuzzleUI/useStoredFlag.ts";
+import {useUpgradeValue} from "../../../Services/upgrades.ts";
+
+// Améliorations des machines à sous dans la boutique
+const SHOP_URL = "/boutique/ameliorations";
 
 type HistoryEntry = { id: number; bet: number; payout: number };
 
@@ -67,11 +72,10 @@ function save(key: string, value: number) {
 // durée pendant laquelle les lignes restent bien visibles après en avoir changé le nombre
 const SHOW_LINES_MS = 1800;
 
-// Lancers en série : nombre de lancers d'affilée ; certains sont sous cadenas (boutique, plus tard)
+// Lancers en série : nombre de lancers d'affilée (au-delà de 10 : amélioration « Lancers en série »)
 const SPIN_COUNTS = [1, 5, 10, 25, 50, 100];
-const LOCKED_COUNTS = new Set([50, 100]);
 const COUNT_KEY = "jokr:slots-count";
-const isSpinCount = (v: unknown): v is number => typeof v === "number" && SPIN_COUNTS.includes(v) && !LOCKED_COUNTS.has(v);
+const isSpinCount = (v: unknown): v is number => typeof v === "number" && SPIN_COUNTS.includes(v);
 // pause entre deux lancers d'une série (le temps de voir le résultat)
 const AUTO_GAP_MS = 700;
 
@@ -81,11 +85,19 @@ export default function SlotMachinePage() {
     const {id} = useParams();
     const machine = slotMachine(id);
     const auth = useAuth();
+    const navigate = useNavigate();
     const {setCredits} = auth;
     const chipImage = useChipImage();
+    // ce que le joueur a débloqué dans la boutique
+    const maxReels = useUpgradeValue("slots-reels");
+    const maxLines = useUpgradeValue("slots-lines");
+    const maxCount = useUpgradeValue("slots-auto");
     const reels = useRef<SlotReelsHandle>(null);
-    const [reelCount, setReelCount] = useState(() => saved(REELS_KEY, isSlotReelCount, 3));
-    const [lineCount, setLineCount] = useState(() => saved(LINES_KEY, isSlotLineCount, 5));
+    // choix retenus, ramenés à ce qui est débloqué
+    const [savedReels, setReelCount] = useState(() => saved(REELS_KEY, isSlotReelCount, 3));
+    const [savedLines, setLineCount] = useState(() => saved(LINES_KEY, isSlotLineCount, 1));
+    const reelCount = Math.min(savedReels, maxReels);
+    const lineCount = Math.max(...SLOT_LINE_COUNTS.filter(n => n <= Math.min(savedLines, maxLines)));
     const [initialStops, setInitialStops] = useState(() => randomStops(reelCount, machine?.strip.length ?? 1));
     // lignes bien visibles un instant après en avoir changé le nombre
     const [showLines, setShowLines] = useState(false);
@@ -103,7 +115,8 @@ export default function SlotMachinePage() {
     const lastBet = useRef(bet);
     const updating = useMaintenance().on;
     // série : lancers prévus, lancers encore à faire après celui en cours, et bilan
-    const [spinCount, setSpinCount] = useState(() => saved(COUNT_KEY, isSpinCount, 1));
+    const [savedCount, setSpinCount] = useState(() => saved(COUNT_KEY, isSpinCount, 1));
+    const spinCount = Math.max(...SPIN_COUNTS.filter(n => n <= Math.min(savedCount, maxCount)));
     const [autoLeft, setAutoLeft] = useState(0);
     const autoLeftRef = useRef(0);
     const autoTimer = useRef<number | null>(null);
@@ -201,7 +214,7 @@ export default function SlotMachinePage() {
     }, [updating, stop]);
 
     function chooseCount(n: number) {
-        if (LOCKED_COUNTS.has(n) || spinning || autoLeft > 0) return;
+        if (n > maxCount || spinning || autoLeft > 0) return;
         setSpinCount(n);
         save(COUNT_KEY, n);
     }
@@ -213,7 +226,7 @@ export default function SlotMachinePage() {
     }, [showLines]);
 
     function chooseReels(n: number) {
-        if (spinning || n === reelCount || !machine) return;
+        if (spinning || n === reelCount || n > maxReels || !machine) return;
         setReelCount(n);
         save(REELS_KEY, n);
         setInitialStops(randomStops(n, machine.strip.length));
@@ -222,7 +235,7 @@ export default function SlotMachinePage() {
     }
 
     function chooseLines(n: number) {
-        if (spinning) return;
+        if (spinning || n > maxLines) return;
         setLineCount(n);
         save(LINES_KEY, n);
         setShown(null);
@@ -256,6 +269,11 @@ export default function SlotMachinePage() {
                 onClick={running ? stop : start}>{spinLabel}</button>
     );
     const locked = spinning || running;
+    // choix pas encore débloqué : cadenas, et un clic mène à la boutique
+    const lockedChoice = (n: number, what: string) => (
+        <button key={n} type="button" className="slots-choice locked" disabled={locked} aria-label={`${what}, à débloquer dans la boutique`}
+                title="À débloquer dans la boutique" onClick={() => navigate(SHOP_URL)}><FaLock aria-hidden/> {n}</button>
+    );
 
     return (
         <main className="slots">
@@ -280,7 +298,7 @@ export default function SlotMachinePage() {
 
                     <span className="slots-label">Colonnes</span>
                     <div className="slots-choices" role="radiogroup" aria-label="Nombre de colonnes">
-                        {SLOT_REEL_COUNTS.map(n => (
+                        {SLOT_REEL_COUNTS.map(n => n > maxReels ? lockedChoice(n, `${n} colonnes`) : (
                             <button key={n} type="button" role="radio" aria-checked={reelCount === n} disabled={locked}
                                     className={`slots-choice ${reelCount === n ? "active" : ""}`} onClick={() => chooseReels(n)}>{n}</button>
                         ))}
@@ -288,7 +306,7 @@ export default function SlotMachinePage() {
 
                     <span className="slots-label">Lignes de gain</span>
                     <div className="slots-choices" role="radiogroup" aria-label="Nombre de lignes de gain">
-                        {SLOT_LINE_COUNTS.map(n => (
+                        {SLOT_LINE_COUNTS.map(n => n > maxLines ? lockedChoice(n, `${n} lignes`) : (
                             <button key={n} type="button" role="radio" aria-checked={lineCount === n} disabled={locked}
                                     className={`slots-choice ${lineCount === n ? "active" : ""}`} onClick={() => chooseLines(n)}>{n}</button>
                         ))}
@@ -296,10 +314,7 @@ export default function SlotMachinePage() {
 
                     <span className="slots-label">Lancers</span>
                     <div className="slots-choices slots-counts" role="radiogroup" aria-label="Nombre de lancers">
-                        {SPIN_COUNTS.map(n => LOCKED_COUNTS.has(n) ? (
-                            <button key={n} type="button" className="slots-choice locked" disabled aria-label={`${n} lancers, bientôt dans la boutique`}
-                                    title="Bientôt dans la boutique"><FaLock aria-hidden/> {n}</button>
-                        ) : (
+                        {SPIN_COUNTS.map(n => n > maxCount ? lockedChoice(n, `${n} lancers`) : (
                             <button key={n} type="button" role="radio" aria-checked={spinCount === n} disabled={locked}
                                     className={`slots-choice ${spinCount === n ? "active" : ""}`} onClick={() => chooseCount(n)}>{n}</button>
                         ))}
@@ -310,7 +325,8 @@ export default function SlotMachinePage() {
                 </section>
 
                 <section className={`slots-machine ${machine.id}`}>
-                    <SlotReels key={reelCount} ref={reels} machine={machine} initialStops={initialStops} lines={lineCount}
+                    <SlotReels key={reelCount} ref={reels} machine={machine} lines={lineCount}
+                               initialStops={Array.from({length: reelCount}, (_, i) => initialStops[i % initialStops.length]!)}
                                showLines={showLines} linesVisible={!hideLines} spinning={spinning} wins={shown?.wins ?? []} onStopped={onStopped}/>
                     <p className={`slots-result ${shown && shown.payout > 0 ? "win" : ""}`} role="status">
                         {spinning ? "Les rouleaux tournent…"

@@ -18,6 +18,7 @@ export type SavedGalaxies = { gameId: string; walls: number[] };
  * - walls : tous les murs tracés (donnés + posés), analysis : zones, couleurs, erreurs et solution
  * - validate() : envoie le découpage au serveur (qui calcule l'XP si le joueur est connecté)
  * - undo() / redo() : annule / rétablit le dernier mur posé ou retiré
+ * - reset() : retire tous les murs posés (les murs donnés restent) ; hasInput : le joueur a posé des murs
  * - restore(puzzle, saved) : reprend une partie sauvegardée
  */
 export function useGalaxiesGame(saveKey = "GALAXIES") {
@@ -108,6 +109,17 @@ export function useGalaxiesGame(saveKey = "GALAXIES") {
         return move?.index ?? null;
     };
 
+    // Murs posés par le joueur
+    const hasInput = placed.some(on => on);
+
+    // Vide la grille : retour aux seuls murs donnés, historique effacé (le chrono continue)
+    const reset = () => {
+        if (!puzzle || isGenerating) return;
+        strokeRef.current = null;
+        setPlaced(Array<boolean>(wallCount(puzzle.width, puzzle.height)).fill(false));
+        history.clear();
+    };
+
     const restore = (saved: GalaxiesPuzzle, data: SavedGalaxies) => {
         gameIdRef.current = data.gameId;
         setPuzzle(saved);
@@ -134,6 +146,6 @@ export function useGalaxiesGame(saveKey = "GALAXIES") {
     return {
         loadingSize,
         puzzle, walls, hintWalls, analysis, isGenerating, generate, toggleWall, paintWall, endStroke, validate,
-        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
+        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore, reset, hasInput,
     };
 }

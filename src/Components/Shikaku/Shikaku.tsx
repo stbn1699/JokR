@@ -178,7 +178,8 @@ export default function Shikaku({daily = false, replayDate, challengeId, level, 
                 <h2 className="title">Actions</h2>
                 <GameTimer clock={flow.clock}/>
                 <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
-                                onUndo={game.undo} onRedo={game.redo}/>
+                                onUndo={game.undo} onRedo={game.redo}
+                                onReset={game.reset} canReset={playing && game.hasInput}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={errorCount}/>
                 <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
 

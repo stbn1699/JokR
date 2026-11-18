@@ -1,0 +1,46 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<clipPath id="bille"><circle cx="500" cy="500" r="500"/></clipPath>
+<radialGradient id="volume" cx="420" cy="380" r="640" gradientUnits="userSpaceOnUse">
+  <stop offset="0.5" stop-color="black" stop-opacity="0"/><stop offset="1" stop-color="black" stop-opacity="0.5"/>
+</radialGradient>
+<radialGradient id="reflet" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="white" stop-opacity="0.85"/><stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="table" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#efa5b5"/><stop offset="1" stop-color="#d81e45"/></radialGradient>
+</defs>
+<g id="bille-rubis" clip-path="url(#bille)">
+<g id="surface">
+  <circle cx="500" cy="500" r="500" fill="#971530"/>
+  <path d="M584.2 296.7 L775.8 224.2 L703.3 415.8 Z" fill="#c21b3e"/>
+  <path d="M584.2 296.7 L714.3 -17.4 L775.8 224.2 Z" fill="#df4767"/>
+  <path d="M775.8 224.2 L714.3 -17.4 L1017.4 285.7 Z" fill="#821229"/>
+  <path d="M703.3 415.8 L890.0 500.0 L703.3 584.2 Z" fill="#971530"/>
+  <path d="M703.3 415.8 L1017.4 285.7 L890.0 500.0 Z" fill="#ec8ea2"/>
+  <path d="M890.0 500.0 L1017.4 285.7 L1017.4 714.3 Z" fill="#a21634"/>
+  <path d="M703.3 584.2 L775.8 775.8 L584.2 703.3 Z" fill="#c21b3e"/>
+  <path d="M703.3 584.2 L1017.4 714.3 L775.8 775.8 Z" fill="#df4767"/>
+  <path d="M775.8 775.8 L1017.4 714.3 L714.3 1017.4 Z" fill="#821229"/>
+  <path d="M584.2 703.3 L500.0 890.0 L415.8 703.3 Z" fill="#971530"/>
+  <path d="M584.2 703.3 L714.3 1017.4 L500.0 890.0 Z" fill="#da294e"/>
+  <path d="M500.0 890.0 L714.3 1017.4 L285.7 1017.4 Z" fill="#a21634"/>
+  <path d="M415.8 703.3 L224.2 775.8 L296.7 584.2 Z" fill="#c21b3e"/>
+  <path d="M415.8 703.3 L285.7 1017.4 L224.2 775.8 Z" fill="#df4767"/>
+  <path d="M224.2 775.8 L285.7 1017.4 L-17.4 714.3 Z" fill="#821229"/>
+  <path d="M296.7 584.2 L110.0 500.0 L296.7 415.8 Z" fill="#971530"/>
+  <path d="M296.7 584.2 L-17.4 714.3 L110.0 500.0 Z" fill="#ec8ea2"/>
+  <path d="M110.0 500.0 L-17.4 714.3 L-17.4 285.7 Z" fill="#a21634"/>
+  <path d="M296.7 415.8 L224.2 224.2 L415.8 296.7 Z" fill="#c21b3e"/>
+  <path d="M296.7 415.8 L-17.4 285.7 L224.2 224.2 Z" fill="#df4767"/>
+  <path d="M224.2 224.2 L-17.4 285.7 L285.7 -17.4 Z" fill="#821229"/>
+  <path d="M415.8 296.7 L500.0 110.0 L584.2 296.7 Z" fill="#971530"/>
+  <path d="M415.8 296.7 L285.7 -17.4 L500.0 110.0 Z" fill="#da294e"/>
+  <path d="M500.0 110.0 L285.7 -17.4 L714.3 -17.4 Z" fill="#a21634"/>
+  <path id="table" d="M584.2 296.7 L703.3 415.8 L703.3 584.2 L584.2 703.3 L415.8 703.3 L296.7 584.2 L296.7 415.8 L415.8 296.7 Z" fill="url(#table)"/>
+</g>
+<g id="ombrage">
+  <circle cx="500" cy="500" r="500" fill="url(#volume)"/>
+  <ellipse cx="340" cy="290" rx="170" ry="120" fill="url(#reflet)" opacity="1" transform="rotate(-35 340 290)"/>
+</g>
+</g>
+</svg>

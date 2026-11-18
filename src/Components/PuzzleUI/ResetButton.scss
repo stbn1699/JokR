@@ -1,0 +1,35 @@
+// Bouton « Vider la grille » du panneau Actions, sous Annuler / Rétablir
+.reset-grid-button {
+	display       : inline-flex;
+	align-items   : center;
+	align-self    : center;
+	gap           : 0.5rem;
+	padding       : 0.5rem 1rem;
+	border-radius : 999px;
+	border        : 2px solid rgba(229, 231, 235, 0.5);
+	background    : transparent;
+	color         : #f9fafb;
+	font-family   : inherit;
+	font-size     : 1.05rem;
+	cursor        : pointer;
+	transition    : all 0.15s ease;
+
+	&:hover:not(:disabled) {
+		border-color : #f87171;
+	}
+
+	&:disabled {
+		opacity : 0.35;
+		cursor  : default;
+	}
+}
+
+// Confirmation : par-dessus toute la page, quel que soit le défilement
+.modal-overlay.reset-grid-overlay {
+	position : fixed;
+	z-index  : 150;
+}
+
+.modal.reset-grid-modal {
+	width : min(26rem, calc(100vw - 2rem));
+}

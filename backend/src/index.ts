@@ -25,6 +25,9 @@ import feedbackRoutes from "./routes/Feedback.routes.js";
 import casinoRoutes from "./routes/Casino.routes.js";
 import {NotificationsRepository} from "./repository/Notifications.repository.js";
 import playersRoutes from "./routes/Players.routes.js";
+import achievementsRoutes from "./routes/Achievements.routes.js";
+import {achievements} from "./services/achievements/index.js";
+import {peekUserId} from "./middleware/auth.js";
 import {tracker} from "./services/tracker.js";
 import {pool} from "./db/pool.js";
 import {migrate} from "./db/migrate.js";
@@ -65,6 +68,11 @@ api.get("/ping", (_req, res) => {
 
 // Statistiques : dernière activité des joueurs connectés
 api.use(tracker.activity);
+// Succès : dates, séries de jours et temps passé sur le site (sans jamais bloquer la requête)
+api.use((req, _res, next) => {
+	achievements.noteActivity(peekUserId(req));
+	next();
+});
 
 // Mise à jour en préparation : plus de nouvelle partie de puzzle (voir services/maintenance.ts)
 api.use(blockNewGames);
@@ -94,6 +102,7 @@ api.use("/shop", shopRoutes);
 api.use("/feedback", feedbackRoutes);
 api.use("/casino", casinoRoutes);
 api.use("/players", playersRoutes);
+api.use("/achievements", achievementsRoutes);
 
 if (config.apiPrefix) {
 	// Route d'API inconnue : réponse JSON plutôt que la page du front
@@ -143,7 +152,12 @@ const server = app.listen(config.port, () => {
 // Défis du jour : générés au démarrage s'ils manquent, puis chaque nuit à minuit (heure de Paris)
 // À minuit, les défis de la veille se terminent : chaque joueur reçoit ses places finales en notification
 const notifications = new NotificationsRepository(createDb(pool));
-startDailyScheduler(createDailyService(createDb(pool)), console.log, date => notifications.createDailyResults(date));
+startDailyScheduler(createDailyService(createDb(pool)), console.log, async date => {
+	const sent = await notifications.createDailyResults(date);
+	// succès des places finales (classements, « Lanterne rouge »…)
+	await achievements.closeDay(date);
+	return sent;
+});
 // Roulette en direct : tirage et paiement de chaque tour, même quand personne ne joue
 startRouletteScheduler(new LiveRouletteRepository(createDb(pool)));
 // Loteries du Hasard : tirages du jour, de la semaine et du mois, à 23 h 59 (heure de Paris)

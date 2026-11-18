@@ -1,0 +1,70 @@
+// Personnaliser : la mise en page de la boutique (Shop.scss), avec un titre à la place des onglets
+.shop.customize-page {
+	.customize-head {
+		display     : flex;
+		align-items : center;
+		gap         : 1rem;
+
+		h1 {
+			margin    : 0;
+			font-size : 2rem;
+		}
+	}
+
+	.customize-shop-link {
+		display         : inline-flex;
+		align-items     : center;
+		gap             : 0.45rem;
+		margin-left     : auto;
+		padding         : 0.45rem 1.1rem;
+		border          : 1px solid rgba(249, 250, 251, 0.14);
+		border-radius   : 999px;
+		color           : #f9fafb;
+		text-decoration : none;
+		opacity         : 0.8;
+
+		&:hover {
+			border-color : #fbbf24;
+			color        : #fbbf24;
+			opacity      : 1;
+		}
+	}
+
+	// les rubriques sont des boutons (pas des liens) : mêmes styles que la boutique
+	button.shop-nav-item {
+		border      : none;
+		background  : none;
+		font-family : inherit;
+		text-align  : left;
+		cursor      : pointer;
+	}
+
+	// icône d'une rubrique : la vignette de l'objet utilisé
+	.customize-nav-art {
+		position : relative;
+		display  : block;
+		width    : 100%;
+		height   : 100%;
+	}
+
+	// objet en train d'être mis en place
+	.shop-tile.pending {
+		opacity : 0.6;
+		cursor  : progress;
+	}
+
+	// dernière case : vers la boutique
+	.customize-more {
+		text-decoration : none;
+		border-style    : dashed;
+
+		.shop-tile-art {
+			color     : rgba(249, 250, 251, 0.5);
+			font-size : 2rem;
+		}
+
+		&:hover .shop-tile-art {
+			color : #fbbf24;
+		}
+	}
+}

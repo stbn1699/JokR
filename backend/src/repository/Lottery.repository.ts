@@ -1,6 +1,8 @@
 import {randomInt} from "node:crypto";
 import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
+import {upgradeValueFor} from "../utils/upgrades.js";
+import {ShopRepository} from "./Shop.repository.js";
 import {lotteryDrawDate, type LotteryKind, lotteryPeriod, lotteryPrize, lotteryTickets, pickLotteryWinner} from "../utils/lottery.js";
 
 // Notification envoyée au gagnant d'une loterie
@@ -37,7 +39,10 @@ export class LotteryRepository {
                 .where("kind", "=", kind).where("created_at", ">", new Date(start)).where("created_at", "<=", new Date(end))
                 .groupBy("user_id").execute(),
         ]);
-        const players = new Map(bets.map(b => [b.userId, {userId: b.userId, bet: b.bet, tickets: lotteryTickets(b.bet)}]));
+        // prix du ticket de chacun (amélioration « Prix du ticket »)
+        const upgrades = await new ShopRepository(db).upgradeLevelsOf(bets.map(b => b.userId));
+        const price = (userId: string) => upgradeValueFor(upgrades.get(userId) ?? {}, "lottery-ticket");
+        const players = new Map(bets.map(b => [b.userId, {userId: b.userId, bet: b.bet, tickets: lotteryTickets(b.bet, price(b.userId))}]));
         for (const b of bonus) {
             const p = players.get(b.user_id) ?? {userId: b.user_id, bet: 0, tickets: 0};
             p.tickets += Number(b.tickets);
@@ -86,7 +91,7 @@ export class LotteryRepository {
                     .onConflict(oc => oc.columns(["user_id", "kind", "ref"]).doNothing())
                     .execute();
             }
-            return {date, totalBet, totalTickets, prize, winner: winner?.userId ?? null};
+            return {date, totalBet, totalTickets, prize, winner: winner?.userId ?? null, players};
         });
     }
 

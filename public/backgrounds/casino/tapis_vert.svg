@@ -1,0 +1,11 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialGradient id="tapis" cx="960" cy="420" r="1200" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1f8a5a"/><stop offset="0.7" stop-color="#0f5c3a"/><stop offset="1" stop-color="#062a1b"/></radialGradient>
+</defs>
+<rect id="tapis" width="1920" height="1080" fill="url(#tapis)"/>
+<g id="marquages">
+  <path d="M260 220 Q960 1000 1660 220" stroke="#e9d9a6" stroke-opacity="0.45" stroke-width="5"/>
+  <path d="M200 160 Q960 1100 1720 160" stroke="#e9d9a6" stroke-opacity="0.3" stroke-width="3"/>
+  <rect x="1442" y="332" width="110" height="156" rx="12" stroke="#e9d9a6" stroke-opacity="0.45" stroke-width="4" transform="rotate(-60 1497 410)"/><rect x="1269" y="493" width="110" height="156" rx="12" stroke="#e9d9a6" stroke-opacity="0.45" stroke-width="4" transform="rotate(-36 1324 571)"/><rect x="1034" y="581" width="110" height="156" rx="12" stroke="#e9d9a6" stroke-opacity="0.45" stroke-width="4" transform="rotate(-12 1089 659)"/><rect x="776" y="581" width="110" height="156" rx="12" stroke="#e9d9a6" stroke-opacity="0.45" stroke-width="4" transform="rotate(12 831 659)"/><rect x="541" y="493" width="110" height="156" rx="12" stroke="#e9d9a6" stroke-opacity="0.45" stroke-width="4" transform="rotate(36 596 571)"/><rect x="368" y="332" width="110" height="156" rx="12" stroke="#e9d9a6" stroke-opacity="0.45" stroke-width="4" transform="rotate(60 423 410)"/>
+</g>
+</svg>

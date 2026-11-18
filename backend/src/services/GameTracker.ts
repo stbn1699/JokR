@@ -1,3 +1,5 @@
+import {achievements} from "./achievements/index.js";
+import {puzzleSession} from "./achievements/events.js";
 import type {NextFunction, Request, Response} from "express";
 import {sql, type Kysely} from "kysely";
 import type {DB, GameMode} from "../db/schema.js";
@@ -62,9 +64,18 @@ export class GameTracker {
             .set({finished_at: new Date(), duration_ms: durationMs})
             .where("game_id", "=", gameId)
             .where("finished_at", "is", null);
-        this.run("finished", this.afterInsert(gameId, () => (userId
+        const done = this.afterInsert(gameId, () => (userId
             ? update.set({user_id: sql`coalesce(user_id, ${userId}::uuid)`, logged_in: true})
-            : update).execute()));
+            : update).execute());
+        this.run("finished", done);
+        // succès : grilles fausses envoyées pendant la partie (défi du jour sans faute, « Têtu »)
+        if (userId && !isGhost(userId)) {
+            this.run("finished (succès)", done.then(async () => {
+                const session = await this.db.selectFrom("game_sessions").select(["game_code", "mode", "failed_attempts"])
+                    .where("game_id", "=", gameId).executeTakeFirst();
+                if (session) await achievements.track(userId, ctx => puzzleSession(ctx, {gameCode: session.game_code, mode: session.mode, failed: session.failed_attempts}));
+            }));
+        }
     }
 
     // Middleware : note la dernière activité des joueurs connectés (sans jamais bloquer la requête)

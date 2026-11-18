@@ -30,12 +30,11 @@ import {createPortal} from "react-dom";
 import {useTierUp} from "../Avatar/useTierUp.ts";
 import TierUpPopup from "../Avatar/TierUpPopup.tsx";
 import LevelBubble from "../Avatar/LevelBubble.tsx";
-import CustomizePanel from "../Shop/CustomizePanel.tsx";
 import ProfileMenu from "./ProfileMenu.tsx";
 import {useEffect, useRef, useState} from "react";
 import {dailyService} from "../../Services/daily.service.ts";
 import {casinoService, WHEEL_SPUN_EVENT} from "../../Services/casino.service.ts";
-import {formatCredits} from "../../Services/credits.ts";
+import {formatCredits, fullCredits} from "../../Services/credits.ts";
 
 // Catégories de jeux (au centre du header) ; `match` dit si une adresse appartient à l'onglet
 // Les défis du jour (/defi) font partie des puzzles
@@ -82,7 +81,6 @@ export default function Header() {
     const {pathname} = useLocation();
     const auth = useAuth();
     const {isLoggedIn, adminMode} = auth;
-    const [customizing, setCustomizing] = useState(false);
     const dailyPending = useDailyPending(isLoggedIn, pathname);
     const wheelPending = useWheelPending(isLoggedIn, pathname);
     // Hors des deux pages d'accueil (Puzzle et Hasard) : caché quand on descend, de retour dès qu'on remonte
@@ -182,10 +180,15 @@ export default function Header() {
                         <span className="user-divider" aria-hidden/>
 
                         {/* crédits : un clic mène à la boutique */}
+                        {/* au survol : le solde exact (l'écriture est courte à partir de 10 000 : 12,3k) */}
                         <Link to="/boutique" className={`credits ${shown.creditsBump ? "bump" : ""}`}
-                              title="Crédits (à miser sur les jeux de hasard, à dépenser dans la boutique)">
+                              aria-label={`${fullCredits(credits)} crédits, ouvrir la boutique`}>
                             <FaCoins aria-hidden/>
-                            <span>{formatCredits(credits)}</span>
+                            <span aria-hidden>{formatCredits(credits)}</span>
+                            <span className="credits-tip" aria-hidden>
+                                <span><b>{fullCredits(credits)}</b> crédits</span>
+                                <small>À miser au Hasard, à dépenser dans la boutique</small>
+                            </span>
                         </Link>
 
                         <Link to="/classements" className={`header-icon ${pathname.startsWith("/classements") ? "active" : ""}`}
@@ -203,9 +206,8 @@ export default function Header() {
                                 <FaChartBar aria-hidden/>
                             </Link>
                         )}
-                        <CustomizePanel open={customizing} onClose={() => setCustomizing(false)}/>
                         <NotificationBell enabled={isLoggedIn}/>
-                        <ProfileMenu level={level} xp={xp} xpNextLevel={xpNextLevel} onCustomize={() => setCustomizing(true)}/>
+                        <ProfileMenu level={level} xp={xp} xpNextLevel={xpNextLevel}/>
                     </div>
                 ) : (
                     <FaUser title="Se connecter" onClick={() => navigate("/login")}/>

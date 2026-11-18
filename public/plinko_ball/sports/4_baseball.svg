@@ -1,0 +1,44 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<clipPath id="bille"><circle cx="500" cy="500" r="500"/></clipPath>
+<radialGradient id="volume" cx="420" cy="380" r="640" gradientUnits="userSpaceOnUse">
+  <stop offset="0.5" stop-color="black" stop-opacity="0"/><stop offset="1" stop-color="black" stop-opacity="0.5"/>
+</radialGradient>
+<radialGradient id="reflet" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="white" stop-opacity="0.85"/><stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+
+</defs>
+<g id="bille-baseball" clip-path="url(#bille)">
+<g id="surface">
+  <circle cx="500" cy="500" r="500" fill="#f5f2ea"/>
+  <path d="M140 110 C470 300 470 700 140 890 M860 110 C530 300 530 700 860 890" stroke="#c9c2b0" stroke-width="10"/>
+  <path d="M182 148 L208 168 M250 148 L224 168" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M244 207 L270 227 M312 207 L286 227" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M292 271 L318 291 M360 271 L334 291" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M326 340 L352 360 M394 340 L368 360" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M347 412 L373 432 M415 412 L389 432" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M354 486 L380 506 M422 486 L396 506" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M347 560 L373 580 M415 560 L389 580" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M326 632 L352 652 M394 632 L368 652" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M292 701 L318 721 M360 701 L334 721" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M244 765 L270 785 M312 765 L286 785" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M182 824 L208 844 M250 824 L224 844" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M750 148 L776 168 M818 148 L792 168" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M689 207 L715 227 M757 207 L731 227" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M640 271 L666 291 M708 271 L682 291" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M606 340 L632 360 M674 340 L648 360" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M585 412 L611 432 M653 412 L627 432" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M578 486 L604 506 M646 486 L620 506" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M585 560 L611 580 M653 560 L627 580" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M606 632 L632 652 M674 632 L648 652" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M640 701 L666 721 M708 701 L682 721" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M688 765 L714 785 M756 765 L730 785" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M750 824 L776 844 M818 824 L792 844" stroke="#d2232a" stroke-width="12" stroke-linecap="round"/>
+</g>
+<g id="ombrage">
+  <circle cx="500" cy="500" r="500" fill="url(#volume)"/>
+  <ellipse cx="340" cy="290" rx="170" ry="120" fill="url(#reflet)" opacity="0.7" transform="rotate(-35 340 290)"/>
+</g>
+</g>
+</svg>

@@ -1,3 +1,4 @@
+import {achievements} from "../services/achievements/index.js";
 import {Router, type Request, type Response} from "express";
 import {rateLimit} from "express-rate-limit";
 import {pool} from "../db/pool.js";
@@ -29,6 +30,7 @@ router.post("/", sendLimiter, asyncHandler(async (req: Request, res: Response<un
     const input = parseFeedback(req.body, req.get("user-agent"));
     if (typeof input === "string") return void res.status(400).json({status: "error", message: input});
     await feedback.create(res.locals.userId!, input);
+    void achievements.track(res.locals.userId, ctx => ctx.live("feedback"));
     res.status(201).json({status: "ok", data: null});
 }));
 

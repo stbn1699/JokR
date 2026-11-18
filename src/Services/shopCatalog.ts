@@ -93,3 +93,161 @@ export function usableBackgrounds(owned: string[], level: number): Gradient[] {
     return [DEFAULT_BACKGROUND, ...TIER_GRADIENTS.filter(t => level >= t.minLevel), ...GRADIENTS.filter(gr => owned.includes(gr.id))];
 }
 
+
+/*
+ * Fonds à motifs : on achète des motifs et des couleurs (mêmes identifiants et prix que backend/src/utils/shop.ts),
+ * puis on porte un motif avec deux couleurs : la couleur 1 pour le fond, la couleur 2 pour le motif.
+ * Le fond porté s'écrit « pat:<motif>/<couleur 1>/<couleur 2> ». Nuit et Ardoise sont offertes.
+ */
+export const PATTERN_PRICE = 25;
+export const PATTERN_COLOR_PRICE = 5;
+
+export type Pattern = { id: string; slug: string; name: string };
+export type PatternColor = { id: string; slug: string; name: string; hex: string; free: boolean };
+
+export const PATTERNS: Pattern[] = ([
+    ["rayures", "Rayures"], ["quadrille", "Quadrillé"], ["damier", "Damier"], ["pois", "Pois"],
+    ["chevrons", "Chevrons"], ["losanges", "Losanges"], ["ecossais", "Écossais"], ["briques", "Briques"],
+    ["ecailles", "Écailles"], ["alveoles", "Alvéoles"], ["vagues", "Vagues"], ["etoiles", "Étoiles"],
+    ["triangles", "Triangles"], ["cartes", "Cartes"], ["puzzle", "Puzzle"],
+] as const).map(([slug, name]) => ({id: `pattern-${slug}`, slug, name}));
+
+export const PATTERN_COLORS: PatternColor[] = ([
+    ["nuit", "Nuit", "#0f172a"], ["ardoise", "Ardoise", "#475569"], ["noir", "Noir", "#0a0a0a"],
+    ["sable", "Sable", "#a8a29e"], ["creme", "Crème", "#e7e0d0"], ["rubis", "Rubis", "#be123c"],
+    ["corail", "Corail", "#f97316"], ["ambre", "Ambre", "#f59e0b"], ["citron", "Citron", "#eab308"],
+    ["olive", "Olive", "#65a30d"], ["emeraude", "Émeraude", "#059669"], ["lagon", "Lagon", "#0d9488"],
+    ["ciel", "Ciel", "#0ea5e9"], ["cobalt", "Cobalt", "#2563eb"], ["indigo", "Indigo", "#4f46e5"],
+    ["violet", "Violet", "#7c3aed"], ["orchidee", "Orchidée", "#c026d3"], ["rose", "Rose", "#ec4899"],
+] as const).map(([slug, name, hex]) => ({id: `color-${slug}`, slug, name, hex, free: slug === "nuit" || slug === "ardoise"}));
+
+// Couleurs prises par défaut (offertes) : un motif se porte dès qu'on l'a acheté
+export const DEFAULT_PATTERN_COLORS = ["nuit", "ardoise"] as const;
+
+// Voile sombre sur le fond du site, comme sur les fonds en images : les textes restent lisibles
+const PATTERN_VEIL = "linear-gradient(rgba(2, 6, 23, 0.4), rgba(2, 6, 23, 0.4))";
+
+const colorHex = (slug: string) => PATTERN_COLORS.find(c => c.slug === slug)?.hex ?? "#0f172a";
+
+// Motif dessiné en SVG (carreau de `w` × `h` unités, 100 unités = 1,5 × `s` px : un peu plus grand que les
+// motifs en dégradés, ses traits sont plus fins), répété sur la couleur du fond `a`
+function svgTile(body: string, w: number, h: number, s: number, a: string): string {
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'>${body}</svg>`;
+    const unit = (s * 1.5) / 100;
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 0 0 / ${w * unit}px ${h * unit}px, ${a}`;
+}
+
+// Étoile à cinq branches (motif « Étoiles »)
+function star(cx: number, cy: number, r: number): string {
+    const points = Array.from({length: 10}, (_, i) => {
+        const radius = i % 2 === 0 ? r : r * 0.42;
+        const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+        return `${(cx + radius * Math.cos(angle)).toFixed(1)} ${(cy + radius * Math.sin(angle)).toFixed(1)}`;
+    });
+    return `M${points.join("L")}Z`;
+}
+
+// Les quatre enseignes des cartes, centrées sur (x, y) (motif « Cartes »)
+const heart = (x: number, y: number) => `M${x} ${y + 10}C${x - 16} ${y - 2} ${x - 10} ${y - 14} ${x} ${y - 5}C${x + 10} ${y - 14} ${x + 16} ${y - 2} ${x} ${y + 10}Z`;
+const spade = (x: number, y: number) =>
+    `M${x} ${y - 12}C${x - 16} ${y} ${x - 10} ${y + 12} ${x} ${y + 4}C${x + 10} ${y + 12} ${x + 16} ${y} ${x} ${y - 12}Z M${x} ${y + 2}L${x - 5} ${y + 13}H${x + 5}Z`;
+const diamond = (x: number, y: number) => `M${x} ${y - 12}L${x + 9} ${y}L${x} ${y + 12}L${x - 9} ${y}Z`;
+const club = (x: number, y: number) =>
+    `M${x} ${y + 2}L${x - 5} ${y + 13}H${x + 5}Z` +
+    [[0, -6], [-6, 2], [6, 2]].map(([dx, dy]) => `M${x + dx! - 5.5} ${y + dy!}a5.5 5.5 0 1 0 11 0a5.5 5.5 0 1 0 -11 0`).join("");
+
+// Calques CSS d'un motif : `a` la couleur du fond, `b` celle du motif, `s` la taille d'un carreau (px)
+function patternLayers(slug: string, a: string, b: string, s: number): string {
+    const h = s / 2;
+    const tile = `${s}px ${s}px`;
+    switch (slug) {
+        case "rayures":
+            return `repeating-linear-gradient(45deg, ${b} 0 ${s / 4}px, ${a} ${s / 4}px ${h}px)`;
+        case "quadrille":
+            return `linear-gradient(${b} 2px, transparent 2px) 0 0 / ${tile}, linear-gradient(90deg, ${b} 2px, transparent 2px) 0 0 / ${tile}, ${a}`;
+        case "damier":
+            return `conic-gradient(${b} 25%, ${a} 0 50%, ${b} 0 75%, ${a} 0) 0 0 / ${tile}`;
+        case "pois":
+            return `radial-gradient(${b} 18%, transparent 19%) 0 0 / ${tile}, radial-gradient(${b} 18%, transparent 19%) ${h}px ${h}px / ${tile}, ${a}`;
+        case "chevrons":
+            return [
+                `linear-gradient(135deg, ${b} 25%, transparent 25%) -${h}px 0 / ${tile}`,
+                `linear-gradient(225deg, ${b} 25%, transparent 25%) -${h}px 0 / ${tile}`,
+                `linear-gradient(315deg, ${b} 25%, transparent 25%) 0 0 / ${tile}`,
+                `linear-gradient(45deg, ${b} 25%, transparent 25%) 0 0 / ${tile}`,
+                a,
+            ].join(", ");
+        case "losanges":
+            return `conic-gradient(from 45deg, ${b} 25%, ${a} 0 50%, ${b} 0 75%, ${a} 0) 0 0 / ${tile}`;
+        case "ecossais": {
+            const band = `color-mix(in srgb, ${b} 55%, transparent)`;
+            return [
+                `repeating-linear-gradient(0deg, ${band} 0 ${s / 4}px, transparent ${s / 4}px ${s}px)`,
+                `repeating-linear-gradient(90deg, ${band} 0 ${s / 4}px, transparent ${s / 4}px ${s}px)`,
+                a,
+            ].join(", ");
+        }
+        // motifs dessinés en SVG
+        case "briques":
+            return svgTile(`<path d='M0 1H100M0 51H100M1 0V50M51 50V100' stroke='${b}' stroke-width='8'/>`, 100, 100, s, a);
+        case "ecailles":
+            return svgTile(`<path d='M0 50A50 50 0 0 1 100 50M-50 100A50 50 0 0 1 50 100M50 100A50 50 0 0 1 150 100' fill='none' stroke='${b}' stroke-width='8'/>`, 100, 100, s, a);
+        case "alveoles":
+            return svgTile(`<path d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100M28 0L28 34L0 50L0 84L28 100L56 84L56 50L28 34' fill='none' stroke='${b}' stroke-width='5'/>`, 56, 100, s, a);
+        case "vagues":
+            return svgTile(`<path d='M0 25Q25 5 50 25T100 25' fill='none' stroke='${b}' stroke-width='8'/>`, 100, 50, s, a);
+        case "etoiles":
+            return svgTile(`<path d='${star(18, 19, 14)}${star(53, 54, 14)}' fill='${b}'/>`, 70, 70, s, a);
+        case "triangles":
+            return svgTile(`<path d='M0 100L50 0L100 100Z' fill='${b}'/>`, 100, 100, s, a);
+        case "cartes":
+            return svgTile(`<path d='${heart(18, 18)}${spade(52, 18)}${club(18, 52)}${diamond(52, 52)}' fill='${b}'/>`, 70, 70, s, a);
+        case "puzzle":
+            return svgTile(`<path d='M0 50H38A12 12 0 1 0 62 50H100M50 0V38A12 12 0 1 1 50 62V100' fill='none' stroke='${b}' stroke-width='7'/>`, 100, 100, s, a);
+        default:
+            return a;
+    }
+}
+
+/*
+ * Fond CSS d'un motif avec ses deux couleurs (slugs). `size` : taille d'un carreau, plus petite dans les vignettes
+ * et les maquettes ; `veil` : avec le voile sombre du fond du site (aperçus fidèles).
+ */
+export function patternCss(slug: string, color1: string, color2: string, {size = 56, veil = true} = {}): string {
+    const layers = patternLayers(slug, colorHex(color1), colorHex(color2), size);
+    return veil ? `${PATTERN_VEIL}, ${layers}` : layers;
+}
+
+export const patternBackgroundId = (slug: string, color1: string, color2: string) => `pat:${slug}/${color1}/${color2}`;
+
+// Fond à motif porté (« pat:pois/rubis/nuit ») ; undefined : pas un fond à motif connu
+export function parsePatternBackground(id: string | null | undefined): { pattern: Pattern; color1: PatternColor; color2: PatternColor } | undefined {
+    const match = /^pat:([a-z]+)\/([a-z]+)\/([a-z]+)$/.exec(id ?? "");
+    const pattern = PATTERNS.find(p => p.slug === match?.[1]);
+    const color1 = PATTERN_COLORS.find(c => c.slug === match?.[2]);
+    const color2 = PATTERN_COLORS.find(c => c.slug === match?.[3]);
+    return pattern && color1 && color2 ? {pattern, color1, color2} : undefined;
+}
+
+/*
+ * Fonds animés : un fond de base (CSS) et une animation dessinée par AnimatedBackground (étoiles, pluie…).
+ * Mêmes identifiants et prix que backend/src/utils/shop.ts ; ils se portent comme les dégradés.
+ */
+export const ANIMATED_PRICE = 50;
+
+export type AnimatedBackgroundItem = { id: string; slug: string; name: string; description: string; base: string };
+
+export const ANIMATED_BACKGROUNDS: AnimatedBackgroundItem[] = [
+    {slug: "etoiles", name: "Nuit étoilée", description: "Des étoiles qui scintillent doucement.",
+        base: "linear-gradient(#020617, #0f1d3d 70%, #1e1b4b)"},
+    {slug: "respire", name: "Aurore lente", description: "Des halos de couleur qui respirent et glissent lentement.",
+        base: "#050816"},
+    {slug: "pluie", name: "Pluie fine", description: "Une pluie fine qui tombe en biais.",
+        base: "linear-gradient(#0b1220, #1c2a3f)"},
+    {slug: "flocons", name: "Flocons", description: "Des flocons qui descendent en se balançant.",
+        base: "linear-gradient(#0b1a3a, #2c4a7a)"},
+    {slug: "lucioles", name: "Lucioles", description: "Des lucioles qui flottent et s'allument dans la nuit.",
+        base: "linear-gradient(#020a06, #0d2618 70%, #14301f)"},
+].map(a => ({...a, id: `anim-${a.slug}`}));
+
+export const findAnimatedBackground = (id: string | null | undefined) => ANIMATED_BACKGROUNDS.find(a => a.id === id);

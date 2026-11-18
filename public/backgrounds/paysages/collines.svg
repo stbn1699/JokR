@@ -1,0 +1,13 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="ciel" x1="0" y1="0" x2="0" y2="1080" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffcf8b"/><stop offset="1" stop-color="#ffe9c4"/></linearGradient><radialGradient id="soleil" cx="560" cy="360" r="120" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff7e0"/><stop offset="1" stop-color="#ffd27a"/></radialGradient>
+</defs>
+<rect id="ciel" width="1920" height="1080" fill="url(#ciel)"/>
+<circle id="soleil" cx="560" cy="360" r="120" fill="url(#soleil)"/>
+<g id="collines">
+  <path d="M-420 1080 L-420 589 Q-420 589 -210 605 Q0 620 210 600 Q420 579 630 619 Q840 659 1050 623 Q1260 588 1470 607 Q1680 626 1890 649 Q2100 671 2310 639 L2520 1080 Z" fill="#b7c97a"/>
+  <path d="M-380 1080 L-380 777 Q-380 777 -190 722 Q0 667 190 707 Q380 747 570 733 Q760 718 950 746 Q1140 773 1330 741 Q1520 709 1710 740 Q1900 770 2090 725 Q2280 679 2470 729 L2660 1080 Z" fill="#8fb05a"/>
+  <path d="M-340 1080 L-340 843 Q-340 843 -170 858 Q0 873 170 849 Q340 825 510 839 Q680 853 850 866 Q1020 878 1190 855 Q1360 832 1530 844 Q1700 856 1870 855 Q2040 855 2210 862 L2380 1080 Z" fill="#5f8f45"/>
+  <path d="M-300 1080 L-300 987 Q-300 987 -150 952 Q0 917 150 936 Q300 955 450 952 Q600 948 750 970 Q900 991 1050 965 Q1200 939 1350 942 Q1500 945 1650 951 Q1800 957 1950 948 Q2100 939 2250 963 L2400 1080 Z" fill="#3a6b38"/>
+</g>
+</svg>

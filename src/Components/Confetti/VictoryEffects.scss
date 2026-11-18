@@ -1,0 +1,113 @@
+// Effets de victoire (VictoryEffects.ts) : un calque plein écran, au-dessus de tout, qui laisse passer les clics
+.victory-fx {
+	position       : fixed;
+	inset          : 0;
+	z-index        : 9999;
+	overflow       : hidden;
+	pointer-events : none;
+
+	canvas {
+		display : block;
+		width   : 100%;
+		height  : 100%;
+	}
+}
+
+// ---------- Pluie de jetons et de cartes
+.victory-chips img,
+.victory-cards .card {
+	position                  : absolute;
+	top                       : -80px;
+	animation-name            : victory-fall;
+	animation-timing-function : cubic-bezier(0.35, 0, 0.75, 1);
+	animation-fill-mode       : both;
+}
+
+.victory-chips img {
+	width  : 46px;
+	height : 46px;
+	filter : drop-shadow(0 4px 4px rgba(0, 0, 0, 0.45));
+}
+
+.victory-cards .card {
+	display         : flex;
+	align-items     : center;
+	justify-content : center;
+	width           : 34px;
+	height          : 48px;
+	border-radius   : 5px;
+	background      : #fdfcf7;
+	box-shadow      : 0 4px 8px rgba(0, 0, 0, 0.4);
+	font-size       : 24px;
+	line-height     : 1;
+
+	&.red { color : #d62839; }
+	&.black { color : #1a1a1a; }
+}
+
+@keyframes victory-fall {
+	from {
+		transform : translate(0, 0) rotateY(0) rotateZ(0);
+	}
+	to {
+		transform : translate(var(--sway), 115vh) rotateY(var(--spin)) rotateZ(calc(var(--spin) / 3));
+	}
+}
+
+// ---------- Étoiles : elles partent du centre, grossissent puis s'éteignent
+.victory-stars span {
+	position                  : absolute;
+	top                       : 50%;
+	left                      : 50%;
+	color                     : #ffd54a;
+	text-shadow               : 0 0 12px rgba(255, 200, 60, 0.9);
+	animation-name            : victory-star;
+	animation-timing-function : cubic-bezier(0.15, 0.8, 0.3, 1);
+	animation-fill-mode       : both;
+}
+
+@keyframes victory-star {
+	0% {
+		opacity   : 0;
+		transform : translate(-50%, -50%) scale(0.2) rotate(0);
+	}
+	15% {
+		opacity : 1;
+	}
+	100% {
+		opacity   : 0;
+		transform : translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(200deg);
+	}
+}
+
+// ---------- Bulles : montée en ondulant, éclatement en haut
+.victory-bubbles span {
+	position                  : absolute;
+	bottom                    : -80px;
+	border                    : 2px solid rgba(255, 255, 255, 0.7);
+	border-radius             : 50%;
+	background                : radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.85) 0 12%, rgba(173, 216, 255, 0.25) 13% 60%, rgba(196, 160, 255, 0.15) 100%);
+	animation-name            : victory-bubble;
+	animation-timing-function : ease-in-out;
+	animation-fill-mode       : both;
+}
+
+@keyframes victory-bubble {
+	0% {
+		opacity   : 0;
+		transform : translate(0, 0);
+	}
+	10% {
+		opacity : 1;
+	}
+	30% { transform : translate(var(--sway), -35vh); }
+	55% { transform : translate(calc(var(--sway) * -1), -65vh); }
+	88% {
+		opacity   : 1;
+		transform : translate(var(--sway), -95vh) scale(1);
+	}
+	100% {
+		opacity   : 0;
+		transform : translate(var(--sway), -100vh) scale(1.5);
+	}
+}

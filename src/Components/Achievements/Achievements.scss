@@ -1,0 +1,547 @@
+// Succès : page /succes (AchievementsPage.tsx) et popups de déblocage (AchievementToasts.tsx)
+
+// Couleur de chaque palier (Bronze, Argent, Or, Diamant, Légendaire)
+$tiers : (
+	1 : #d08b55,
+	2 : #cbd5e1,
+	3 : #fbbf24,
+	4 : #67e8f9,
+	5 : #e879f9,
+);
+
+@each $tier, $color in $tiers {
+	.tier-#{$tier} {
+		--tier : #{$color};
+	}
+}
+
+.achievements-page {
+	width      : min(78rem, calc(100% - 3rem));
+	margin     : 0 auto;
+	padding    : 2rem 0 5rem;
+	box-sizing : border-box;
+
+	.ach-error,
+	.ach-none {
+		margin     : 3rem 0;
+		text-align : center;
+		opacity    : 0.75;
+		font-size  : 1.2rem;
+	}
+}
+
+// ---------- Bandeau du haut
+
+.ach-hero {
+	display               : grid;
+	grid-template-columns : 1fr auto;
+	gap                   : 2rem;
+	align-items           : end;
+	padding               : 1.75rem 2rem;
+	border                : 1px solid rgba(249, 250, 251, 0.14);
+	border-radius         : 16px;
+	background            : linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(2, 6, 23, 0.55) 45%);
+
+	h1 {
+		margin    : 0;
+		font-size : 3rem;
+	}
+
+	.ach-hero-title p {
+		margin    : 0.25rem 0 0;
+		font-size : 1.15rem;
+		opacity   : 0.75;
+	}
+}
+
+.ach-hero-stats {
+	display     : flex;
+	gap         : 2rem;
+	align-items : center;
+}
+
+.ach-total {
+	display        : flex;
+	flex-direction : column;
+	gap            : 0.4rem;
+	min-width      : 15rem;
+
+	.ach-total-count {
+		font-size : 1.3rem;
+		opacity   : 0.8;
+
+		strong {
+			font-size   : 2.4rem;
+			color       : #fbbf24;
+			opacity     : 1;
+			font-weight : 800;
+		}
+	}
+
+	.ach-total-sub {
+		font-size : 1rem;
+		opacity   : 0.7;
+	}
+}
+
+.ach-bar {
+	display       : block;
+	height        : 0.5rem;
+	overflow      : hidden;
+	border-radius : 999px;
+	background    : rgba(249, 250, 251, 0.12);
+
+	> span {
+		display       : block;
+		height        : 100%;
+		border-radius : inherit;
+		background    : var(--tier, #fbbf24);
+		transition    : width 0.4s ease;
+	}
+}
+
+.ach-tiers {
+	display        : flex;
+	flex-direction : column;
+	gap            : 0.3rem;
+	margin         : 0;
+	padding        : 0;
+	list-style     : none;
+
+	li {
+		display               : grid;
+		grid-template-columns : 0.8rem 6.5rem 4.5rem 4rem;
+		gap                   : 0.6rem;
+		align-items           : center;
+		font-size             : 1rem;
+	}
+
+	.ach-tier-dot {
+		width         : 0.8rem;
+		height        : 0.8rem;
+		border-radius : 50%;
+		background    : var(--tier);
+		box-shadow    : 0 0 0.5rem var(--tier);
+	}
+
+	.ach-tier-name {
+		color : var(--tier);
+	}
+
+	.ach-tier-count {
+		font-variant-numeric : tabular-nums;
+		opacity              : 0.85;
+	}
+
+	.ach-tier-reward {
+		font-size : 0.9rem;
+		opacity   : 0.55;
+	}
+}
+
+// ---------- Catégories (à gauche) et liste
+
+.ach-layout {
+	display               : grid;
+	grid-template-columns : 15rem 1fr;
+	gap                   : 2rem;
+	margin-top            : 1.5rem;
+	align-items           : start;
+}
+
+.ach-nav {
+	position       : sticky;
+	top            : 5rem;
+	display        : flex;
+	flex-direction : column;
+	gap            : 0.3rem;
+
+	button {
+		position              : relative;
+		display               : grid;
+		grid-template-columns : 1fr auto;
+		gap                   : 0.3rem 0.5rem;
+		padding               : 0.6rem 0.9rem;
+		border                : 1px solid transparent;
+		border-radius         : 10px;
+		background            : none;
+		color                 : #f9fafb;
+		font-family           : inherit;
+		font-size             : 1.1rem;
+		text-align            : left;
+		cursor                : pointer;
+		transition            : background 0.15s ease, border-color 0.15s ease;
+
+		&:hover {
+			background : rgba(249, 250, 251, 0.06);
+		}
+
+		&.active {
+			border-color : rgba(251, 191, 36, 0.6);
+			background   : rgba(251, 191, 36, 0.1);
+		}
+	}
+
+	.ach-nav-count {
+		font-size            : 0.9rem;
+		font-variant-numeric : tabular-nums;
+		opacity              : 0.6;
+	}
+
+	.ach-nav-bar {
+		grid-column   : 1 / -1;
+		height        : 3px;
+		overflow      : hidden;
+		border-radius : 999px;
+		background    : rgba(249, 250, 251, 0.1);
+
+		> span {
+			display    : block;
+			height     : 100%;
+			background : #fbbf24;
+		}
+	}
+}
+
+.ach-toolbar {
+	display         : flex;
+	justify-content : space-between;
+	align-items     : center;
+	gap             : 1rem;
+	margin-bottom   : 0.5rem;
+}
+
+.ach-status {
+	display       : inline-flex;
+	padding       : 0.2rem;
+	border        : 1px solid rgba(249, 250, 251, 0.14);
+	border-radius : 999px;
+	background    : rgba(2, 6, 23, 0.45);
+
+	button {
+		padding       : 0.35rem 1rem;
+		border        : none;
+		border-radius : 999px;
+		background    : none;
+		color         : #f9fafb;
+		font-family   : inherit;
+		font-size     : 1rem;
+		opacity       : 0.7;
+		cursor        : pointer;
+
+		&.active {
+			background : #fbbf24;
+			color      : #1c1917;
+			opacity    : 1;
+		}
+	}
+}
+
+.ach-search {
+	display       : inline-flex;
+	align-items   : center;
+	gap           : 0.5rem;
+	padding       : 0.4rem 0.9rem;
+	border        : 1px solid rgba(249, 250, 251, 0.14);
+	border-radius : 999px;
+	background    : rgba(2, 6, 23, 0.45);
+
+	svg {
+		opacity : 0.5;
+	}
+
+	input {
+		width       : 14rem;
+		border      : none;
+		outline     : none;
+		background  : none;
+		color       : #f9fafb;
+		font-family : inherit;
+		font-size   : 1rem;
+	}
+
+	&:focus-within {
+		border-color : #fbbf24;
+	}
+}
+
+.ach-section {
+	h2 {
+		margin    : 1.5rem 0 0.25rem;
+		font-size : 1.9rem;
+	}
+}
+
+.ach-group h3 {
+	margin         : 1rem 0 0.6rem;
+	font-size      : 1.05rem;
+	font-weight    : 600;
+	letter-spacing : 0.08em;
+	text-transform : uppercase;
+	opacity        : 0.55;
+}
+
+.ach-grid {
+	display               : grid;
+	grid-template-columns : repeat(auto-fill, minmax(17rem, 1fr));
+	gap                   : 0.75rem;
+}
+
+// ---------- Une carte
+
+.ach-card {
+	display       : flex;
+	gap           : 0.85rem;
+	padding       : 0.9rem 1rem;
+	border        : 1px solid rgba(249, 250, 251, 0.1);
+	border-radius : 12px;
+	background    : rgba(2, 6, 23, 0.5);
+	transition    : border-color 0.15s ease, transform 0.15s ease;
+
+	&:hover {
+		border-color : color-mix(in srgb, var(--tier) 55%, transparent);
+	}
+
+	.ach-card-badge {
+		display         : flex;
+		flex            : none;
+		justify-content : center;
+		align-items     : center;
+		width           : 2.6rem;
+		height          : 2.6rem;
+		border-radius   : 50%;
+		background      : rgba(249, 250, 251, 0.06);
+		color           : rgba(249, 250, 251, 0.35);
+		font-size       : 1.15rem;
+	}
+
+	.ach-card-body {
+		display        : flex;
+		flex           : 1;
+		flex-direction : column;
+		gap            : 0.3rem;
+		min-width      : 0;
+	}
+
+	.ach-card-head {
+		display         : flex;
+		justify-content : space-between;
+		align-items     : baseline;
+		gap             : 0.5rem;
+	}
+
+	h4 {
+		margin      : 0;
+		font-size   : 1.15rem;
+		line-height : 1.2;
+	}
+
+	.ach-card-reward {
+		flex        : none;
+		color       : var(--tier);
+		font-size   : 0.95rem;
+		font-weight : 700;
+	}
+
+	p {
+		margin      : 0;
+		font-size   : 0.98rem;
+		line-height : 1.3;
+		opacity     : 0.72;
+	}
+
+	.ach-card-date,
+	.ach-card-best {
+		font-size : 0.88rem;
+		opacity   : 0.55;
+	}
+
+	.ach-card-progress {
+		display               : grid;
+		grid-template-columns : 1fr auto;
+		gap                   : 0.6rem;
+		align-items           : center;
+		margin-top            : 0.15rem;
+		font-size             : 0.85rem;
+		font-variant-numeric  : tabular-nums;
+		opacity               : 0.8;
+	}
+
+	&.done {
+		border-color : color-mix(in srgb, var(--tier) 40%, transparent);
+		background   : linear-gradient(135deg, color-mix(in srgb, var(--tier) 16%, transparent), rgba(2, 6, 23, 0.55) 60%);
+
+		.ach-card-badge {
+			background : color-mix(in srgb, var(--tier) 22%, transparent);
+			color      : var(--tier);
+			box-shadow : 0 0 0.9rem color-mix(in srgb, var(--tier) 45%, transparent);
+		}
+	}
+
+	&.locked {
+		h4 {
+			opacity : 0.85;
+		}
+	}
+
+	&.secret {
+		border-style : dashed;
+
+		h4 {
+			font-style : italic;
+			opacity    : 0.6;
+		}
+	}
+
+	// Légendaire débloqué : un reflet qui passe
+	&.done.tier-5 {
+		position : relative;
+		overflow : hidden;
+
+		&::after {
+			content        : "";
+			position       : absolute;
+			inset          : 0;
+			background     : linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.12) 50%, transparent 65%);
+			transform      : translateX(-100%);
+			animation      : ach-shine 4s ease-in-out infinite;
+			pointer-events : none;
+		}
+	}
+}
+
+@keyframes ach-shine {
+	0%, 60% { transform : translateX(-100%); }
+	100% { transform : translateX(100%); }
+}
+
+// ---------- Pas connecté
+
+.ach-empty {
+	display        : flex;
+	flex-direction : column;
+	align-items    : center;
+	gap            : 0.5rem;
+	margin         : 4rem auto;
+	text-align     : center;
+
+	> svg {
+		font-size : 3rem;
+		color     : #fbbf24;
+	}
+
+	h1 {
+		margin    : 0;
+		font-size : 2.6rem;
+	}
+
+	p {
+		margin  : 0 0 1rem;
+		opacity : 0.75;
+	}
+}
+
+.ach-button {
+	padding         : 0.55rem 1.4rem;
+	border-radius   : 999px;
+	background      : #fbbf24;
+	color           : #1c1917;
+	font-weight     : 700;
+	text-decoration : none;
+}
+
+// ---------- Popups de déblocage
+
+.achievement-toasts {
+	position       : fixed;
+	top            : 5rem;
+	right          : 1.25rem;
+	z-index        : 130;
+	display        : flex;
+	flex-direction : column;
+	gap            : 0.6rem;
+	width          : 23rem;
+	pointer-events : none;
+}
+
+.achievement-toast {
+	display        : flex;
+	align-items    : center;
+	gap            : 0.85rem;
+	padding        : 0.85rem 1rem;
+	border         : 1px solid color-mix(in srgb, var(--tier) 60%, transparent);
+	border-left    : 4px solid var(--tier);
+	border-radius  : 12px;
+	background     : linear-gradient(135deg, color-mix(in srgb, var(--tier) 18%, #0b1020), #050a1a 70%);
+	box-shadow     : 0 0.8rem 2rem rgba(0, 0, 0, 0.45), 0 0 1.5rem color-mix(in srgb, var(--tier) 25%, transparent);
+	color          : #f9fafb;
+	font-family    : inherit;
+	text-align     : left;
+	cursor         : pointer;
+	pointer-events : auto;
+	animation      : ach-toast-in 0.45s cubic-bezier(.2, .9, .3, 1.2);
+
+	&.leaving {
+		animation : ach-toast-out 0.3s ease forwards;
+	}
+
+	.achievement-toast-icon {
+		display         : flex;
+		flex            : none;
+		justify-content : center;
+		align-items     : center;
+		width           : 2.6rem;
+		height          : 2.6rem;
+		border-radius   : 50%;
+		background      : color-mix(in srgb, var(--tier) 25%, transparent);
+		color           : var(--tier);
+		font-size       : 1.2rem;
+		animation       : ach-toast-pop 0.6s cubic-bezier(.2, .9, .3, 1.6) 0.2s backwards;
+	}
+
+	.achievement-toast-body {
+		display        : flex;
+		flex           : 1;
+		flex-direction : column;
+		gap            : 0.1rem;
+		min-width      : 0;
+
+		strong {
+			font-size : 1.15rem;
+		}
+	}
+
+	.achievement-toast-kicker {
+		color          : var(--tier);
+		font-size      : 0.78rem;
+		letter-spacing : 0.1em;
+		text-transform : uppercase;
+	}
+
+	.achievement-toast-desc {
+		font-size   : 0.9rem;
+		line-height : 1.25;
+		opacity     : 0.7;
+	}
+
+	.achievement-toast-reward {
+		flex        : none;
+		color       : var(--tier);
+		font-size   : 1.05rem;
+		font-weight : 800;
+	}
+}
+
+@keyframes ach-toast-in {
+	from { opacity : 0; transform : translateX(110%); }
+	to { opacity : 1; transform : none; }
+}
+
+@keyframes ach-toast-out {
+	to { opacity : 0; transform : translateX(110%); }
+}
+
+@keyframes ach-toast-pop {
+	from { transform : scale(0); }
+	to { transform : scale(1); }
+}

@@ -1,0 +1,25 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<clipPath id="bille"><circle cx="500" cy="500" r="500"/></clipPath>
+<radialGradient id="volume" cx="420" cy="380" r="640" gradientUnits="userSpaceOnUse">
+  <stop offset="0.5" stop-color="black" stop-opacity="0"/><stop offset="1" stop-color="black" stop-opacity="0.5"/>
+</radialGradient>
+<radialGradient id="reflet" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="white" stop-opacity="0.85"/><stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+
+</defs>
+<g id="bille-venus" clip-path="url(#bille)">
+<g id="surface">
+  <circle cx="500" cy="500" r="500" fill="#e8c27a"/>
+  <path d="M0 220 Q500 280 1000 200" stroke="#f6e0a8" stroke-opacity="0.6" stroke-width="70"/>
+  <path d="M0 420 Q500 480 1000 400" stroke="#f6e0a8" stroke-opacity="0.6" stroke-width="50"/>
+  <path d="M0 620 Q500 680 1000 600" stroke="#f6e0a8" stroke-opacity="0.6" stroke-width="90"/>
+  <path d="M0 820 Q500 880 1000 800" stroke="#f6e0a8" stroke-opacity="0.6" stroke-width="60"/>
+</g>
+<g id="ombrage">
+  <circle cx="500" cy="500" r="500" fill="url(#volume)"/>
+  <ellipse cx="340" cy="290" rx="170" ry="120" fill="url(#reflet)" opacity="0.5" transform="rotate(-35 340 290)"/>
+</g>
+</g>
+</svg>

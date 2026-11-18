@@ -18,6 +18,7 @@ export type SavedQueens = { gameId: string; marks: Mark[] };
  * - marks : contenu de chaque case (dames données comprises), solution : cases des dames si c'est gagné
  * - validate() : envoie les dames au serveur (qui calcule l'XP si le joueur est connecté)
  * - undo() / redo() : annule / rétablit le dernier coup
+ * - reset() : retire les croix et dames posées (les dames données restent) ; hasInput : le joueur a posé quelque chose
  * - restore(puzzle, saved) : reprend une partie sauvegardée
  */
 export function useQueensGame(saveKey = "QUEENS") {
@@ -90,6 +91,16 @@ export function useQueensGame(saveKey = "QUEENS") {
         return move?.index ?? null;
     };
 
+    // Croix ou dames posées par le joueur
+    const hasInput = marks.some((m, i) => m !== EMPTY && !isHint(i));
+
+    // Vide la grille : retour aux seules dames données, historique effacé (le chrono continue)
+    const reset = () => {
+        if (!puzzle || isGenerating) return;
+        setMarks(startMarks(puzzle));
+        history.clear();
+    };
+
     const restore = (saved: QueensPuzzle, data: SavedQueens) => {
         gameIdRef.current = data.gameId;
         setPuzzle(saved);
@@ -116,6 +127,6 @@ export function useQueensGame(saveKey = "QUEENS") {
     return {
         loadingSize,
         puzzle, marks, isHint, solution, isGenerating, generate, cycle, setMark, crossIfEmpty, validate,
-        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
+        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore, reset, hasInput,
     };
 }

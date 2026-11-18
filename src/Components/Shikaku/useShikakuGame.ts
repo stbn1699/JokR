@@ -19,6 +19,7 @@ export type SavedShikaku = { gameId: string; rects: Rect[] };
  * - rects : rectangles donnés puis posés, analysis : validité de chacun et solution
  * - validate() : envoie le découpage au serveur (qui calcule l'XP si le joueur est connecté)
  * - undo() / redo() : annule / rétablit le dernier rectangle posé ou retiré
+ * - reset() : retire tous les rectangles posés (ceux donnés restent) ; hasInput : le joueur en a posé
  * - restore(puzzle, saved) : reprend une partie sauvegardée
  */
 export function useShikakuGame(saveKey = "SHIKAKU") {
@@ -93,6 +94,15 @@ export function useShikakuGame(saveKey = "SHIKAKU") {
         return null;
     };
 
+    const hasInput = placed.length > 0;
+
+    // Vide la grille : retour aux seuls rectangles donnés, historique effacé (le chrono continue)
+    const reset = () => {
+        if (!puzzle || isGenerating) return;
+        setPlaced([]);
+        history.clear();
+    };
+
     const restore = (saved: ShikakuPuzzle, data: SavedShikaku) => {
         gameIdRef.current = data.gameId;
         setPuzzle(saved);
@@ -118,6 +128,6 @@ export function useShikakuGame(saveKey = "SHIKAKU") {
     return {
         loadingSize,
         puzzle, rects, hintCount: hints.length, analysis, isGenerating, generate, drawRect, eraseAt, validate,
-        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
+        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore, reset, hasInput,
     };
 }

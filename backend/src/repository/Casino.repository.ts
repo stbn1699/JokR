@@ -33,6 +33,32 @@ export class CasinoRepository {
     }
 
     /*
+     * Plusieurs parties d'affilée avec la même mise (billes de Plinko lâchées d'un coup), dans une seule transaction :
+     * on joue tant qu'il reste de quoi miser, jusqu'à `count` parties. `draws` : les parties jouées (au moins une si
+     * ok), dans l'ordre.
+     */
+    async playMany(userId: string, game: string, bet: number, count: number, draw: () => { seed: number; outcome: number; payout: number }):
+        Promise<{ ok: true; credits: number; draws: ReturnType<typeof draw>[] } | { ok: false; reason: "credits" | "user" }> {
+        return this.db.transaction().execute(async trx => {
+            const user = await trx.selectFrom("users").select("credits").where("id", "=", userId).forUpdate().executeTakeFirst();
+            if (!user) return {ok: false, reason: "user"} as const;
+            if (user.credits < bet) return {ok: false, reason: "credits"} as const;
+            let credits = user.credits;
+            const draws: ReturnType<typeof draw>[] = [];
+            while (draws.length < count && credits >= bet) {
+                const result = draw();
+                credits += result.payout - bet;
+                draws.push(result);
+            }
+            await trx.updateTable("users").set({credits}).where("id", "=", userId).execute();
+            await trx.insertInto("casino_plays").values(draws.map(d => ({
+                user_id: userId, game, bet, payout: d.payout, seed: d.seed, outcome: d.outcome,
+            }))).execute();
+            return {ok: true, credits, draws} as const;
+        });
+    }
+
+    /*
      * Billes de Plinko lâchées par les autres joueurs ces dernières secondes (le site les rejoue en fond),
      * avec leur âge en millisecondes mesuré par la base (pas de souci d'horloge entre serveur et navigateur),
      * et le nombre d'autres joueurs passés sur la table dans la dernière minute.

@@ -2,9 +2,9 @@ import {sql, type Kysely} from "kysely";
 import {randomInt} from "node:crypto";
 import type {DB} from "../db/schema.js";
 import {
-    ROULETTE_MAX_PER_BET,
-    ROULETTE_MAX_TOTAL,
+    ROULETTE_LIMITS,
     type RouletteBet,
+    type RouletteLimits,
     roulettePayout,
     rouletteTotal,
     rouletteTotals,
@@ -20,6 +20,8 @@ export const HISTORY_SIZE = 16;
  * - Payer un tour crédite les gains, remplit roulette_bets.payout et garde une ligne par joueur dans casino_plays.
  *   Sans effet sur les jetons déjà payés : on peut le relancer sans risque.
  */
+export type RoulettePaid = { userId: string; round: number; number: number; bets: RouletteBet[]; payout: number };
+
 export class LiveRouletteRepository {
     constructor(private db: Kysely<DB>) {
     }
@@ -30,7 +32,9 @@ export class LiveRouletteRepository {
      */
     // ghost : mode admin (rien n'est retiré, jetons invisibles des autres et payés sans crédits)
     // group : geste du joueur qui pose ces jetons (voir undoLast)
-    async place(userId: string, round: number, bets: RouletteBet[], ghost = false, group: string | null = null): Promise<PlaceResult> {
+    // limits : limites du joueur (améliorations)
+    async place(userId: string, round: number, bets: RouletteBet[], ghost = false, group: string | null = null,
+                limits: RouletteLimits = ROULETTE_LIMITS): Promise<PlaceResult> {
         return this.db.transaction().execute(async trx => {
             const user = await trx.selectFrom("users").select("credits").where("id", "=", userId).forUpdate().executeTakeFirst();
             if (!user) return {ok: false, reason: "user"} as const;
@@ -43,10 +47,10 @@ export class LiveRouletteRepository {
             if (!ghost && user.credits < total) return {ok: false, reason: "credits"} as const;
             const mine = await trx.selectFrom("roulette_bets").select(["key", "amount"])
                 .where("round_id", "=", round).where("user_id", "=", userId).execute();
-            if (rouletteTotal(mine) + total > ROULETTE_MAX_TOTAL) return {ok: false, reason: "limit"} as const;
+            if (rouletteTotal(mine) + total > limits.total) return {ok: false, reason: "limit"} as const;
             const already = rouletteTotals(mine);
             for (const [key, amount] of rouletteTotals(bets)) {
-                if ((already.get(key) ?? 0) + amount > ROULETTE_MAX_PER_BET) return {ok: false, reason: "limit"} as const;
+                if ((already.get(key) ?? 0) + amount > limits.perBet) return {ok: false, reason: "limit"} as const;
             }
 
             const credits = ghost ? user.credits : user.credits - total;
@@ -111,23 +115,23 @@ export class LiveRouletteRepository {
         });
     }
 
-    // Paie les jetons d'un tour déjà tiré ; renvoie le nombre de joueurs payés
-    async settle(round: number): Promise<number> {
+    // Paie les jetons d'un tour déjà tiré ; renvoie les joueurs payés (jetons posés, numéro, gain : voir les succès)
+    async settle(round: number): Promise<RoulettePaid[]> {
         return this.db.transaction().execute(async trx => {
             const drawn = await trx.selectFrom("roulette_rounds").select("number").where("id", "=", round).executeTakeFirst();
-            if (!drawn) return 0;
+            if (!drawn) return [];
             const bets = await trx.selectFrom("roulette_bets").select(["id", "user_id", "key", "amount", "ghost"])
                 .where("round_id", "=", round).where("payout", "is", null).forUpdate().execute();
-            if (bets.length === 0) return 0;
+            if (bets.length === 0) return [];
 
-            const byUser = new Map<string, { bet: number; payout: number }>();
+            const byUser = new Map<string, { bet: number; payout: number; bets: RouletteBet[] }>();
             for (const b of bets) {
                 const payout = roulettePayout([{key: b.key, amount: b.amount}], drawn.number);
                 await trx.updateTable("roulette_bets").set({payout}).where("id", "=", b.id).execute();
                 // mode admin : payé pour l'affichage seulement (ni crédits, ni partie enregistrée)
                 if (b.ghost) continue;
-                const sum = byUser.get(b.user_id) ?? {bet: 0, payout: 0};
-                byUser.set(b.user_id, {bet: sum.bet + b.amount, payout: sum.payout + payout});
+                const sum = byUser.get(b.user_id) ?? {bet: 0, payout: 0, bets: []};
+                byUser.set(b.user_id, {bet: sum.bet + b.amount, payout: sum.payout + payout, bets: [...sum.bets, {key: b.key, amount: b.amount}]});
             }
             for (const [userId, {bet, payout}] of byUser) {
                 if (payout > 0) {
@@ -137,7 +141,7 @@ export class LiveRouletteRepository {
                     user_id: userId, game: "roulette", bet, payout, seed: round, outcome: drawn.number,
                 }).execute();
             }
-            return byUser.size;
+            return [...byUser].map(([userId, p]) => ({userId, round, number: drawn.number, bets: p.bets, payout: p.payout}));
         });
     }
 

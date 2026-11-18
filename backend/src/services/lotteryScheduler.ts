@@ -1,5 +1,7 @@
 import type {LotteryRepository} from "../repository/Lottery.repository.js";
 import {lastLotteryDraw, LOTTERY_KINDS, nextLotteryDraw} from "../utils/lottery.js";
+import {achievements} from "./achievements/index.js";
+import {lotteryDrawn} from "./achievements/events.js";
 
 /*
  * Tirages des loteries du Hasard, à 23 h 59 heure de Paris (voir utils/lottery.ts) :
@@ -29,6 +31,14 @@ export function startLotteryScheduler(repo: LotteryRepository, log: (msg: string
                 if (startup && !(await repo.hasDraws(kind))) continue;
                 const result = await repo.draw(kind, lastLotteryDraw(kind, now));
                 if (result) {
+                    const playing = result.players.filter(p => p.tickets > 0);
+                    const most = Math.max(0, ...playing.map(p => p.tickets));
+                    for (const p of playing) {
+                        void achievements.track(p.userId, ctx => lotteryDrawn(ctx, {
+                            kind, tickets: p.tickets, won: p.userId === result.winner, prize: result.prize,
+                            most: p.tickets === most && playing.filter(q => q.tickets === most).length === 1, players: playing.length,
+                        }));
+                    }
                     log(result.winner
                         ? `Loterie ${kind} du ${result.date} : ${result.prize} crédits gagnés (${result.totalTickets} tickets)`
                         : `Loterie ${kind} du ${result.date} : pas de ticket, pas de gagnant`);

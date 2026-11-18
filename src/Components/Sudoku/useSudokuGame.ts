@@ -61,6 +61,7 @@ function setSnapshot(snapshot: string[], index: number, value: string) {
  *   ou y ajoute / retire une note en mode notes
  * - setSelectedCell(i) : case sélectionnée ; sa ligne, sa colonne et son bloc 3×3 sont surlignés
  * - fillSelected(n) : remplit (ou vide avec null) la case sélectionnée ; false si aucune case modifiable
+ * - reset() : vide la grille et les notes (les indices restent) ; hasInput : le joueur a saisi quelque chose
  */
 export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) {
     // Les 81 inputs de la grille (index = ligne * 9 + colonne)
@@ -85,6 +86,8 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
     // Notes au crayon : un masque de bits par case (bit n = chiffre n noté)
     const [notes, setNotes] = useState<number[]>(() => Array<number>(81).fill(0));
     const [notesMode, setNotesMode] = useState(false);
+    // Au moins une case remplie par le joueur (hors indices)
+    const [hasEntries, setHasEntries] = useState(false);
 
     const highlight = hoverDigit ?? selectedDigit;
 
@@ -101,6 +104,7 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
         setDigitCounts(countDigits(values));
         setFilledKey(values.every(v => /^[1-9]$/.test(v)) ? values.join("") : null);
         setConflicts(sudokuConflicts(values));
+        setHasEntries(inputs.current.some(el => el && !el.readOnly && el.value !== ""));
     }, []);
 
     // Cases en conflit en rouge (si l'option est active)
@@ -254,6 +258,20 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
         }
     };
 
+    // Vide la grille : efface saisies et notes (les indices restent), historique effacé (le chrono continue)
+    const reset = () => {
+        if (isGenerating) return;
+        inputs.current.forEach(el => {
+            if (el && !el.readOnly && !el.disabled) el.value = "";
+        });
+        snapshotRef.current = readValues();
+        history.clear();
+        const emptyNotes = Array<number>(81).fill(0);
+        setNotes(emptyNotes);
+        recount();
+        save(emptyNotes);
+    };
+
     // Reprend une partie sauvegardée : chiffres donnés (serveur) + saisies et notes (navigateur)
     const restore = (grid: number[][], saved: SavedSudoku) => {
         generationRef.current += 1;
@@ -318,5 +336,7 @@ export function useSudokuGame(showErrors: boolean, saveKey: string = GAME_CODE) 
         canUndo: history.canUndo,
         canRedo: history.canRedo,
         conflicts,
+        reset,
+        hasInput: hasEntries || notes.some(mask => mask !== 0),
     };
 }

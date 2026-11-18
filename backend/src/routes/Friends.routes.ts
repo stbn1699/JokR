@@ -1,3 +1,4 @@
+import {achievements} from "../services/achievements/index.js";
 import {Router, type Request, type Response} from "express";
 import {rateLimit} from "express-rate-limit";
 import {pool} from "../db/pool.js";
@@ -57,6 +58,7 @@ router.post("/requests/:username/accept", asyncHandler(async (req: Request, res:
         res.status(404).json({status: "error", message: "Cette demande n'existe plus"});
         return;
     }
+    for (const id of [me, other]) void achievements.track(id, ctx => ctx.live("friends"));
     res.status(200).json({status: "ok", data: {result: "accepted"}});
 }));
 

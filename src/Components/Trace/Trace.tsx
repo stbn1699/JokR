@@ -166,13 +166,8 @@ export default function Trace({daily = false, replayDate, challengeId, level, le
                 <h2 className="title">Actions</h2>
                 <GameTimer clock={flow.clock}/>
                 <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
-                                onUndo={game.undo} onRedo={game.redo}/>
-                {game.puzzle && (
-                    <button type="button" className="trace-clear" disabled={!playing || game.path.length <= 1}
-                            onClick={game.clear}>
-                        Tout effacer
-                    </button>
-                )}
+                                onUndo={game.undo} onRedo={game.redo}
+                                onReset={game.clear} canReset={playing && game.hasInput}/>
                 <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
 
                 <div className="rules">

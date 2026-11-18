@@ -10,7 +10,19 @@ import {useCallback, useEffect, useState} from "react";
 import {FaSyncAlt} from "react-icons/fa";
 import {statsService} from "../../Services/stats.service.ts";
 import type {ShopStatsData} from "../../Models/shopStats.model.ts";
-import {DEFAULT_BACKGROUND, findGradient, GRADIENTS, gradientCss, TIER_GRADIENTS} from "../../Services/shopCatalog.ts";
+import {
+    DEFAULT_BACKGROUND,
+    DEFAULT_PATTERN_COLORS,
+    findAnimatedBackground,
+    findGradient,
+    GRADIENTS,
+    gradientCss,
+    parsePatternBackground,
+    PATTERN_COLORS,
+    patternCss,
+    PATTERNS,
+    TIER_GRADIENTS,
+} from "../../Services/shopCatalog.ts";
 import BarChart from "./BarChart.tsx";
 import {Tile} from "./StatsWidgets.tsx";
 import {dateTime, fmt, longDay, pct, shortDay} from "./statsFormat.ts";
@@ -19,6 +31,7 @@ import {type StatsFilter, timelineTitle} from "./statsFilter.ts";
 import {plinkoBallFile, usePlinkoBalls} from "../../Services/plinkoBalls.ts";
 import {chipFile, useChipSets} from "../../Services/chipSets.ts";
 import {findImageBackground, imageCss, useImageBackgrounds} from "../../Services/imageBackgrounds.ts";
+import {findVictoryEffect} from "../../Services/victoryEffects.ts";
 
 const SHOP_COLOR = "#c98500";
 
@@ -27,6 +40,21 @@ function ItemName({id}: { id: string | null }) {
     const balls = usePlinkoBalls();
     const chipSets = useChipSets();
     const imageSets = useImageBackgrounds();
+    const victory = findVictoryEffect(id);
+    if (victory) return <span className="stats-item">Effet {victory.name.toLowerCase()}</span>;
+    const animated = findAnimatedBackground(id);
+    if (animated) return <span className="stats-item"><i className="stats-swatch" style={{background: animated.base}}/>{animated.name} (animé)</span>;
+    // motif, couleur de motif, ou fond à motif porté (« pat:pois/rubis/nuit »)
+    const pattern = PATTERNS.find(p => p.id === id);
+    const color = PATTERN_COLORS.find(c => c.id === id);
+    const worn = parsePatternBackground(id);
+    if (pattern || color || worn) {
+        const css = pattern ? patternCss(pattern.slug, ...DEFAULT_PATTERN_COLORS, {size: 8, veil: false})
+            : color ? color.hex : patternCss(worn!.pattern.slug, worn!.color1.slug, worn!.color2.slug, {size: 8, veil: false});
+        const name = pattern ? `Motif ${pattern.name.toLowerCase()}` : color ? `Couleur ${color.name.toLowerCase()}`
+            : `${worn!.pattern.name} ${worn!.color1.name.toLowerCase()} et ${worn!.color2.name.toLowerCase()}`;
+        return <span className="stats-item"><i className="stats-swatch" style={{background: css}}/>{name}</span>;
+    }
     if (id?.startsWith("bg:")) {
         const image = findImageBackground(id, imageSets);
         return (

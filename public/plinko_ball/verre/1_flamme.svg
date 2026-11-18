@@ -1,0 +1,25 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<clipPath id="bille"><circle cx="500" cy="500" r="500"/></clipPath>
+<radialGradient id="volume" cx="420" cy="380" r="640" gradientUnits="userSpaceOnUse">
+  <stop offset="0.5" stop-color="black" stop-opacity="0"/><stop offset="1" stop-color="black" stop-opacity="0.5"/>
+</radialGradient>
+<radialGradient id="reflet" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="white" stop-opacity="0.85"/><stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="verre" cx="450" cy="420" r="650" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffcebc"/><stop offset="0.6" stop-color="#ff5a1f"/><stop offset="1" stop-color="#8c3211"/></radialGradient>
+</defs>
+<g id="bille-flamme" clip-path="url(#bille)">
+<g id="surface">
+  <circle cx="500" cy="500" r="500" fill="url(#verre)" fill-opacity="0.9"/>
+  <path d="M500 500 Q759 477 895 644 Q653 629 500 500 Z" fill="#ffd23f" fill-opacity="0.85"/>
+  <path d="M500 500 Q390 736 178 770 Q312 568 500 500 Z" fill="#ffd23f" fill-opacity="0.85"/>
+  <path d="M500 500 Q351 287 427 86 Q535 303 500 500 Z" fill="#ffd23f" fill-opacity="0.85"/>
+  <path id="caustique" d="M300 860 Q560 940 820 700" stroke="white" stroke-opacity="0.5" stroke-width="30" stroke-linecap="round"/>
+</g>
+<g id="ombrage">
+  <circle cx="500" cy="500" r="500" fill="url(#volume)"/>
+  <ellipse cx="340" cy="290" rx="170" ry="120" fill="url(#reflet)" opacity="1" transform="rotate(-35 340 290)"/>
+</g>
+</g>
+</svg>

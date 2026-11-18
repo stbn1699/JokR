@@ -1,3 +1,6 @@
+import {achievements} from "./achievements/index.js";
+import {dailyDone} from "./achievements/events.js";
+import {dailyDate} from "../utils/dailyDate.js";
 import type {DailyRanking, DailyRepository} from "../repository/Daily.repository.js";
 import type {SudokuService} from "./Sudoku.service.js";
 import type {BineroService} from "./Binero.service.js";
@@ -124,6 +127,8 @@ export class DailyService {
             const first = await this.resultOf(gameCode, date, userId);
             return {counted, rank: first?.rank ?? 0, total: first?.total ?? 0};
         }
+        const doneThatDay = await this.repo.countResultsOf(userId, date);
+        void achievements.track(userId, ctx => dailyDone(ctx, {gameCode, date, durationMs, doneThatDay, today: dailyDate()}));
         return {counted, ...await this.repo.rankOf(date, gameCode, durationMs)};
     }
 

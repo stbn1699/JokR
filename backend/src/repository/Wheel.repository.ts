@@ -31,7 +31,8 @@ export class WheelRepository {
      * verrouillée : deux lancers simultanés passent l'un après l'autre). `pickItem` choisit la bille offerte
      * parmi celles qu'il n'a pas. Plus de lancer disponible aujourd'hui : rien n'est donné.
      */
-    async spin(userId: string, date: string, segment: number, pickItem: (owned: Set<string>) => WheelItem | null): Promise<WheelSpinResult> {
+    // daily : lancers gratuits par jour (amélioration « Tours de roue », voir upgrades.ts)
+    async spin(userId: string, date: string, segment: number, pickItem: (owned: Set<string>) => WheelItem | null, daily = 1): Promise<WheelSpinResult> {
         const s = WHEEL_SEGMENTS[segment]!;
         return this.db.transaction().execute(async trx => {
             const user = await trx.selectFrom("users").select(["credits", "user_level", "user_xp"])
@@ -39,7 +40,7 @@ export class WheelRepository {
             if (!user) return {ok: false, reason: "user"} as const;
 
             const done = await this.spinsOn(userId, date, trx);
-            if (!wheelAvailable(done)) return {ok: false, reason: "already"} as const;
+            if (!wheelAvailable(done, daily)) return {ok: false, reason: "already"} as const;
 
             let item: WheelItem | null = null;
             let credits = s.reward === "credits" ? s.amount : 0;
@@ -66,8 +67,9 @@ export class WheelRepository {
     }
 }
 
-// Encore un lancer aujourd'hui ? Un par jour, plus un par relance tombée (`done` : cases des lancers du jour)
-export function wheelAvailable(done: number[]): boolean {
+// Encore un lancer aujourd'hui ? `daily` par jour (1, plus avec l'amélioration), plus un par relance tombée
+// (`done` : cases des lancers du jour)
+export function wheelAvailable(done: number[], daily = 1): boolean {
     const respins = done.filter(i => WHEEL_SEGMENTS[i]?.reward === "respin").length;
-    return done.length < 1 + respins;
+    return done.length < daily + respins;
 }

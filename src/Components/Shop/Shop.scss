@@ -1,135 +1,1018 @@
+// Boutique : onglets des boutiques en haut, puis trois colonnes (catégories, objets, fiche de l'objet)
+// tenues dans la hauteur de l'écran ; seules les listes défilent.
+
+$gold   : #fbbf24;
+$green  : #34d399;
+$text   : #f9fafb;
+$line   : rgba(249, 250, 251, 0.14);
+$panel  : rgba(2, 6, 23, 0.6);
+$raised : rgba(15, 23, 42, 0.7);
+
+@mixin panel {
+	border          : 1px solid $line;
+	border-radius   : 16px;
+	background      : $panel;
+	backdrop-filter : blur(8px);
+	// pas d'ombre portée : sous un panneau flouté, Chrome la redessine en bande sombre sur le panneau voisin
+	// quand une vignette bouge au survol ; isolation : ce qui bouge dans un panneau reste dans son calque
+	isolation       : isolate;
+}
+
 .shop {
-	display         : flex;
-	justify-content : center;
-	padding         : 2rem 1rem;
+	display        : flex;
+	flex-direction : column;
+	gap            : 1rem;
+	width          : min(100rem, 100%);
+	height         : calc(100vh - 6.2rem);
+	// (en bas : la place du bouton « Un bug ? » et du numéro de version)
+	min-height     : 34rem;
+	margin         : 0 auto;
+	padding        : 1.25rem 2rem 5.75rem;
+	box-sizing     : border-box;
+	color          : $text;
 
-	.shop-card {
-		width         : min(44rem, 100%);
-		padding       : 2rem;
-		box-sizing    : border-box;
-		border        : 3px solid #f9fafb;
-		border-radius : 12px;
-		background    : #02061735;
+	// ---------- Les deux boutiques
+	.shop-tabs {
+		@include panel;
+		display       : flex;
+		gap           : 0.35rem;
+		align-self    : flex-start;
+		padding       : 0.3rem;
+		border-radius : 999px;
 
-		@media (max-width : 600px) {
-			padding : 1.25rem 1rem;
+		a {
+			display         : inline-flex;
+			align-items     : center;
+			gap             : 0.5rem;
+			padding         : 0.5rem 1.3rem;
+			border-radius   : 999px;
+			color           : $text;
+			font-size       : 1.15rem;
+			text-decoration : none;
+			opacity         : 0.75;
+			transition      : background 0.15s ease, opacity 0.15s ease;
+
+			&:hover { opacity : 1; }
+
+			&.active {
+				background : $gold;
+				color      : #1c1917;
+				opacity    : 1;
+			}
 		}
 	}
 
-	h1 {
-		margin    : 0;
-		font-size : 2.6rem;
+	.shop-layout {
+		display               : grid;
+		grid-template-columns : 15.5rem minmax(0, 1fr) 25rem;
+		gap                   : 1rem;
+		flex                  : 1;
+		min-height            : 0;
 	}
 
-	h2 {
-		margin    : 1.75rem 0 0.75rem;
-		font-size : 1.6rem;
+	.shop-panel {
+		@include panel;
+		min-height : 0;
 	}
 
-	.shop-head {
+	.shop-empty {
 		display         : flex;
 		align-items     : center;
-		justify-content : space-between;
-		gap             : 1rem;
+		justify-content : center;
+		grid-column     : span 2;
 	}
 
-	.shop-credits {
-		display       : inline-flex;
-		align-items   : center;
-		gap           : 0.4rem;
-		padding       : 0.3rem 0.9rem;
-		border        : 2px solid rgba(251, 191, 36, 0.6);
-		border-radius : 999px;
-		color         : #fbbf24;
-		font-size     : 1.2rem;
-		white-space   : nowrap;
-	}
-
-	.shop-sub {
-		margin  : 0.5rem 0 0;
-		opacity : 0.75;
-	}
-
-	.shop-back {
-		display         : inline-flex;
-		align-items     : center;
-		gap             : 0.35rem;
-		margin-bottom   : 0.75rem;
-		color           : #f9fafb;
-		opacity         : 0.75;
-		text-decoration : none;
-
-		&:hover {
-			opacity : 1;
-			color   : #fbbf24;
-		}
-	}
-
-	// Rubrique : liste d'objets
-	.shop-items {
-		display               : grid;
-		grid-template-columns : repeat(auto-fill, minmax(15rem, 1fr));
-		gap                   : 1rem;
-	}
-
-	.shop-item {
+	// ---------- Catégories
+	.shop-nav {
+		@include panel;
 		display         : flex;
 		flex-direction  : column;
-		overflow        : hidden;
-		border          : 2px solid rgba(249, 250, 251, 0.35);
-		border-radius   : 12px;
-		background      : rgba(2, 6, 23, 0.45);
-		color           : #f9fafb;
-		text-decoration : none;
-		transition      : border-color 0.15s ease, transform 0.15s ease;
-
-		&:not(.soon):hover {
-			border-color : #fbbf24;
-			transform    : translateY(-2px);
-		}
-
-		&.soon {
-			opacity : 0.55;
-		}
+		gap             : 1.1rem;
+		min-height      : 0;
+		padding         : 1rem 0.75rem;
+		overflow-y      : auto;
 	}
 
-	.shop-item-mosaic {
-		display               : grid;
-		grid-template-columns : 1fr 1fr;
-		height                : 7rem;
-
-		&.patterns span {
-			background : repeating-linear-gradient(45deg, #1e293b 0 8px, #0f172a 8px 16px);
-
-			&:nth-child(2) { background : repeating-linear-gradient(0deg, #1e293b 0 1px, transparent 1px 12px), repeating-linear-gradient(90deg, #1e293b 0 1px, #0f172a 1px 12px); }
-			&:nth-child(3) { background : repeating-linear-gradient(-45deg, #1e293b 0 6px, #0f172a 6px 14px); }
-			&:nth-child(4) { background : repeating-linear-gradient(90deg, #1e293b 0 10px, #0f172a 10px 20px); }
-		}
-	}
-
-	.shop-item-info {
+	// une liste de la colonne : les rubriques, ou les collections d'une rubrique (qui arrivent par la droite)
+	.shop-nav-list {
 		display        : flex;
 		flex-direction : column;
 		gap            : 0.2rem;
-		padding        : 0.8rem 1rem 1rem;
+		animation      : shop-slide-back 0.2s ease;
 
-		strong {
-			font-size : 1.35rem;
-		}
+		&.sub { animation-name : shop-slide-in; }
 
-		span, small {
-			display     : inline-flex;
-			align-items : center;
-			gap         : 0.3rem;
-			opacity     : 0.8;
-		}
-
-		small {
-			color : #34d399;
+		h2 {
+			margin    : 0.4rem 0 0.5rem 0.6rem;
+			font-size : 1.5rem;
 		}
 	}
 
-	// Aperçus à faire défiler
+	.shop-nav-back {
+		display     : inline-flex;
+		align-items : center;
+		align-self  : flex-start;
+		gap         : 0.4rem;
+		padding     : 0.3rem 0.6rem;
+		border      : none;
+		border-radius : 8px;
+		background  : none;
+		color       : $text;
+		font-family : inherit;
+		font-size   : 0.95rem;
+		opacity     : 0.65;
+		cursor      : pointer;
+
+		&:hover {
+			background : rgba(249, 250, 251, 0.06);
+			opacity    : 1;
+		}
+	}
+
+	.shop-nav-more {
+		flex    : none;
+		opacity : 0.5;
+	}
+
+	.shop-nav-item {
+		position        : relative;
+		display         : flex;
+		align-items     : center;
+		gap             : 0.7rem;
+		padding         : 0.45rem 0.6rem;
+		border-radius   : 10px;
+		color           : $text;
+		text-decoration : none;
+		transition      : background 0.15s ease;
+
+		&:hover:not(.soon) { background : rgba(249, 250, 251, 0.06); }
+
+		&.active {
+			background : rgba(251, 191, 36, 0.12);
+			color      : $gold;
+
+			// repère doré sur le bord du panneau
+			&::before {
+				content       : "";
+				position      : absolute;
+				left          : -0.75rem;
+				top           : 20%;
+				bottom        : 20%;
+				width         : 3px;
+				border-radius : 0 3px 3px 0;
+				background    : $gold;
+			}
+
+			.shop-nav-icon { border-color : rgba(251, 191, 36, 0.7); }
+		}
+
+		&.soon {
+			opacity : 0.45;
+			cursor  : default;
+		}
+	}
+
+	.shop-nav-icon {
+		display         : flex;
+		flex            : none;
+		align-items     : center;
+		justify-content : center;
+		width           : 2.4rem;
+		height          : 2.4rem;
+		overflow        : hidden;
+		position        : relative;
+		border          : 1px solid $line;
+		border-radius   : 9px;
+		background      : $raised;
+
+		// les billes : la première seule, en grand
+		.shop-art-balls img {
+			width : 62%;
+
+			&:nth-child(n + 2) { display : none; }
+		}
+	}
+
+	.shop-nav-text {
+		display        : flex;
+		flex           : 1;
+		flex-direction : column;
+		gap            : 0.2rem;
+		min-width      : 0;
+		font-size      : 1.05rem;
+
+		> span {
+			overflow      : hidden;
+			text-overflow : ellipsis;
+			white-space   : nowrap;
+		}
+
+		small {
+			display     : flex;
+			align-items : center;
+			gap         : 0.3rem;
+			color       : $text;
+			font-size   : 0.8rem;
+			opacity     : 0.7;
+		}
+	}
+
+	// ce qu'on possède de la catégorie : une petite barre, et le compte
+	.shop-progress {
+		display     : flex;
+		align-items : center;
+		gap         : 0.5rem;
+		color       : $text;
+		font-size   : 0.8rem;
+		opacity     : 0.7;
+
+		span {
+			flex          : 1;
+			height        : 4px;
+			overflow      : hidden;
+			border-radius : 4px;
+			background    : rgba(249, 250, 251, 0.12);
+		}
+
+		i {
+			display       : block;
+			height        : 100%;
+			border-radius : 4px;
+			background    : $green;
+		}
+
+		b { font-weight : normal; }
+	}
+
+	// ---------- « À la une » : les meilleures ventes, en grandes cartes (sur deux colonnes)
+	.shop-featured {
+		display        : flex;
+		flex-direction : column;
+		grid-column    : span 2;
+		overflow       : hidden;
+	}
+
+	.shop-featured-grid {
+		display               : grid;
+		grid-template-columns : repeat(3, minmax(0, 1fr));
+		grid-auto-rows        : max-content;
+		align-content         : start;
+		gap                   : 1.1rem;
+		flex                  : 1;
+		min-height            : 0;
+		padding               : 1.3rem 1.4rem 1.4rem;
+		overflow-y            : auto;
+	}
+
+	.shop-featured-empty {
+		display         : flex;
+		flex            : 1;
+		align-items     : center;
+		justify-content : center;
+		margin          : 0;
+		opacity         : 0.7;
+	}
+
+	.shop-button.shop-login {
+		width : auto;
+	}
+
+	.shop-feature {
+		display         : flex;
+		flex-direction  : column;
+		overflow        : hidden;
+		border          : 1px solid $line;
+		border-radius   : 14px;
+		background      : $raised;
+		color           : $text;
+		text-decoration : none;
+		transition      : transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+		&:hover {
+			border-color : $gold;
+			box-shadow   : 0 0 1.4rem rgba(251, 191, 36, 0.25);
+			transform    : translateY(-3px);
+		}
+
+		// la meilleure vente : liseré doré
+		&.first {
+			border-color : rgba(251, 191, 36, 0.6);
+
+			.shop-feature-rank {
+				background : $gold;
+				color      : #1c1917;
+			}
+		}
+	}
+
+	.shop-feature-art {
+		position        : relative;
+		display         : flex;
+		flex            : none;
+		align-items     : center;
+		justify-content : center;
+		aspect-ratio    : 16 / 10;
+		overflow        : hidden;
+		background      : rgba(2, 6, 23, 0.6);
+
+		// les billes et les jetons moins grands que dans une vignette carrée
+		.shop-art-ball img { width : 32%; height : auto; }
+		.shop-art-chips img { width : 17%; margin-left : -7%; }
+		.shop-art-chips img:first-child { margin-left : 0; }
+	}
+
+	.shop-feature-rank, .shop-feature-sales {
+		position      : absolute;
+		top           : 0.6rem;
+		padding       : 0.2rem 0.65rem;
+		border-radius : 999px;
+		background    : rgba(2, 6, 23, 0.75);
+		backdrop-filter : blur(4px);
+		font-size     : 0.9rem;
+	}
+
+	.shop-feature-rank {
+		left        : 0.6rem;
+		font-weight : bold;
+	}
+
+	.shop-feature-sales {
+		right       : 0.6rem;
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.35rem;
+		color       : #fb923c;
+	}
+
+	.shop-feature-foot {
+		display         : flex;
+		align-items     : center;
+		justify-content : space-between;
+		gap             : 0.75rem;
+		padding         : 0.75rem 1rem 0.85rem;
+		border-top      : 1px solid $line;
+
+		> span:first-child {
+			display        : flex;
+			flex-direction : column;
+			min-width      : 0;
+		}
+
+		strong {
+			overflow      : hidden;
+			font-size     : 1.25rem;
+			text-overflow : ellipsis;
+			white-space   : nowrap;
+		}
+
+		small {
+			font-size : 0.85rem;
+			opacity   : 0.6;
+		}
+
+		.shop-tile-tag { flex : none; }
+	}
+
+	// icône « À la une »
+	.shop-nav-icon.hot {
+		color      : #fb923c;
+		background : radial-gradient(circle, rgba(251, 146, 60, 0.25), transparent 70%), $raised;
+	}
+
+	// ---------- Objets de la catégorie
+	.shop-catalog {
+		display        : flex;
+		flex-direction : column;
+		overflow       : hidden;
+	}
+
+	.shop-catalog-head {
+		display         : flex;
+		align-items     : flex-end;
+		gap             : 1rem;
+
+		> div:first-child { margin-right : auto; }
+
+		padding         : 1.1rem 1.4rem 1rem;
+		border-bottom   : 1px solid $line;
+
+		h1 {
+			margin    : 0;
+			font-size : 2rem;
+		}
+
+		p {
+			margin  : 0.2rem 0 0;
+			opacity : 0.7;
+		}
+	}
+
+	.shop-filters {
+		display       : flex;
+		flex          : none;
+		gap           : 0.2rem;
+		padding       : 0.2rem;
+		border        : 1px solid $line;
+		border-radius : 999px;
+
+		button {
+			display       : inline-flex;
+			align-items   : center;
+			gap           : 0.4rem;
+			padding       : 0.3rem 0.9rem;
+			border        : none;
+			border-radius : 999px;
+			background    : none;
+			color         : $text;
+			font-family   : inherit;
+			font-size     : 0.95rem;
+			opacity       : 0.7;
+			cursor        : pointer;
+
+			&:hover { opacity : 1; }
+
+			&.active {
+				background : rgba(249, 250, 251, 0.12);
+				opacity    : 1;
+			}
+
+			b {
+				padding       : 0 0.4rem;
+				border-radius : 999px;
+				background    : rgba(52, 211, 153, 0.2);
+				color         : $green;
+				font-size     : 0.85rem;
+				font-weight   : normal;
+			}
+		}
+	}
+
+	.shop-grid {
+		display               : grid;
+		grid-template-columns : repeat(auto-fill, minmax(9.5rem, 1fr));
+		// lignes à la taille des vignettes : la grille défile au lieu de les écraser
+		grid-auto-rows        : max-content;
+		align-content         : start;
+		gap                   : 0.85rem;
+		flex                  : 1;
+		min-height            : 0;
+		padding               : 1.2rem 1.4rem 1.4rem;
+		overflow-y            : auto;
+
+		&.wide {
+			grid-template-columns : repeat(auto-fill, minmax(12.5rem, 1fr));
+
+			.shop-tile-art { aspect-ratio : 16 / 9; }
+		}
+	}
+
+	.shop-grid-empty {
+		grid-column : 1 / -1;
+		margin      : 2rem 0;
+		text-align  : center;
+		opacity     : 0.6;
+	}
+
+	.shop-tile {
+		display        : flex;
+		flex-direction : column;
+		padding        : 0;
+		overflow       : hidden;
+		border         : 1px solid $line;
+		border-radius  : 12px;
+		background     : $raised;
+		color          : $text;
+		font-family    : inherit;
+		text-align     : left;
+		cursor         : pointer;
+		transition     : transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+		&:hover {
+			border-color : rgba(249, 250, 251, 0.4);
+			transform    : translateY(-2px);
+		}
+
+		&.selected {
+			border-color : $gold;
+			box-shadow   : 0 0 0 1px $gold, 0 0 1.4rem rgba(251, 191, 36, 0.3);
+		}
+
+		// verrouillé : un voile sombre par-dessus
+		&.locked .shop-tile-art::after {
+			content    : "";
+			position   : absolute;
+			inset      : 0;
+			background : rgba(2, 6, 23, 0.5);
+		}
+	}
+
+	.shop-tile-art {
+		position        : relative;
+		flex            : none;
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		aspect-ratio    : 1;
+		overflow        : hidden;
+		background      : rgba(2, 6, 23, 0.6);
+	}
+
+	.shop-tile-foot {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.3rem;
+		padding        : 0.55rem 0.7rem 0.65rem;
+		border-top     : 1px solid $line;
+	}
+
+	.shop-tile-name {
+		overflow      : hidden;
+		font-size     : 1.05rem;
+		text-overflow : ellipsis;
+		white-space   : nowrap;
+	}
+
+	.shop-tile-tag {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.3rem;
+		font-size   : 0.85rem;
+
+		&.price { color : $gold; }
+		&.owned { color : $green; opacity : 0.8; }
+		&.worn { color : $green; }
+		&.locked, &.soon { opacity : 0.6; }
+	}
+
+	// ---------- Fiche de l'objet regardé
+	.shop-detail {
+		display         : flex;
+		flex-direction  : column;
+		gap             : 1rem;
+		padding         : 1rem;
+		overflow-y      : auto;
+	}
+
+	.shop-detail-info {
+		padding : 0 0.3rem;
+
+		small {
+			font-size      : 0.8rem;
+			letter-spacing : 0.12em;
+			text-transform : uppercase;
+			opacity        : 0.55;
+		}
+
+		h2 {
+			margin    : 0.15rem 0 0;
+			font-size : 1.8rem;
+		}
+
+		p {
+			margin  : 0.4rem 0 0;
+			opacity : 0.75;
+		}
+	}
+
+	// ---------- Motifs : choix des deux couleurs, dans la fiche
+	.shop-pattern-colors {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.5rem;
+		padding        : 0 0.3rem;
+	}
+
+	.shop-color-row {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.4rem;
+
+		> span {
+			font-size : 0.95rem;
+			opacity   : 0.85;
+
+			em {
+				color      : $gold;
+				font-style : normal;
+			}
+		}
+	}
+
+	.shop-color-swatches {
+		display               : grid;
+		grid-template-columns : repeat(9, 1fr);
+		gap                   : 0.35rem;
+	}
+
+	.shop-color {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		aspect-ratio    : 1;
+		padding         : 0;
+		border          : 1px solid rgba(249, 250, 251, 0.25);
+		border-radius   : 50%;
+		color           : rgba(249, 250, 251, 0.9);
+		font-size       : 0.65rem;
+		cursor          : pointer;
+		transition      : transform 0.12s ease;
+
+		&:hover { transform : scale(1.1); }
+
+		// à acheter : un cadenas sur une pastille assombrie (on peut quand même l'essayer)
+		&.unowned {
+			box-shadow : inset 0 0 0 100vmax rgba(2, 6, 23, 0.45);
+		}
+
+		&.selected {
+			outline        : 2px solid $gold;
+			outline-offset : 2px;
+		}
+	}
+
+	.shop-color-swap {
+		display     : inline-flex;
+		align-items : center;
+		align-self  : flex-start;
+		gap         : 0.4rem;
+		padding     : 0.2rem 0.6rem;
+		border      : 1px solid $line;
+		border-radius : 999px;
+		background  : none;
+		color       : $text;
+		font-family : inherit;
+		font-size   : 0.85rem;
+		opacity     : 0.75;
+		cursor      : pointer;
+
+		&:hover {
+			border-color : $gold;
+			color        : $gold;
+			opacity      : 1;
+		}
+	}
+
+	// aperçu d'une couleur : la couleur, puis trois motifs avec elle
+	.shop-color-preview {
+		display               : grid;
+		grid-template-columns : repeat(3, 1fr);
+		gap                   : 0.5rem;
+
+		span {
+			aspect-ratio  : 1;
+			border        : 1px solid $line;
+			border-radius : 10px;
+		}
+
+		.shop-color-big {
+			grid-column  : 1 / -1;
+			aspect-ratio : 16 / 7;
+		}
+	}
+
+	// fiche : ce que c'est, où ça s'applique, ce que ça coûte
+	.shop-detail-facts {
+		display        : flex;
+		flex-direction : column;
+		margin         : 0;
+		padding        : 0.2rem 0.9rem;
+		border         : 1px solid $line;
+		border-radius  : 12px;
+		background     : rgba(249, 250, 251, 0.03);
+
+		div {
+			display         : flex;
+			align-items     : center;
+			justify-content : space-between;
+			gap             : 1rem;
+			padding         : 0.55rem 0;
+
+			& + div { border-top : 1px solid $line; }
+		}
+
+		dt { opacity : 0.6; }
+
+		dd {
+			display     : inline-flex;
+			align-items : center;
+			gap         : 0.3rem;
+			margin      : 0;
+			text-align  : right;
+
+			&.gold { color : $gold; }
+			&.green { color : $green; }
+		}
+	}
+
+	.shop-detail-buy {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.5rem;
+		margin-top     : auto;
+	}
+
+	.shop-button {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.5rem;
+		width           : 100%;
+		padding         : 0.75rem 1.2rem;
+		box-sizing      : border-box;
+		border          : 1px solid rgba(249, 250, 251, 0.3);
+		border-radius   : 12px;
+		background      : rgba(249, 250, 251, 0.06);
+		color           : $text;
+		font-family     : inherit;
+		font-size       : 1.2rem;
+		text-decoration : none;
+		cursor          : pointer;
+		transition      : filter 0.15s ease, background 0.15s ease;
+
+		&.buy {
+			border-color : $gold;
+			background   : $gold;
+			color        : #1c1917;
+			font-weight  : bold;
+
+			&:hover:not(:disabled) { filter : brightness(1.08); }
+		}
+
+		&.use {
+			border-color : $green;
+			background   : rgba(52, 211, 153, 0.15);
+
+			&:hover:not(:disabled) { background : rgba(52, 211, 153, 0.25); }
+		}
+
+		&:disabled {
+			opacity : 0.6;
+			cursor  : default;
+		}
+
+		&.buy:disabled {
+			background  : transparent;
+			color       : $gold;
+			font-weight : normal;
+		}
+	}
+
+	.shop-button-price {
+		display       : inline-flex;
+		align-items   : center;
+		gap           : 0.3rem;
+		padding       : 0.05rem 0.6rem;
+		border-radius : 999px;
+		background    : rgba(28, 25, 23, 0.15);
+	}
+
+	.shop-error {
+		margin     : 0;
+		color      : #f87171;
+		text-align : center;
+	}
+
+	// ---------- Dessins des vignettes
+	.shop-art-fill {
+		position : absolute;
+		inset    : 0;
+	}
+
+	// collection : quelques objets en bandes verticales
+	.shop-art-mosaic {
+		position : absolute;
+		inset    : 0;
+		display  : flex;
+
+		// images (drapeaux) : en petite grille, sans les couper
+		&.grid {
+			display               : grid;
+			grid-template-columns : repeat(3, 1fr);
+			gap                   : 2px;
+			background            : rgba(2, 6, 23, 0.8);
+		}
+
+		span {
+			flex       : 1;
+			background-size : cover;
+		}
+	}
+
+	// collection de billes : une rangée de billes
+	.shop-art-balls {
+		position        : absolute;
+		inset           : 0;
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		background      : radial-gradient(ellipse at center, rgba(249, 250, 251, 0.08), transparent 70%);
+
+		img {
+			width       : 14%;
+			margin-left : -3%;
+			filter      : drop-shadow(0 0.3rem 0.4rem rgba(0, 0, 0, 0.5));
+
+			&:first-child { margin-left : 0; }
+			&:nth-child(even) { transform : translateY(18%); }
+		}
+	}
+
+	// icône de rubrique faite d'une image (jeton, rouleaux)
+	.shop-art-icon {
+		position        : absolute;
+		inset           : 0;
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		color           : $gold;
+
+		img {
+			width  : 70%;
+			height : 70%;
+		}
+	}
+
+	.shop-art-ball {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		width           : 100%;
+		height          : 100%;
+		background      : radial-gradient(circle at 50% 45%, rgba(249, 250, 251, 0.1), transparent 60%);
+
+		img {
+			width  : 48%;
+			height : 48%;
+			filter : drop-shadow(0 0.4rem 0.5rem rgba(0, 0, 0, 0.5));
+		}
+	}
+
+	.shop-art-chips {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		width           : 100%;
+		height          : 100%;
+		background      : radial-gradient(circle, #087a5a, #065f46 70%);
+
+		img {
+			width       : 26%;
+			margin-left : -12%;
+			filter      : drop-shadow(0 0.15rem 0.2rem rgba(0, 0, 0, 0.5));
+
+			&:first-child { margin-left : 0; }
+		}
+	}
+
+	// rouleaux de machine à sous (améliorations)
+	.shop-art-reels {
+		display       : flex;
+		gap           : 4%;
+		width         : 78%;
+		padding       : 6%;
+		box-sizing    : border-box;
+		border        : 2px solid rgba(251, 191, 36, 0.6);
+		border-radius : 10px;
+		background    : linear-gradient(#1e1b4b, #0f0a2a);
+
+		.reel {
+			display        : flex;
+			flex           : 1;
+			flex-direction : column;
+			gap            : 0.2rem;
+			padding        : 0.2rem 0;
+			border-radius  : 4px;
+			background     : #f9fafb;
+
+			span {
+				display         : flex;
+				align-items     : center;
+				justify-content : center;
+				height          : 1.4rem;
+				color           : #b91c1c;
+				font-size       : 0.95rem;
+				font-weight     : bold;
+			}
+		}
+
+		&.mini {
+			width        : 80%;
+			padding      : 10%;
+			gap          : 8%;
+			border-width : 1px;
+
+			.reel { gap : 0; padding : 0; }
+			.reel span { height : 0.4rem; }
+		}
+	}
+
+	// ---------- Effets de victoire : image fixe (vignette) et aperçu avec le bouton « Voir l'effet »
+	.victory-thumb {
+		display : block;
+		width   : 100%;
+		height  : 100%;
+	}
+
+	.victory-preview {
+		position      : relative;
+		overflow      : hidden;
+		aspect-ratio  : 16 / 10;
+		border        : 1px solid $line;
+		border-radius : 12px;
+	}
+
+	.victory-preview-art {
+		position : absolute;
+		inset    : 0;
+		opacity  : 0.6;
+	}
+
+	.victory-preview-card {
+		position        : absolute;
+		inset           : 18% 20%;
+		display         : flex;
+		flex-direction  : column;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.8rem;
+		border          : 2px solid $text;
+		border-radius   : 12px;
+		background      : rgba(2, 6, 23, 0.8);
+
+		strong { font-size : 1.4rem; }
+
+		.shop-button {
+			width     : auto;
+			padding   : 0.45rem 1rem;
+			font-size : 1rem;
+		}
+	}
+
+	// ---------- Grands aperçus de la fiche
+	.shop-plinko-preview {
+		border        : 1px solid $line;
+		border-radius : 12px;
+		background    : rgba(2, 6, 23, 0.5);
+	}
+
+	.shop-reels-stage {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		aspect-ratio    : 16 / 11;
+		border          : 1px solid $line;
+		border-radius   : 12px;
+		background      : radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+
+		.shop-art-reels .reel span {
+			height    : 2.4rem;
+			font-size : 1.5rem;
+		}
+	}
+
+	// ---------- Jetons : aperçu d'un jeu sur un tapis vert
+	.shop-chip-felt {
+		display        : flex;
+		flex-direction : column;
+		gap            : 1.5rem;
+		padding        : 1.5rem 1rem 1rem;
+		border-radius  : 12px;
+		background     : #065f46;
+		box-shadow     : inset 0 0 1.5rem rgba(0, 0, 0, 0.45);
+	}
+
+	.shop-chip-row {
+		display         : flex;
+		flex-wrap       : wrap;
+		justify-content : center;
+		gap             : 0.5rem;
+
+		img {
+			width  : 3.2rem;
+			height : 3.2rem;
+			filter : drop-shadow(0 0.25rem 0.35rem rgba(0, 0, 0, 0.5));
+		}
+	}
+
+	.shop-chip-stacks {
+		display         : flex;
+		justify-content : space-around;
+		padding-top     : 3.5rem;
+	}
+
+	// une pile de l'aperçu (ChipStack se place au milieu de cet emplacement)
+	.shop-chip-stack-slot {
+		position : relative;
+		width    : 3rem;
+		height   : 3rem;
+
+		.chip-stack {
+			--size : 2.8rem;
+			--step : 5px;
+		}
+	}
+
+	// ---------- Aperçus d'un fond, à faire défiler
 	.shop-previews {
 		position : relative;
 		margin   : 1rem 0 0;
@@ -140,7 +1023,7 @@
 		overflow-x       : auto;
 		scroll-snap-type : x mandatory;
 		border-radius    : 12px;
-		border           : 2px solid rgba(249, 250, 251, 0.35);
+		border           : 1px solid $line;
 		scrollbar-width  : none;
 
 		&::-webkit-scrollbar {
@@ -149,14 +1032,22 @@
 	}
 
 	.shop-preview {
+		position          : relative;
 		flex              : 0 0 100%;
 		aspect-ratio      : 16 / 10;
 		scroll-snap-align : start;
 		transition        : background 0.3s ease;
 
-		@media (max-width : 600px) {
-			aspect-ratio : 4 / 5;
+		// fond animé : sous la maquette
+		.shop-preview-backdrop {
+			position : absolute;
+			inset    : 0;
 		}
+
+		.mock {
+			position : relative;
+		}
+
 	}
 
 	.shop-arrow {
@@ -215,140 +1106,6 @@
 			opacity     : 0.75;
 			font-size   : 0.95rem;
 		}
-	}
-
-	// Couleur choisie, puis bouton
-	.shop-choice {
-		display     : flex;
-		align-items : center;
-		gap         : 0.75rem;
-		margin-top  : 1rem;
-
-		strong {
-			font-size : 1.5rem;
-		}
-	}
-
-	.shop-tag {
-		display       : inline-flex;
-		align-items   : center;
-		gap           : 0.3rem;
-		padding       : 0.15rem 0.7rem;
-		border-radius : 999px;
-		background    : rgba(251, 191, 36, 0.15);
-		color         : #fbbf24;
-
-		&.owned {
-			background : rgba(52, 211, 153, 0.15);
-			color      : #34d399;
-		}
-	}
-
-	.shop-actions {
-		margin-top : 0.75rem;
-	}
-
-	.shop-button {
-		display         : inline-flex;
-		align-items     : center;
-		gap             : 0.4rem;
-		padding         : 0.6rem 1.4rem;
-		border          : 2px solid rgba(249, 250, 251, 0.45);
-		border-radius   : 999px;
-		background      : rgba(2, 6, 23, 0.45);
-		color           : #f9fafb;
-		font-family     : inherit;
-		font-size       : 1.15rem;
-		text-decoration : none;
-		cursor          : pointer;
-
-		&.buy {
-			border-color : #fbbf24;
-			background   : #fbbf24;
-			color        : #1c1917;
-		}
-
-		&.wear {
-			border-color : #34d399;
-		}
-
-		&:disabled {
-			opacity : 0.6;
-			cursor  : default;
-		}
-
-		&.buy:disabled {
-			background : transparent;
-			color      : #fbbf24;
-		}
-	}
-
-	.shop-error {
-		margin : 0.5rem 0 0;
-		color  : #f87171;
-	}
-
-	// Pastilles des couleurs
-	.shop-swatches {
-		display               : grid;
-		grid-template-columns : repeat(auto-fill, minmax(6.5rem, 1fr));
-		gap                   : 0.75rem;
-		margin-top            : 1.5rem;
-	}
-
-	.shop-swatch {
-		display        : flex;
-		flex-direction : column;
-		align-items    : center;
-		gap            : 0.25rem;
-		padding        : 0;
-		border         : none;
-		background     : none;
-		color          : #f9fafb;
-		font-family    : inherit;
-		cursor         : pointer;
-
-		&.selected .shop-swatch-color {
-			outline        : 3px solid #fbbf24;
-			outline-offset : 2px;
-		}
-	}
-
-	.shop-swatch-color {
-		display         : flex;
-		align-items     : center;
-		justify-content : center;
-		width           : 100%;
-		aspect-ratio    : 1;
-		border          : 2px solid rgba(249, 250, 251, 0.25);
-		border-radius   : 10px;
-		color           : #34d399;
-		font-size       : 1.3rem;
-	}
-
-	.shop-swatch.locked .shop-swatch-color {
-		color  : rgba(249, 250, 251, 0.85);
-		filter : saturate(0.55) brightness(0.75);
-	}
-
-	.shop-swatch-price.free {
-		color : #34d399;
-	}
-
-	.shop-tiers-title {
-		margin-top : 2rem;
-	}
-
-	.shop-swatch-name {
-		font-size : 0.95rem;
-	}
-
-	.shop-swatch-price {
-		display     : inline-flex;
-		align-items : center;
-		gap         : 0.2rem;
-		color       : #fbbf24;
-		font-size   : 0.85rem;
 	}
 }
 
@@ -502,150 +1259,190 @@
 
 }
 
+@keyframes shop-slide-in {
+	from {
+		opacity   : 0;
+		transform : translateX(1rem);
+	}
+}
 
+@keyframes shop-slide-back {
+	from {
+		opacity   : 0;
+		transform : translateX(-1rem);
+	}
+}
 
+// ---------- Améliorations (UpgradesView) : niveau atteint sur la vignette, et la liste des niveaux dans la fiche
 .shop {
-	// carte d'une série de billes : l'aperçu en haut
-	// (le plateau est montré en grand et rogné : on voit mieux les billes)
-	.shop-item-preview {
-		display     : flex;
-		align-items : center;
-		height      : 9rem;
-		overflow    : hidden;
-		background  : rgba(2, 6, 23, 0.5);
+	.upgrade-icon {
+		font-size : 2.4rem;
 
-		.plinko-preview {
-			flex : none;
-		}
+		.shop-art-reels { transform : scale(0.9); }
 	}
 
-	// carte des jetons : les six jetons en éventail
-	.shop-item-chips {
-		display         : flex;
-		align-items     : center;
-		justify-content : center;
-		height          : 7rem;
-		background      : #065f46;
+	// grand aperçu : rouleaux de taille fixe (le cadre suit leur nombre), lignes tracées en grand
+	.shop-reels-stage {
+		position : relative;
 
-		img {
-			width       : 2.6rem;
-			margin-left : -0.6rem;
-			filter      : drop-shadow(0 0.15rem 0.2rem rgba(0, 0, 0, 0.5));
+		.upgrade-icon {
+			position  : static;
+			font-size : 4.5rem;
+		}
 
-			&:first-child {
-				margin-left : 0;
+		// (espaces en rem : en %, ils se calculent sur l'aperçu et non sur le cadre, qui devient trop étroit)
+		.shop-art-reels {
+			width     : auto;
+			gap       : 0.5rem;
+			padding   : 0.8rem;
+			transform : none;
+
+			.reel {
+				flex  : none;
+				width : 2.4rem;
 			}
 		}
 
-		&.soon-chips img {
-			filter : grayscale(1) drop-shadow(0 0.15rem 0.2rem rgba(0, 0, 0, 0.5));
+		.upgrade-paylines { width : 78%; }
+	}
+
+	.upgrade-preview-caption {
+		position       : absolute;
+		bottom         : 0.6rem;
+		left           : 0;
+		right          : 0;
+		font-size      : 0.8rem;
+		letter-spacing : 0.1em;
+		text-align     : center;
+		text-transform : uppercase;
+		opacity        : 0.6;
+	}
+
+	// lignes de gain sur une petite machine (vignette, aperçu)
+	.upgrade-paylines {
+		width    : 62%;
+		overflow : visible;
+
+		.frame {
+			fill         : #1e1b4b;
+			stroke       : rgba(251, 191, 36, 0.6);
+			stroke-width : 1.5;
 		}
+
+		.reel { fill : rgba(249, 250, 251, 0.92); }
 	}
 
-	.shop-item.owned-item {
-		cursor : default;
+	// niveaux d'une amélioration dessinée : un clic montre le niveau dans l'aperçu
+	.upgrade-levels.pickable li {
+		margin        : 0 -0.5rem;
+		padding       : 0.5rem;
+		border-radius : 8px;
+		cursor        : pointer;
+
+		&:hover { background : rgba(249, 250, 251, 0.05); }
+
+		&.viewed { background : rgba(251, 191, 36, 0.1); }
 	}
 
-	// page d'une série : grand aperçu
-	.shop-plinko-preview {
-		margin        : 1rem 0 0;
-		max-height    : 22rem;
-		border        : 2px solid rgba(249, 250, 251, 0.35);
-		border-radius : 12px;
-		background    : rgba(2, 6, 23, 0.5);
+	.upgrade-tile .shop-tile-art .upgrade-icon {
+		bottom : 2.2rem;
 	}
 
-	// choix d'une bille
-	.shop-swatches.balls {
-		grid-template-columns : repeat(auto-fill, minmax(5.5rem, 1fr));
-	}
-
-	.shop-ball {
-		position        : relative;
+	.upgrade-tile-level {
+		position        : absolute;
+		right           : 0;
+		bottom          : 0.6rem;
+		left            : 0;
 		display         : flex;
+		flex-direction  : column;
 		align-items     : center;
-		justify-content : center;
-		width           : 100%;
-		aspect-ratio    : 1;
-		border          : 2px solid rgba(249, 250, 251, 0.2);
-		border-radius   : 50%;
-		background      : rgba(2, 6, 23, 0.5);
+		gap             : 0.3rem;
 
-		img {
-			width  : 70%;
-			height : 70%;
-		}
-
-		.shop-ball-check {
-			position  : absolute;
-			right     : 0.1rem;
-			bottom    : 0.1rem;
-			color     : #34d399;
-			font-size : 1.1rem;
+		b {
+			font-size   : 0.95rem;
+			font-weight : 600;
 		}
 	}
 
+	.upgrade-pips {
+		display : flex;
+		gap     : 0.25rem;
 
-	.shop-swatch.selected .shop-ball {
-		outline        : 3px solid #fbbf24;
-		outline-offset : 2px;
+		i {
+			width         : 1.1rem;
+			height        : 0.3rem;
+			border-radius : 999px;
+			background    : rgba(249, 250, 251, 0.18);
+
+			&.on { background : $gold; }
+		}
 	}
-}
 
-// ---------- Jetons : aperçu d'un jeu sur un tapis vert (ChipSetPage)
-.shop {
-	.shop-chip-felt {
+	.upgrade-levels {
 		display        : flex;
 		flex-direction : column;
-		gap            : 1.5rem;
-		margin         : 1rem 0 0;
-		padding        : 1.5rem 1rem 1rem;
+		margin         : 0;
+		padding        : 0.2rem 0.9rem;
+		border         : 1px solid $line;
 		border-radius  : 12px;
-		background     : #065f46;
-		box-shadow     : inset 0 0 1.5rem rgba(0, 0, 0, 0.45);
+		background     : rgba(249, 250, 251, 0.03);
+		list-style     : none;
+
+		li {
+			display     : flex;
+			align-items : center;
+			gap         : 0.75rem;
+			padding     : 0.5rem 0;
+
+			& + li { border-top : 1px solid $line; }
+
+			> span:nth-child(2) {
+				display        : flex;
+				flex-direction : column;
+				flex           : 1;
+
+				small {
+					font-size      : 0.75rem;
+					letter-spacing : 0.08em;
+					text-transform : uppercase;
+					opacity        : 0.55;
+				}
+			}
+
+			em {
+				display     : inline-flex;
+				align-items : center;
+				gap         : 0.3rem;
+				color       : $gold;
+				font-style  : normal;
+			}
+
+			&.later { opacity : 0.55; }
+		}
 	}
 
-	.shop-chip-row {
+	.upgrade-level-mark {
 		display         : flex;
-		flex-wrap       : wrap;
+		flex            : none;
+		align-items     : center;
 		justify-content : center;
-		gap             : 0.8rem;
+		width           : 1.8rem;
+		height          : 1.8rem;
+		border          : 1px solid $line;
+		border-radius   : 50%;
+		font-size       : 0.85rem;
+		font-weight     : 700;
 
-		img {
-			width  : 4.2rem;
-			height : 4.2rem;
-			filter : drop-shadow(0 0.25rem 0.35rem rgba(0, 0, 0, 0.5));
+		.done & {
+			border-color : $green;
+			background   : rgba(52, 211, 153, 0.15);
+			color        : $green;
 		}
-	}
 
-	.shop-chip-stacks {
-		display         : flex;
-		justify-content : space-around;
-		padding-top     : 3.5rem;
-	}
-
-	// une pile de l'aperçu (ChipStack se place au milieu de cet emplacement)
-	.shop-chip-stack-slot {
-		position : relative;
-		width    : 3rem;
-		height   : 3rem;
-
-		.chip-stack {
-			--size : 2.8rem;
-			--step : 5px;
+		.next & {
+			border-color : $gold;
+			background   : $gold;
+			color        : #1c1917;
 		}
-	}
-}
-
-// ---------- Fonds en images (drapeaux…) : vignettes au format 16:9
-.shop {
-	.shop-swatches.flags {
-		grid-template-columns : repeat(auto-fill, minmax(8rem, 1fr));
-	}
-
-	.shop-flag {
-		aspect-ratio : 16 / 9;
-		color        : #f9fafb;
-		text-shadow  : 0 0 0.3rem rgba(0, 0, 0, 0.8);
 	}
 }

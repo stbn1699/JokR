@@ -1,0 +1,13 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="ciel" x1="0" y1="0" x2="0" y2="1080" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#2b1055"/><stop offset="0.55" stop-color="#d5426b"/><stop offset="1" stop-color="#ffb15c"/></linearGradient><radialGradient id="soleil" cx="960" cy="640" r="200" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff1c1"/><stop offset="1" stop-color="#ffb15c"/></radialGradient>
+</defs>
+<rect id="ciel" width="1920" height="1080" fill="url(#ciel)"/>
+<circle id="soleil" cx="960" cy="660" r="200" fill="url(#soleil)"/>
+<g id="dunes">
+  <path d="M-240 1080 L-240 663 Q-240 663 -120 699 Q0 735 120 731 Q240 726 360 701 Q480 676 600 688 Q720 700 840 697 Q960 695 1080 705 Q1200 715 1320 722 Q1440 729 1560 694 Q1680 659 1800 656 Q1920 653 2040 693 L2160 1080 Z" fill="#c8553d"/>
+  <path d="M-300 1080 L-300 831 Q-300 831 -150 831 Q0 830 150 790 Q300 750 450 751 Q600 753 750 786 Q900 820 1050 816 Q1200 811 1350 808 Q1500 805 1650 789 Q1800 773 1950 786 Q2100 800 2250 800 L2400 1080 Z" fill="#9a3b3b"/>
+  <path d="M-360 1080 L-360 879 Q-360 879 -180 891 Q0 904 180 897 Q360 890 540 899 Q720 908 900 909 Q1080 910 1260 888 Q1440 865 1620 863 Q1800 861 1980 894 Q2160 927 2340 904 L2520 1080 Z" fill="#5c2335"/>
+  <path d="M-420 1080 L-420 984 Q-420 984 -210 980 Q0 976 210 985 Q420 994 630 987 Q840 979 1050 977 Q1260 974 1470 984 Q1680 994 1890 1010 Q2100 1025 2310 1022 L2520 1080 Z" fill="#2e1428"/>
+</g>
+</svg>

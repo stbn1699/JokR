@@ -43,6 +43,7 @@ export type UsersTable = {
     plinko_ball: string | null;
     // jeu de jetons choisi dans la boutique (null : jetons classiques)
     chip_set: string | null;
+    victory_effect: string | null;
     // mode admin (« mode fantôme ») actif : voir services/adminMode.ts
     admin_mode: Generated<boolean>;
 };
@@ -291,6 +292,22 @@ export type PuzzleLevelProgressTable = {
     completed_at: Generated<Date>;
 };
 
+// Succès débloqués (voir utils/achievements.ts) ; seen_at null tant que le site n'a pas montré la popup
+export type UserAchievementsTable = {
+    user_id: string;
+    achievement_id: string;
+    reward: number;
+    unlocked_at: Generated<Date>;
+    seen_at: Date | null;
+};
+
+// Statistiques des succès (bigint en base : lu comme texte, écrit comme nombre)
+export type UserAchievementStatsTable = {
+    user_id: string;
+    key: string;
+    value: ColumnType<string, number, number>;
+};
+
 export type DB = {
 	games: GamesTable;
 	users: UsersTable;
@@ -315,5 +332,7 @@ export type DB = {
     blackjack_hands: BlackjackHandsTable;
     poker_hands: PokerHandsTable;
     puzzle_level_progress: PuzzleLevelProgressTable;
+    user_achievements: UserAchievementsTable;
+    user_achievement_stats: UserAchievementStatsTable;
 };
 

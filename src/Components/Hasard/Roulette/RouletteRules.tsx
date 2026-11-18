@@ -1,8 +1,6 @@
 import {
     ROULETTE_BETTING_MS,
     ROULETTE_CHIPS,
-    ROULETTE_MAX_PER_BET,
-    ROULETTE_MAX_TOTAL,
     ROULETTE_ROUND_MS,
 } from "../../../../backend/src/utils/roulette.ts";
 
@@ -17,7 +15,8 @@ const BETS = [
     {name: "1-18 ou 19-36", covers: "18 numéros", pays: "1 fois la mise"},
 ];
 
-export default function RouletteRules() {
+// perBet, total : limites du joueur (améliorations de la boutique)
+export default function RouletteRules({perBet, total}: { perBet: number; total: number }) {
     return (
         <>
             <h3>Le principe</h3>
@@ -60,9 +59,10 @@ export default function RouletteRules() {
 
             <h3>Limites</h3>
             <ul>
-                <li>{ROULETTE_MAX_PER_BET.toLocaleString("fr-FR")} crédits au plus sur une même case.</li>
-                <li>{ROULETTE_MAX_TOTAL.toLocaleString("fr-FR")} crédits au plus par tour.</li>
+                <li>{perBet.toLocaleString("fr-FR")} crédits au plus sur une même case.</li>
+                <li>{total.toLocaleString("fr-FR")} crédits au plus par tour.</li>
             </ul>
+            <p className="rules-note">Les deux limites montent avec les améliorations de la boutique.</p>
             <p className="rules-note">
                 Le numéro est tiré par le serveur à la fermeture des mises, le même pour tout le monde. Sur la durée, la roulette rend en moyenne 97,3 % des crédits misés
                 (36 sur 37), quelle que soit la mise.

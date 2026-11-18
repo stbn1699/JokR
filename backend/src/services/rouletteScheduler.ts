@@ -1,4 +1,6 @@
 import type {LiveRouletteRepository} from "../repository/LiveRoulette.repository.js";
+import {achievements} from "./achievements/index.js";
+import {rouletteRound} from "./achievements/events.js";
 import {ROULETTE_ROUND_MS, rouletteBettingOpen, rouletteRoundAt} from "../utils/roulette.js";
 
 /*
@@ -31,8 +33,9 @@ export function startRouletteScheduler(repo: LiveRouletteRepository, log: (msg: 
             // jetons pas encore payés : tours fermés seulement (tirés au besoin, s'ils ont été manqués)
             for (const unpaid of await repo.unpaidRounds(open ? round - 1 : round)) {
                 await repo.close(unpaid);
-                const players = await repo.settle(unpaid);
-                if (players && unpaid < round - 1) log(`Roulette : tour ${unpaid} payé en retard (${players} joueur(s))`);
+                const paid = await repo.settle(unpaid);
+                for (const p of paid) void achievements.track(p.userId, ctx => rouletteRound(ctx, {id: p.round, number: p.number, bets: p.bets, payout: p.payout}));
+                if (paid.length && unpaid < round - 1) log(`Roulette : tour ${unpaid} payé en retard (${paid.length} joueur(s))`);
             }
             if (++ticks % PRUNE_EVERY === 0) await repo.prune(round - KEEP_ROUNDS);
         } catch (err) {

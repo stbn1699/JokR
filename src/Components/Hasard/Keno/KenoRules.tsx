@@ -1,4 +1,4 @@
-import {KENO_DRAWN, KENO_MAX_PICKS, KENO_NUMBERS, KENO_PAYTABLE, kenoChance} from "../../../../backend/src/utils/keno.ts";
+import {KENO_BASE_PICKS, KENO_DRAWN, KENO_MAX_PICKS, KENO_NUMBERS, KENO_PAYTABLE, kenoChance} from "../../../../backend/src/utils/keno.ts";
 
 const fr = (n: number) => n.toLocaleString("fr-FR");
 
@@ -15,7 +15,8 @@ export default function KenoRules() {
         <>
             <h3>Le principe</h3>
             <p>
-                Choisis de 1 à {KENO_MAX_PICKS} numéros entre 1 et {KENO_NUMBERS}, puis lance le tirage : {KENO_DRAWN} numéros
+                Choisis de 1 à {KENO_BASE_PICKS} numéros entre 1 et {KENO_NUMBERS} (jusqu'à {KENO_MAX_PICKS} avec l'amélioration
+                « Numéros cochés » de la boutique), puis lance le tirage : {KENO_DRAWN} numéros
                 sortent. Plus tu en trouves, plus tu gagnes. Le tableau dépend du nombre de numéros choisis : avec peu de
                 numéros on gagne plus souvent, avec beaucoup on vise les gros gains (jusqu'à ×10 000).
             </p>

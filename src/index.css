@@ -30,6 +30,49 @@ html{
 	font-family: 'Josefin Slab', serif;
 }
 
+/*
+ * Barres de défilement « flottantes » : pas de rail, juste un pouce arrondi couleur crème (le fond du header),
+ * décollé du bord. Partout sur le site (page et zones qui défilent).
+ * Chrome / Edge / Safari : ::-webkit-scrollbar (un élément qui déclare scrollbar-width ou scrollbar-color
+ * perd ce style, d'où les propriétés standard réservées à Firefox).
+ */
+::-webkit-scrollbar{
+	width: 12px;
+	height: 12px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner{
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb{
+	/* bord transparent + background-clip : le pouce flotte à 3px du bord */
+	border: 3px solid transparent;
+	border-radius: 999px;
+	background: rgba(244, 229, 203, 0.55) padding-box;
+	min-height: 2.5rem;
+}
+
+::-webkit-scrollbar-thumb:hover{
+	background: rgba(244, 229, 203, 0.9) padding-box;
+}
+
+::-webkit-scrollbar-thumb:active{
+	background: #F4E5CB padding-box;
+}
+
+::-webkit-scrollbar-button{
+	display: none;
+}
+
+@supports not selector(::-webkit-scrollbar){
+	*{
+		scrollbar-width: thin;
+		scrollbar-color: rgba(244, 229, 203, 0.55) transparent;
+	}
+}
+
 body {
 	margin: 0;
 	/* Pas de zoom au double appui sur téléphone (on tape vite dans les grilles) */

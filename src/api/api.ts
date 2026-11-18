@@ -54,6 +54,9 @@ async function errorMessage(res: Response): Promise<string> {
 // Événement émis quand le serveur refuse le token (expiré / invalide) ; écouté par AuthProvider
 export const AUTH_EXPIRED_EVENT = "auth:expired";
 
+// Événement émis après chaque action réussie (requête autre que GET) : les popups de succès regardent s'il y a du neuf
+export const API_WRITE_EVENT = "api:write";
+
 // Le token JWT est stocké au login (voir auth.service.ts)
 function authHeader(): Record<string, string> {
     const token = localStorage.getItem("auth_token");
@@ -90,6 +93,10 @@ export async function api<T>(
 
     if (!res.ok) {
         throw new ApiError(await errorMessage(res), res.status);
+    }
+
+    if ((options.method ?? "GET").toUpperCase() !== "GET" && !path.startsWith("/achievements")) {
+        window.dispatchEvent(new Event(API_WRITE_EVENT));
     }
 
     if (res.status === 204) return undefined as T;

@@ -21,6 +21,7 @@ export type SavedTectonic = { gameId: string; values: TectonicCell[]; notes?: nu
  * - validate() : envoie la grille au serveur (qui calcule l'XP si le joueur est connecté)
  * - toggleNoteAt(i, n) : ajoute / retire une note au crayon (case vide seulement)
  * - undo() / redo() : annule / rétablit le dernier coup
+ * - reset() : vide la grille et les notes (les nombres donnés restent) ; hasInput : le joueur a saisi quelque chose
  * - restore(puzzle, saved) : reprend une partie sauvegardée
  */
 export function useTectonicGame(saveKey = "TECTONIC") {
@@ -114,6 +115,17 @@ export function useTectonicGame(saveKey = "TECTONIC") {
         return move?.index ?? null;
     };
 
+    // Saisies du joueur (hors nombres donnés), notes comprises
+    const hasInput = values.some((v, i) => v !== null && !isClue(i)) || notes.some(mask => mask !== 0);
+
+    // Vide la grille : retour aux seuls nombres donnés, sans notes, historique effacé (le chrono continue)
+    const reset = () => {
+        if (!puzzle || isGenerating) return;
+        setValues(puzzle.cells);
+        setNotes(Array<number>(puzzle.cells.length).fill(0));
+        history.clear();
+    };
+
     const restore = (saved: TectonicPuzzle, data: SavedTectonic) => {
         stopAnimation();
         gameIdRef.current = data.gameId;
@@ -144,6 +156,6 @@ export function useTectonicGame(saveKey = "TECTONIC") {
     return {
         loadingSize,
         puzzle, values, notes, toggleNoteAt, revealed, isGenerating, isClue, generate, setCell, validate,
-        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
+        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore, reset, hasInput,
     };
 }

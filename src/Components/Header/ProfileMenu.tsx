@@ -1,14 +1,14 @@
 /**
  * Menu de la photo de profil (header) : tout ce qui n'est pas un jeu, rangé derrière l'icône du joueur.
  * - Niveau et XP (le header ne les montre plus sur téléphone)
- * - Mon profil, Personnaliser (fond, bille, jetons), Nouveautés, Un bug ? Une idée ?
+ * - Mon profil, Succès, Personnaliser (page /personnaliser : fond, bille, jetons, effet de victoire), Nouveautés, Un bug ? Une idée ?
  * - Administrateurs : mode admin (Stats a son icône dans le header)
  * Se ferme au clic dehors, avec Échap, et en choisissant une entrée.
  */
 
 import {useEffect, useRef, useState} from "react";
 import {Link, useLocation} from "react-router-dom";
-import {FaCommentDots, FaPalette, FaRegNewspaper, FaUser, FaUserShield} from "react-icons/fa";
+import {FaCommentDots, FaMedal, FaPalette, FaRegNewspaper, FaUser, FaUserShield} from "react-icons/fa";
 import Avatar from "../Avatar/Avatar.tsx";
 import {useAuth} from "../../Context/authContext.ts";
 import {api} from "../../api/api.ts";
@@ -17,10 +17,9 @@ type ProfileMenuProps = {
     level: number;
     xp: number;
     xpNextLevel: number;
-    onCustomize: () => void;
 };
 
-export default function ProfileMenu({level, xp, xpNextLevel, onCustomize}: ProfileMenuProps) {
+export default function ProfileMenu({level, xp, xpNextLevel}: ProfileMenuProps) {
     const auth = useAuth();
     const {pathname, search} = useLocation();
     const [open, setOpen] = useState(false);
@@ -75,10 +74,8 @@ export default function ProfileMenu({level, xp, xpNextLevel, onCustomize}: Profi
                     </div>
 
                     <Link to="/profile" role="menuitem" onClick={close}><FaUser aria-hidden/> Mon profil</Link>
-                    <button type="button" role="menuitem" onClick={() => {
-                        close();
-                        onCustomize();
-                    }}><FaPalette aria-hidden/> Personnaliser</button>
+                    <Link to="/succes" role="menuitem" onClick={close}><FaMedal aria-hidden/> Succès</Link>
+                    <Link to="/personnaliser" role="menuitem" onClick={close}><FaPalette aria-hidden/> Personnaliser</Link>
                     <Link to="/nouveautes" role="menuitem" onClick={close}><FaRegNewspaper aria-hidden/> Nouveautés</Link>
                     <Link to="/retour" state={{from: pathname + search}} role="menuitem" onClick={close}>
                         <FaCommentDots aria-hidden/> Un bug ? Une idée ?

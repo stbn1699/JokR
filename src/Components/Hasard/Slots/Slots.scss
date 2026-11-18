@@ -129,9 +129,10 @@
 		}
 	}
 
-	// lancers en série : 6 choix sur 3 colonnes ; 50 et 100 sous cadenas
+	// lancers en série : 6 choix sur 3 colonnes
 	.slots-counts { grid-template-columns : repeat(3, 1fr); }
 
+	// pas encore débloqué : cadenas, et un clic mène à la boutique
 	.slots-choice.locked {
 		display         : inline-flex;
 		align-items     : center;
@@ -139,9 +140,10 @@
 		gap             : 0.3rem;
 		border-style    : dashed;
 		opacity         : 0.45;
-		cursor          : not-allowed;
 
 		svg { font-size : 0.85em; }
+
+		&:hover:not(:disabled) { opacity : 0.9; }
 	}
 
 	// bouton Lancer pendant une série : Arrêter

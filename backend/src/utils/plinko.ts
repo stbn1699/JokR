@@ -52,16 +52,19 @@ export const PLINKO_WALLS: Segment[] = [edge(-1), edge(1)];
 // - low (prudent) : petits multiplicateurs, une bille sur deux gagne un peu
 // - medium (équilibré) : le tableau d'origine
 // - high (risqué) : ×25 aux bords mais ×0,1 au centre, il faut toucher les bords pour gagner
+// - extreme (extrême) : ×41 aux bords, presque rien ailleurs
+// Seul le prudent est offert : les autres se débloquent dans la boutique (amélioration « Difficulté », upgrades.ts).
 // Calibrés par simulation (voir plinko.test.ts) pour rendre tous environ 96 % des mises sur la durée.
 const half = (edgeToCenter: number[]) => [...edgeToCenter, ...edgeToCenter.slice(0, -1).reverse()];
 export const PLINKO_TABLES = {
     low: half([2, 1.3, 1.2, 1.1, 1.1, 0.8, 0.7]),
     medium: half([10, 4, 2, 1.1, 0.7, 0.5, 0.3]),
     high: half([25, 6, 2.5, 0.7, 0.3, 0.2, 0.1]),
+    extreme: half([41, 5.5, 1.5, 0.4, 0.2, 0.1, 0.1]),
 } as const satisfies Record<string, number[]>;
 
 export type PlinkoRisk = keyof typeof PLINKO_TABLES;
-export const PLINKO_RISKS = ["low", "medium", "high"] as const satisfies readonly PlinkoRisk[];
+export const PLINKO_RISKS = ["low", "medium", "high", "extreme"] as const satisfies readonly PlinkoRisk[];
 export const DEFAULT_PLINKO_RISK: PlinkoRisk = "medium";
 export const isPlinkoRisk = (risk: unknown): risk is PlinkoRisk => PLINKO_RISKS.includes(risk as PlinkoRisk);
 
@@ -75,7 +78,7 @@ export const PLINKO_MAX_MULTIPLIER = Math.max(...PLINKO_RISKS.flatMap(r => PLINK
 // physique ou le plateau changent, voir plinko.test.ts)
 export const PLINKO_ODDS = [0.6, 1.7, 4, 7.6, 12, 15.5, 17, 15.5, 12, 7.6, 4, 1.7, 0.6] as const;
 
-// Part des mises rendue sur la durée (mesurée sur 100 000 chutes, la même pour les trois tableaux à 1 point près)
+// Part des mises rendue sur la durée (mesurée sur 100 000 chutes, la même pour les quatre tableaux à 1 point près)
 export const PLINKO_RTP = 0.96;
 
 export const plinkoMultiplier = (slot: number, risk: PlinkoRisk = DEFAULT_PLINKO_RISK) => PLINKO_TABLES[risk][slot]!;

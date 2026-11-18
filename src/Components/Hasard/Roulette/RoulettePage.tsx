@@ -17,8 +17,6 @@ import {useChipImage} from "../../../Services/chipSets.ts";
 import {
     ROULETTE_BETTING_MS,
     ROULETTE_CHIPS,
-    ROULETTE_MAX_PER_BET,
-    ROULETTE_MAX_TOTAL,
     type RouletteBet,
     rouletteColor,
     rouletteWinningKeys,
@@ -33,6 +31,7 @@ import LiveBets from "./LiveBets.tsx";
 import RoundDetail from "./RoundDetail.tsx";
 import {useMaintenance} from "../../../Services/maintenance.ts";
 import {useActivity} from "../../../Services/useActivity.ts";
+import {useUpgradeValue} from "../../../Services/upgrades.ts";
 
 const POLL_MS = 1000;
 
@@ -67,6 +66,9 @@ const ZOOM_OUT_MS = 450;
 
 export default function RoulettePage() {
     const auth = useAuth();
+    // limites du joueur (améliorations « Mise par case » et « Mise par tour » de la boutique)
+    const maxPerBet = useUpgradeValue("roulette-case");
+    const maxTotal = useUpgradeValue("roulette-total");
     const {setCredits} = auth;
     const chipImage = useChipImage();
     const wheel = useRef<RouletteWheelHandle>(null);
@@ -308,8 +310,8 @@ export default function RoulettePage() {
         const queued = batch.current.reduce((sum, b) => sum + b.amount, 0);
         const queuedHere = batch.current.reduce((sum, b) => sum + (b.key === key ? b.amount : 0), 0);
         if (queued + chip > auth.credits) return setError("Pas assez de crédits pour ce jeton");
-        if (total + queued + chip > ROULETTE_MAX_TOTAL) return setError(`${ROULETTE_MAX_TOTAL} crédits au plus par tour`);
-        if (betTotal(key) + queuedHere + chip > ROULETTE_MAX_PER_BET) return setError(`${ROULETTE_MAX_PER_BET} crédits au plus par case`);
+        if (total + queued + chip > maxTotal) return setError(`${maxTotal} crédits au plus par tour`);
+        if (betTotal(key) + queuedHere + chip > maxPerBet) return setError(`${maxPerBet} crédits au plus par case`);
         batch.current.push({key, amount: chip});
         if (batchTimer.current !== null) return;
         batchTimer.current = window.setTimeout(flushBatch, BATCH_MS);
@@ -371,7 +373,7 @@ export default function RoulettePage() {
                     <section className="roulette-play">
                         <div className="casino-title">
                             <h1>Roulette</h1>
-                            <RulesButton tour={TOURS.ROULETTE} title="Règles de la roulette"><RouletteRules/></RulesButton>
+                            <RulesButton tour={TOURS.ROULETTE} title="Règles de la roulette"><RouletteRules perBet={maxPerBet} total={maxTotal}/></RulesButton>
                         </div>
 
                         {/* où en est le tour : mises ouvertes (compte à rebours), roue lancée, résultat */}
@@ -414,7 +416,7 @@ export default function RoulettePage() {
                             </button>
                             {/* repose les jetons du dernier tour joué (en plus de ceux déjà posés sur ce tour) */}
                             <button type="button" className="roulette-secondary roulette-rebet"
-                                    disabled={!open || sending || lastBets.length === 0 || lastTotal > auth.credits || total + lastTotal > ROULETTE_MAX_TOTAL}
+                                    disabled={!open || sending || lastBets.length === 0 || lastTotal > auth.credits || total + lastTotal > maxTotal}
                                     onClick={rebet}
                                     title={lastBets.length === 0 ? "Joue un tour pour pouvoir reproduire ta mise"
                                         : lastTotal > auth.credits ? "Pas assez de crédits pour reproduire ta mise"

@@ -13,20 +13,6 @@
 		strong { color : #fbbf24; }
 	}
 
-	.trace-clear {
-		padding       : 0.5rem 1rem;
-		border        : 2px solid rgba(249, 250, 251, 0.4);
-		border-radius : 999px;
-		background    : transparent;
-		color         : inherit;
-		font-family   : inherit;
-		font-size     : 1.05rem;
-		cursor        : pointer;
-
-		&:hover:not(:disabled) { border-color : #fbbf24; }
-		&:disabled { opacity : 0.4; cursor : default; }
-	}
-
 	.trace-board {
 		--cell                : calc(var(--grid-width) / var(--size));
 		position              : relative;

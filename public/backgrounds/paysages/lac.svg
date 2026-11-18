@@ -1,0 +1,10 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="ciel" x1="0" y1="0" x2="0" y2="600" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8ec5fc"/><stop offset="0.6" stop-color="#fbd3e9"/><stop offset="1" stop-color="#ffe8c7"/></linearGradient><linearGradient id="lac" x1="0" y1="600" x2="0" y2="1080" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d7b8d6"/><stop offset="1" stop-color="#5a6fa8"/></linearGradient>
+</defs>
+<rect id="ciel" width="1920" height="600" fill="url(#ciel)"/>
+<g id="montagnes"><path d="M-150 600 L-150 444 L0 386 L150 314 L300 403 L450 420 L600 461 L750 473 L900 448 L1050 498 L1200 514 L1350 575 L1500 610 L1650 638 L1800 625 L1950 550 L2100 475 L2100 600 Z" fill="#8b7fb3"/><path d="M-130 600 L-130 560 L0 492 L130 459 L260 428 L390 462 L520 487 L650 544 L780 484 L910 473 L1040 428 L1170 428 L1300 429 L1430 428 L1560 428 L1690 450 L1820 456 L1950 428 L2080 441 L2080 600 Z" fill="#5c5a8f"/></g>
+<rect id="lac" y="600" width="1920" height="480" fill="url(#lac)"/>
+<g id="reflet" opacity="0.35" transform="translate(0 1200) scale(1 -1)"><path d="M-150 600 L-150 444 L0 386 L150 314 L300 403 L450 420 L600 461 L750 473 L900 448 L1050 498 L1200 514 L1350 575 L1500 610 L1650 638 L1800 625 L1950 550 L2100 475 L2100 600 Z" fill="#8b7fb3"/><path d="M-130 600 L-130 560 L0 492 L130 459 L260 428 L390 462 L520 487 L650 544 L780 484 L910 473 L1040 428 L1170 428 L1300 429 L1430 428 L1560 428 L1690 450 L1820 456 L1950 428 L2080 441 L2080 600 Z" fill="#5c5a8f"/></g>
+<path id="rive" d="M0 1000 Q480 950 960 990 T1920 980 V1080 H0 Z" fill="#2b2d4f"/>
+</svg>

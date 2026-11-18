@@ -1,0 +1,28 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<clipPath id="bille"><circle cx="500" cy="500" r="500"/></clipPath>
+<radialGradient id="volume" cx="420" cy="380" r="640" gradientUnits="userSpaceOnUse">
+  <stop offset="0.5" stop-color="black" stop-opacity="0"/><stop offset="1" stop-color="black" stop-opacity="0.5"/>
+</radialGradient>
+<radialGradient id="reflet" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="white" stop-opacity="0.85"/><stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+
+</defs>
+<g id="bille-jupiter" clip-path="url(#bille)">
+<g id="surface">
+  <circle cx="500" cy="500" r="500" fill="#d8b48a"/>
+  <path d="M0 110 Q250 90 500 110 T1000 110 V190 Q750 210 500 190 T0 190 Z" fill="#b5774a"/>
+  <path d="M0 260 Q250 240 500 260 T1000 260 V310 Q750 330 500 310 T0 310 Z" fill="#e8d2b5"/>
+  <path d="M0 360 Q250 340 500 360 T1000 360 V460 Q750 480 500 460 T0 460 Z" fill="#a8603a"/>
+  <path d="M0 530 Q250 510 500 530 T1000 530 V590 Q750 610 500 590 T0 590 Z" fill="#e8d2b5"/>
+  <path d="M0 650 Q250 630 500 650 T1000 650 V740 Q750 760 500 740 T0 740 Z" fill="#b5774a"/>
+  <path d="M0 810 Q250 790 500 810 T1000 810 V880 Q750 900 500 880 T0 880 Z" fill="#a8603a"/>
+  <ellipse cx="650" cy="700" rx="130" ry="75" fill="#b8402a" stroke="#e8a184" stroke-width="12"/>
+</g>
+<g id="ombrage">
+  <circle cx="500" cy="500" r="500" fill="url(#volume)"/>
+  <ellipse cx="340" cy="290" rx="170" ry="120" fill="url(#reflet)" opacity="0.5" transform="rotate(-35 340 290)"/>
+</g>
+</g>
+</svg>

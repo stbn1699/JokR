@@ -10,6 +10,7 @@
  * - /profile : Profil du joueur connecté
  * - /hasard : Onglet des jeux de hasard (à venir)
  * - /nouveautes : Nouveautés (CHANGELOG.md) ; le numéro de version est en bas à droite
+ * - /succes : Succès (popups de déblocage : AchievementToasts, sur toutes les pages)
  * - * : Page 404 pour les routes inexistantes
  */
 
@@ -42,10 +43,7 @@ import Stats from "./Components/Stats/Stats.tsx";
 import PlayerProfile from "./Components/PlayerProfile/PlayerProfile.tsx";
 import FriendChallengePage from "./Components/FriendChallenge/FriendChallengePage.tsx";
 import ShopPage from "./Components/Shop/ShopPage.tsx";
-import GradientsPage from "./Components/Shop/GradientsPage.tsx";
-import PlinkoBallsPage from "./Components/Shop/PlinkoBallsPage.tsx";
-import ChipSetPage from "./Components/Shop/ChipSetPage.tsx";
-import ImageBackgroundsPage from "./Components/Shop/ImageBackgroundsPage.tsx";
+import CustomizePage from "./Components/Customize/CustomizePage.tsx";
 import SiteBackground from "./Components/Shop/SiteBackground.tsx";
 import FeedbackButton from "./Components/Feedback/FeedbackButton.tsx";
 import FeedbackPage from "./Components/Feedback/FeedbackPage.tsx";
@@ -57,6 +55,8 @@ import SlotMachinePage from "./Components/Hasard/Slots/SlotMachinePage.tsx";
 import BlackjackPage from "./Components/Hasard/Blackjack/BlackjackPage.tsx";
 import KenoPage from "./Components/Hasard/Keno/KenoPage.tsx";
 import PokerPage from "./Components/Hasard/Poker/PokerPage.tsx";
+import AchievementsPage from "./Components/Achievements/AchievementsPage.tsx";
+import AchievementToasts from "./Components/Achievements/AchievementToasts.tsx";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -96,6 +96,7 @@ function App() {
         <div className={`app-root ${inGame ? "in-game" : ""}`}>
             <SiteBackground/>
             <Header/>
+            <AchievementToasts/>
             <UpdateNotice site={site}/>
             <Routes>
                 <Route path="/" element={<GameList/>}/>
@@ -122,12 +123,11 @@ function App() {
                 <Route path="/hasard/blackjack" element={<BlackjackPage/>}/>
                 <Route path="/hasard/keno" element={<KenoPage/>}/>
                 <Route path="/hasard/poker" element={<PokerPage/>}/>
-                <Route path="/boutique" element={<ShopPage/>}/>
                 <Route path="/retour" element={<FeedbackPage/>}/>
-                <Route path="/boutique/fonds/degrades" element={<GradientsPage/>}/>
-                <Route path="/boutique/fonds/:set" element={<ImageBackgroundsPage/>}/>
-                <Route path="/boutique/plinko/:set" element={<PlinkoBallsPage/>}/>
-                <Route path="/boutique/jetons/:set" element={<ChipSetPage/>}/>
+                {/* Boutique : une seule page, la catégorie (et l'objet pour les jetons) vient de l'adresse */}
+                <Route path="/boutique/:section?/:set?" element={<ShopPage/>}/>
+                <Route path="/personnaliser" element={<CustomizePage/>}/>
+                <Route path="/succes" element={<AchievementsPage/>}/>
                 <Route path="/stats" element={<Stats/>}/>
                 {/* Profil public d'un joueur (depuis les classements) */}
                 <Route path="/joueur/:username" element={<PlayerProfile/>}/>

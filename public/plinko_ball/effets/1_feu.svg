@@ -1,0 +1,26 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<clipPath id="bille"><circle cx="500" cy="500" r="500"/></clipPath>
+<radialGradient id="volume" cx="420" cy="380" r="640" gradientUnits="userSpaceOnUse">
+  <stop offset="0.5" stop-color="black" stop-opacity="0"/><stop offset="1" stop-color="black" stop-opacity="0.5"/>
+</radialGradient>
+<radialGradient id="reflet" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="white" stop-opacity="0.85"/><stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="braise" cx="500" cy="620" r="620" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff3b0"/><stop offset="0.4" stop-color="#ffb020"/><stop offset="0.75" stop-color="#ff5a00"/><stop offset="1" stop-color="#8f0e00"/></radialGradient>
+</defs>
+<g id="bille-feu" clip-path="url(#bille)">
+<g id="surface">
+  <circle cx="500" cy="500" r="500" fill="url(#braise)"/>
+  <path d="M80 1000 Q-40 616.6666666666666 100 350 Q120 676.6666666666666 220 1000 Z" fill="#ff7a00" fill-opacity="0.85"/>
+  <path d="M300 1000 Q180 560.0 320 180 Q340 620.0 440 1000 Z" fill="#ffb020" fill-opacity="0.85"/>
+  <path d="M520 1000 Q400 590.0 540 270 Q560 650.0 660 1000 Z" fill="#ff7a00" fill-opacity="0.85"/>
+  <path d="M700 1000 Q580 546.6666666666666 720 140 Q740 606.6666666666666 840 1000 Z" fill="#ffd54a" fill-opacity="0.85"/>
+  <path d="M420 1000 Q300 660.0 440 480 Q460 720.0 560 1000 Z" fill="#fff3b0" fill-opacity="0.85"/>
+</g>
+<g id="ombrage">
+  <circle cx="500" cy="500" r="500" fill="url(#volume)"/>
+  <ellipse cx="340" cy="290" rx="170" ry="120" fill="url(#reflet)" opacity="0.7" transform="rotate(-35 340 290)"/>
+</g>
+</g>
+</svg>

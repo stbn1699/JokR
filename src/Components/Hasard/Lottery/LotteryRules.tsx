@@ -9,7 +9,8 @@ export default function LotteryRules() {
                 acheter : tes mises au Plinko, à la roulette, aux machines à sous, au blackjack, au Keno et au poker te donnent des tickets.
             </p>
             <ul>
-                <li>Chaque tranche de {LOTTERY_TICKET_CREDITS} crédits misés sur la période te donne un ticket, dans les trois loteries à la fois.</li>
+                <li>Chaque tranche de {LOTTERY_TICKET_CREDITS} crédits misés sur la période te donne un ticket, dans les trois loteries à la fois
+                    (moins de crédits par ticket avec l'amélioration « Prix du ticket » de la boutique).</li>
                 <li>
                     La roue du jour peut aussi t'offrir des tickets : 1 000 pour la loterie du jour, 7 000 pour celle de
                     la semaine, ou 1 000 par jour du mois pour celle du mois. Ils comptent comme les autres pour le tirage,

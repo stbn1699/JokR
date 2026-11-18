@@ -1,3 +1,5 @@
+import {achievements} from "../services/achievements/index.js";
+import {avatarChanged} from "../services/achievements/events.js";
 import type {Request, Response} from 'express';
 import {
     IdentityTakenError,
@@ -238,6 +240,7 @@ export function createUsersController(service: UsersService, results: GameResult
             const {avatar} = req.body ?? {};
             if (!isAvatar(avatar)) return res.status(400).json({status: 'error', message: 'Icône de profil invalide'});
             await service.changeAvatar(res.locals.userId!, avatar);
+            void achievements.track(res.locals.userId, avatarChanged);
             res.status(200).json({status: 'ok', data: {avatar}});
         }),
 

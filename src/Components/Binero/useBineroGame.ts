@@ -18,6 +18,7 @@ const TOTAL_ANIMATION_MS = 500;
  * - validate() : envoie la grille au serveur (qui calcule l'XP si le joueur est connecté)
  * - counts : nombre de 0 et de 1 posés
  * - undo() / redo() : annule / rétablit le dernier coup (canUndo / canRedo pour les boutons)
+ * - reset() : vide la grille (les chiffres donnés restent) ; hasInput : le joueur a rempli des cases
  * - restore(grid, saved) : reprend une partie sauvegardée (grille de départ renvoyée par le serveur)
  */
 // Partie sauvegardée dans le navigateur (pour la reprendre après un rafraîchissement)
@@ -116,6 +117,16 @@ export function useBineroGame(saveKey: string = GAME_CODE) {
         return move?.index ?? null;
     };
 
+    // Saisies du joueur (hors chiffres donnés)
+    const hasInput = values.some((v, i) => v !== null && !isClue(i));
+
+    // Vide la grille : retour aux seuls chiffres donnés, historique effacé (le chrono continue)
+    const reset = () => {
+        if (isGenerating) return;
+        setValues(clues);
+        history.clear();
+    };
+
     // Reprend une partie sauvegardée : chiffres donnés (serveur) + saisies du joueur (navigateur)
     const restore = (grid: BineroCell[][], saved: SavedBinero) => {
         stopAnimation();
@@ -151,6 +162,6 @@ export function useBineroGame(saveKey: string = GAME_CODE) {
     return {
         loadingSize,
         size, clues, values, revealed, isGenerating, counts, isClue, generate, setCell, validate,
-        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore,
+        undo, redo, canUndo: history.canUndo, canRedo: history.canRedo, restore, reset, hasInput,
     };
 }

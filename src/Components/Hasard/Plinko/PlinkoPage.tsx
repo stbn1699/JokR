@@ -4,10 +4,12 @@
  *
  * Le serveur encaisse la mise, tire la chute (graine) et paie le gain tout de suite ; le site rejoue la même
  * chute à l'écran. Les crédits du header baissent de la mise au lâcher et montent du gain à l'arrivée.
- * Plusieurs billes peuvent tomber en même temps. On peut en lâcher 1, 5 ou 10 d'un coup (choix retenu dans le
- * navigateur) : elles partent l'une après l'autre, à DROP_GAP_MS d'écart, et la série s'arrête faute de crédits.
- * Trois tableaux de gains au choix (prudent, équilibré, risqué) : même plateau, mêmes chances par case, mais des
- * multiplicateurs plus ou moins écartés. Le choix est retenu dans le navigateur ; il est bloqué tant qu'une bille
+ * Plusieurs billes peuvent tomber en même temps. On peut en lâcher 1 ou 5 d'un coup, puis 10, 25, 50 et 100 avec
+ * l'amélioration « Billes par lancer » (choix retenu dans le navigateur) : le serveur les joue toutes d'un coup
+ * (moins si les crédits manquent), puis elles partent à l'écran l'une après l'autre.
+ * Quatre tableaux de gains (prudent, équilibré, risqué, extrême) : même plateau, mêmes chances par case, mais des
+ * multiplicateurs plus ou moins écartés. Seul le prudent est offert, les autres se débloquent dans la boutique
+ * (amélioration « Difficulté ») ; un choix pas encore débloqué a un cadenas et mène à la boutique. Le choix est retenu dans le navigateur ; il est bloqué tant qu'une bille
  * tombe (les cases affichées sont toujours celles qui paient).
  * En direct : chaque seconde, la page demande les billes lâchées par les autres joueurs et les fait tomber en fond,
  * grises et transparentes, à l'endroit où elles en sont. Deux cases à cocher (retenues dans le navigateur) choisissent
@@ -17,11 +19,11 @@
 
 import "./Plinko.scss";
 import {useEffect, useRef, useState} from "react";
-import {Link, Navigate} from "react-router-dom";
-import {FaChevronLeft, FaCoins} from "react-icons/fa";
+import {Link, Navigate, useNavigate} from "react-router-dom";
+import {FaChevronLeft, FaCoins, FaLock} from "react-icons/fa";
 import {useAuth} from "../../../Context/authContext.ts";
 import {ApiError} from "../../../api/api.ts";
-import {casinoService} from "../../../Services/casino.service.ts";
+import {casinoService, type PlinkoDropResult} from "../../../Services/casino.service.ts";
 import {useChipImage} from "../../../Services/chipSets.ts";
 import {plinkoBallFile, useMyPlinkoBall, usePlinkoBalls} from "../../../Services/plinkoBalls.ts";
 import {DEFAULT_PLINKO_RISK, isPlinkoRisk, PLINKO_BETS, PLINKO_RISKS, type PlinkoRisk, simulatePlinko} from "../../../../backend/src/utils/plinko.ts";
@@ -33,6 +35,10 @@ import {RISK_LABELS} from "./plinkoRisks.ts";
 import {useStoredFlag} from "../../PuzzleUI/useStoredFlag.ts";
 import {useMaintenance} from "../../../Services/maintenance.ts";
 import {useActivity} from "../../../Services/useActivity.ts";
+import {useUpgradeValue} from "../../../Services/upgrades.ts";
+
+// Améliorations du Plinko dans la boutique
+const SHOP_URL = "/boutique/ameliorations-plinko";
 
 type HistoryEntry = { id: number; bet: number; multiplier: number; payout: number };
 
@@ -42,13 +48,13 @@ const LIVE_POLL_MS = 1000;
 // Dernier tableau choisi, retenu dans le navigateur
 const RISK_KEY = "jokr:plinko-risk";
 
-// Billes lâchées d'un coup (retenu dans le navigateur), et écart entre deux billes d'une même série
-const COUNTS = [1, 5, 10] as const;
-type DropCount = typeof COUNTS[number];
+// Billes lâchées d'un coup (retenu dans le navigateur), et écart entre deux billes d'une même série (plus serré
+// pour les grosses séries)
+const COUNTS = [1, 5, 10, 25, 50, 100] as const;
 const COUNT_KEY = "jokr:plinko-count";
-const DROP_GAP_MS = 120;
+const dropGap = (count: number) => (count > 10 ? 70 : 120);
 
-function savedCount(): DropCount {
+function savedCount(): number {
     try {
         const saved = Number(localStorage.getItem(COUNT_KEY));
         return COUNTS.find(c => c === saved) ?? 1;
@@ -70,8 +76,16 @@ export default function PlinkoPage() {
     const auth = useAuth();
     const board = useRef<PlinkoBoardHandle>(null);
     const [bet, setBet] = useState<number>(PLINKO_BETS[0]);
-    const [risk, setRisk] = useState<PlinkoRisk>(savedRisk);
-    const [count, setCount] = useState<DropCount>(savedCount);
+    const navigate = useNavigate();
+    // ce que le joueur a débloqué dans la boutique : tableaux (dans l'ordre de PLINKO_RISKS) et billes par lancer
+    const maxRisks = useUpgradeValue("plinko-risk");
+    const maxCount = useUpgradeValue("plinko-balls");
+    const unlocked = (r: PlinkoRisk) => PLINKO_RISKS.indexOf(r) < maxRisks;
+    // choix retenus, ramenés à ce qui est débloqué
+    const [savedRiskChoice, setRisk] = useState<PlinkoRisk>(savedRisk);
+    const [savedCountChoice, setCount] = useState<number>(savedCount);
+    const risk: PlinkoRisk = unlocked(savedRiskChoice) ? savedRiskChoice : PLINKO_RISKS[Math.max(0, maxRisks - 1)]!;
+    const count = Math.max(...COUNTS.filter(c => c <= Math.min(savedCountChoice, maxCount)));
     // mise à jour activée : plus de nouvelle bille ; l'écran de mise à jour arrive quand les miennes sont tombées
     const updating = useMaintenance().on;
     const [sending, setSending] = useState(false);
@@ -144,7 +158,7 @@ export default function PlinkoPage() {
         }
     }
 
-    function chooseCount(next: DropCount) {
+    function chooseCount(next: number) {
         setCount(next);
         try {
             localStorage.setItem(COUNT_KEY, String(next));
@@ -153,47 +167,42 @@ export default function PlinkoPage() {
         }
     }
 
-    // Lâche la série : une bille après l'autre, arrêt dès qu'il manque des crédits ou qu'une bille échoue
+    // Lâche la série : le serveur joue toutes les billes d'un coup (moins si les crédits manquent), puis elles
+    // partent à l'écran l'une après l'autre ; chaque gain s'ajoute au solde à l'arrivée de sa bille
     async function drop() {
         if (sending || !canAfford || updating) return;
         setSending(true);
         setError(null);
-        let left = auth.credits;
         try {
-            for (let i = 0; i < count && left >= bet; i++) {
-                if (i > 0) await new Promise(resolve => window.setTimeout(resolve, DROP_GAP_MS));
-                if (!await dropOne()) break;
-                left -= bet;
+            const result = await casinoService.plinko(bet, risk, count);
+            serverCredits.current = result.credits;
+            for (const d of result.drops) pending.current += d.payout;
+            auth.setCredits(serverCredits.current - pending.current);
+            setInFlight(n => n + result.drops.length);
+            const gap = dropGap(result.drops.length);
+            for (const [i, d] of result.drops.entries()) {
+                if (i > 0) await new Promise(resolve => window.setTimeout(resolve, gap));
+                launch(d);
             }
+        } catch (err) {
+            setError(err instanceof ApiError ? err.message : "Les billes n'ont pas pu partir, réessaie.");
         } finally {
             setSending(false);
         }
     }
 
-    async function dropOne(): Promise<boolean> {
-        try {
-            const result = await casinoService.plinko(bet, risk);
-            const fall = simulatePlinko(result.seed);
-            // même moteur des deux côtés : la case doit être la même (sinon on garde celle du serveur)
-            if (fall.slot !== result.slot) console.warn("Plinko : chute rejouée différente du serveur", result.seed);
-
-            serverCredits.current = result.credits;
-            pending.current += result.payout;
+    // Une bille jouée par le serveur, rejouée sur le plateau
+    function launch(d: PlinkoDropResult) {
+        const fall = simulatePlinko(d.seed);
+        // même moteur des deux côtés : la case doit être la même (sinon on garde celle du serveur)
+        if (fall.slot !== d.slot) console.warn("Plinko : chute rejouée différente du serveur", d.seed);
+        const entry: HistoryEntry = {id: nextId.current++, bet, multiplier: d.multiplier, payout: d.payout};
+        board.current?.drop({...fall, slot: d.slot}, () => {
+            pending.current -= d.payout;
             auth.setCredits(serverCredits.current - pending.current);
-            setInFlight(n => n + 1);
-
-            const entry: HistoryEntry = {id: nextId.current++, bet, multiplier: result.multiplier, payout: result.payout};
-            board.current?.drop({...fall, slot: result.slot}, () => {
-                pending.current -= result.payout;
-                auth.setCredits(serverCredits.current - pending.current);
-                setInFlight(n => n - 1);
-                setHistory(h => [entry, ...h].slice(0, HISTORY_SIZE));
-            }, plinkoBallFile(myBall, balls));
-            return true;
-        } catch (err) {
-            setError(err instanceof ApiError ? err.message : "La bille n'a pas pu partir, réessaie.");
-            return false;
-        }
+            setInFlight(n => n - 1);
+            setHistory(h => [entry, ...h].slice(0, HISTORY_SIZE));
+        }, plinkoBallFile(myBall, balls));
     }
 
     return (
@@ -209,7 +218,12 @@ export default function PlinkoPage() {
 
                     <span className="plinko-label">Tableau</span>
                     <div className="plinko-risks" role="radiogroup" aria-label="Tableau de gains">
-                        {PLINKO_RISKS.map(r => (
+                        {PLINKO_RISKS.map(r => !unlocked(r) ? (
+                            <button key={r} type="button" className={`plinko-risk ${r} locked`} title="À débloquer dans la boutique"
+                                    aria-label={`${RISK_LABELS[r].name}, à débloquer dans la boutique`} onClick={() => navigate(SHOP_URL)}>
+                                <FaLock aria-hidden/> {RISK_LABELS[r].name}
+                            </button>
+                        ) : (
                             <button key={r} type="button" role="radio" aria-checked={risk === r}
                                     className={`plinko-risk ${r} ${risk === r ? "active" : ""}`}
                                     disabled={inFlight > 0 && risk !== r}
@@ -234,7 +248,12 @@ export default function PlinkoPage() {
 
                     <span className="plinko-label">Billes</span>
                     <div className="plinko-risks plinko-counts" role="radiogroup" aria-label="Billes par lancer">
-                        {COUNTS.map(c => (
+                        {COUNTS.map(c => c > maxCount ? (
+                            <button key={c} type="button" className="plinko-risk locked" title="À débloquer dans la boutique" disabled={sending}
+                                    aria-label={`${c} billes, à débloquer dans la boutique`} onClick={() => navigate(SHOP_URL)}>
+                                <FaLock aria-hidden/> ×{c}
+                            </button>
+                        ) : (
                             <button key={c} type="button" role="radio" aria-checked={count === c}
                                     className={`plinko-risk ${count === c ? "active" : ""}`} disabled={sending}
                                     onClick={() => chooseCount(c)}>

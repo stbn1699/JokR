@@ -1,0 +1,25 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<clipPath id="bille"><circle cx="500" cy="500" r="500"/></clipPath>
+<radialGradient id="volume" cx="420" cy="380" r="640" gradientUnits="userSpaceOnUse">
+  <stop offset="0.5" stop-color="black" stop-opacity="0"/><stop offset="1" stop-color="black" stop-opacity="0.5"/>
+</radialGradient>
+<radialGradient id="reflet" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="white" stop-opacity="0.85"/><stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+
+</defs>
+<g id="bille-bowling" clip-path="url(#bille)">
+<g id="surface">
+  <circle cx="500" cy="500" r="500" fill="#1e3a8a"/>
+  <path d="M480.6 621.9 Q544.6 650.0 480.9 678.2 Q417.2 706.4 404.8 736.2 Q392.5 766.0 373.8 828.8 Q355.1 891.5 300.6 889.1 Q246.0 886.6 229.7 822.6 Q213.3 758.7 189.5 736.7 Q165.6 714.7 113.2 682.4 Q60.7 650.0 91.6 607.3 Q122.5 564.5 158.0 540.5 Q193.5 516.5 239.4 551.1 Q285.3 585.7 316.0 515.5 Q346.7 445.3 380.7 475.7 Q414.8 506.1 415.7 550.0 Q416.6 593.8 480.6 621.9 Z" fill="#3f6fd8" fill-opacity="0.35"/>
+  <path d="M812.8 265.5 Q782.1 300.0 804.3 330.5 Q826.6 361.0 815.2 395.6 Q803.8 430.2 759.6 398.7 Q715.4 367.3 689.2 414.5 Q663.1 461.6 641.1 431.5 Q619.1 401.4 575.3 391.3 Q531.4 381.2 525.0 340.6 Q518.6 300.0 560.7 276.6 Q602.8 253.2 602.8 215.7 Q602.8 178.2 635.3 168.5 Q667.8 158.9 698.8 164.3 Q729.7 169.8 763.5 173.9 Q797.3 178.0 820.4 204.4 Q843.5 230.9 812.8 265.5 Z" fill="#3f6fd8" fill-opacity="0.35"/>
+  <path d="M737.0 731.4 Q747.0 750.0 738.2 769.1 Q729.5 788.3 733.7 824.3 Q738.0 860.3 705.7 856.3 Q673.4 852.4 647.9 861.4 Q622.5 870.4 606.9 847.0 Q591.3 823.6 554.1 818.9 Q516.8 814.1 525.6 782.1 Q534.5 750.0 514.1 712.4 Q493.7 674.7 543.6 676.9 Q593.5 679.1 610.2 664.0 Q626.9 648.8 649.8 649.7 Q672.7 650.6 705.5 644.9 Q738.3 639.3 732.7 676.1 Q727.1 712.9 737.0 731.4 Z" fill="#3f6fd8" fill-opacity="0.35"/>
+  <g id="trous"><circle cx="440" cy="290" r="48" fill="#05070f"/><circle cx="440" cy="290" r="48" stroke="#5d7fd6" stroke-width="6"/><circle cx="575" cy="290" r="48" fill="#05070f"/><circle cx="575" cy="290" r="48" stroke="#5d7fd6" stroke-width="6"/><circle cx="510" cy="430" r="56" fill="#05070f"/><circle cx="510" cy="430" r="56" stroke="#5d7fd6" stroke-width="6"/></g>
+</g>
+<g id="ombrage">
+  <circle cx="500" cy="500" r="500" fill="url(#volume)"/>
+  <ellipse cx="340" cy="290" rx="170" ry="120" fill="url(#reflet)" opacity="0.7" transform="rotate(-35 340 290)"/>
+</g>
+</g>
+</svg>

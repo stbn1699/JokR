@@ -47,6 +47,9 @@ const subscribe = (listener: () => void) => {
     return () => listeners.delete(listener);
 };
 
+// Jeu de jetons choisi, hors d'un composant (effet de victoire « pluie de jetons »)
+export const currentChipSet = () => mine ?? DEFAULT_CHIP_SET_ID;
+
 export const useChipSets = () => useSyncExternalStore(subscribe, () => catalog, () => null);
 export const useMyChipSet = () => useSyncExternalStore(subscribe, () => mine ?? DEFAULT_CHIP_SET_ID, () => DEFAULT_CHIP_SET_ID);
 

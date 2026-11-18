@@ -6,11 +6,11 @@ import {createDb} from "../db/kysely.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import {requireAuth, type AuthLocals} from "../middleware/auth.js";
 import {CasinoRepository} from "../repository/Casino.repository.js";
-import {DEFAULT_PLINKO_RISK, isPlinkoBet, isPlinkoRisk, plinkoMultiplier, plinkoPayout, simulatePlinko} from "../utils/plinko.js";
+import {DEFAULT_PLINKO_RISK, isPlinkoBet, isPlinkoRisk, PLINKO_RISKS, plinkoMultiplier, plinkoPayout, simulatePlinko} from "../utils/plinko.js";
+import {ShopRepository} from "../repository/Shop.repository.js";
+import {upgradeValueFor} from "../utils/upgrades.js";
 import {
     parseRouletteBets,
-    ROULETTE_MAX_PER_BET,
-    ROULETTE_MAX_TOTAL,
     rouletteBettingOpen,
     rouletteClosesAt,
     rouletteEndsAt,
@@ -30,14 +30,21 @@ import {isPokerBet, isPokerHolds, pokerView} from "../utils/poker.js";
 import {encodeKenoDraw, isKenoBet, isKenoPicks, kenoDraw, kenoHits, kenoMultiplier, kenoPayout} from "../utils/keno.js";
 import {blackjackView, isBlackjackAction, isBlackjackBet, totalBet, totalPayout} from "../utils/blackjack.js";
 import {dailyDate, nextDailyChange} from "../utils/dailyDate.js";
-import {LOTTERY_KINDS, LOTTERY_PERCENT, LOTTERY_TICKET_CREDITS, lotteryPeriod, lotteryPrize, nextLotteryDraw} from "../utils/lottery.js";
+import {LOTTERY_KINDS, LOTTERY_PERCENT, lotteryPeriod, lotteryPrize, nextLotteryDraw} from "../utils/lottery.js";
+import {achievements} from "../services/achievements/index.js";
+import {blackjackPlayed, kenoPlayed, plinkoDrop, pokerPlayed, rouletteAllIn, slotSpinPlayed, wheelSpun} from "../services/achievements/events.js";
 
 /*
  * Jeux de hasard (JWT requis)
- * - POST /casino/plinko { bet, risk? } : mise des crédits sur une bille, avec le tableau de gains choisi
- *   (risk : low, medium ou high, medium par défaut, voir PLINKO_TABLES). Le serveur tire une graine, simule la
- *   chute (backend/src/utils/plinko.ts), paie le gain et renvoie la graine : le site rejoue la même chute.
- *   → { seed, slot, multiplier, payout, credits } (credits : solde après la mise et le gain)
+ * Améliorations de la boutique (backend/src/utils/upgrades.ts) : chaque jeu vérifie ce que le joueur a débloqué
+ * (colonnes et lignes des machines à sous, tableaux et billes du Plinko, numéros du Keno, limites de la roulette,
+ * tours de roue, prix du ticket de loterie) ; 403 sinon. Mode admin : tout est débloqué.
+ * - POST /casino/plinko { bet, risk?, count? } : mise des crédits sur `count` billes (1 par défaut, jusqu'à ce que
+ *   permet l'amélioration « Billes par lancer »), avec le tableau de gains choisi (risk : low, medium, high ou
+ *   extreme, medium par défaut, voir PLINKO_TABLES). Le serveur tire une graine par bille, simule la chute
+ *   (backend/src/utils/plinko.ts), paie les gains et renvoie les graines : le site rejoue les mêmes chutes.
+ *   Faute de crédits, moins de billes partent.
+ *   → { drops: [{ seed, slot, multiplier, payout }], credits } (credits : solde après les mises et les gains)
  * - GET /casino/plinko/live : billes des autres joueurs ces dernières secondes (le site les montre en fond)
  *   → { drops: [{ id, seed, slot, bet, payout, username, ago, ball, friend }], players } (friend : un ami du joueur)
  * - Roulette en direct (une table commune, un tour toutes les 30 s, voir backend/src/utils/roulette.ts) :
@@ -88,6 +95,11 @@ const lottery = new LotteryRepository(db);
 const wheel = new WheelRepository(db);
 const blackjack = new BlackjackRepository(db);
 const poker = new PokerRepository(db);
+const shop = new ShopRepository(db);
+
+// Améliorations du joueur (mode admin : tout est débloqué)
+const upgradesOf = (res: Response<unknown, AuthLocals>) => shop.upgradeLevels(res.locals.userId!, res.locals.ghost === true);
+const LOCKED = "Débloque-le d'abord dans la boutique (Améliorations)";
 
 // Une bille toutes les ~0,3 s au plus, en moyenne sur une minute
 const dropLimiter = rateLimit({windowMs: 60 * 1000, limit: 200, standardHeaders: "draft-7", legacyHeaders: false,
@@ -107,28 +119,38 @@ router.post("/plinko", dropLimiter, asyncHandler(async (req: Request, res: Respo
     if (!isPlinkoBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
     const risk: unknown = req.body?.risk ?? DEFAULT_PLINKO_RISK;
     if (!isPlinkoRisk(risk)) return void res.status(400).json({status: "error", message: "Tableau inconnu"});
+    const count: unknown = req.body?.count ?? 1;
+    if (typeof count !== "number" || !Number.isInteger(count) || count < 1) {
+        return void res.status(400).json({status: "error", message: "Nombre de billes invalide"});
+    }
+    const upgrades = await upgradesOf(res);
+    if (PLINKO_RISKS.indexOf(risk) >= upgradeValueFor(upgrades, "plinko-risk") || count > upgradeValueFor(upgrades, "plinko-balls")) {
+        return void res.status(403).json({status: "error", message: LOCKED});
+    }
     if (maintenance.blocksNewGames()) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
 
-    // mode admin : la bille tombe pour de vrai, mais rien n'est retiré, gagné ni enregistré (invisible des autres)
-    if (res.locals.ghost) {
-        const seed = randomInt(0, 2 ** 32);
-        const {slot} = simulatePlinko(seed);
-        const credits = await liveRoulette.credits(res.locals.userId!);
-        return void res.status(200).json({status: "ok", data: {seed, slot, multiplier: plinkoMultiplier(slot, risk), payout: plinkoPayout(bet, slot, risk), credits}});
-    }
-
-    const result = await casino.play(res.locals.userId!, "plinko", bet, () => {
+    const fall = () => {
         const seed = randomInt(0, 2 ** 32);
         const {slot} = simulatePlinko(seed);
         return {seed, outcome: slot, payout: plinkoPayout(bet, slot, risk)};
-    });
-    if (!result.ok || !result.draw) {
-        const credits = !result.ok && result.reason === "credits";
-        return void res.status(credits ? 402 : 404).json({status: "error", message: credits ? "Pas assez de crédits" : "Compte introuvable"});
+    };
+    const view = (d: ReturnType<typeof fall>) => ({seed: d.seed, slot: d.outcome, multiplier: plinkoMultiplier(d.outcome, risk), payout: d.payout});
+
+    // mode admin : les billes tombent pour de vrai, mais rien n'est retiré, gagné ni enregistré (invisibles des autres)
+    if (res.locals.ghost) {
+        const credits = await liveRoulette.credits(res.locals.userId!);
+        return void res.status(200).json({status: "ok", data: {drops: Array.from({length: count}, () => view(fall())), credits}});
     }
 
-    const {seed, outcome: slot, payout} = result.draw;
-    res.status(200).json({status: "ok", data: {seed, slot, multiplier: plinkoMultiplier(slot, risk), payout, credits: result.credits}});
+    const result = await casino.playMany(res.locals.userId!, "plinko", bet, count, fall);
+    if (!result.ok) {
+        const credits = result.reason === "credits";
+        return void res.status(credits ? 402 : 404).json({status: "error", message: credits ? "Pas assez de crédits" : "Compte introuvable"});
+    }
+    void achievements.track(res.locals.userId, ctx => result.draws.forEach(d => plinkoDrop(ctx, {
+        bet, risk, slot: d.outcome, multiplier: plinkoMultiplier(d.outcome, risk), payout: d.payout,
+    })));
+    res.status(200).json({status: "ok", data: {drops: result.draws.map(view), credits: result.credits}});
 }));
 
 // Machines à sous : un lancer
@@ -138,9 +160,13 @@ router.post("/slots/:machine", dropLimiter, asyncHandler(async (req: Request, re
     const bet: unknown = req.body?.bet;
     if (!isSlotBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
     const reels: unknown = req.body?.reels ?? 3;
-    const lines: unknown = req.body?.lines ?? 5;
+    const lines: unknown = req.body?.lines ?? 1;
     if (!isSlotReelCount(reels) || !isSlotLineCount(lines)) {
         return void res.status(400).json({status: "error", message: "Nombre de colonnes ou de lignes invalide"});
+    }
+    const upgrades = await upgradesOf(res);
+    if (reels > upgradeValueFor(upgrades, "slots-reels") || lines > upgradeValueFor(upgrades, "slots-lines")) {
+        return void res.status(403).json({status: "error", message: LOCKED});
     }
     if (maintenance.blocksNewGames()) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
 
@@ -161,16 +187,18 @@ router.post("/slots/:machine", dropLimiter, asyncHandler(async (req: Request, re
         const credits = !result.ok && result.reason === "credits";
         return void res.status(credits ? 402 : 404).json({status: "error", message: credits ? "Pas assez de crédits" : "Compte introuvable"});
     }
-    res.status(200).json({status: "ok", data: {stops, ...slotSpin(machine, stops, bet, lines), credits: result.credits}});
+    const spin = slotSpin(machine, stops, bet, lines);
+    void achievements.track(res.locals.userId, ctx => slotSpinPlayed(ctx, {machine, reels, lines, bet, grid: spin.grid, wins: spin.wins, payout: spin.payout}));
+    res.status(200).json({status: "ok", data: {stops, ...spin, credits: result.credits}});
 }));
 
 // Roue du jour : encore un lancer aujourd'hui ? (en mode admin, toujours)
 router.get("/wheel", asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
     const now = new Date();
-    const done = res.locals.ghost ? [] : await wheel.spinsOn(res.locals.userId!, dailyDate(now));
+    const [done, upgrades] = await Promise.all([res.locals.ghost ? [] : wheel.spinsOn(res.locals.userId!, dailyDate(now)), upgradesOf(res)]);
     const last = done.at(-1);
     res.status(200).json({status: "ok", data: {
-        available: wheelAvailable(done), nextAt: nextDailyChange(now).getTime(), today: last === undefined ? null : {segment: last},
+        available: wheelAvailable(done, upgradeValueFor(upgrades, "wheel-spins")), nextAt: nextDailyChange(now).getTime(), today: last === undefined ? null : {segment: last},
     }});
 }));
 
@@ -192,12 +220,14 @@ router.post("/wheel", asyncHandler(async (_req: Request, res: Response<unknown, 
         return void res.status(200).json({status: "ok", data: {segment, credits, level: null, xp: null, item, creditsWon: 0, tickets, available: true}});
     }
     const date = dailyDate();
-    const result = await wheel.spin(res.locals.userId!, date, segment, pickWheelBall);
+    const daily = upgradeValueFor(await upgradesOf(res), "wheel-spins");
+    const result = await wheel.spin(res.locals.userId!, date, segment, pickWheelBall, daily);
     if (!result.ok) {
         return void res.status(result.reason === "already" ? 409 : 404).json({status: "error",
             message: result.reason === "already" ? "Tu as déjà lancé la roue aujourd'hui, reviens demain !" : "Compte introuvable"});
     }
-    const available = wheelAvailable(await wheel.spinsOn(res.locals.userId!, date));
+    void achievements.track(res.locals.userId, ctx => wheelSpun(ctx, {segment, creditsWon: result.creditsWon}));
+    const available = wheelAvailable(await wheel.spinsOn(res.locals.userId!, date), daily);
     res.status(200).json({status: "ok", data: {segment, credits: result.credits, level: result.level, xp: result.xp,
         item: result.item, creditsWon: result.creditsWon, tickets: result.tickets, available}});
 }));
@@ -207,7 +237,8 @@ router.post("/keno", dropLimiter, asyncHandler(async (req: Request, res: Respons
     const bet: unknown = req.body?.bet;
     const picks: unknown = req.body?.picks;
     if (!isKenoBet(bet)) return void res.status(400).json({status: "error", message: "Mise invalide"});
-    if (!isKenoPicks(picks)) return void res.status(400).json({status: "error", message: "Choisis de 1 à 10 numéros entre 1 et 40"});
+    const maxPicks = upgradeValueFor(await upgradesOf(res), "keno-picks");
+    if (!isKenoPicks(picks, maxPicks)) return void res.status(400).json({status: "error", message: `Choisis de 1 à ${maxPicks} numéros entre 1 et 40`});
     if (maintenance.blocksNewGames()) return void res.status(503).json({status: "error", code: "maintenance", message: MAINTENANCE_MESSAGE});
 
     const result = (drawn: number[]) => {
@@ -229,7 +260,9 @@ router.post("/keno", dropLimiter, asyncHandler(async (req: Request, res: Respons
         const credits = play.reason === "credits";
         return void res.status(credits ? 402 : 404).json({status: "error", message: credits ? "Pas assez de crédits" : "Compte introuvable"});
     }
-    res.status(200).json({status: "ok", data: {...result(drawn), credits: play.credits}});
+    const keno = result(drawn);
+    void achievements.track(res.locals.userId, ctx => kenoPlayed(ctx, {bet, picks, hits: keno.hits, payout: keno.payout}));
+    res.status(200).json({status: "ok", data: {...keno, credits: play.credits}});
 }));
 
 // ---------- Poker à 5 cartes
@@ -268,11 +301,13 @@ router.post("/poker", dropLimiter, asyncHandler(async (req: Request, res: Respon
 router.post("/poker/draw", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
     const held: unknown = req.body?.held;
     if (!isPokerHolds(held)) return void res.status(400).json({status: "error", message: "Cartes gardées invalides"});
+    const dealt = (await poker.active(res.locals.userId!))?.cards;
     const result = await poker.draw(res.locals.userId!, held);
     if (!result.ok) {
         const [status, message] = POKER_ERRORS[result.reason];
         return void res.status(status).json({status: "error", message});
     }
+    if (dealt && !res.locals.ghost) void achievements.track(res.locals.userId, ctx => pokerPlayed(ctx, dealt, result.state));
     res.status(200).json({status: "ok", data: {hand: pokerView(result.state), credits: result.credits}});
 }));
 
@@ -306,6 +341,12 @@ router.post("/blackjack", dropLimiter, asyncHandler(async (req: Request, res: Re
         const [status, message] = BLACKJACK_ERRORS[result.reason];
         return void res.status(status).json({status: "error", message});
     }
+    void achievements.track(res.locals.userId, ctx => {
+        ctx.mem.blackjackActions = [];
+        ctx.mem.blackjackBet = bet;
+        // main finie dès la donne (blackjack du joueur ou du croupier)
+        if (result.state.finished) blackjackPlayed(ctx, result.state, null, [], bet);
+    });
     res.status(200).json({status: "ok", data: {hand: blackjackView(result.state), credits: result.credits}});
 }));
 
@@ -313,11 +354,17 @@ router.post("/blackjack", dropLimiter, asyncHandler(async (req: Request, res: Re
 router.post("/blackjack/:action", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
     const action = req.params.action;
     if (!isBlackjackAction(action)) return void res.status(404).json({status: "error", message: "Coup inconnu"});
+    const before = await blackjack.active(res.locals.userId!);
     const result = await blackjack.act(res.locals.userId!, action);
     if (!result.ok) {
         const [status, message] = BLACKJACK_ERRORS[result.reason];
         return void res.status(status).json({status: "error", message});
     }
+    void achievements.track(res.locals.userId, ctx => {
+        const actions = [...ctx.mem.blackjackActions ?? [], action];
+        ctx.mem.blackjackActions = actions;
+        if (result.state.finished) blackjackPlayed(ctx, result.state, before, actions, ctx.mem.blackjackBet ?? result.state.hands[0]?.bet ?? 0);
+    });
     res.status(200).json({status: "ok", data: {hand: blackjackView(result.state), credits: result.credits}});
 }));
 
@@ -367,7 +414,9 @@ router.get("/roulette/live", asyncHandler(async (_req: Request, res: Response<un
 
 // Pose des jetons sur le tour en cours (crédits retirés tout de suite) → { credits }
 router.post("/roulette/bets", dropLimiter, asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
-    const bets = parseRouletteBets(req.body?.bets);
+    const upgrades = await upgradesOf(res);
+    const limits = {perBet: upgradeValueFor(upgrades, "roulette-case"), total: upgradeValueFor(upgrades, "roulette-total")};
+    const bets = parseRouletteBets(req.body?.bets, limits);
     if (typeof bets === "string") return void res.status(400).json({status: "error", message: bets});
     const now = Date.now();
     const round = rouletteRoundAt(now);
@@ -377,13 +426,19 @@ router.post("/roulette/bets", dropLimiter, asyncHandler(async (req: Request, res
     // geste du joueur (clic, glisser, « Reproduire ma mise ») : « Annuler la dernière mise » retire tout le geste
     const group: unknown = req.body?.group;
     const betGroup = typeof group === "string" && /^[A-Za-z0-9_-]{1,16}$/.test(group) ? group : null;
-    const result = await liveRoulette.place(res.locals.userId!, round, bets, res.locals.ghost === true, betGroup);
+    const result = await liveRoulette.place(res.locals.userId!, round, bets, res.locals.ghost === true, betGroup, limits);
     if (!result.ok) {
         const [status, message] = result.reason === "closed" ? [409, CLOSED_MESSAGE]
             : result.reason === "credits" ? [402, "Pas assez de crédits"]
-            : result.reason === "limit" ? [400, `${ROULETTE_MAX_PER_BET} crédits au plus par case et ${ROULETTE_MAX_TOTAL} par tour`]
+            : result.reason === "limit" ? [400, `${limits.perBet} crédits au plus par case et ${limits.total} par tour`]
             : [404, "Compte introuvable"];
         return void res.status(status).json({status: "error", message});
+    }
+    // Tapis : plus rien en poche après avoir posé plus de 1 000 jetons sur ce tour
+    if (result.credits === 0 && !res.locals.ghost) {
+        const placed = await db.selectFrom("roulette_bets").select(eb => eb.fn.coalesce(eb.fn.sum<string>("amount"), eb.lit(0)).as("n"))
+            .where("round_id", "=", round).where("user_id", "=", res.locals.userId!).executeTakeFirst();
+        if (Number(placed?.n ?? 0) > 1000) void achievements.track(res.locals.userId, ctx => rouletteAllIn(ctx, round));
     }
     res.status(200).json({status: "ok", data: {round, credits: result.credits}});
 }));
@@ -411,6 +466,8 @@ const LOTTERY_WINNERS = 5;
 router.get("/lottery", asyncHandler(async (_req: Request, res: Response<unknown, AuthLocals>) => {
     const now = Date.now();
     const me = res.locals.userId!;
+    // crédits par ticket du joueur (amélioration « Prix du ticket »)
+    const ticketPrice = upgradeValueFor(await shop.upgradeLevels(me), "lottery-ticket");
     const data = await Promise.all(LOTTERY_KINDS.map(async kind => {
         const drawAt = nextLotteryDraw(kind, now);
         const {start} = lotteryPeriod(kind, drawAt);
@@ -426,7 +483,7 @@ router.get("/lottery", asyncHandler(async (_req: Request, res: Response<unknown,
             players: players.filter(b => b.tickets > 0).length,
             myBet, myTickets: mine?.tickets ?? 0,
             // crédits à miser encore pour un ticket de plus
-            nextTicketIn: LOTTERY_TICKET_CREDITS - (myBet % LOTTERY_TICKET_CREDITS),
+            nextTicketIn: ticketPrice - (myBet % ticketPrice), ticketPrice,
             winners: winners.map(w => ({date: w.date, username: w.username, prize: w.prize, tickets: w.winner_tickets ?? 0, totalTickets: w.total_tickets})),
         };
     }));

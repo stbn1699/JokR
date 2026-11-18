@@ -1,3 +1,4 @@
+import {achievements} from "../services/achievements/index.js";
 import {Router, type Request, type Response} from "express";
 import {rateLimit} from "express-rate-limit";
 import {pool} from "../db/pool.js";
@@ -66,6 +67,7 @@ router.post("/", sendLimiter, asyncHandler(async (req: Request, res: Response<un
         return void res.status(404).json({status: "error", message: "Cette grille n'est plus disponible, gagne une nouvelle partie pour défier tes ami·e·s"});
     }
     const id = await challenges.create(me, {code, puzzle, gridSize: win.grid_size, emptyCells: win.empty_cells, senderMs: win.duration_ms}, targets);
+    void achievements.track(me, ctx => ctx.add("challenges.sent"));
     res.status(201).json({status: "ok", data: {challengeId: id, sent: targets.length}});
 }));
 
@@ -79,6 +81,7 @@ router.post("/daily", sendLimiter, asyncHandler(async (req: Request, res: Respon
     const time = await challenges.dailyTime(me, code, date);
     if (time === null) return void res.status(400).json({status: "error", message: "Réussis d'abord le défi du jour pour défier tes ami·e·s"});
     await challenges.challengeDaily(me, code, date, time, targets);
+    void achievements.track(me, ctx => ctx.add("challenges.sent"));
     res.status(200).json({status: "ok", data: {sent: targets.length}});
 }));
 
@@ -139,6 +142,7 @@ router.post("/:id/result", asyncHandler(async (req: Request, res: Response<unkno
     }
     if (time === null) return void res.status(409).json({status: "error", message: "Termine d'abord la grille du défi"});
     const first = await challenges.recordResult(challenge.id, me, time);
+    if (first) for (const id of [me, challenge.sender_id]) void achievements.track(id, ctx => ctx.live("challenges"));
     res.status(200).json({
         status: "ok",
         data: {...summary(challenge), playerMs: first ? time : challenge.duration_ms ?? time, latestMs: time, first},

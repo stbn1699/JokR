@@ -68,7 +68,7 @@ export default function Sudoku({daily = false, replayDate, challengeId, level, l
         inputs, isGenerating, isLoading, generate, validate, filledKey,
         digitCounts, selectedDigit, toggleDigit, fillSelected, pressDigit, setHoverDigit, setSelectedCell,
         onCellInput, undo, redo, canUndo, canRedo, conflicts, notes, notesMode, setNotesMode, toggleNoteAt,
-        restore,
+        restore, reset, hasInput,
     } = useSudokuGame(showErrors, saveKey);
     const flow = useGameFlow("SUDOKU", challenge);
     const {resumable, dismissResumable} = useResumableGame<SavedSudoku, number[][]>(saveKey, gameService.getSudokuGame, !challenge);
@@ -171,7 +171,8 @@ export default function Sudoku({daily = false, replayDate, challengeId, level, l
             <div className="actions">
                 <h2 className="title">Actions</h2>
                 <GameTimer clock={flow.clock}/>
-                <HistoryButtons canUndo={playing && canUndo} canRedo={playing && canRedo} onUndo={undo} onRedo={redo}/>
+                <HistoryButtons canUndo={playing && canUndo} canRedo={playing && canRedo} onUndo={undo} onRedo={redo}
+                                onReset={reset} canReset={playing && hasInput}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
                 <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
 

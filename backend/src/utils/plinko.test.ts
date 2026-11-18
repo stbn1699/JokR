@@ -48,7 +48,7 @@ describe("plinko", () => {
         expect(counts[PLINKO_SLOTS - 1]! / n).toBeLessThan(0.015);
     });
 
-    it("trois tableaux symétriques, du plus sûr au plus risqué", () => {
+    it("quatre tableaux symétriques, du plus sûr au plus risqué", () => {
         for (const risk of PLINKO_RISKS) {
             const table = PLINKO_TABLES[risk];
             expect(table).toHaveLength(PLINKO_SLOTS);
@@ -56,10 +56,12 @@ describe("plinko", () => {
         }
         expect(PLINKO_TABLES.low[0]).toBeLessThan(PLINKO_TABLES.medium[0]);
         expect(PLINKO_TABLES.medium[0]).toBeLessThan(PLINKO_TABLES.high[0]);
+        expect(PLINKO_TABLES.high[0]).toBeLessThan(PLINKO_TABLES.extreme[0]);
         expect(PLINKO_TABLES.high[6]).toBe(0.1);
         expect(PLINKO_MULTIPLIERS).toBe(PLINKO_TABLES.medium);
         expect(isPlinkoRisk("high")).toBe(true);
-        expect(isPlinkoRisk("extreme")).toBe(false);
+        expect(isPlinkoRisk("extreme")).toBe(true);
+        expect(isPlinkoRisk("insane")).toBe(false);
     });
 
     it("les gains tombent juste pour toutes les mises et tous les tableaux", () => {

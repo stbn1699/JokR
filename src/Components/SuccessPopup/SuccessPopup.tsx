@@ -2,7 +2,7 @@ import {FaCheck, FaCoins} from "react-icons/fa";
 import {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import "./SuccessPopup.scss";
 import {Link, useNavigate} from "react-router-dom";
-import {confetti} from "../Confetti/Confetti.tsx";
+import {playMyVictoryEffect} from "../../Services/victoryEffects.ts";
 import {xpSteps} from "../../Services/leveling.ts";
 import {formatDuration} from "../../Services/format.ts";
 import {rewardFx} from "../../Services/rewardFx.ts";
@@ -124,7 +124,8 @@ export function SuccessPopup(props: SuccessPopupProps) {
     const [phase, setPhase] = useState<Phase>("start");
 
     useEffect(() => {
-        confetti();
+        // l'effet de victoire choisi dans la boutique (les confettis par défaut)
+        void playMyVictoryEffect();
         modalRef.current?.focus();
         // Popup fermée sans passer par ses boutons (lien vers le classement...) : le header se met à jour
         return () => {

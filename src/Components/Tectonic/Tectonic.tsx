@@ -220,7 +220,8 @@ export default function Tectonic({daily = false, replayDate, challengeId, level,
                 )}
                 <GameTimer clock={flow.clock}/>
                 <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
-                                onUndo={game.undo} onRedo={game.redo}/>
+                                onUndo={game.undo} onRedo={game.redo}
+                                onReset={game.reset} canReset={playing && game.hasInput}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
                 <GameNotice message={dailyGame.error ?? flow.notice} onClose={flow.clearNotice}/>
 

@@ -235,7 +235,8 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
                 <h2 className="title">Actions</h2>
                 <GameTimer clock={flow.clock}/>
                 <HistoryButtons canUndo={playing && game.canUndo} canRedo={playing && game.canRedo}
-                                onUndo={game.undo} onRedo={game.redo}/>
+                                onUndo={game.undo} onRedo={game.redo}
+                                onReset={game.reset} canReset={playing && game.hasInput}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
                 <label className="errors-toggle">
                     <input type="checkbox" checked={autoCross} onChange={e => setAutoCross(e.target.checked)}/>

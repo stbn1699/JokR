@@ -11,6 +11,7 @@ import {createPortal} from "react-dom";
 import {FaQuestionCircle, FaTimes} from "react-icons/fa";
 import GameTour from "../InterfaceTour/GameTour.tsx";
 import type {TourStep} from "../InterfaceTour/InterfaceTour.tsx";
+import {achievementsService} from "../../Services/achievements.service.ts";
 
 type RulesButtonProps = {
     title: string;
@@ -36,7 +37,11 @@ export default function RulesButton({title, children, tour}: RulesButtonProps) {
 
     return (
         <>
-            <button type="button" className="rules-button" onClick={() => setOpen(true)}>
+            <button type="button" className="rules-button" onClick={() => {
+                setOpen(true);
+                // succès « Pas lu les règles »
+                if (tour) achievementsService.report("rules", tour.code);
+            }}>
                 <FaQuestionCircle aria-hidden/> Règles
             </button>
             {open && createPortal(

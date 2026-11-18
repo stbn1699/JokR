@@ -1,0 +1,12 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialGradient id="salle" cx="960" cy="540" r="1100" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1c1410"/><stop offset="1" stop-color="#060403"/></radialGradient><linearGradient id="bois" x1="0" y1="140" x2="0" y2="940" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8a5a2b"/><stop offset="0.5" stop-color="#4a2c12"/><stop offset="1" stop-color="#8a5a2b"/></linearGradient><radialGradient id="feutre" cx="960" cy="520" r="700" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1f8a5a"/><stop offset="1" stop-color="#0a4a2e"/></radialGradient>
+</defs>
+<rect id="salle" width="1920" height="1080" fill="url(#salle)"/>
+<ellipse id="ombre" cx="960" cy="560" rx="860" ry="430" fill="black" fill-opacity="0.5"/>
+<ellipse id="bordure" cx="960" cy="540" rx="840" ry="410" fill="url(#bois)"/>
+<ellipse id="coussin" cx="960" cy="540" rx="760" ry="340" fill="#1a1a1a"/>
+<ellipse id="tapis" cx="960" cy="540" rx="730" ry="315" fill="url(#feutre)"/>
+<ellipse id="ligne" cx="960" cy="540" rx="560" ry="220" stroke="#e9d9a6" stroke-opacity="0.35" stroke-width="4"/>
+<g id="cartes"><rect x="700" y="460" width="90" height="128" rx="10" stroke="#e9d9a6" stroke-opacity="0.5" stroke-width="4"/><rect x="810" y="460" width="90" height="128" rx="10" stroke="#e9d9a6" stroke-opacity="0.5" stroke-width="4"/><rect x="920" y="460" width="90" height="128" rx="10" stroke="#e9d9a6" stroke-opacity="0.5" stroke-width="4"/><rect x="1030" y="460" width="90" height="128" rx="10" stroke="#e9d9a6" stroke-opacity="0.5" stroke-width="4"/><rect x="1140" y="460" width="90" height="128" rx="10" stroke="#e9d9a6" stroke-opacity="0.5" stroke-width="4"/></g>
+</svg>

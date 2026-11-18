@@ -50,6 +50,13 @@ export class DailyRepository {
             .executeTakeFirst();
     }
 
+    // Défis réussis par un joueur un jour donné (tous jeux)
+    async countResultsOf(userId: string, date: string): Promise<number> {
+        const row = await this.db.selectFrom("daily_results").select(eb => eb.fn.countAll<string>().as("n"))
+            .where("challenge_date", "=", date).where("user_id", "=", userId).executeTakeFirst();
+        return Number(row?.n ?? 0);
+    }
+
     // Enregistre une réussite ; false si le joueur avait déjà réussi le défi ce jour-là
     async insertResult(date: string, gameCode: string, userId: string, durationMs: number): Promise<boolean> {
         const inserted = await this.db

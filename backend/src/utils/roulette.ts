@@ -113,7 +113,11 @@ export const ROULETTE_MAX_BETS = 60;
  * ne ressemblent pas à un jeton de 100) ; les limites portent sur le total de chaque mise.
  * Renvoie les jetons, ou un message d'erreur.
  */
-export function parseRouletteBets(raw: unknown): RouletteBet[] | string {
+export type RouletteLimits = { perBet: number; total: number };
+export const ROULETTE_LIMITS: RouletteLimits = {perBet: ROULETTE_MAX_PER_BET, total: ROULETTE_MAX_TOTAL};
+
+// limits : limites du joueur (améliorations « Mise par case » et « Mise par tour », voir upgrades.ts)
+export function parseRouletteBets(raw: unknown, limits: RouletteLimits = ROULETTE_LIMITS): RouletteBet[] | string {
     if (!Array.isArray(raw) || raw.length === 0) return "Pose au moins un jeton";
     if (raw.length > ROULETTE_MAX_BETS) return "Trop de jetons";
     const bets: RouletteBet[] = [];
@@ -123,8 +127,8 @@ export function parseRouletteBets(raw: unknown): RouletteBet[] | string {
         if (!ROULETTE_CHIPS.includes(amount as typeof ROULETTE_CHIPS[number])) return "Jeton inconnu";
         bets.push({key, amount: amount as number});
     }
-    if ([...rouletteTotals(bets).values()].some(total => total > ROULETTE_MAX_PER_BET)) return `${ROULETTE_MAX_PER_BET} crédits au plus par case`;
-    if (rouletteTotal(bets) > ROULETTE_MAX_TOTAL) return `${ROULETTE_MAX_TOTAL} crédits au plus par lancer`;
+    if ([...rouletteTotals(bets).values()].some(total => total > limits.perBet)) return `${limits.perBet} crédits au plus par case`;
+    if (rouletteTotal(bets) > limits.total) return `${limits.total} crédits au plus par lancer`;
     return bets;
 }
 

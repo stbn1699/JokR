@@ -70,12 +70,16 @@ export interface WheelSpin {
 }
 
 // Une bille lâchée : la graine de sa chute (le site la rejoue), sa case et le gain
-export interface PlinkoResult {
+export interface PlinkoDropResult {
     seed: number;
     slot: number;
     multiplier: number;
     payout: number;
-    // solde après la mise et le gain
+}
+
+// Billes lâchées d'un coup (moins que demandé si les crédits manquent), et le solde après leurs mises et leurs gains
+export interface PlinkoResult {
+    drops: PlinkoDropResult[];
     credits: number;
 }
 
@@ -140,6 +144,8 @@ export interface LotteryInfo {
     myTickets: number;
     // crédits à miser encore pour un ticket de plus
     nextTicketIn: number;
+    // crédits misés pour un ticket (moins avec l'amélioration « Prix du ticket »)
+    ticketPrice: number;
     winners: { date: string; username: string; prize: number; tickets: number; totalTickets: number }[];
 }
 
@@ -161,8 +167,8 @@ export const casinoService = {
         return api<SlotSpinResult>(`/casino/slots/${encodeURIComponent(machine)}`, {method: "POST", headers: json, body: JSON.stringify({bet, reels, lines})});
     },
 
-    plinko(bet: number, risk: PlinkoRisk): Promise<PlinkoResult> {
-        return api<PlinkoResult>("/casino/plinko", {method: "POST", headers: json, body: JSON.stringify({bet, risk})});
+    plinko(bet: number, risk: PlinkoRisk, count: number): Promise<PlinkoResult> {
+        return api<PlinkoResult>("/casino/plinko", {method: "POST", headers: json, body: JSON.stringify({bet, risk, count})});
     },
 
     // Roue du jour : lancer disponible aujourd'hui ? (nextAt : minuit, prochain lancer possible)

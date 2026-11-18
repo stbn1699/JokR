@@ -1,22 +1,29 @@
+import {achievements} from "../services/achievements/index.js";
+import {backgroundChanged, shopBought} from "../services/achievements/events.js";
 import {Router, type Request, type Response} from "express";
 import {pool} from "../db/pool.js";
 import {createDb} from "../db/kysely.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import {requireAuth, type AuthLocals} from "../middleware/auth.js";
 import {ShopRepository} from "../repository/Shop.repository.js";
-import {shopItem, SHOP_ITEMS, tierBackgroundLevel} from "../utils/shop.js";
+import {patternBackground, shopItem, SHOP_ITEMS, tierBackgroundLevel} from "../utils/shop.js";
 import {DEFAULT_BALL, plinkoBall, plinkoBallSets} from "../utils/plinkoBalls.js";
 import {chipSet, chipSets, DEFAULT_CHIP_SET} from "../utils/chipSets.js";
 import {imageBackgroundSets} from "../utils/backgroundSets.js";
+import {discountedPrice} from "../utils/upgrades.js";
 
 /*
  * Boutique (JWT requis)
  * - GET /shop : prix des objets, objets possédés, fond choisi et crédits du joueur
- * - POST /shop/buy { itemId } : achète un objet avec ses crédits
- * - PUT /shop/background { itemId } : choisit un fond possédé ou débloqué par le niveau (null : fond par défaut)
+ * - POST /shop/buy { itemId } : achète un objet avec ses crédits (cosmétiques : remise de l'amélioration « Remise » ;
+ *   améliorations : un niveau après l'autre, voir utils/upgrades.ts)
+ * - PUT /shop/background { itemId } : choisit un fond possédé ou débloqué par le niveau (null : fond par défaut),
+ *   ou un fond à motif « pat:<motif>/<couleur 1>/<couleur 2> » dont on a le motif et les couleurs
  * - GET /shop/plinko-balls : séries de billes de Plinko (lues dans public/plinko_ball), couleurs et prix
  * - PUT /shop/plinko-ball { itemId } : choisit une bille possédée (null ou bille par défaut : la bille par défaut)
  * - GET /shop/chip-sets : jeux de jetons (lus dans public/chips), images et prix
+ * - PUT /shop/victory-effect { itemId } : choisit un effet de victoire possédé (null : les confettis, offerts)
+ * - GET /shop/best-sellers : ventes de chaque objet, du plus acheté cette semaine (puis depuis toujours) au moins acheté
  * - GET /shop/backgrounds : fonds en images (drapeaux… lus dans public/backgrounds), images de chaque format et prix
  * - PUT /shop/chip-set { itemId } : choisit un jeu de jetons possédé (null ou jeu classique : les jetons classiques)
  */
@@ -37,6 +44,11 @@ router.get("/", asyncHandler(async (_req: Request, res: Response<unknown, AuthLo
     const state = await shop.state(res.locals.userId!);
     if (res.locals.ghost) state.owned = everything();
     res.status(200).json({status: "ok", data: {...state, prices: Object.fromEntries(Object.values(SHOP_ITEMS).map(i => [i.id, i.price]))}});
+}));
+
+// Ventes de tous les objets, triées : « À la une » en montre les premiers, les rubriques s'en servent pour trier
+router.get("/best-sellers", asyncHandler(async (_req: Request, res: Response) => {
+    res.status(200).json({status: "ok", data: {items: await shop.bestSellers()}});
 }));
 
 router.get("/plinko-balls", (_req: Request, res: Response) => {
@@ -81,23 +93,50 @@ router.post("/buy", asyncHandler(async (req: Request, res: Response<unknown, Aut
     const item = shopItem(req.body?.itemId);
     if (!item) return void res.status(404).json({status: "error", message: "Cet objet n'existe pas"});
     if (res.locals.ghost) return void res.status(409).json({status: "error", message: "Mode admin : tout est déjà débloqué"});
-    const result = await shop.buy(res.locals.userId!, item);
+    const userId = res.locals.userId!;
+    // remise sur les cosmétiques seulement
+    const price = item.kind === "upgrade" ? item.price : discountedPrice(item.price, await shop.upgradeLevels(userId));
+    const result = await shop.buy(userId, {...item, price});
     if (!result.ok) {
         const message = result.reason === "owned" ? "Tu as déjà cet objet"
-            : result.reason === "credits" ? "Pas assez de crédits" : "Compte introuvable";
+            : result.reason === "credits" ? "Pas assez de crédits"
+            : result.reason === "requires" ? "Achète d'abord le niveau d'avant" : "Compte introuvable";
         return void res.status(result.reason === "credits" ? 402 : 409).json({status: "error", message});
     }
+    void achievements.track(userId, ctx => shopBought(ctx, price));
     res.status(200).json({status: "ok", data: {itemId: item.id, credits: result.credits}});
+}));
+
+router.put("/victory-effect", asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+    const userId = res.locals.userId!;
+    const itemId: unknown = req.body?.itemId ?? null;
+    if (itemId !== null) {
+        const item = shopItem(itemId);
+        if (!item || item.kind !== "victory-effect") return void res.status(404).json({status: "error", message: "Cet effet n'existe pas"});
+        if (!res.locals.ghost && !await shop.owns(userId, item.id)) {
+            return void res.status(403).json({status: "error", message: "Achète d'abord cet effet"});
+        }
+    }
+    await shop.setVictoryEffect(userId, itemId as string | null);
+    res.status(200).json({status: "ok", data: {victoryEffect: itemId}});
 }));
 
 router.put("/background", asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
     const userId = res.locals.userId!;
     const itemId: unknown = req.body?.itemId ?? null;
     const tierLevel = tierBackgroundLevel(itemId);
+    const pattern = patternBackground(itemId);
     if (res.locals.ghost) {
         // mode admin : tout fond existant se porte (remis à zéro en sortant du mode)
-        if (itemId !== null && tierLevel === undefined && shopItem(itemId)?.kind !== "background") {
+        if (itemId !== null && tierLevel === undefined && !pattern && shopItem(itemId)?.kind !== "background") {
             return void res.status(404).json({status: "error", message: "Ce fond n'existe pas"});
+        }
+    } else if (pattern) {
+        // fond à motif : le motif et ses deux couleurs (sauf les offertes) doivent être achetés
+        const missing = (await Promise.all(pattern.needs.map(async id => (await shop.owns(userId, id) ? null : id)))).filter(id => id !== null);
+        if (missing.length > 0) {
+            const message = missing.some(id => id.startsWith("pattern-")) ? "Achète d'abord ce motif" : "Achète d'abord ces couleurs";
+            return void res.status(403).json({status: "error", message});
         }
     } else if (tierLevel !== undefined) {
         if (await shop.level(userId) < tierLevel) {
@@ -109,6 +148,7 @@ router.put("/background", asyncHandler(async (req: Request, res: Response<unknow
         if (!await shop.owns(userId, item.id)) return void res.status(403).json({status: "error", message: "Achète d'abord ce fond"});
     }
     await shop.setBackground(userId, itemId as string | null);
+    void achievements.track(userId, backgroundChanged);
     res.status(200).json({status: "ok", data: {background: itemId}});
 }));
 

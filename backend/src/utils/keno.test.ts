@@ -64,6 +64,8 @@ describe("keno", () => {
         expect(isKenoPicks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])).toBe(true);
         expect(isKenoPicks([])).toBe(false);
         expect(isKenoPicks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])).toBe(false);
+        expect(isKenoPicks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 12)).toBe(true);
+        expect(isKenoPicks([...Array(16)].map((_, i) => i + 1), 99)).toBe(false);
         expect(isKenoPicks([1, 1])).toBe(false);
         expect(isKenoPicks([0])).toBe(false);
         expect(isKenoPicks([41])).toBe(false);

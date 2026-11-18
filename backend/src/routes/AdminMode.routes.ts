@@ -21,7 +21,7 @@ router.put("/", requireAuth, requireAdmin(db), asyncHandler(async (req: Request,
 
     if (!on) {
         const [user, items] = await Promise.all([
-            db.selectFrom("users").select(["background", "plinko_ball", "chip_set", "user_level"]).where("id", "=", userId).executeTakeFirstOrThrow(),
+            db.selectFrom("users").select(["background", "plinko_ball", "chip_set", "victory_effect", "user_level"]).where("id", "=", userId).executeTakeFirstOrThrow(),
             db.selectFrom("user_items").select("item_id").where("user_id", "=", userId).execute(),
         ]);
         const owned = new Set(items.map(i => i.item_id));
@@ -33,6 +33,7 @@ router.put("/", requireAuth, requireAdmin(db), asyncHandler(async (req: Request,
             background: keepBackground ? user.background : null,
             plinko_ball: user.plinko_ball && owned.has(user.plinko_ball) ? user.plinko_ball : null,
             chip_set: user.chip_set && owned.has(user.chip_set) ? user.chip_set : null,
+            victory_effect: user.victory_effect && owned.has(user.victory_effect) ? user.victory_effect : null,
         }).where("id", "=", userId).execute();
     } else {
         await db.updateTable("users").set({admin_mode: true}).where("id", "=", userId).execute();

@@ -9,6 +9,7 @@ import "./InterfaceTour.scss";
 import {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {nearestArrow, placeBubble, type Rect, unionRect} from "./tourLayout.ts";
+import {achievementsService} from "../../Services/achievements.service.ts";
 
 export type TourStep = {
     // un sélecteur ou plusieurs ; tous les éléments visibles qui y répondent sont montrés
@@ -122,7 +123,12 @@ export default function InterfaceTour({steps, onClose}: { steps: TourStep[]; onC
                 <div className="interface-tour-buttons">
                     {!last && <button type="button" className="link" onClick={onClose}>Passer</button>}
                     {index > 0 && <button type="button" className="secondary" onClick={() => go(-1)}>Précédent</button>}
-                    <button type="button" ref={nextRef} onClick={() => (last ? onClose() : go(1))}>
+                    <button type="button" ref={nextRef} onClick={() => {
+                        if (!last) return go(1);
+                        // succès « Visite guidée » : visite finie jusqu'au bout
+                        achievementsService.report("tour");
+                        onClose();
+                    }}>
                         {last ? "C'est parti !" : "Suivant"}
                     </button>
                 </div>

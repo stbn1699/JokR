@@ -18,7 +18,8 @@ const TIME_ZONE = "Europe/Paris";
 const DRAW_HOUR = 23;
 const DRAW_MINUTE = 59;
 
-export const lotteryTickets = (bet: number) => Math.floor(Math.max(0, bet) / LOTTERY_TICKET_CREDITS);
+// price : crédits par ticket du joueur (moins avec l'amélioration « Prix du ticket », voir upgrades.ts)
+export const lotteryTickets = (bet: number, price: number = LOTTERY_TICKET_CREDITS) => Math.floor(Math.max(0, bet) / price);
 export const lotteryPrize = (kind: LotteryKind, totalBet: number) => Math.floor(totalBet * LOTTERY_PERCENT[kind] / 100);
 
 type Day = { y: number; m: number; d: number };
