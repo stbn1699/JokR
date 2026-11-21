@@ -18,6 +18,36 @@ import {dailyGridLabel} from "../../Services/dailyGames.ts";
 import {isNewSince} from "../../Services/version.ts";
 import {useWhatsNew} from "./useWhatsNew.ts";
 import WhatsNewPopup from "./WhatsNewPopup.tsx";
+import {GAME_TYPE_ORDER, GAME_TYPES, gameType, type GameType, groupGamesByType} from "../../Services/gameTypes.ts";
+
+// Pastille du type de jeu (chiffres, grille, mots), en haut à droite de la carte
+function GameTypeBadge({code}: { code: string }) {
+    const type = gameType(code);
+    const {label, icon: Icon} = GAME_TYPES[type];
+    return <span className={`game-type ${type}`}><Icon aria-hidden/> {label}</span>;
+}
+
+// Filtre de l'accueil, retenu d'une visite à l'autre
+type GameFilter = GameType | "tous";
+const GAME_FILTER_KEY = "gameListFilter";
+
+function lastGameFilter(): GameFilter {
+    try {
+        const saved = localStorage.getItem(GAME_FILTER_KEY);
+        if (GAME_TYPE_ORDER.includes(saved as GameType)) return saved as GameType;
+    } catch {
+        // stockage indisponible : tous les jeux
+    }
+    return "tous";
+}
+
+function rememberGameFilter(filter: GameFilter) {
+    try {
+        localStorage.setItem(GAME_FILTER_KEY, filter);
+    } catch {
+        // idem
+    }
+}
 
 // Nombre de jeux de la dernière visite : autant de cartes fantômes pendant le chargement (pas de saut de page)
 const GAME_COUNT_KEY = "gameListCount";
@@ -133,6 +163,7 @@ export default function GameList() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null);
     const [overlayVisible, setOverlayVisible] = useState(false);
+    const [filter, setFilter] = useState<GameFilter>(lastGameFilter);
     const timeoutRef = useRef<number | null>(null);
     const {userId, isLoggedIn} = useAuth();
     const navigate = useNavigate();
@@ -202,6 +233,57 @@ export default function GameList() {
         }, 500);
     }
 
+    const sections = groupGamesByType(games);
+    // filtre retenu sur un type sans jeu : on revient à tous les jeux
+    const activeFilter: GameFilter = sections.some(s => s.type === filter) ? filter : "tous";
+    // les jeux restent dans l'ordre du serveur : les plus populaires d'abord
+    const visibleGames = activeFilter === "tous" ? games : games.filter(game => gameType(game.code) === activeFilter);
+
+    const chooseFilter = (next: GameFilter) => {
+        setFilter(next);
+        rememberGameFilter(next);
+    };
+
+    const renderGameCard = (game: Game, index: number) => {
+        const stat = userStats?.find(s => s.game_code === game.code);
+        const challenge = daily?.games.find(g => g.code === game.code);
+
+        return (
+            // --i : les cartes apparaissent l'une après l'autre
+            <div className={`game-card appear ${gameType(game.code)}`} key={game.code} style={{"--i": index} as CSSProperties}>
+                {/* Carte du jeu, et par-dessus (au survol) les stats du joueur sur ce jeu */}
+                <div className="game-tile">
+                    <GameTypeBadge code={game.code}/>
+                    {isNewSince(game.added_in, whatsNew.since) && <span className="game-new">Nouveau</span>}
+                    <div
+                        className="game"
+                        onClick={handleGameSelection(game.code)}
+                    >
+                        <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
+                        <h1>{game.designation}</h1>
+                    </div>
+
+                    {/* stats chargées : celles du jeu, ou « pas encore joué » */}
+                    {userId && userStats && <GameStatsPanel stat={stat} levels={levelsSummary?.[game.code]}/>}
+                </div>
+
+                {/* Défi du jour de ce jeu (invité : ouvre l'invitation à créer un compte) */}
+                {challenge && daily && (
+                    <Link to={`/defi/${game.code}`}
+                          className={`daily-button ${challenge.result ? "done" : ""} ${isLoggedIn ? "" : "locked"}`}
+                          title={`Défi du jour : ${dailyGridLabel(challenge.code, challenge.size, challenge.emptyCells)} · XP et crédits ×${daily.rewardMultiplier}`}>
+                        {challenge.result
+                            ? <>✓ {formatDuration(challenge.result.durationMs)} · {challenge.result.rank}<sup>{challenge.result.rank === 1 ? "er" : "e"}</sup> / {challenge.result.total}</>
+                            : <>
+                                {isLoggedIn ? <FaCalendarDay aria-hidden/> : <FaLock aria-hidden/>} Défi du jour
+                                {daily.rewardMultiplier > 1 && <span className="daily-x2" title="XP et crédits doublés">×{daily.rewardMultiplier}</span>}
+                            </>}
+                    </Link>
+                )}
+            </div>
+        );
+    };
+
     return (
         <>
             {whatsNew.versions.length > 0 && <WhatsNewPopup versions={whatsNew.versions} onClose={whatsNew.closePopup}/>}
@@ -211,45 +293,25 @@ export default function GameList() {
 
             {daily && <DailyBanner overview={daily}/>}
 
-            <div className="game-list">
-                {games.map((game, index) => {
-                    const stat = userStats?.find(s => s.game_code === game.code);
-                    const challenge = daily?.games.find(g => g.code === game.code);
-
+            {/* Filtres par type */}
+            <div className="game-filters" role="group" aria-label="Filtrer les jeux par type">
+                <button type="button" className={`game-filter tous ${activeFilter === "tous" ? "active" : ""}`}
+                        aria-pressed={activeFilter === "tous"} onClick={() => chooseFilter("tous")}>
+                    Tous <span className="game-filter-count">{games.length}</span>
+                </button>
+                {sections.map(({type, games: sectionGames}) => {
+                    const {label, icon: Icon} = GAME_TYPES[type];
                     return (
-                        // --i : les cartes apparaissent l'une après l'autre
-                        <div className="game-card appear" key={game.code} style={{"--i": index} as CSSProperties}>
-                            {/* Carte du jeu, et par-dessus (au survol) les stats du joueur sur ce jeu */}
-                            <div className="game-tile">
-                                {isNewSince(game.added_in, whatsNew.since) && <span className="game-new">Nouveau</span>}
-                                <div
-                                    className="game"
-                                    onClick={handleGameSelection(game.code)}
-                                >
-                                    <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
-                                    <h1>{game.code}</h1>
-                                </div>
-
-                                {/* stats chargées : celles du jeu, ou « pas encore joué » */}
-                                {userId && userStats && <GameStatsPanel stat={stat} levels={levelsSummary?.[game.code]}/>}
-                            </div>
-
-                            {/* Défi du jour de ce jeu (invité : ouvre l'invitation à créer un compte) */}
-                            {challenge && daily && (
-                                <Link to={`/defi/${game.code}`}
-                                      className={`daily-button ${challenge.result ? "done" : ""} ${isLoggedIn ? "" : "locked"}`}
-                                      title={`Défi du jour : ${dailyGridLabel(challenge.code, challenge.size, challenge.emptyCells)} · XP et crédits ×${daily.rewardMultiplier}`}>
-                                    {challenge.result
-                                        ? <>✓ {formatDuration(challenge.result.durationMs)} · {challenge.result.rank}<sup>{challenge.result.rank === 1 ? "er" : "e"}</sup> / {challenge.result.total}</>
-                                        : <>
-                                            {isLoggedIn ? <FaCalendarDay aria-hidden/> : <FaLock aria-hidden/>} Défi du jour
-                                            {daily.rewardMultiplier > 1 && <span className="daily-x2" title="XP et crédits doublés">×{daily.rewardMultiplier}</span>}
-                                        </>}
-                                </Link>
-                            )}
-                        </div>
+                        <button type="button" key={type} className={`game-filter ${type} ${activeFilter === type ? "active" : ""}`}
+                                aria-pressed={activeFilter === type} onClick={() => chooseFilter(type)}>
+                            <Icon aria-hidden/> {label} <span className="game-filter-count">{sectionGames.length}</span>
+                        </button>
                     );
                 })}
+            </div>
+
+            <div className="game-list">
+                {visibleGames.map(renderGameCard)}
             </div>
         </>
     )

@@ -19,7 +19,7 @@
 	}
 
 	.game {
-		--s              : 15rem; /* the size of the div */
+		--s              : 13rem; /* the size of the div */
 
 		width            : var(--s);
 		aspect-ratio     : 1;
@@ -27,37 +27,53 @@
 		outline-offset   : calc(var(--s) / -2);
 		cursor           : pointer;
 
-		height           : 18rem;
+		height           : 14.5rem;
+		box-sizing       : border-box;
+		display          : flex;
+		flex-direction   : column;
+		justify-content  : center;
 		border-radius    : 2rem;
 		align-items      : center;
-		background-color : #222222;
-		justify-content  : center;
+		// fond franchement à la couleur du type
+		background       : linear-gradient(160deg, color-mix(in srgb, var(--type) 62%, #18181b), color-mix(in srgb, var(--type) 28%, #18181b));
 		transition       : all 0.3s ease-in-out;
 		color            : white;
-		border           : 1px solid #444444;
+		border           : 2px solid var(--type);
+		box-shadow       : 0 0.5rem 1.2rem rgba(0, 0, 0, 0.35);
 
 		&:hover {
 			--b            : 2px; /* the border thickness*/
 			--g            : 2px; /* the gap */
-			--c            : #29a615; /* the color */
 
-			outline        : var(--b) solid var(--c);
+			outline        : var(--b) solid var(--type);
 			outline-offset : var(--g);
+			border-color   : var(--type);
+			box-shadow     : 0 0.6rem 1.8rem color-mix(in srgb, var(--type) 35%, transparent);
+
+			img {
+				transform : translateY(-0.2rem) scale(1.04);
+			}
 		}
 	}
 
 	img {
-		width  : 13rem;
-		height : 13rem;
-		margin : 1rem;
+		width      : 10rem;
+		height     : 10rem;
+		margin     : 0 0 0.6rem;
+		filter     : drop-shadow(0 0.35rem 0.6rem rgba(0, 0, 0, 0.45));
+		transition : transform 0.25s ease;
 	}
 
 	h1 {
-		align-self : center;
-		margin     : 0;
-		padding    : 0;
-		text-align : center;
-		width      : 100%;
+		align-self     : center;
+		margin         : 0;
+		padding        : 0;
+		text-align     : center;
+		width          : 100%;
+		font-size      : 1.45rem;
+		letter-spacing : 0.06em;
+		line-height    : 1.1;
+		text-transform : uppercase;
 	}
 
 	// Carte du jeu + panneau des stats par-dessus
@@ -70,7 +86,7 @@
 		position       : absolute;
 		z-index        : 3;
 		top            : -0.6rem;
-		right          : -0.6rem;
+		left           : -0.6rem;
 		padding        : 0.25rem 0.75rem;
 		border-radius  : 999px;
 		background     : linear-gradient(135deg, #34d399, #10b981);
@@ -84,6 +100,29 @@
 		                 game-new-glow 2.4s ease-in-out 1s infinite;
 	}
 
+	// Pastille du type de jeu, en haut à droite de la carte
+	.game-type {
+		position       : absolute;
+		z-index        : 3;
+		top            : -0.6rem;
+		right          : -0.6rem;
+		display        : inline-flex;
+		align-items    : center;
+		gap            : 0.35rem;
+		padding        : 0.25rem 0.7rem;
+		border         : 1px solid var(--type);
+		border-radius  : 999px;
+		background     : #18181b;
+		color          : var(--type);
+		font-size      : 1rem;
+		font-weight    : 700;
+		pointer-events : none;
+
+		svg {
+			font-size : 0.8em;
+		}
+	}
+
 	// ---------- Stats du joueur, au survol : le panneau recouvre exactement la carte
 	.game-stats {
 		position        : absolute;
@@ -92,11 +131,11 @@
 		display         : flex;
 		flex-direction  : column;
 		justify-content : center;
-		gap             : 1.1rem;
-		padding         : 0 1.6rem;
+		gap             : 0.7rem;
+		padding         : 0 1.2rem;
 		box-sizing      : border-box;
 		border-radius   : 2rem;
-		border          : 1px solid #29a615;
+		border          : 1px solid var(--type);
 		background      : linear-gradient(160deg, rgba(20, 24, 33, 0.9), rgba(8, 10, 16, 0.94));
 		backdrop-filter : blur(6px);
 		color           : #f9fafb;
@@ -275,7 +314,7 @@
 		align-items     : center;
 		justify-content : center;
 		gap             : 0.5rem;
-		width           : 15rem;
+		width           : 13rem;
 		margin-top      : 0.75rem;
 		padding         : 0.55rem 0;
 		box-sizing      : border-box;
@@ -283,7 +322,7 @@
 		border-radius   : 999px;
 		background      : rgba(245, 158, 11, 0.15);
 		color           : #fbbf24;
-		font-size       : 1.3rem;
+		font-size       : 1.15rem;
 		font-weight     : 700;
 		text-decoration : none;
 		transition      : all 0.15s ease;
@@ -324,6 +363,75 @@
 		}
 	}
 
+}
+
+// Couleur de chaque type de jeu (pastille, filtre, titre de section)
+.game-card,
+.game-type,
+.game-filter {
+	--type : #60a5fa;
+
+	&.grille {
+		--type : #c084fc;
+	}
+
+	&.mots {
+		--type : #f472b6;
+	}
+
+	&.autres {
+		--type : #9ca3af;
+	}
+
+	&.tous {
+		--type : #f9fafb;
+	}
+}
+
+// Filtres par type, au-dessus des sections
+.game-filters {
+	display         : flex;
+	flex-wrap       : wrap;
+	justify-content : center;
+	gap             : 0.6rem;
+	padding         : 1rem 1rem 0;
+}
+
+.game-filter {
+	display       : inline-flex;
+	align-items   : center;
+	gap           : 0.45rem;
+	padding       : 0.45rem 1rem;
+	border        : 1px solid rgba(249, 250, 251, 0.2);
+	border-radius : 999px;
+	background    : rgba(24, 24, 27, 0.75);
+	color         : rgba(249, 250, 251, 0.75);
+	font          : inherit;
+	font-size     : 1.15rem;
+	font-weight   : 700;
+	cursor        : pointer;
+	transition    : color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+
+	&:hover {
+		border-color : var(--type);
+		color        : var(--type);
+	}
+
+	&:focus-visible {
+		outline        : 2px solid var(--type);
+		outline-offset : 2px;
+	}
+
+	&.active {
+		border-color : var(--type);
+		background   : var(--type);
+		color        : #18181b;
+	}
+}
+
+.game-filter-count {
+	font-weight : 400;
+	opacity     : 0.7;
 }
 
 /* overlay that appears when clicking a game */
@@ -378,6 +486,7 @@
 
 .game-list.loading {
 	.game-card.skeleton {
+		--type          : #555555;
 		// apparition retardée : un chargement très court ne fait pas clignoter les fantômes
 		animation       : skeleton-in 0.3s ease 0.12s backwards;
 		pointer-events  : none;
@@ -431,7 +540,7 @@
 	}
 
 	.skeleton-pill {
-		width         : 15rem;
+		width         : 13rem;
 		height        : 2.5rem;
 		margin-top    : 0.75rem;
 		border-radius : 999px;
