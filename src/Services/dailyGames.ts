@@ -2,7 +2,7 @@
 export const DAILY_REWARD_MULTIPLIER = 2;
 
 // Noms des jeux du défi du jour et description de leur grille (taille, cases à remplir)
-export const DAILY_GAME_NAMES: Record<string, string> = {SUDOKU: "Sudoku", BINERO: "Binero", RIKUDO: "Rikudo", TECTONIC: "Tectonic", GALAXIES: "Galaxies", SHIKAKU: "Shikaku", QUEENS: "Queens", TRACE: "Tracé", DEVIMOT: "Devimot", ECHELLE: "Échelle", MOTSMELES: "Mots mêlés", MOTSACASER: "Mots à caser", COLORIA: "Coloria", TUYAUX: "Tuyaux", LIENS: "Liens", BOUCHON: "Bouchon"};
+export const DAILY_GAME_NAMES: Record<string, string> = {SUDOKU: "Sudoku", BINERO: "Binero", RIKUDO: "Rikudo", TECTONIC: "Tectonic", GALAXIES: "Galaxies", SHIKAKU: "Shikaku", QUEENS: "Queens", TRACE: "Tracé", DEVIMOT: "Devimot", ECHELLE: "Échelle", MOTSMELES: "Mots mêlés", MOTSACASER: "Mots à caser", COLORIA: "Coloria", TUYAUX: "Tuyaux", LIENS: "Liens", BOUCHON: "Bouchon", PATURAGES: "Pâturages"};
 
 export function dailyGridLabel(code: string, size: number, emptyCells: number): string {
     // Rikudo : size = nombre de cases du plateau ; Galaxies, Shikaku et Queens : emptyCells = aide donnée

@@ -1,0 +1,89 @@
+// Pré de Pâturages (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.paturages {
+	.paturages-board {
+		display       : block;
+		box-sizing    : border-box;
+		width         : min(44rem, calc(100vh - 11rem), calc(100vw - 2rem));
+		height        : auto;
+		overflow      : hidden;
+		border        : 3px solid var(--board-frame);
+		border-radius : 10px;
+		background    : var(--board-paper);
+		cursor        : crosshair;
+		// glisser trace un carré : pas de défilement ni de sélection du texte
+		touch-action  : none;
+		user-select   : none;
+	}
+
+	.paturages-grid line {
+		stroke       : var(--board-line);
+		stroke-width : 0.025;
+	}
+
+	.paturages-square {
+		stroke       : var(--board-wall);
+		stroke-width : 0.06;
+
+		&.wrong {
+			stroke           : var(--board-error);
+			stroke-dasharray : 0.16 0.1;
+		}
+
+		&.given { stroke-width : 0.11; }
+		&.covered { opacity : 0.3; }
+	}
+
+	.paturages-preview {
+		fill-opacity : 0.25;
+		stroke-width : 0.09;
+
+		&.valid {
+			fill   : var(--board-good);
+			stroke : var(--board-good);
+		}
+
+		&.invalid {
+			fill   : var(--board-error);
+			stroke : var(--board-error);
+		}
+	}
+
+	.paturages-cow {
+		pointer-events : none;
+
+		.hide {
+			fill         : white;
+			stroke       : #111827;
+			stroke-width : 0.035;
+		}
+
+		.horn {
+			fill           : none;
+			stroke         : #b7791f;
+			stroke-width   : 0.06;
+			stroke-linecap : round;
+		}
+
+		.patch { fill : #111827; }
+		.eye { fill : #111827; }
+
+		.patch + .eye { fill : white; }
+
+		.muzzle {
+			fill         : #fbb6ce;
+			stroke       : #111827;
+			stroke-width : 0.03;
+		}
+	}
+
+	.paturages-progress {
+		margin     : 1.5rem 1rem 0.5rem;
+		font-size  : 1.4rem;
+		text-align : center;
+
+		strong {
+			font-size : 2.2rem;
+			color     : #3bf644;
+		}
+	}
+}

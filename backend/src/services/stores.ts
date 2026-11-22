@@ -14,6 +14,7 @@ import type {ColoriaPuzzle} from "../utils/coloria.js";
 import type {TuyauxPuzzle} from "../utils/tuyaux.js";
 import type {LiensPuzzle} from "../utils/liens.js";
 import type {BouchonPuzzle} from "../utils/bouchon.js";
+import type {PaturagesPuzzle} from "../utils/paturages.js";
 
 /*
  * Parties en cours, une mémoire par jeu, partagées entre les routes du jeu
@@ -45,3 +46,5 @@ export const tuyauxStore = new PuzzleStore<TuyauxPuzzle>();
 export const liensStore = new PuzzleStore<LiensPuzzle>();
 // Bouchon : cluesCount = nombre de coups minimum
 export const bouchonStore = new PuzzleStore<BouchonPuzzle>();
+// Pâturages : cluesCount = carrés donnés
+export const paturagesStore = new PuzzleStore<PaturagesPuzzle>();

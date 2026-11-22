@@ -1,0 +1,35 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_paturages)">
+<rect width="512" height="512" rx="50" fill="white"/>
+<rect x="-5" y="-5" width="342.5" height="338.5" fill="#88FFB0"/>
+<rect x="337.5" y="-5" width="180" height="174.5" fill="#88C9FF"/>
+<rect x="337.5" y="169.5" width="180" height="164" fill="#FFDF88"/>
+<rect x="-5" y="333.5" width="177.5" height="184" fill="#FF88C9"/>
+<rect x="172.5" y="333.5" width="165" height="184" fill="#F8A4A4"/>
+<rect x="337.5" y="333.5" width="180" height="184" fill="#88C9FF"/>
+<path d="M337.5 -5V517M-5 333.5H517M172.5 333.5V517M337.5 169.5H517" stroke="black" stroke-width="10"/>
+<use href="#cow" transform="translate(168 174) scale(285)"/>
+<use href="#cow" transform="translate(425 88) scale(125)"/>
+<use href="#cow" transform="translate(425 254) scale(125)"/>
+<use href="#cow" transform="translate(86 425) scale(125)"/>
+<use href="#cow" transform="translate(255 425) scale(125)"/>
+<use href="#cow" transform="translate(425 425) scale(125)"/>
+</g>
+<defs>
+<g id="cow">
+<path d="M-0.17 -0.28Q-0.3 -0.38 -0.2 -0.47M0.17 -0.28Q0.3 -0.38 0.2 -0.47" stroke="black" stroke-width="0.07" stroke-linecap="round"/>
+<ellipse cx="-0.33" cy="-0.14" rx="0.14" ry="0.07" fill="white" stroke="black" stroke-width="0.04"/>
+<ellipse cx="0.33" cy="-0.14" rx="0.14" ry="0.07" fill="white" stroke="black" stroke-width="0.04"/>
+<rect x="-0.25" y="-0.32" width="0.5" height="0.6" rx="0.2" fill="white" stroke="black" stroke-width="0.045"/>
+<path d="M-0.25 -0.14Q-0.25 -0.32 -0.06 -0.32Q-0.01 -0.14 -0.11 -0.03Q-0.2 0 -0.25 -0.03Z" fill="black"/>
+<circle cx="-0.11" cy="-0.1" r="0.035" fill="white"/>
+<circle cx="0.11" cy="-0.1" r="0.035" fill="black"/>
+<ellipse cy="0.15" rx="0.22" ry="0.14" fill="#FF88C9" stroke="black" stroke-width="0.04"/>
+<circle cx="-0.08" cy="0.14" r="0.024" fill="black"/>
+<circle cx="0.08" cy="0.14" r="0.024" fill="black"/>
+</g>
+<clipPath id="clip_paturages">
+<rect width="512" height="512" rx="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>
