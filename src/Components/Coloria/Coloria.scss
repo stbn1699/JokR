@@ -1,0 +1,96 @@
+// Plateau du Coloria (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.coloria {
+	.game {
+		--grid-width : min(44rem, calc(100vh - 11rem), calc(100vw - 2rem));
+	}
+
+	.coloria-board {
+		--cell                : calc(var(--grid-width) / var(--size));
+
+		display               : grid;
+		grid-template-columns : repeat(var(--size), var(--cell));
+		grid-template-rows    : repeat(var(--size), var(--cell));
+		overflow              : hidden;
+		border                : 3px solid var(--board-frame);
+		border-radius         : 10px;
+		background            : var(--board-paper);
+		user-select           : none;
+	}
+
+	.coloria-cell {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		box-sizing      : border-box;
+		padding         : 0;
+		border          : none;
+		background      : var(--zone, var(--board-paper));
+		color           : var(--board-given);
+		font            : inherit;
+		font-size       : calc(var(--cell) * 0.5);
+		font-weight     : 800;
+		line-height     : 1;
+		cursor          : pointer;
+		outline         : none;
+		transition      : background 0.12s ease;
+
+		&:disabled { cursor : default; }
+
+		// Traits épais entre les zones
+		&.b-top { border-top : 2px solid var(--board-wall); }
+		&.b-right { border-right : 2px solid var(--board-wall); }
+		&.b-bottom { border-bottom : 2px solid var(--board-wall); }
+		&.b-left { border-left : 2px solid var(--board-wall); }
+
+		// Zone sous la souris
+		&.hovered { filter : brightness(0.93); }
+
+		&.conflict {
+			box-shadow : inset 0 0 0 calc(var(--cell) * 0.12) var(--board-error);
+			color      : var(--board-error-ink);
+		}
+	}
+
+	.coloria-mark { pointer-events : none; }
+
+	.coloria-palette {
+		display         : flex;
+		flex-wrap       : wrap;
+		justify-content : center;
+		gap             : 0.7rem;
+		padding         : 1rem 1rem 0;
+
+		button {
+			width         : 4rem;
+			height        : 4rem;
+			border        : 3px solid var(--board-wall);
+			border-radius : 0.8rem;
+			background    : var(--zone);
+			color         : var(--board-given);
+			font          : inherit;
+			font-size     : 1.6rem;
+			font-weight   : 800;
+			cursor        : pointer;
+			transition    : transform 0.1s ease, box-shadow 0.1s ease;
+
+			&:hover:not(:disabled) { transform : scale(1.06); }
+			&:disabled { cursor : default; opacity : 0.6; }
+
+			&.selected {
+				box-shadow : 0 0 0 3px #f9fafb;
+				transform  : scale(1.1);
+			}
+		}
+	}
+
+	.coloria-progress {
+		margin     : 0.5rem 1rem;
+		font-size  : 1.5rem;
+		text-align : center;
+
+		strong {
+			font-size : 2.2rem;
+			color     : #3bf644;
+		}
+	}
+}

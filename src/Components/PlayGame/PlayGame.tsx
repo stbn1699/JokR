@@ -17,6 +17,7 @@ import Galaxies from "../Galaxies/Galaxies.tsx";
 import Shikaku from "../Shikaku/Shikaku.tsx";
 import Queens from "../Queens/Queens.tsx";
 import Trace from "../Trace/Trace.tsx";
+import Coloria from "../Coloria/Coloria.tsx";
 import Devimot from "../WordGames/Devimot.tsx";
 import Echelle from "../WordGames/Echelle.tsx";
 import MotsMeles from "../WordGames/MotsMeles.tsx";
@@ -71,7 +72,9 @@ export default function PlayGame({daily = false, challengeGame, challengeId}: { 
                 return <Queens daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "TRACE":
                 return <Trace daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
-            // Jeux de mots : partie libre uniquement pour l'instant
+            // Coloria et jeux de mots : partie libre uniquement pour l'instant
+            case "COLORIA":
+                return <Coloria/>;
             case "DEVIMOT":
                 return <Devimot/>;
             case "ECHELLE":

@@ -10,6 +10,7 @@ import type {DevimotPuzzle} from "../utils/devimot.js";
 import type {EchellePuzzle} from "../utils/echelle.js";
 import type {MotsMelesPuzzle} from "../utils/motsMeles.js";
 import type {MotsACaserPuzzle} from "../utils/motsACaser.js";
+import type {ColoriaPuzzle} from "../utils/coloria.js";
 
 /*
  * Parties en cours, une mémoire par jeu, partagées entre les routes du jeu
@@ -33,3 +34,5 @@ export const echelleStore = new PuzzleStore<EchellePuzzle>();
 export const motsMelesStore = new PuzzleStore<MotsMelesPuzzle>();
 // Mots à caser : cluesCount = mots déjà placés au départ
 export const motsACaserStore = new PuzzleStore<MotsACaserPuzzle>();
+// Coloria : cluesCount = nombre de couleurs
+export const coloriaStore = new PuzzleStore<ColoriaPuzzle>();

@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_coloria)">
+<rect width="512" height="512" rx="50" fill="white"/>
+<path d="M0 0H337.5V333.5H173V170H0V0Z" fill="#88C9FF"/>
+<rect x="337.5" width="174.5" height="333.5" fill="#FFDF88"/>
+<rect y="170" width="173" height="342" fill="#FFDF88"/>
+<rect x="173" y="333.5" width="339" height="178.5" fill="#88FFB0"/>
+<path d="M172.5 -1.5H337.5V513.5H172.5V-1.5Z" stroke-width="3" stroke="black"/>
+<path d="M513.5 169.5L513.5 333.5L-1.50001 333.5L-1.5 169.5L513.5 169.5Z" stroke-width="3" stroke="black"/>
+<path d="M337.5 0V333.5" stroke-width="10" stroke="black"/>
+<path d="M0 170H173V512" stroke-width="10" stroke="black"/>
+<path d="M173 333.5H512" stroke-width="10" stroke="black"/>
+</g>
+<defs>
+<clipPath id="clip_coloria">
+<rect width="512" height="512" rx="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>
