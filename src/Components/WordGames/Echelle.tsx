@@ -1,5 +1,6 @@
 import {type CSSProperties, useEffect, useRef, useState} from "react";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
+import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
 import {clearSavedGame, saveGame, useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {echelleService} from "../../Services/wordGames.service.ts";
 import type {EchellePuzzle} from "../../Models/wordGames.model.ts";
@@ -128,10 +129,12 @@ export default function Echelle() {
         setPath(p => [...p, next]);
     };
     const reset = () => {
+        // les mots retirés restent disponibles avec Rétablir
+        setUndone(path.slice(1));
         setPath(p => p.slice(0, 1));
-        setUndone([]);
         setCurrent("");
     };
+    useUndoShortcuts(undo, redo, playing);
 
     const steps = path.length - 1;
     const rules = (

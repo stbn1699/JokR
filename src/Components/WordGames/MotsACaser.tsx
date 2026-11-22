@@ -153,6 +153,23 @@ export default function MotsACaser() {
         setSelected(activeSlot[Math.min(after, activeSlot.length - 1)]!);
     };
 
+    // Clic sur un mot de la liste : il remplit la zone active depuis son début. Trop long, il est coupé ;
+    // trop court, la fin de la zone reste vide. Les lettres données ne bougent pas. Un seul « Annuler » suffit.
+    const insertWord = (word: string) => {
+        if (!playing) return;
+        if (!activeSlot) {
+            flow.setNotice("Choisis d'abord une case de la grille.");
+            return;
+        }
+        flow.clearNotice();
+        const next = [...letters];
+        activeSlot.forEach((cell, i) => {
+            if (!isGiven(cell)) next[cell] = word[i] ?? "";
+        });
+        if (next.some((letter, cell) => letter !== letters[cell])) commit(next);
+        setSelected(activeSlot.find(cell => next[cell] === "") ?? activeSlot[activeSlot.length - 1]!);
+    };
+
     const erase = () => {
         if (!playing || selected === null) return;
         if (!isGiven(selected) && letters[selected]) {
@@ -268,6 +285,7 @@ export default function MotsACaser() {
             <li>Les mots s'écrivent de gauche à droite ou de haut en bas, et se croisent sur leurs lettres</li>
             <li>Commence par les longueurs où il y a peu de mots</li>
             <li>Clic sur la case choisie ou Entrée : change le sens d'écriture</li>
+            <li>Clic sur un mot de la liste : il s'écrit dans la zone sélectionnée</li>
         </ul>
     );
 
@@ -281,7 +299,14 @@ export default function MotsACaser() {
                         <section className="caser-group" key={length}>
                             <h3>{length} lettres</h3>
                             <ul>
-                                {words.map(word => <li key={word} className={placedWords.has(word) ? "found" : ""}>{word}</li>)}
+                                {words.map(word => (
+                                    <li key={word} className={placedWords.has(word) ? "found" : ""}>
+                                        <button type="button" disabled={!playing} title="Insérer dans la zone sélectionnée"
+                                                onMouseDown={e => e.preventDefault()} onClick={() => insertWord(word)}>
+                                            {word}
+                                        </button>
+                                    </li>
+                                ))}
                             </ul>
                         </section>
                     ))}

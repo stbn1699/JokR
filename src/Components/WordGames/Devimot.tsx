@@ -1,5 +1,6 @@
 import {useMemo, useRef, useState} from "react";
 import {useGameFlow, type Clock} from "../PuzzleUI/useGameFlow.ts";
+import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
 import {clearSavedGame, saveGame, useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {devimotService} from "../../Services/wordGames.service.ts";
 import type {DevimotPuzzle, LetterMark} from "../../Models/wordGames.model.ts";
@@ -23,6 +24,9 @@ export default function Devimot() {
     const {resumable, dismissResumable} = useResumableGame<Saved, DevimotPuzzle>(CODE, devimotService.getGame);
     const [puzzle, setPuzzle] = useState<DevimotPuzzle | null>(null);
     const [current, setCurrent] = useState("");
+    // Annuler / Rétablir : uniquement sur le mot en cours, un essai validé est définitif
+    const [past, setPast] = useState<string[]>([]);
+    const [future, setFuture] = useState<string[]>([]);
     const [answer, setAnswer] = useState<string | null>(null);
     const [lostClock, setLostClock] = useState<Clock | null>(null);
     const [busy, setBusy] = useState(false);
@@ -42,10 +46,16 @@ export default function Devimot() {
         return best;
     }, [puzzle]);
 
+    const clearWord = () => {
+        setCurrent("");
+        setPast([]);
+        setFuture([]);
+    };
+
     const start = (next: DevimotPuzzle, id: string) => {
         gameId.current = id;
         setPuzzle(next);
-        setCurrent("");
+        clearWord();
         setAnswer(null);
         setLostClock(null);
     };
@@ -87,7 +97,7 @@ export default function Devimot() {
         try {
             const reply = await devimotService.guess(id, word);
             setPuzzle(p => p && {...p, guesses: [...p.guesses, {word, marks: reply.marks}]});
-            setCurrent("");
+            clearWord();
             if (reply.state === "won" && reply.result) {
                 const result = reply.result;
                 gameId.current = null;
@@ -107,16 +117,39 @@ export default function Devimot() {
         }
     };
 
+    const changeWord = (next: string) => {
+        if (next === current) return;
+        setPast(p => [...p, current]);
+        setFuture([]);
+        setCurrent(next);
+    };
+
     const handlers = {
         onLetter: (letter: string) => {
-            if (playing && !busy) setCurrent(c => (c.length < puzzle.length ? c + letter : c));
+            if (playing && !busy && current.length < puzzle.length) changeWord(current + letter);
         },
         onBackspace: () => {
-            if (playing && !busy) setCurrent(c => c.slice(0, -1));
+            if (playing && !busy) changeWord(current.slice(0, -1));
         },
         onEnter: () => void submit(),
     };
     useLetterKeys(playing, handlers);
+
+    const undo = () => {
+        const previous = past[past.length - 1];
+        if (previous === undefined || busy) return;
+        setPast(p => p.slice(0, -1));
+        setFuture(f => [current, ...f]);
+        setCurrent(previous);
+    };
+    const redo = () => {
+        const next = future[0];
+        if (next === undefined || busy) return;
+        setFuture(f => f.slice(1));
+        setPast(p => [...p, current]);
+        setCurrent(next);
+    };
+    useUndoShortcuts(undo, redo, playing);
 
     const used = puzzle?.guesses.length ?? 0;
     const rules = (
@@ -139,6 +172,7 @@ export default function Devimot() {
                     <p className="word-hint">Tape ton mot au clavier puis valide avec Entrée. Un mot refusé ne coûte pas d'essai.</p>
                 </>
             ) : <p>–</p>}
+            history={{canUndo: playing && !busy && past.length > 0, canRedo: playing && !busy && future.length > 0, onUndo: undo, onRedo: redo}}
             settings={
                 <WordSettingsPopup open={flow.showSettings} load={devimotService.getSettings} onGenerate={handleGenerate}
                                    resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}

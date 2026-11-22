@@ -1,5 +1,6 @@
 import {type CSSProperties, type PointerEvent, useEffect, useRef, useState} from "react";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
+import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
 import {clearSavedGame, saveGame, useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {motsMelesService} from "../../Services/wordGames.service.ts";
 import type {FoundWord, MotsMelesPuzzle} from "../../Models/wordGames.model.ts";
@@ -162,9 +163,11 @@ export default function MotsMeles() {
         setFound(f => [...f, next]);
     };
     const reset = () => {
+        // les mots retirés restent disponibles avec Rétablir
+        setUndone(found);
         setFound([]);
-        setUndone([]);
     };
+    useUndoShortcuts(undo, redo, playing);
 
     const directions = !puzzle ? "" : puzzle.size >= 12 ? "Dans tous les sens, même à l'envers"
         : puzzle.size >= 10 ? "À l'horizontale, à la verticale et en diagonale" : "À l'horizontale et à la verticale";

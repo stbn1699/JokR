@@ -304,9 +304,28 @@
 			font-weight: 700;
 		}
 
+		// Mot cliquable : il s'écrit dans la zone sélectionnée
+		button {
+			padding       : 0 0.2rem;
+			border        : none;
+			border-radius : 0.25rem;
+			background    : transparent;
+			color         : inherit;
+			font          : inherit;
+			cursor        : pointer;
+
+			&:hover:not(:disabled) {
+				background : var(--board-focus);
+				color      : white;
+			}
+
+			&:disabled { cursor : default; }
+		}
+
 		.found {
 			color           : var(--board-good);
-			text-decoration : line-through;
+
+			button { text-decoration : line-through; }
 		}
 	}
 

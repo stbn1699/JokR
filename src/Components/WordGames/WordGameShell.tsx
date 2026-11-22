@@ -8,7 +8,7 @@ import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
 import type {Clock, useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 
-type History = { canUndo: boolean; canRedo: boolean; canReset: boolean; onUndo: () => void; onRedo: () => void; onReset: () => void };
+type History = { canUndo: boolean; canRedo: boolean; canReset?: boolean; onUndo: () => void; onRedo: () => void; onReset?: () => void };
 
 type WordGameShellProps = {
     className: string;
