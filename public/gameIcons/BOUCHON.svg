@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_bouchon)">
+<rect width="512" height="512" rx="50" fill="white"/>
+<path d="M172.5 -1.5H337.5V513.5H172.5V-1.5Z" stroke-width="3" stroke="black"/>
+<path d="M513.5 169.5L513.5 333.5L-1.50001 333.5L-1.5 169.5L513.5 169.5Z" stroke-width="3" stroke="black"/>
+<rect x="24" y="30" width="290" height="112" rx="32" fill="#FF88C9" stroke="black" stroke-width="10"/>
+<rect x="232" y="54" width="42" height="64" rx="10" fill="white" stroke="black" stroke-width="8"/>
+<rect x="24" y="196" width="290" height="112" rx="32" fill="#FFDF88" stroke="black" stroke-width="10"/>
+<rect x="232" y="220" width="42" height="64" rx="10" fill="white" stroke="black" stroke-width="8"/>
+<rect x="66" y="220" width="28" height="64" rx="8" fill="white" stroke="black" stroke-width="8"/>
+<rect x="128" y="236" width="16" height="16" fill="black"/>
+<rect x="144" y="252" width="16" height="16" fill="black"/>
+<rect x="160" y="236" width="16" height="16" fill="black"/>
+<rect x="176" y="252" width="16" height="16" fill="black"/>
+<rect x="24" y="364" width="290" height="112" rx="32" fill="#88FFB0" stroke="black" stroke-width="10"/>
+<rect x="232" y="388" width="42" height="64" rx="10" fill="white" stroke="black" stroke-width="8"/>
+<rect x="368" y="196" width="112" height="282" rx="32" fill="#88C9FF" stroke="black" stroke-width="10"/>
+<rect x="392" y="400" width="64" height="42" rx="10" fill="white" stroke="black" stroke-width="8"/>
+</g>
+<defs>
+<clipPath id="clip_bouchon">
+<rect width="512" height="512" rx="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>

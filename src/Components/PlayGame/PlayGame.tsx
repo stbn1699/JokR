@@ -20,6 +20,7 @@ import Trace from "../Trace/Trace.tsx";
 import Coloria from "../Coloria/Coloria.tsx";
 import Tuyaux from "../Tuyaux/Tuyaux.tsx";
 import Liens from "../Liens/Liens.tsx";
+import Bouchon from "../Bouchon/Bouchon.tsx";
 import Devimot from "../WordGames/Devimot.tsx";
 import Echelle from "../WordGames/Echelle.tsx";
 import MotsMeles from "../WordGames/MotsMeles.tsx";
@@ -74,7 +75,9 @@ export default function PlayGame({daily = false, challengeGame, challengeId}: { 
                 return <Queens daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "TRACE":
                 return <Trace daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
-            // Coloria, Tuyaux, Liens et jeux de mots : partie libre uniquement pour l'instant
+            // Coloria, Tuyaux, Liens, Bouchon et jeux de mots : partie libre uniquement pour l'instant
+            case "BOUCHON":
+                return <Bouchon/>;
             case "LIENS":
                 return <Liens/>;
             case "COLORIA":

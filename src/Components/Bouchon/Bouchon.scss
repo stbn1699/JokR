@@ -1,0 +1,93 @@
+// Parking de Bouchon (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.bouchon {
+	.bouchon-board {
+		display       : block;
+		box-sizing    : border-box;
+		width         : min(44rem, calc(100vh - 11rem), calc(100vw - 2rem));
+		height        : auto;
+		overflow      : hidden;
+		border        : 3px solid var(--board-frame);
+		border-radius : 10px;
+		background    : var(--board-frame);
+		// glisser déplace un véhicule : pas de défilement ni de sélection du texte
+		touch-action  : none;
+		user-select   : none;
+	}
+
+	.bouchon-floor { fill : var(--board-paper); }
+
+	.bouchon-grid line {
+		stroke       : var(--board-line);
+		stroke-width : 0.025;
+	}
+
+	.bouchon-exit { fill : var(--board-paper); }
+
+	.bouchon-arrow {
+		fill            : none;
+		stroke          : var(--board-good);
+		stroke-width    : 0.08;
+		stroke-linecap  : round;
+		stroke-linejoin : round;
+	}
+
+	.bouchon-vehicle {
+		cursor     : grab;
+		outline    : none;
+		transition : transform 0.14s ease-out;
+
+		&.vertical { cursor : ns-resize; }
+		&.horizontal { cursor : ew-resize; }
+
+		&.held {
+			cursor     : grabbing;
+			transition : none;
+		}
+
+		// cadre de sélection seulement au clavier
+		&:focus-visible .bouchon-body,
+		&.keyboard .bouchon-body {
+			stroke       : var(--board-focus);
+			stroke-width : 0.09;
+		}
+	}
+
+	.bouchon-body {
+		fill         : var(--car);
+		stroke       : var(--board-wall);
+		stroke-width : 0.04;
+	}
+
+	.bouchon-glass {
+		fill         : #e0f2fe;
+		stroke       : var(--board-wall);
+		stroke-width : 0.025;
+	}
+
+	.bouchon-cargo {
+		fill         : white;
+		fill-opacity : 0.28;
+		stroke       : var(--board-wall);
+		stroke-width : 0.025;
+	}
+
+	.bouchon-checker rect { fill : #1f2937; }
+
+	.bouchon-progress {
+		margin     : 1.5rem 1rem 0.25rem;
+		font-size  : 1.4rem;
+		text-align : center;
+
+		strong {
+			font-size : 2.2rem;
+			color     : #3bf644;
+		}
+	}
+
+	.bouchon-best {
+		margin     : 0 1rem 0.75rem;
+		font-size  : 0.95rem;
+		text-align : center;
+		opacity    : 0.8;
+	}
+}
