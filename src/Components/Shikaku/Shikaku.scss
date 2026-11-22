@@ -8,11 +8,11 @@
 	.shikaku-board {
 		width         : var(--grid-width);
 		border-radius : 10px;
-		background    : #02061760;
+		background    : var(--board-paper);
 		outline       : none;
 
 		&:focus-visible {
-			box-shadow : 0 0 0 3px rgba(147, 197, 253, 0.6);
+			box-shadow : 0 0 0 3px var(--board-focus);
 		}
 
 		svg {
@@ -27,31 +27,31 @@
 	}
 
 	.shikaku-gridline {
-		stroke       : rgba(229, 231, 235, 0.22);
+		stroke       : var(--board-line);
 		stroke-width : 0.25;
 	}
 
 	.shikaku-rect {
-		stroke       : #f9fafb;
+		stroke       : var(--board-wall);
 		stroke-width : 0.8;
 		transition   : fill 0.2s ease;
 
 		// Rectangles donnés au départ : bord plus discret
 		&.hint {
-			stroke : #cbd5e1;
+			stroke : #475569;
 		}
 	}
 
 	.shikaku-preview {
 		rect {
-			fill             : rgba(147, 197, 253, 0.18);
-			stroke           : #93c5fd;
+			fill             : var(--board-soft);
+			stroke           : var(--board-focus);
 			stroke-width     : 0.8;
 			stroke-dasharray : 2 1.2;
 		}
 
 		text {
-			fill        : #93c5fd;
+			fill        : var(--board-focus);
 			font-size   : 3.6px;
 			font-weight : 700;
 			text-anchor : end;
@@ -60,19 +60,19 @@
 
 	.shikaku-frame {
 		fill         : none;
-		stroke       : #e5e7eb;
+		stroke       : var(--board-frame);
 		stroke-width : 1.2;
 	}
 
 	.shikaku-cursor {
 		fill         : none;
-		stroke       : #93c5fd;
+		stroke       : var(--board-focus);
 		stroke-width : 0.5;
 		rx           : 1;
 	}
 
 	.shikaku-clue {
-		fill               : #f9fafb;
+		fill               : var(--board-given);
 		font-size          : 5.2px;
 		font-weight        : 700;
 		text-anchor        : middle;

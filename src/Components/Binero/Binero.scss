@@ -7,8 +7,8 @@
 
 		.grid {
 			--cell-size           : calc(var(--grid-width) / var(--size));
-			background            : #02061735;
-			border                : 3px solid #e5e7eb;
+			background            : var(--board-paper);
+			border                : 3px solid var(--board-frame);
 			border-radius         : 10px;
 			display               : grid;
 			grid-template-columns : repeat(var(--size), var(--cell-size));
@@ -18,15 +18,18 @@
 				display         : flex;
 				align-items     : center;
 				justify-content : center;
-				background      : #02061760;
-				border          : 1px solid rgba(229, 231, 235, 0.25);
-				color           : #f9fafb;
+				background      : var(--region, var(--board-paper));
+				border          : 1px solid var(--board-line);
+				color           : var(--board-ink);
 				font-family     : inherit;
 				font-size       : calc(var(--cell-size) * 0.6);
 				font-weight     : 600;
 				padding         : 0;
 				outline         : none;
 				user-select     : none;
+
+				&.zero { --region : var(--board-region-1); }
+				&.one { --region : var(--board-region-0); }
 			}
 
 			// Cases à remplir
@@ -34,20 +37,21 @@
 				cursor : pointer;
 
 				&:not(:disabled):hover {
-					background    : #000000cc;
+					filter        : brightness(1.08);
 					transition    : all 0.05s ease-in-out;
 					transform     : scale(1.1);
 					border-radius : 5px;
-					border        : 2px solid #ffffff;
+					border        : 2px solid var(--board-wall);
 				}
 
 				&:focus {
-					background    : #000000;
+					filter        : brightness(1.12);
 					z-index       : 1;
 					transform     : scale(1.2);
 					transition    : all 0.05s ease-in-out;
 					border-radius : 5px;
-					border        : 2px solid #ffffff;
+					border        : 2px solid var(--board-wall);
+					box-shadow    : 0 0.3rem 0.8rem rgba(0, 0, 0, 0.45);
 				}
 
 				&:disabled {
@@ -57,22 +61,21 @@
 
 			// Chiffres donnés : verts, pas sélectionnables
 			.cell.prefilled {
-				color            : #3bf644;
-				background       : transparent;
+				color            : var(--board-given);
+				font-weight      : 800;
 				animation        : jump 360ms cubic-bezier(.2, .9, .3, 1) both;
 				transform-origin : center bottom;
 			}
 
 			// Ligne et colonne de la case sélectionnée
 			.cell.peer-highlight {
-				background : rgba(255, 255, 255, 0.09);
+				background-image : linear-gradient(var(--board-peer), var(--board-peer));
 			}
 
 			// Chiffre surligné depuis le panneau de gauche
 			.cell.same-number-highlight {
-				box-shadow    : 0 0 0.8rem 0.15rem rgba(59, 246, 68, 0.18) inset;
-				background    : rgba(59, 246, 68, 0.06);
-				border        : 2px solid rgba(59, 246, 68, 0.9);
+				box-shadow    : 0 0 0.6rem 0.1rem rgba(21, 128, 61, 0.45) inset;
+				border        : 2px solid var(--board-same);
 				border-radius : 5px;
 			}
 		}

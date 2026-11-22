@@ -20,31 +20,31 @@
 		grid-template-columns : repeat(var(--size), var(--cell));
 		grid-template-rows    : repeat(var(--size), var(--cell));
 		overflow              : hidden;
-		border                : 3px solid #0f172a;
+		border                : 3px solid var(--board-frame);
 		border-radius         : 10px;
-		background            : #f8fafc;
+		background            : var(--board-paper);
 		// tracer au doigt : pas de défilement de la page sous le doigt
 		touch-action          : none;
 		user-select           : none;
 		outline               : none;
 		cursor                : pointer;
 
-		&:focus-visible { box-shadow : 0 0 0 3px #1d4ed8; }
+		&:focus-visible { box-shadow : 0 0 0 3px var(--board-focus); }
 	}
 
 	.trace-cell {
 		box-sizing : border-box;
-		border     : 1px solid #cbd5e1;
+		border     : 1px solid var(--board-line);
 		transition : background 0.12s ease;
 
 		// case déjà couverte par le chemin
 		&.on { background : #fef3c7; }
 
 		// murs : traits épais sombres
-		&.w-top { border-top : 4px solid #0f172a; }
-		&.w-bottom { border-bottom : 4px solid #0f172a; }
-		&.w-left { border-left : 4px solid #0f172a; }
-		&.w-right { border-right : 4px solid #0f172a; }
+		&.w-top { border-top : 4px solid var(--board-wall); }
+		&.w-bottom { border-bottom : 4px solid var(--board-wall); }
+		&.w-left { border-left : 4px solid var(--board-wall); }
+		&.w-right { border-right : 4px solid var(--board-wall); }
 	}
 
 	// le chemin, par-dessus les cases
@@ -76,8 +76,8 @@
 		width           : calc(var(--cell) * 0.6);
 		height          : calc(var(--cell) * 0.6);
 		border-radius   : 50%;
-		background      : #0f172a;
-		color           : #f8fafc;
+		background      : var(--board-wall);
+		color           : var(--board-paper);
 		font-size       : calc(var(--cell) * 0.32);
 		font-weight     : 700;
 		transform       : translate(-50%, -50%);

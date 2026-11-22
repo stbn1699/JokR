@@ -33,6 +33,7 @@ import Register from "./Components/UserSection/Register/Register.tsx";
 import OAuthCallback from "./Components/UserSection/OAuthCallback/OAuthCallback.tsx";
 import Header from "./Components/Header/Header.tsx";
 import Profile from "./Components/UserSection/Profile/Profile.tsx";
+import "./Components/PuzzleUI/BoardTheme.scss";
 import NotFound from "./Components/NotFound/NotFound.tsx";
 import Leaderboard from "./Components/Leaderboard/Leaderboard.tsx";
 import DailyHistory from "./Components/DailyHistory/DailyHistory.tsx";

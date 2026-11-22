@@ -4,8 +4,8 @@
 	--cell-size : min(4.5rem, calc((100vw - 2rem) / 9));
 
 	.grid {
-		background            : #02061735;
-		border                : 3px solid #e5e7eb;
+		background            : var(--board-paper);
+		border                : 3px solid var(--board-frame);
 		display               : grid;
 		grid-template-columns : repeat(9, var(--cell-size));
 		grid-template-rows    : repeat(9, var(--cell-size));
@@ -34,10 +34,11 @@
 				margin             : 0;
 			}
 
-			background      : transparent;
-			border          : 1px solid rgba(229, 231, 235, 0.25);
+			// Couleur du bloc 3×3 (--region, donnée par la grille)
+			background      : var(--region, var(--board-paper));
+			border          : 1px solid var(--board-line);
 
-			color           : #f9fafb;
+			color           : var(--board-ink);
 			font-size       : calc(var(--cell-size) * 0.65);
 			font-weight     : 600;
 			text-align      : center;
@@ -48,27 +49,29 @@
 
 			// Seules les cases à remplir réagissent au survol (les indices ne sont pas cliquables)
 			&:not(.prefilled):not(:disabled):hover {
-				background    : #000000cc !important;
+				filter        : brightness(1.08);
 				transition    : all 0.05s ease-in-out;
 				transform     : scale(1.1);
 				border-radius : 5px;
-				border        : 2px solid #ffffff !important;
+				border        : 2px solid var(--board-wall) !important;
 			}
 
 			&:focus {
-				background    : #000000 !important;
+				filter        : brightness(1.12);
 				z-index       : 1;
 				transform     : scale(1.2);
 				transition    : all 0.05s ease-in-out;
 				border-radius : 5px;
-				border        : 2px solid #ffffff !important;
+				border        : 2px solid var(--board-wall) !important;
+				box-shadow    : 0 0.3rem 0.8rem rgba(0, 0, 0, 0.45);
 			}
 
 			&.prefilled,
 			&:disabled {
-				color   : #3bf644;
-				opacity : 1;
-				cursor  : default;
+				color       : var(--board-given);
+				font-weight : 800;
+				opacity     : 1;
+				cursor      : default;
 			}
 
 			/* Ajout de l'animation de saut pour les cases pré-remplies */
@@ -78,22 +81,17 @@
 				transform-origin: center bottom;
 			}
 
-			&:placeholder-shown {
-				background : #02061760;
-			}
-
 			/* Ligne, colonne et bloc 3×3 de la case sélectionnée */
 			&.peer-highlight {
-				background : rgba(255, 255, 255, 0.09);
+				background-image : linear-gradient(var(--board-peer), var(--board-peer));
 			}
 
 			/* Highlight cells that have the same number as the hovered/selected one */
 			&.same-number-highlight {
-				box-shadow    : 0 0 0.8rem 0.15rem rgba(59, 246, 68, 0.18) inset;
-				background    : rgba(59, 246, 68, 0.06) !important;
+				box-shadow    : 0 0 0.6rem 0.1rem rgba(21, 128, 61, 0.45) inset;
 				transition    : all 0.08s ease-in-out;
 				transform     : scale(1.10);
-				border        : 2px solid rgba(59, 246, 68, 0.9) !important;
+				border        : 2px solid var(--board-same) !important;
 				border-radius : 5px;
 			}
 		}
@@ -103,12 +101,12 @@
 // Bordures épaisses entre les blocs 3×3 (portées par les conteneurs de cases)
 .sudoku .game .grid {
 	.cell-box:nth-child(3n):not(:nth-child(9n)) > .cell {
-		border-right : 3px solid rgba(229, 231, 235, 0.8);
+		border-right : 3px solid var(--board-wall);
 	}
 
 	.cell-box:nth-child(n + 19):nth-child(-n + 27) > .cell,
 	.cell-box:nth-child(n + 46):nth-child(-n + 54) > .cell {
-		border-bottom : 3px solid rgba(229, 231, 235, 0.8);
+		border-bottom : 3px solid var(--board-wall);
 	}
 
 	// Notes au crayon : petits chiffres en 3×3, visibles seulement si la case est vide
@@ -120,7 +118,7 @@
 		grid-template-rows    : repeat(3, 1fr);
 		padding               : 8%;
 		pointer-events        : none;
-		color                 : #93c5fd;
+		color                 : var(--board-note);
 		font-size             : calc(var(--cell-size) * 0.24);
 		line-height           : 1;
 
@@ -138,7 +136,7 @@
 
 // Mode notes : la case sélectionnée a un bord bleu (comme les notes)
 .sudoku .game .grid.notes-mode .cell:focus {
-	border-color : #93c5fd !important;
+	border-color : var(--board-focus) !important;
 }
 
 // Téléphone : la grille remplit la zone de jeu (largeur ou hauteur, la plus petite des deux)

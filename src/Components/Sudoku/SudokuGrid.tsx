@@ -3,6 +3,7 @@ import {handleKeyDown} from "./keyboardNavigation";
 import {sanitizeInput} from "./sanitizeInput";
 import {hasNote} from "./gridValues.ts";
 import {SkeletonLabel} from "../PuzzleUI/GridSkeleton.tsx";
+import {regionColor} from "../PuzzleUI/regionColors.ts";
 
 // Touches qui modifieraient une case pré-remplie
 const BLOCKED_ON_CLUES = new Set(["Backspace", "Delete", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
@@ -60,7 +61,7 @@ export default function SudokuGrid(props: SudokuGridProps) {
         <div className={`grid ${notesMode ? "notes-mode" : ""} ${props.loading ? "is-loading" : ""}`}>
             {Array.from({length: 81}, (_, i) => (
                 // --d : ligne + colonne, pour la vague en diagonale du chargement
-                <div className="cell-box" key={i} style={{"--d": Math.floor(i / 9) + (i % 9)} as CSSProperties}>
+                <div className="cell-box" key={i} style={{"--d": Math.floor(i / 9) + (i % 9), "--region": regionColor(Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3))} as CSSProperties}>
                     <input
                         data-index={i}
                         ref={(el) => {

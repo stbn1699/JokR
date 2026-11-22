@@ -1,9 +1,7 @@
 // ---------- Tutoriel guidé du Shikaku : ombre, cases montrées et rectangle à tracer, dessinés sur le plateau
 .level-tutorial.shikaku {
-	// fond plein : l'ombre doit se voir quel que soit le fond de la page
 	.shikaku-board {
-		width      : var(--grid-width);
-		background : #475569;
+		width : var(--grid-width);
 	}
 
 	.shikaku-guide { pointer-events : none; }

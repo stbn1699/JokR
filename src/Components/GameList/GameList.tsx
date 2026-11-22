@@ -27,6 +27,13 @@ function GameTypeBadge({code}: { code: string }) {
     return <span className={`game-type ${type}`}><Icon aria-hidden/> {label}</span>;
 }
 
+// Icône du jeu (public/gameIcons/<CODE>.svg) ; case en pointillés tant qu'elle n'est pas dessinée
+function GameIcon({code}: { code: string }) {
+    const [missing, setMissing] = useState(false);
+    if (missing) return <div className="game-icon-missing" aria-hidden/>;
+    return <img src={`/gameIcons/${code}.svg`} alt={code} onError={() => setMissing(true)}/>;
+}
+
 // Filtre de l'accueil, retenu d'une visite à l'autre
 type GameFilter = GameType | "tous";
 const GAME_FILTER_KEY = "gameListFilter";
@@ -259,7 +266,7 @@ export default function GameList() {
                         className="game"
                         onClick={handleGameSelection(game.code)}
                     >
-                        <img src={`/gameIcons/${game.code}.svg`} alt={game.code}/>
+                        <GameIcon code={game.code}/>
                         <h1>{game.designation}</h1>
                     </div>
 

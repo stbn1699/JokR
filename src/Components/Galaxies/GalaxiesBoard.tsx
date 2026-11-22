@@ -1,6 +1,7 @@
 import {type KeyboardEvent, type PointerEvent, useRef, useState} from "react";
 import type {GalaxiesPuzzle} from "../../Models/galaxies.model.ts";
 import {type BoardAnalysis, wallCells, wallCount, wallOnSide} from "./galaxiesRules.ts";
+import {regionColor} from "../PuzzleUI/regionColors.ts";
 
 // Taille d'une case dans le dessin (unités SVG)
 const CELL = 10;
@@ -28,9 +29,6 @@ type GalaxiesBoardProps = {
     // Tutoriel : cases dans l'ombre (toutes sauf `lit`), cases montrées du doigt et murs à tracer (qui brillent)
     guide?: { lit: Set<number> | null; focus: number[]; targets: Set<number> };
 };
-
-// Couleur d'une galaxie terminée (une teinte par point, bien espacées, jamais rouge : le rouge signale une erreur)
-const galaxyColor = (dot: number) => `hsl(${30 + ((dot * 137.5) % 300)} 70% 52% / 0.55)`;
 
 // Segment d'un mur : [x1, y1, x2, y2] en unités SVG
 function wallSegment(wall: number, width: number, height: number): [number, number, number, number] {
@@ -148,8 +146,8 @@ export default function GalaxiesBoard({puzzle, walls, hintWalls, analysis, disab
                 {/* Fond des cases : couleur de la galaxie terminée, rouge si la zone est impossible */}
                 {Array.from({length: width * height}, (_, i) => {
                     const region = regionDone(i);
-                    const fill = region?.status === "valid" ? galaxyColor(region.dots[0]!)
-                        : showErrors && region?.status === "error" ? "rgba(248, 113, 113, 0.28)" : "transparent";
+                    const fill = region?.status === "valid" ? regionColor(region.dots[0]!)
+                        : showErrors && region?.status === "error" ? "var(--board-error-bg)" : "transparent";
                     return <rect key={i} x={(i % width) * CELL} y={Math.floor(i / width) * CELL} width={CELL} height={CELL}
                                  className="galaxies-cell" fill={fill}/>;
                 })}

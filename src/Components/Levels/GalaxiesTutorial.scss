@@ -1,9 +1,7 @@
 // ---------- Tutoriel guidé des Galaxies : ombre, cases montrées et murs à tracer, dessinés sur le plateau
 .level-tutorial.galaxies {
-	// fond plein : l'ombre doit se voir quel que soit le fond de la page
 	.galaxies-board {
-		width      : var(--grid-width);
-		background : #334155;
+		width : var(--grid-width);
 	}
 
 	// pas d'interaction avec le dessin du guide (le plateau reçoit les appuis)

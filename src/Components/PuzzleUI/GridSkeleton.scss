@@ -7,15 +7,15 @@
 	width                 : var(--grid-width, min(40.5rem, calc(100vw - 2rem)));
 	aspect-ratio          : 1;
 	overflow              : hidden;
-	border                : 3px solid #e5e7eb;
+	border                : 3px solid var(--board-frame);
 	border-radius         : 10px;
-	background            : #02061735;
+	background            : var(--board-paper);
 	animation             : grid-skeleton-in 0.25s ease both;
 }
 
 .grid-skeleton-cell {
-	border          : 1px solid rgba(229, 231, 235, 0.18);
-	background      : rgba(255, 255, 255, 0.03);
+	border          : 1px solid var(--board-line);
+	background      : var(--board-hover);
 	// vague en diagonale : chaque case s'éclaire un peu après sa voisine (--d = ligne + colonne)
 	animation       : grid-skeleton-wave 1.6s ease-in-out infinite;
 	animation-delay : calc(var(--d, 0) * 70ms);
@@ -30,12 +30,12 @@
 		position        : absolute;
 		transform       : translate(-50%, -50%) scale(0.93);
 		clip-path       : polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-		background      : rgba(229, 231, 235, 0.08);
+		background      : var(--board-hover);
 		animation       : grid-skeleton-wave 1.6s ease-in-out infinite;
 		animation-delay : calc(var(--d, 0) * 70ms);
 
 		&.hole {
-			background : rgba(2, 6, 23, 0.6);
+			background : var(--board-hole);
 			animation  : none;
 		}
 	}

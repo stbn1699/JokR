@@ -25,12 +25,12 @@
 		}
 
 		.rikudo-hole {
-			background : rgba(2, 6, 23, 0.6);
+			background : var(--board-hole);
 		}
 
 		.hex {
-			background  : rgba(229, 231, 235, 0.16);
-			color       : #f9fafb;
+			background  : var(--board-paper);
+			color       : var(--board-ink);
 			font-family : inherit;
 			font-weight : 600;
 			line-height : 1;
@@ -43,7 +43,7 @@
 			cursor : pointer;
 
 			&:not(:disabled):hover {
-				background : rgba(229, 231, 235, 0.3);
+				background : var(--board-hover);
 				transform  : translate(-50%, -50%) scale(1);
 			}
 
@@ -52,8 +52,8 @@
 			// bordure et ombre). Reste ainsi sous la souris (le survol ne la remplace pas).
 			&:focus,
 			&:focus:not(:disabled):hover {
-				background : #3bf644;
-				color      : #020617;
+				background : var(--board-focus);
+				color      : var(--board-given);
 				font-weight : 800;
 				transform  : translate(-50%, -50%) scale(1.1);
 				z-index    : 2;
@@ -63,7 +63,7 @@
 					position   : absolute;
 					inset      : 9%;
 					clip-path  : polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-					background : #f9fafb;
+					background : var(--board-paper);
 				}
 
 				span {
@@ -78,8 +78,9 @@
 
 		// Nombres donnés : verts, pas sélectionnables
 		.hex.prefilled {
-			background : rgba(2, 6, 23, 0.55);
-			color      : #3bf644;
+			background  : var(--board-region-1);
+			color       : var(--board-given);
+			font-weight : 800;
 
 			span {
 				animation        : jump 360ms cubic-bezier(.2, .9, .3, 1) both;
@@ -89,22 +90,22 @@
 
 		// Voisines de la case sélectionnée
 		.hex.peer-highlight:not(:focus) {
-			background : rgba(255, 255, 255, 0.28);
+			background : var(--board-soft);
 		}
 
 		// Nombres juste avant et juste après celui de la case sélectionnée
 		.hex.chain-highlight:not(:focus) {
-			background : rgba(147, 197, 253, 0.35);
+			background : var(--board-region-8);
 		}
 
 		// Nombre surligné depuis le panneau de gauche
 		.hex.same-number-highlight:not(:focus) {
-			background : rgba(59, 246, 68, 0.35);
+			background : var(--board-same-bg);
 		}
 
 		.hex.conflict {
-			color      : #f87171 !important;
-			background : rgba(248, 113, 113, 0.25) !important;
+			color      : var(--board-error-ink) !important;
+			background : var(--board-error-bg) !important;
 		}
 
 		// Calque du chemin et des repères (au-dessus des cases, sans capter les clics)
@@ -130,7 +131,7 @@
 		// Hexagone intérieur sur le départ (1) et l'arrivée (N)
 		.rikudo-endpoint {
 			fill         : none;
-			stroke       : #3bf644;
+			stroke       : var(--board-same);
 			stroke-width : 0.07;
 			opacity      : 0.8;
 		}

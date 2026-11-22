@@ -1,0 +1,41 @@
+// Thème des plateaux de jeu, sur le modèle du Tectonic : cases pastel opaques, encre sombre, traits foncés.
+// Toutes les grilles lisent ces variables : une variante du shop n'aura qu'à les redéfinir, par exemple
+// :root[data-board-theme="nuit"] { --board-paper : #1e293b; ... }
+:root {
+	// Couleurs des zones (texte sombre lisible dessus, jamais rouge pur : le rouge signale une erreur)
+	--board-region-0 : #f4a582;
+	--board-region-1 : #92c5de;
+	--board-region-2 : #f6d55c;
+	--board-region-3 : #a6d96a;
+	--board-region-4 : #c2a5cf;
+	--board-region-5 : #f4b6c2;
+	--board-region-6 : #80cdc1;
+	--board-region-7 : #fdb863;
+	--board-region-8 : #b8b8e8;
+	--board-region-9 : #d9c39a;
+
+	// Plateau
+	--board-paper    : #f8fafc; // case sans couleur
+	--board-muted    : #94a3b8; // case neutralisée (lettre absente, rectangle pas encore juste)
+	--board-hover    : #e2e8f0;
+	--board-soft     : #dbeafe; // cases liées à la sélection
+	--board-hole     : #0f172a; // case retirée du plateau
+	--board-frame    : #0f172a; // cadre
+	--board-wall     : #0f172a; // traits épais
+	--board-line     : rgba(2, 6, 23, 0.25); // traits fins
+
+	// Encre
+	--board-given    : #0f172a; // donné au départ
+	--board-ink      : #1d3a8a; // saisi par le joueur
+	--board-note     : #1e40af; // notes au crayon
+
+	// États
+	--board-peer     : rgba(255, 255, 255, 0.35); // voile clair sur les cases liées à la sélection
+	--board-focus    : #2563eb;
+	--board-same     : #15803d;
+	--board-same-bg  : #bbf7d0;
+	--board-good     : #4ade80; // réponse juste
+	--board-error    : #dc2626;
+	--board-error-ink: #b91c1c;
+	--board-error-bg : #fecaca;
+}

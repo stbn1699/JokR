@@ -8,13 +8,13 @@
 	.galaxies-board {
 		width         : var(--grid-width);
 		border-radius : 10px;
-		background    : #02061760;
+		background    : var(--board-paper);
 		outline       : none;
 		// glisser trace des murs : pas de défilement ni de zoom sous le doigt
 		touch-action  : none;
 
 		&:focus-visible {
-			box-shadow : 0 0 0 3px rgba(147, 197, 253, 0.6);
+			box-shadow : 0 0 0 3px var(--board-focus);
 		}
 
 		svg {
@@ -30,52 +30,52 @@
 	}
 
 	.galaxies-gridline {
-		stroke       : rgba(229, 231, 235, 0.22);
+		stroke       : var(--board-line);
 		stroke-width : 0.25;
 	}
 
 	.galaxies-wall {
-		stroke         : #f9fafb;
+		stroke         : var(--board-wall);
 		stroke-width   : 1.1;
 		stroke-linecap : round;
 
 		// Murs donnés au départ : un peu plus discrets
 		&.hint {
-			stroke : #cbd5e1;
+			stroke : #475569;
 		}
 
 		// Mur à travers un point (option Montrer les erreurs)
 		&.bad {
-			stroke : #f87171;
+			stroke : var(--board-error);
 		}
 
 		// Aperçu au survol de la souris
 		&.preview {
-			stroke : rgba(249, 250, 251, 0.35);
+			stroke : rgba(15, 23, 42, 0.35);
 		}
 	}
 
 	.galaxies-frame {
 		fill         : none;
-		stroke       : #e5e7eb;
+		stroke       : var(--board-frame);
 		stroke-width : 1.2;
 	}
 
 	.galaxies-cursor {
 		fill         : none;
-		stroke       : #93c5fd;
+		stroke       : var(--board-focus);
 		stroke-width : 0.5;
 		rx           : 1;
 	}
 
 	.galaxies-dot {
-		fill         : #0b1020;
-		stroke       : #f9fafb;
+		fill         : var(--board-paper);
+		stroke       : var(--board-wall);
 		stroke-width : 0.7;
 
 		// Galaxie terminée : point plein
 		&.done {
-			fill : #f9fafb;
+			fill : var(--board-wall);
 		}
 	}
 

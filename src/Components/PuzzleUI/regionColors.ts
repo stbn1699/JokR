@@ -1,8 +1,8 @@
-// Couleurs des zones (pastel, texte sombre lisible dessus) : Queens et Tectonic
-export const REGION_COLORS = [
-    "#f4a582", "#92c5de", "#f6d55c", "#a6d96a", "#c2a5cf",
-    "#f4b6c2", "#80cdc1", "#fdb863", "#b8b8e8", "#d9c39a",
-];
+// Couleurs des zones, communes à tous les plateaux (définies dans BoardTheme.scss, pour les variantes de thème)
+export const REGION_COLORS = Array.from({length: 10}, (_, i) => `var(--board-region-${i})`);
+
+// Couleur stable d'un élément numéroté (galaxie, rectangle)
+export const regionColor = (index: number) => REGION_COLORS[index % REGION_COLORS.length]!;
 
 /**
  * Couleur de chaque zone (indice dans REGION_COLORS), deux zones voisines n'ont jamais la même.

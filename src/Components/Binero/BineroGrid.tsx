@@ -87,6 +87,8 @@ export default function BineroGrid(props: BineroGridProps) {
                 const shown = i < revealed;
                 const classes = [
                     "cell",
+                    // chaque valeur a sa couleur, pour lire les suites d'un coup d'œil
+                    shown && value === 0 ? "zero" : shown && value === 1 ? "one" : "",
                     selectedCell !== null && isPeer(selectedCell, i, size) ? "peer-highlight" : "",
                     shown && highlightDigit !== null && value === highlightDigit ? "same-number-highlight" : "",
                     shown && props.errors?.has(i) ? "conflict" : "",

@@ -24,6 +24,10 @@ const TYPE_BY_GAME: Record<string, GameType> = {
     SHIKAKU: "grille",
     QUEENS: "grille",
     TRACE: "grille",
+    DEVIMOT: "mots",
+    ECHELLE: "mots",
+    MOTSMELES: "mots",
+    MOTSACASER: "mots",
 };
 
 export function gameType(code: string): GameType {

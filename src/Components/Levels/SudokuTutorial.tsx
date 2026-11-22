@@ -11,6 +11,7 @@ import {type CSSProperties, type KeyboardEvent, useEffect, useMemo, useRef, useS
 import {gameService} from "../../Services/game.service.ts";
 import LessonFrame, {type Bubble} from "./LessonFrame.tsx";
 import {useLesson} from "./useLesson.ts";
+import {regionColor} from "../PuzzleUI/regionColors.ts";
 import {nextSudokuStep, SUDOKU_GROUPS, type SudokuStep} from "./sudokuGuide.ts";
 
 type Props = { level: number; tutorial: number | null };
@@ -169,6 +170,7 @@ export default function SudokuTutorial({level, tutorial}: Props) {
                             i % 9 === 2 || i % 9 === 5 ? "box-right" : "", Math.floor(i / 9) === 2 || Math.floor(i / 9) === 5 ? "box-bottom" : ""];
                         return (
                             <button key={i} type="button" className={classes.join(" ")} disabled={clues.has(i) || solved}
+                                    style={{"--region": regionColor(Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3))} as CSSProperties}
                                     ref={el => {
                                         cells.current[i] = el;
                                     }}

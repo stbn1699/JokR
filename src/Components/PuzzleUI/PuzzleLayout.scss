@@ -3,17 +3,12 @@
 
 /* Effet de saut à l'apparition des chiffres donnés */
 @keyframes jump {
-	0% {
-		transform: translateY(0) scale(1);
+	// Sans déplacement ni rétrécissement : sur un plateau opaque, le fond apparaîtrait entre les cases
+	0%, 100% {
+		transform: scale(1);
 	}
-	30% {
-		transform: translateY(-12%) scale(1.08);
-	}
-	60% {
-		transform: translateY(4%) scale(0.98);
-	}
-	100% {
-		transform: translateY(0) scale(1);
+	35% {
+		transform: scale(1.1);
 	}
 }
 
@@ -415,8 +410,9 @@
 
 // Case qui contredit les règles (commun aux grilles)
 .puzzle-layout .grid .cell.conflict {
-	color      : #f87171 !important;
-	background : rgba(248, 113, 113, 0.14) !important;
+	color      : var(--board-error-ink) !important;
+	background : var(--region, var(--board-paper)) !important;
+	box-shadow : inset 0 0 0 3px var(--board-error);
 }
 
 // Bouton du mode notes (Sudoku) : bleu quand il est actif

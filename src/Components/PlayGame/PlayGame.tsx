@@ -17,6 +17,10 @@ import Galaxies from "../Galaxies/Galaxies.tsx";
 import Shikaku from "../Shikaku/Shikaku.tsx";
 import Queens from "../Queens/Queens.tsx";
 import Trace from "../Trace/Trace.tsx";
+import Devimot from "../WordGames/Devimot.tsx";
+import Echelle from "../WordGames/Echelle.tsx";
+import MotsMeles from "../WordGames/MotsMeles.tsx";
+import MotsACaser from "../WordGames/MotsACaser.tsx";
 import DailyLoginRequired from "../PuzzleUI/DailyLoginRequired.tsx";
 import {useAuth} from "../../Context/authContext.ts";
 
@@ -67,6 +71,15 @@ export default function PlayGame({daily = false, challengeGame, challengeId}: { 
                 return <Queens daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "TRACE":
                 return <Trace daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
+            // Jeux de mots : partie libre uniquement pour l'instant
+            case "DEVIMOT":
+                return <Devimot/>;
+            case "ECHELLE":
+                return <Echelle/>;
+            case "MOTSMELES":
+                return <MotsMeles/>;
+            case "MOTSACASER":
+                return <MotsACaser/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

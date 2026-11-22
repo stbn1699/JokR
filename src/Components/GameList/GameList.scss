@@ -64,6 +64,16 @@
 		transition : transform 0.25s ease;
 	}
 
+	.game-icon-missing {
+		flex          : none;
+		box-sizing    : border-box;
+		width         : 10rem;
+		height        : 10rem;
+		margin        : 0 0 0.6rem;
+		border        : 2px dashed rgba(255, 255, 255, 0.55);
+		border-radius : 1rem;
+	}
+
 	h1 {
 		align-self     : center;
 		margin         : 0;
@@ -372,11 +382,11 @@
 	--type : #60a5fa;
 
 	&.grille {
-		--type : #c084fc;
+		--type : #34d399;
 	}
 
 	&.mots {
-		--type : #f472b6;
+		--type : #fb923c;
 	}
 
 	&.autres {

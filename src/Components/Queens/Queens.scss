@@ -11,7 +11,7 @@
 		grid-template-columns : repeat(var(--size), var(--cell-size));
 		grid-template-rows    : repeat(var(--size), var(--cell-size));
 		overflow              : hidden;
-		border                : 3px solid #e5e7eb;
+		border                : 3px solid var(--board-frame);
 		border-radius         : 10px;
 		// Glisser pose des croix : pas de défilement de la page sous le doigt
 		touch-action          : none;
@@ -23,14 +23,14 @@
 		align-items     : center;
 		justify-content : center;
 		padding         : 0;
-		border          : 1px solid rgba(2, 6, 23, 0.25);
-		color           : #1e1b2e;
+		border          : 1px solid var(--board-line);
+		color           : var(--board-given);
 		font-size       : calc(var(--cell-size) * 0.5);
 		cursor          : pointer;
 		outline         : none;
 
 		&:focus-visible {
-			box-shadow : inset 0 0 0 3px #1d4ed8;
+			box-shadow : inset 0 0 0 3px var(--board-focus);
 		}
 
 		&:disabled {
@@ -39,19 +39,19 @@
 
 		// Traits épais entre les zones
 		&.b-top {
-			border-top : 3px solid #0f172a;
+			border-top : 3px solid var(--board-wall);
 		}
 
 		&.b-right {
-			border-right : 3px solid #0f172a;
+			border-right : 3px solid var(--board-wall);
 		}
 
 		&.b-bottom {
-			border-bottom : 3px solid #0f172a;
+			border-bottom : 3px solid var(--board-wall);
 		}
 
 		&.b-left {
-			border-left : 3px solid #0f172a;
+			border-left : 3px solid var(--board-wall);
 		}
 
 		.queens-cross {
@@ -71,15 +71,15 @@
 
 		// Dame donnée au départ : un peu plus sombre
 		&.hint .queens-queen {
-			color : #0f172a;
+			color : var(--board-wall);
 		}
 
 		// Dame en conflit (option Montrer les erreurs)
 		&.conflict {
-			box-shadow : inset 0 0 0 3px #dc2626;
+			box-shadow : inset 0 0 0 3px var(--board-error);
 
 			.queens-queen {
-				color : #b91c1c;
+				color : var(--board-error-ink);
 			}
 		}
 	}

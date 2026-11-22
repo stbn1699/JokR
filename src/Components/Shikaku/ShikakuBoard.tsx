@@ -1,6 +1,7 @@
 import {type KeyboardEvent, type PointerEvent, useState} from "react";
 import type {Rect, ShikakuPuzzle} from "../../Models/shikaku.model.ts";
 import {rectBetween, type ShikakuAnalysis} from "./shikakuRules.ts";
+import {regionColor} from "../PuzzleUI/regionColors.ts";
 
 // Taille d'une case dans le dessin (unités SVG)
 const CELL = 10;
@@ -21,9 +22,6 @@ type ShikakuBoardProps = {
     // Tutoriel : cases dans l'ombre (toutes sauf `lit`), cases montrées du doigt et rectangle à tracer (qui brille)
     guide?: { lit: Set<number> | null; focus: number[]; target: Rect | null };
 };
-
-// Couleur d'un rectangle juste (une teinte par nombre, bien espacées, jamais rouge : le rouge signale une erreur)
-const rectColor = (clue: number) => `hsl(${30 + ((clue * 137.5) % 300)} 70% 52% / 0.5)`;
 
 /**
  * Plateau du Shikaku.
@@ -124,8 +122,8 @@ export default function ShikakuBoard({puzzle, rects, hintCount, analysis, disabl
                 {rects.map((rect, k) => {
                     const [r, c, h, w] = rect;
                     const valid = analysis.statuses[k] === "valid";
-                    const fill = valid ? rectColor(analysis.clueOf[k]!)
-                        : showErrors ? "rgba(248, 113, 113, 0.3)" : "rgba(148, 163, 184, 0.22)";
+                    const fill = valid ? regionColor(analysis.clueOf[k]!)
+                        : showErrors ? "var(--board-error-bg)" : "var(--board-hover)";
                     return (
                         <rect key={`${k}-${rect.join(",")}`} x={c * CELL + 0.6} y={r * CELL + 0.6}
                               width={w * CELL - 1.2} height={h * CELL - 1.2} rx={1.2} fill={fill}
