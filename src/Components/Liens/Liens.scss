@@ -1,0 +1,72 @@
+// Plateau de Liens (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.liens {
+	.liens-board {
+		display       : block;
+		box-sizing    : border-box;
+		width         : min(44rem, calc(100vh - 11rem), calc(100vw - 2rem));
+		height        : auto;
+		overflow      : hidden;
+		border        : 3px solid var(--board-frame);
+		border-radius : 10px;
+		background    : var(--board-paper);
+		cursor        : pointer;
+		// glisser trace une ligne : pas de défilement ni de sélection du texte
+		touch-action  : none;
+		user-select   : none;
+
+		&.drawing { cursor : grabbing; }
+	}
+
+	.liens-grid line {
+		stroke       : var(--board-line);
+		stroke-width : 0.025;
+	}
+
+	// Teinte légère sous une ligne
+	.liens-trail {
+		fill         : var(--pair);
+		fill-opacity : 0.14;
+	}
+
+	.linked .liens-trail { fill-opacity : 0.28; }
+
+	.liens-line {
+		fill            : none;
+		stroke          : var(--pair);
+		stroke-width    : 0.3;
+		stroke-linecap  : round;
+		stroke-linejoin : round;
+	}
+
+	.liens-dot {
+		pointer-events : none;
+
+		circle {
+			fill         : var(--pair);
+			stroke       : var(--board-wall);
+			stroke-width : 0.05;
+		}
+
+		text {
+			fill              : white;
+			stroke            : var(--board-wall);
+			stroke-width      : 0.09;
+			paint-order       : stroke;
+			font-size         : 0.48px;
+			font-weight       : 800;
+			text-anchor       : middle;
+			dominant-baseline : central;
+		}
+	}
+
+	.liens-progress {
+		margin     : 1.5rem 1rem 0.5rem;
+		font-size  : 1.4rem;
+		text-align : center;
+
+		strong {
+			font-size : 2.2rem;
+			color     : #3bf644;
+		}
+	}
+}
