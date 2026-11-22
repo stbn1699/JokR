@@ -1,0 +1,147 @@
+// Plateau du Tuyaux (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.tuyaux {
+	.tuyaux-board {
+		display       : block;
+		box-sizing    : border-box;
+		width         : min(44rem, calc(100vh - 11rem), calc(100vw - 2rem));
+		height        : auto;
+		overflow      : hidden;
+		border        : 3px solid var(--board-frame);
+		border-radius : 10px;
+		background    : var(--board-paper);
+		user-select   : none;
+	}
+
+	.tuyaux-cell {
+		cursor : pointer;
+
+		&:hover .tuyaux-tile { fill : var(--board-hover); }
+	}
+
+	.tuyaux-tile {
+		fill         : var(--board-paper);
+		stroke       : var(--board-line);
+		stroke-width : 0.02;
+	}
+
+	.tuyaux-pipe { transition : transform 0.12s ease-out; }
+
+	.tuyaux-outline {
+		stroke         : var(--board-wall);
+		stroke-width   : 0.34;
+		stroke-linecap : butt;
+	}
+
+	.tuyaux-water {
+		stroke         : var(--board-pipe);
+		stroke-width   : 0.2;
+		stroke-linecap : butt;
+		transition     : stroke 0.15s ease;
+	}
+
+	.tuyaux-joint-outline { fill : var(--board-wall); }
+
+	.tuyaux-joint {
+		fill       : var(--board-pipe);
+		transition : fill 0.15s ease;
+	}
+
+	.tuyaux-end {
+		fill         : var(--board-pipe);
+		stroke       : var(--board-wall);
+		stroke-width : 0.07;
+		transition   : fill 0.15s ease;
+	}
+
+	// L'eau, par-dessus le tuyau vide : elle entre, atteint le centre, puis repart vers les autres sorties
+	.tuyaux-fill {
+		--water : var(--board-water);
+
+		pointer-events : none;
+
+		line {
+			stroke            : var(--water);
+			stroke-width      : 0.2;
+			stroke-linecap    : butt;
+			stroke-dasharray  : 1;
+			stroke-dashoffset : 0;
+			transition        : stroke 0.3s ease;
+		}
+
+		circle {
+			fill       : var(--water);
+			transition : fill 0.3s ease;
+		}
+
+		.fill-in {
+			animation : tuyaux-flow calc(var(--fill-step) / 2) linear var(--fill-delay) backwards;
+		}
+
+		.fill-joint {
+			animation : tuyaux-swell calc(var(--fill-step) / 4) ease-out calc(var(--fill-delay) + var(--fill-step) / 2) backwards;
+		}
+
+		.fill-out {
+			animation : tuyaux-flow calc(var(--fill-step) / 2) linear calc(var(--fill-delay) + var(--fill-step) / 2) backwards;
+		}
+
+		.fill-end {
+			animation : tuyaux-swell calc(var(--fill-step) / 2) ease-out calc(var(--fill-delay) + var(--fill-step) / 2) backwards;
+		}
+
+		// Déjà pleine à l'ouverture de la partie
+		&.instant * { animation : none; }
+	}
+
+	// La source, au centre de la grille
+	.tuyaux-cell.source .fill-joint { fill : white; }
+
+	// Case donnée : ne tourne pas
+	.tuyaux-cell.given {
+		cursor : default;
+
+		.tuyaux-tile, &:hover .tuyaux-tile { fill : var(--board-region-2); }
+	}
+
+	// Bloquée par le joueur
+	.tuyaux-cell.pinned .tuyaux-tile,
+	.tuyaux-cell.pinned:hover .tuyaux-tile { fill : var(--board-region-8); }
+
+	// Sortie ouverte (option Montrer les coups interdits)
+	.tuyaux-cell.open .tuyaux-tile,
+	.tuyaux-cell.open:hover .tuyaux-tile { fill : var(--board-error-bg); }
+
+	.tuyaux-cursor {
+		fill           : none;
+		stroke         : var(--board-focus);
+		stroke-width   : 0.07;
+		pointer-events : none;
+	}
+
+	// Réseau complet
+	.tuyaux-board.solved .tuyaux-fill { --water : var(--board-good); }
+
+	.tuyaux-progress {
+		margin     : 1.5rem 1rem 0.5rem;
+		font-size  : 1.4rem;
+		text-align : center;
+
+		strong {
+			font-size : 2.2rem;
+			color     : #3bf644;
+		}
+	}
+}
+
+@keyframes tuyaux-flow {
+	from { stroke-dashoffset : 1; }
+}
+
+@keyframes tuyaux-swell {
+	from { transform : scale(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tuyaux .tuyaux-pipe { transition : none; }
+	.tuyaux .tuyaux-fill * { animation : none; }
+}

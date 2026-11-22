@@ -25,6 +25,7 @@ const TYPE_BY_GAME: Record<string, GameType> = {
     QUEENS: "grille",
     TRACE: "grille",
     COLORIA: "grille",
+    TUYAUX: "grille",
     DEVIMOT: "mots",
     ECHELLE: "mots",
     MOTSMELES: "mots",

@@ -11,6 +11,7 @@ import type {EchellePuzzle} from "../utils/echelle.js";
 import type {MotsMelesPuzzle} from "../utils/motsMeles.js";
 import type {MotsACaserPuzzle} from "../utils/motsACaser.js";
 import type {ColoriaPuzzle} from "../utils/coloria.js";
+import type {TuyauxPuzzle} from "../utils/tuyaux.js";
 
 /*
  * Parties en cours, une mémoire par jeu, partagées entre les routes du jeu
@@ -36,3 +37,5 @@ export const motsMelesStore = new PuzzleStore<MotsMelesPuzzle>();
 export const motsACaserStore = new PuzzleStore<MotsACaserPuzzle>();
 // Coloria : cluesCount = nombre de couleurs
 export const coloriaStore = new PuzzleStore<ColoriaPuzzle>();
+// Tuyaux : cluesCount = cases données
+export const tuyauxStore = new PuzzleStore<TuyauxPuzzle>();

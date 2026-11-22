@@ -19,7 +19,7 @@ import {filterFromParams, filterParams, type StatsFilter, timelineTitle} from ".
 
 import Loader from "../Loader/Loader.tsx";
 // Une couleur fixe par jeu (vérifiée lisible et distincte, daltonisme compris) ; les autres jeux en gris
-const GAME_COLORS: Record<string, string> = {SUDOKU: "#3987e5", BINERO: "#e46f24", RIKUDO: "#1baf7a", TECTONIC: "#9085e9", GALAXIES: "#d55181", SHIKAKU: "#c98500", QUEENS: "#008300", TRACE: "#0ea5e9", DEVIMOT: "#ec4899", ECHELLE: "#db2777", MOTSMELES: "#f472b6", MOTSACASER: "#be185d", COLORIA: "#14b8a6"};
+const GAME_COLORS: Record<string, string> = {SUDOKU: "#3987e5", BINERO: "#e46f24", RIKUDO: "#1baf7a", TECTONIC: "#9085e9", GALAXIES: "#d55181", SHIKAKU: "#c98500", QUEENS: "#008300", TRACE: "#0ea5e9", DEVIMOT: "#ec4899", ECHELLE: "#db2777", MOTSMELES: "#f472b6", MOTSACASER: "#be185d", COLORIA: "#14b8a6", TUYAUX: "#0284c7"};
 const OTHER_COLOR = "#94a3b8";
 const gameColor = (code: string) => GAME_COLORS[code] ?? OTHER_COLOR;
 
@@ -329,7 +329,7 @@ function StatsContent({data, filter}: { data: StatsData; filter: StatsFilter }) 
                             <div key={g.code} className="stats-table-wrap">
                                 <table className="stats-table">
                                     <caption><i className="stats-dot" style={{background: gameColor(g.code)}}/>{g.name}</caption>
-                                    <thead><tr><th>Taille</th><th>{g.code === "GALAXIES" ? "Murs donnés" : g.code === "SHIKAKU" ? "Rectangles donnés" : g.code === "QUEENS" ? "Dames données" : g.code === "TRACE" ? "Numéros en plus" : g.code === "DEVIMOT" ? "Essais" : g.code === "ECHELLE" ? "Étapes" : g.code === "MOTSMELES" ? "Mots" : g.code === "MOTSACASER" ? "Mots placés" : g.code === "COLORIA" ? "Couleurs" : "Cases"}</th><th>Lancées</th><th>Réussite</th><th>Temps médian</th></tr></thead>
+                                    <thead><tr><th>Taille</th><th>{g.code === "GALAXIES" ? "Murs donnés" : g.code === "SHIKAKU" ? "Rectangles donnés" : g.code === "QUEENS" ? "Dames données" : g.code === "TRACE" ? "Numéros en plus" : g.code === "DEVIMOT" ? "Essais" : g.code === "ECHELLE" ? "Étapes" : g.code === "MOTSMELES" ? "Mots" : g.code === "MOTSACASER" ? "Mots placés" : g.code === "COLORIA" ? "Couleurs" : g.code === "TUYAUX" ? "Cases données" : "Cases"}</th><th>Lancées</th><th>Réussite</th><th>Temps médian</th></tr></thead>
                                     <tbody>
                                     {rows.map(c => (
                                         <tr key={`${c.gridSize}-${c.emptyCells}`}>
