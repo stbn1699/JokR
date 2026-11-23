@@ -69,10 +69,16 @@ export function useNotifications(enabled: boolean) {
         const first = window.setTimeout(refresh, 0);
         const timer = window.setInterval(refresh, POLL_MS);
         document.addEventListener("visibilitychange", refresh);
+        // Notification push reçue pendant que JokR est ouvert : la cloche se met à jour tout de suite
+        const onPush = (e: MessageEvent) => {
+            if ((e.data as { type?: string } | null)?.type === "jokr:push") refresh();
+        };
+        navigator.serviceWorker?.addEventListener("message", onPush);
         return () => {
             window.clearTimeout(first);
             window.clearInterval(timer);
             document.removeEventListener("visibilitychange", refresh);
+            navigator.serviceWorker?.removeEventListener("message", onPush);
         };
     }, [enabled, load]);
 

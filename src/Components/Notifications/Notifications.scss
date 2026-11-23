@@ -100,6 +100,55 @@
 	}
 }
 
+// Notifications push sur cet appareil
+.notif-push {
+	display       : flex;
+	flex          : none;
+	flex-wrap     : wrap;
+	align-items   : center;
+	gap           : 0.35rem 0.75rem;
+	padding       : 0.6rem 1.1rem;
+	border-bottom : 1px solid rgba(255, 255, 255, 0.08);
+	background    : rgba(251, 191, 36, 0.08);
+
+	&.on { background : rgba(16, 185, 129, 0.08); }
+
+	p {
+		flex        : 1;
+		min-width   : 0;
+		margin      : 0;
+		font-size   : 0.95rem;
+		line-height : 1.25;
+	}
+
+	button {
+		flex          : none;
+		padding       : 0.35rem 0.85rem;
+		border        : none;
+		border-radius : 999px;
+		background    : #fbbf24;
+		color         : #1c1917;
+		font-family   : inherit;
+		font-size     : 0.95rem;
+		cursor        : pointer;
+
+		&:disabled {
+			opacity : 0.6;
+			cursor  : progress;
+		}
+	}
+
+	&.on button {
+		background : rgba(255, 255, 255, 0.1);
+		color      : #f8fafc;
+	}
+
+	small {
+		flex-basis : 100%;
+		color      : #fca5a5;
+	}
+}
+
 .notif-empty {
 	margin    : 0;
 	padding   : 1.25rem 1.1rem;

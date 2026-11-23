@@ -28,6 +28,7 @@ import DailyRewardPopup from "./DailyRewardPopup.tsx";
 import WelcomePopup from "./WelcomePopup.tsx";
 import {useAuth} from "../../Context/authContext.ts";
 import {useWhatsNewOpen} from "../../Services/popupQueue.ts";
+import {usePush} from "../../Services/push.service.ts";
 
 // Durée d'affichage du toast
 const TOAST_MS = 9000;
@@ -64,6 +65,7 @@ function dailySummary(n: DailyResultsNotification) {
 
 export default function NotificationBell({enabled}: { enabled: boolean }) {
     const {items, rewards, welcome, unread, toast, closeToast, markAllRead, markRead} = useNotifications(enabled);
+    const push = usePush(enabled);
     const [open, setOpen] = useState(false);
     // Popup des XP fermée pendant cette visite (le serveur les marque vues)
     const [rewardsClosed, setRewardsClosed] = useState(false);
@@ -134,6 +136,7 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
                             <FaTimes aria-hidden/>
                         </button>
                     </div>
+                    <PushSetting push={push}/>
                     {items.length === 0 ? (
                         <p className="notif-empty">Rien pour l'instant. Tes places aux défis du jour arriveront ici, chaque soir à minuit.</p>
                     ) : (
@@ -208,6 +211,27 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
                     </button>
                 </div>
             )}
+        </div>
+    );
+}
+
+// Notifications sur cet appareil, même quand JokR est fermé (en haut du panneau)
+function PushSetting({push}: { push: ReturnType<typeof usePush> }) {
+    const {status, busy, error, enable, disable} = push;
+    if (status !== "off" && status !== "on" && status !== "blocked") return null;
+    return (
+        <div className={`notif-push ${status}`}>
+            {status === "blocked" ? (
+                <p>Notifications bloquées : autorise-les dans les réglages de ton appareil.</p>
+            ) : (
+                <>
+                    <p>{status === "on" ? "Notifications activées sur cet appareil" : "Reçois tes demandes d'ami·e, défis et lots sur cet appareil"}</p>
+                    <button type="button" disabled={busy} onClick={() => void (status === "on" ? disable() : enable())}>
+                        {status === "on" ? "Désactiver" : "Activer"}
+                    </button>
+                </>
+            )}
+            {error && <small role="alert">{error}</small>}
         </div>
     );
 }

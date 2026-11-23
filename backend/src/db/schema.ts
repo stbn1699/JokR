@@ -137,6 +137,18 @@ export type NotificationsTable = {
     created_at: Generated<Date>;
     // null tant que le joueur ne l'a pas vue
     read_at: Date | null;
+    // version envoyée en push : à envoyer tant qu'elle diffère de created_at
+    pushed_at: Generated<Date | null>;
+};
+
+// Appareils abonnés aux notifications push
+export type PushSubscriptionsTable = {
+    id: Generated<string>;
+    user_id: string;
+    endpoint: string;
+    p256dh: string;
+    auth: string;
+    created_at: Generated<Date>;
 };
 
 // Amis : demande (pending) puis amitié acceptée (accepted)
@@ -318,6 +330,7 @@ export type DB = {
     daily_results: DailyResultsTable;
     game_sessions: GameSessionsTable;
     notifications: NotificationsTable;
+    push_subscriptions: PushSubscriptionsTable;
     friendships: FriendshipsTable;
     friend_challenges: FriendChallengesTable;
     friend_challenge_players: FriendChallengePlayersTable;

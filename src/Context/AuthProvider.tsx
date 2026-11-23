@@ -4,6 +4,7 @@ import {AuthContext, type AuthContextValue, type AuthState} from "./authContext.
 import {UNLIMITED_CREDITS} from "../Services/credits.ts";
 import {authService} from "../Services/auth.service.ts";
 import {userService} from "../Services/user.service.ts";
+import {dropPushSubscription} from "../Services/push.service.ts";
 import {ApiError, AUTH_EXPIRED_EVENT} from "../api/api.ts";
 import type {LoggedUser} from "../Models/loggedUser.model.ts";
 
@@ -21,10 +22,16 @@ export function AuthProvider({children}: { children: ReactNode }) {
         userId: authService.getSession()?.userId ?? null,
     }));
 
-    const logout = useCallback(() => {
+    const endSession = useCallback(() => {
         authService.clearSession();
         setState(LOGGED_OUT);
     }, []);
+
+    // Déconnexion voulue : cet appareil ne reçoit plus les notifications du compte
+    const logout = useCallback(() => {
+        void dropPushSubscription();
+        endSession();
+    }, [endSession]);
 
     // Recharge le profil depuis le serveur via /users/me : un token expiré (401) ou un compte
     // supprimé (404) ferme la session
@@ -65,15 +72,15 @@ export function AuthProvider({children}: { children: ReactNode }) {
         };
     }, [refresh]);
 
-    // Token expiré ou invalide : déconnexion + retour au login
+    // Token expiré ou invalide : retour au login (l'appareil reste abonné : le joueur n'a pas choisi de partir)
     useEffect(() => {
         const onExpired = () => {
-            logout();
+            endSession();
             navigate("/login");
         };
         window.addEventListener(AUTH_EXPIRED_EVENT, onExpired);
         return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired);
-    }, [logout, navigate]);
+    }, [endSession, navigate]);
 
     const setAvatar = useCallback((avatar: string) => setState(s => ({...s, avatar})), []);
     const setBackground = useCallback((background: string | null) => setState(s => ({...s, background})), []);
