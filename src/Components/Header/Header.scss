@@ -497,8 +497,10 @@ body:has([aria-modal="true"]) .header.scrolled-away {
 }
 
 // Téléphone, pendant une partie : une seule ligne (logo et profil), les onglets laissent la place au jeu
+// (Classements, Boutique et Stats aussi : sinon la zone joueur passe à la ligne et déborde sur le jeu)
 @media (max-width: 760px) {
 	.header.in-game {
+		flex-wrap  : nowrap;
 		min-height : 0;
 		height     : 3rem;
 		margin     : 0.4rem;
@@ -509,10 +511,12 @@ body:has([aria-modal="true"]) .header.scrolled-away {
 		}
 
 		.logo {
+			flex   : none;
 			height : 1.9rem;
 		}
 
-		.header-tabs {
+		.header-tabs,
+		.usersection a.header-icon {
 			display : none;
 		}
 	}
