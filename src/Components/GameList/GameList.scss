@@ -680,6 +680,33 @@
 			opacity     : 0.65;
 		}
 
+		// Jeu avec un mode Niveaux : même petite ligne, sans le décor (il recouvrirait l'image du jeu)
+		.game-stats.world {
+			flex-wrap       : wrap;
+			align-items     : center;
+			gap             : 0.25rem 0.5rem;
+			overflow        : visible;
+			border          : none;
+			background      : none;
+			container-type  : normal;
+
+			&::after,
+			.world-backdrop,
+			.game-stats-world-name {
+				display : none;
+			}
+
+			.world-number {
+				font-size   : 1.05rem;
+				white-space : nowrap;
+			}
+
+			.game-stats-world-levels {
+				padding     : 0.1rem 0.55rem;
+				font-size   : 0.9rem;
+				white-space : nowrap;
+			}
+		}
 	}
 }
 

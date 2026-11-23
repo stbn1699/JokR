@@ -30,6 +30,7 @@ import {DEFAULT_PLINKO_RISK, isPlinkoRisk, PLINKO_BETS, PLINKO_RISKS, type Plink
 import PlinkoBoard, {type PlinkoBoardHandle} from "./PlinkoBoard.tsx";
 import PlinkoRules from "./PlinkoRules.tsx";
 import RulesButton from "../RulesButton.tsx";
+import SettingsToggle from "../SettingsToggle.tsx";
 import {TOURS} from "../tours.ts";
 import {RISK_LABELS} from "./plinkoRisks.ts";
 import {useStoredFlag} from "../../PuzzleUI/useStoredFlag.ts";
@@ -76,6 +77,8 @@ export default function PlinkoPage() {
     const auth = useAuth();
     const board = useRef<PlinkoBoardHandle>(null);
     const [bet, setBet] = useState<number>(PLINKO_BETS[0]);
+    // Téléphone : tableau, nombre de billes et options sont repliés
+    const [settingsOpen, setSettingsOpen] = useState(false);
     const navigate = useNavigate();
     // ce que le joueur a débloqué dans la boutique : tableaux (dans l'ordre de PLINKO_RISKS) et billes par lancer
     const maxRisks = useUpgradeValue("plinko-risk");
@@ -208,10 +211,11 @@ export default function PlinkoPage() {
     return (
         <main className="plinko">
             <div className="plinko-layout">
-                <section className="plinko-controls">
+                <section className={`plinko-controls ${settingsOpen ? "settings-open" : ""}`}>
                     <Link to="/hasard" className="plinko-back"><FaChevronLeft aria-hidden/> Hasard</Link>
                     <div className="casino-title">
                         <h1>Plinko</h1>
+                        <SettingsToggle open={settingsOpen} onToggle={() => setSettingsOpen(o => !o)}/>
                         <RulesButton tour={TOURS.PLINKO} title="Règles du Plinko"><PlinkoRules/></RulesButton>
                     </div>
                     <p className="plinko-sub">Lâche une bille : la case où elle tombe multiplie ta mise.</p>

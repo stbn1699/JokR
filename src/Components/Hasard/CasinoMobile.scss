@@ -1,0 +1,373 @@
+// Jeux du Hasard sur téléphone : le plateau en haut, une barre compacte en bas (mise et bouton de jeu), tout dans l'écran.
+// Les réglages rares s'ouvrent avec « Réglages » (SettingsToggle) ; l'historique du jeu est sous l'écran, en descendant.
+// Importé en dernier (App.tsx) : ces règles passent devant celles de chaque jeu.
+
+.casino-settings-toggle { display : none; }
+
+@media (max-width : 999px) {
+	.app-root.casino-game {
+		display        : flex;
+		flex-direction : column;
+		height         : 100dvh;
+
+		.header { flex : none; }
+
+		.app-footer { display : none; }
+
+		> main {
+			flex       : 1;
+			display    : block;
+			min-height : 0;
+			box-sizing : border-box;
+			padding    : 0 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
+		}
+
+		// ---------- Mise en page commune
+		:is(.bj-layout, .keno-layout, .poker-layout, .plinko-layout, .slots-layout) {
+			position       : relative;
+			display        : flex;
+			flex-direction : column;
+			align-items    : stretch;
+			gap            : 0.45rem;
+			width          : 100%;
+			height         : 100%;
+		}
+
+		:is(.bj-table, .keno-board, .poker-table, .plinko-board, .slots-machine) {
+			order      : 0;
+			flex       : 1;
+			box-sizing : border-box;
+			min-height : 0;
+			padding    : 0.55rem;
+			overflow-y : auto;
+		}
+
+		:is(.bj-controls, .keno-controls, .poker-controls, .plinko-controls, .slots-controls) {
+			order                 : 1;
+			flex                  : none;
+			display               : grid;
+			grid-template-columns : auto minmax(0, 1fr);
+			align-items           : center;
+			gap                   : 0.4rem 0.6rem;
+			max-height            : 64%;
+			padding               : 0.45rem 0.6rem;
+			border-width          : 2px;
+			overflow-y            : auto;
+
+			> * {
+				grid-column : 1 / -1;
+				margin-top  : 0;
+			}
+		}
+
+		// l'historique : juste sous le premier écran
+		:is(.bj-side, .keno-side, .poker-side, .plinko-side, .slots-side) {
+			position      : absolute;
+			top           : calc(100% + 0.5rem);
+			right         : 0;
+			left          : 0;
+			margin-bottom : 0.75rem;
+		}
+
+		// ---------- Ligne du haut : retour, nom du jeu, réglages, règles
+		:is(.bj-back, .keno-back, .poker-back, .plinko-back, .slots-back) {
+			grid-column : 1;
+			font-size   : 0.95rem;
+			white-space : nowrap;
+		}
+
+		.casino-title {
+			grid-column : 2;
+			display     : flex;
+			align-items : center;
+			gap         : 0.4rem;
+			min-width   : 0;
+
+			h1 {
+				flex          : 1;
+				min-width     : 0;
+				margin        : 0;
+				padding-right : 0;
+				overflow      : hidden;
+				font-size     : 1.2rem;
+				text-overflow : ellipsis;
+				white-space   : nowrap;
+			}
+
+			.rules-button {
+				position  : static;
+				flex      : none;
+				padding   : 0.2rem 0.6rem;
+				font-size : 0.9rem;
+			}
+		}
+
+		.casino-settings-toggle {
+			display       : inline-flex;
+			flex          : none;
+			align-items   : center;
+			gap           : 0.3rem;
+			padding       : 0.25rem 0.6rem;
+			border        : 1px solid rgba(249, 250, 251, 0.35);
+			border-radius : 999px;
+			background    : none;
+			color         : #f9fafb;
+			font-family   : inherit;
+			font-size     : 0.9rem;
+
+			&[aria-expanded="true"] {
+				border-color : #fbbf24;
+				color        : #fbbf24;
+			}
+		}
+
+		// ---------- Jetons sur une seule ligne
+		:is(.bj-label, .poker-label) { display : none; }
+
+		.bj-side .bj-label,
+		.poker-side .poker-label { display : block; }
+
+		:is(.bj-bets, .keno-bets, .poker-bets, .plinko-bets, .slots-bets) {
+			display         : flex;
+			justify-content : space-between;
+			gap             : 0.15rem;
+		}
+
+		:is(.bj-bet, .keno-bet, .poker-bet, .plinko-bet, .slots-bet) {
+			flex    : 1;
+			padding : 0.15rem 0;
+
+			img {
+				width  : 2.6rem;
+				height : 2.6rem;
+			}
+
+			&.active { transform : scale(1.12); }
+		}
+
+		// ---------- Bouton de jeu
+		:is(.bj-deal, .keno-play, .poker-main, .plinko-drop, .slots-spin) {
+			min-height : 2.9rem;
+			padding    : 0.45rem 0.8rem;
+			font-size  : 1.25rem;
+		}
+
+		// réglages ouverts : le bouton de jeu reste visible en bas de la barre
+		:is(.plinko-drop, .slots-spin) {
+			position : sticky;
+			bottom   : 0;
+			z-index  : 1;
+		}
+
+		.slots-spin.slots-spin-phone { display : none; }
+
+		:is(.bj-error, .keno-error, .poker-error, .plinko-error, .slots-error) { margin : 0; }
+
+		// ---------- Plinko et machines : réglages repliés
+		.plinko-controls:not(.settings-open) > :is(.plinko-label, .plinko-risks, .plinko-risk-hint, .plinko-players, .plinko-others-toggle),
+		.slots-controls:not(.settings-open) > :is(.slots-label, .slots-choices) {
+			display : none;
+		}
+
+		.plinko-sub { display : none; }
+
+		.plinko-inflight { margin : 0; font-size : 0.9rem; text-align : center; }
+
+		.plinko-board {
+			display         : flex;
+			align-items     : center;
+			justify-content : center;
+			overflow        : hidden;
+		}
+
+		.plinko-canvas { max-height : 100%; }
+
+		.slots-machine { gap : 0.5rem; }
+
+		.slots-result { margin : 0; }
+
+		// ---------- Keno : compteur et outils sur la même ligne
+		.keno-controls {
+			> .keno-label:first-of-type { display : none; }
+
+			> .keno-label {
+				grid-column   : 1;
+				margin-bottom : 0;
+				font-size     : 1rem;
+				white-space   : nowrap;
+			}
+
+			> .keno-more { display : none; }
+
+			> .keno-tools {
+				grid-column : 2;
+				margin      : 0;
+
+				button { padding : 0.3rem 0.4rem; font-size : 0.9rem; }
+			}
+		}
+
+		.keno-status { margin : 0 0 0.4rem; font-size : 1.1rem; }
+
+		.keno-drawn { margin-top : 0.5rem; }
+
+		// ---------- Blackjack et poker
+		.bj-table {
+			display         : flex;
+			flex-direction  : column;
+			justify-content : space-between;
+			gap             : 0.4rem;
+			min-height      : 0;
+		}
+
+		.poker-table {
+			display         : flex;
+			flex-direction  : column;
+			justify-content : space-between;
+			gap             : 0.5rem;
+		}
+
+		.poker-pays { font-size : 0.82rem; }
+
+		// ---------- Roulette : petite roue, jetons et tapis dans l'écran
+		.roulette-page {
+			position : relative;
+			gap      : 0.35rem;
+			height   : 100%;
+		}
+
+		.roulette-top {
+			flex : none;
+			gap  : 0.6rem;
+		}
+
+		.roulette-back { font-size : 0.95rem; white-space : nowrap; }
+
+		.roulette-layout {
+			display        : flex;
+			flex           : 1;
+			flex-direction : column;
+			align-items    : stretch;
+			gap            : 0.35rem;
+			min-height     : 0;
+		}
+
+		.roulette-side { display : contents; }
+
+		.roulette-wheel-card {
+			flex            : none;
+			display         : flex;
+			align-items     : center;
+			justify-content : center;
+			gap             : 0.9rem;
+			padding         : 0.25rem 0.6rem;
+			border-width    : 2px;
+		}
+
+		.roulette-wheel-wrap:not(.zoomed),
+		.roulette-wheel-placeholder {
+			flex   : none;
+			width  : 5rem;
+			margin : 0;
+		}
+
+		.roulette-zoom-toggle { margin : 0; font-size : 0.9rem; }
+
+		.live-bets {
+			position : absolute;
+			top      : calc(100% + 0.5rem);
+			right    : 0;
+			left     : 0;
+		}
+
+		.roulette-play {
+			flex           : 1;
+			display        : flex;
+			flex-direction : column;
+			gap            : 0.35rem;
+			min-height     : 0;
+			padding        : 0.4rem 0.5rem;
+			border-width   : 2px;
+			overflow-y     : auto;
+
+			.casino-title { flex : none; }
+		}
+
+		.roulette-phase {
+			flex      : none;
+			margin    : 0;
+			padding   : 0.25rem 0.6rem;
+			font-size : 0.92rem;
+		}
+
+		.roulette-chips {
+			flex            : none;
+			flex-wrap       : nowrap;
+			justify-content : space-between;
+			gap             : 0.15rem;
+			margin          : 0;
+		}
+
+		.roulette-chip {
+			flex    : 1;
+			padding : 0.1rem 0;
+
+			img {
+				width  : 2.35rem;
+				height : 2.35rem;
+			}
+		}
+
+		// le doigt glisse sur le tapis pour poser des jetons, sans faire défiler la page
+		.roulette-table { touch-action : none; }
+
+		.roulette-actions {
+			flex        : none;
+			display     : flex;
+			align-items : center;
+			gap         : 0.35rem;
+			margin      : 0;
+		}
+
+		.roulette-mine {
+			flex        : 1;
+			font-size   : 0.95rem;
+			white-space : nowrap;
+		}
+
+		// actions réduites à leur icône (le nom reste lu par les lecteurs d'écran)
+		.roulette-secondary {
+			flex            : none;
+			display         : inline-flex;
+			align-items     : center;
+			justify-content : center;
+			width           : 2.7rem;
+			height          : 2.4rem;
+			padding         : 0;
+			overflow        : hidden;
+			font-size       : 0;
+
+			svg { font-size : 1.05rem; }
+		}
+
+		.roulette-my-rounds { display : none; }
+	}
+}
+
+// Téléphone en portrait : le tapis vertical occupe toute la hauteur restante, sans défilement
+@media (max-width : 600px) {
+	.app-root.casino-game .roulette-table {
+		flex               : 1;
+		grid-template-rows : 1.7rem repeat(12, minmax(0, 1fr)) 1.7rem;
+		gap                : 2px;
+		box-sizing         : border-box;
+		width              : 100%;
+		max-width          : none;
+		min-height         : 19rem;
+		padding            : 3px;
+
+		.rt-cell { font-size : 0.9rem; }
+
+		.rt-stack { --size : 1.4rem; }
+	}
+}

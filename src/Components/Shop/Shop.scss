@@ -1446,3 +1446,229 @@ $raised : rgba(15, 23, 42, 0.7);
 		}
 	}
 }
+
+// ---------- Téléphone et tablette : rubriques en bandeau, catalogue qui défile, fiche de l'objet toujours visible en bas
+@media (max-width : 999px) {
+	.shop {
+		gap     : 0.6rem;
+		height  : calc(100dvh - 6.9rem);
+		padding : 0.25rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom));
+
+		.shop-tabs {
+			align-self : stretch;
+
+			a {
+				flex            : 1;
+				justify-content : center;
+				padding         : 0.5rem 0.4rem;
+				font-size       : 1rem;
+			}
+		}
+
+		.shop-layout {
+			display        : flex;
+			flex-direction : column;
+			gap            : 0.6rem;
+		}
+
+		.shop-nav {
+			flex           : none;
+			flex-direction : row;
+			gap            : 0.4rem;
+			padding        : 0.35rem;
+			overflow-x     : auto;
+			overflow-y     : hidden;
+			scrollbar-width : none;
+
+			&::-webkit-scrollbar { display : none; }
+		}
+
+		.shop-nav-list {
+			flex-direction : row;
+			align-items    : center;
+			gap            : 0.3rem;
+
+			h2 { display : none; }
+		}
+
+		.shop-nav-back {
+			flex        : none;
+			align-self  : center;
+			white-space : nowrap;
+		}
+
+		.shop-nav-item {
+			flex    : none;
+			gap     : 0.45rem;
+			padding : 0.3rem 0.65rem 0.3rem 0.3rem;
+
+			&.active::before { display : none; }
+		}
+
+		.shop-nav-icon {
+			width  : 2rem;
+			height : 2rem;
+		}
+
+		.shop-nav-text {
+			flex : none;
+
+			small,
+			.shop-progress { display : none; }
+
+			> span { font-size : 0.98rem; }
+		}
+
+		.shop-catalog,
+		.shop-featured,
+		.shop-empty {
+			flex       : 1;
+			min-height : 0;
+		}
+
+		.shop-catalog-head {
+			align-items : center;
+			gap         : 0.5rem;
+			padding     : 0.45rem 0.7rem;
+
+			> div:first-child { min-width : 0; }
+
+			h1 {
+				overflow      : hidden;
+				font-size     : 1.2rem;
+				text-overflow : ellipsis;
+				white-space   : nowrap;
+			}
+
+			p { display : none; }
+		}
+
+		.shop-filters button {
+			padding   : 0.25rem 0.5rem;
+			font-size : 0.85rem;
+		}
+
+		.shop-featured-grid {
+			grid-template-columns : repeat(2, minmax(0, 1fr));
+			gap                   : 0.65rem;
+			padding               : 0.7rem;
+			overflow-y            : auto;
+		}
+
+		// carte étroite : le classement en haut, les ventes en bas de l'image, le nom sur toute la largeur
+		.shop-feature-rank,
+		.shop-feature-sales {
+			padding   : 0.12rem 0.45rem;
+			font-size : 0.78rem;
+		}
+
+		.shop-feature-rank {
+			top  : 0.4rem;
+			left : 0.4rem;
+		}
+
+		.shop-feature-sales {
+			top    : auto;
+			right  : auto;
+			bottom : 0.4rem;
+			left   : 0.4rem;
+		}
+
+		.shop-feature-foot {
+			flex-wrap : wrap;
+			gap       : 0.2rem 0.5rem;
+			padding   : 0.5rem 0.6rem 0.55rem;
+
+			> :first-child {
+				flex      : 1 1 100%;
+				min-width : 0;
+			}
+		}
+
+		.shop-grid {
+			grid-template-columns : repeat(auto-fill, minmax(6.3rem, 1fr));
+			gap                   : 0.55rem;
+			padding               : 0.65rem;
+
+			&.wide { grid-template-columns : repeat(auto-fill, minmax(6.3rem, 1fr)); }
+		}
+
+		.shop-tile:hover { transform : none; }
+
+		.shop-tile-foot { padding : 0.4rem 0.5rem 0.45rem; }
+
+		.shop-tile-name { font-size : 0.95rem; }
+
+		// fiche : aperçu et nom côte à côte, le bouton d'achat juste dessous
+		.shop-detail {
+			display               : grid;
+			flex                  : none;
+			grid-template-columns : 5.5rem minmax(0, 1fr);
+			align-items           : center;
+			gap                   : 0.55rem 0.75rem;
+			max-height            : 44%;
+			padding               : 0.55rem 0.65rem;
+
+			> * { grid-column : 1 / -1; order : 3; }
+		}
+
+		.shop-detail-preview {
+			grid-column : 1;
+			order       : 0;
+			width       : 5.5rem;
+			height      : 5.5rem;
+			min-height  : 0;
+			overflow    : hidden;
+
+			// l'aperçu est dessiné pour la grande fiche : on le réduit en entier plutôt que de le couper
+			> * {
+				flex             : none;
+				width            : 250%;
+				height           : 250%;
+				transform        : scale(0.4);
+				transform-origin : top left;
+			}
+		}
+
+		.shop-detail-info {
+			grid-column : 2;
+			order       : 1;
+			padding     : 0;
+
+			small { font-size : 0.72rem; }
+
+			h2 {
+				font-size   : 1.3rem;
+				line-height : 1.15;
+			}
+
+			p {
+				display            : -webkit-box;
+				margin-top         : 0.2rem;
+				overflow           : hidden;
+				font-size          : 0.9rem;
+				-webkit-box-orient : vertical;
+				-webkit-line-clamp : 1;
+			}
+
+			&::after {
+				content    : "Voir les détails ▾";
+				display    : block;
+				margin-top : 0.15rem;
+				color      : $gold;
+				font-size  : 0.85rem;
+			}
+		}
+
+		.shop-detail-buy { order : 2; }
+
+		// fiche repliée : aperçu, nom et bouton d'achat ; un appui sur le nom montre le reste
+		&:not(.facts-open) .shop-detail-facts { display : none; }
+
+		&.facts-open .shop-detail-info {
+			p { -webkit-line-clamp : unset; }
+
+			&::after { content : "Masquer les détails ▴"; }
+		}
+	}
+}

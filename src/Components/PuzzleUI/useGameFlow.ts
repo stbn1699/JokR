@@ -20,6 +20,8 @@ export type Victory = {
     daily: WinResult["daily"] | null;
     // Mode Niveaux : niveau réussi (absent hors niveaux)
     level: WinResult["level"] | null;
+    // Flamme après cette victoire
+    streak: WinResult["streak"] | null;
 };
 
 // Chrono de la partie : démarré à la génération (ou à la reprise), figé pendant la validation, arrêté à la victoire
@@ -114,6 +116,7 @@ export function useGameFlow(gameCode: string, challenge = false) {
             personalBest: result.personalBest === true,
             daily: result.daily ?? null,
             level: result.level ?? null,
+            streak: result.streak ?? null,
         });
     };
 

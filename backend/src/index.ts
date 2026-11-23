@@ -44,6 +44,10 @@ import {startRouletteScheduler} from "./services/rouletteScheduler.js";
 import {startLotteryScheduler} from "./services/lotteryScheduler.js";
 import {LotteryRepository} from "./repository/Lottery.repository.js";
 import {LiveRouletteRepository} from "./repository/LiveRoulette.repository.js";
+import {PushRepository} from "./repository/Push.repository.js";
+import {startPushDispatcher} from "./services/pushDispatcher.js";
+import {StreakRepository} from "./repository/Streak.repository.js";
+import {startStreakScheduler} from "./services/streakScheduler.js";
 import adminModeRoutes from "./routes/AdminMode.routes.js";
 import maintenanceRoutes from "./routes/Maintenance.routes.js";
 import {blockNewGames} from "./middleware/maintenance.js";
@@ -177,6 +181,12 @@ startDailyScheduler(createDailyService(createDb(pool)), console.log, async date 
 startRouletteScheduler(new LiveRouletteRepository(createDb(pool)));
 // Loteries du Hasard : tirages du jour, de la semaine et du mois, à 23 h 59 (heure de Paris)
 startLotteryScheduler(new LotteryRepository(createDb(pool)));
+// Notifications push : envoie aux appareils abonnés ce qui arrive dans la cloche (si les clés sont configurées)
+if (config.push) {
+	startPushDispatcher(new PushRepository(createDb(pool)), config.push);
+	// Flamme : rappel à 17 h 30 pour les joueurs qui n'ont pas encore fait de grille
+	startStreakScheduler(new StreakRepository(createDb(pool)));
+}
 
 // Arrêt propre (docker stop envoie SIGTERM)
 for (const signal of ["SIGTERM", "SIGINT"] as const) {

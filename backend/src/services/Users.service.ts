@@ -1,5 +1,6 @@
 import {isGhost} from "./adminMode.js";
 import {type LinkedIdentity, UsersRepository} from "../repository/Users.repository.js";
+import type {StreakInfo} from "../repository/Streak.repository.js";
 import type {User} from "../models/User.model.js";
 import bcrypt from "bcrypt";
 import type {NewUser} from "../models/NewUser.model.js";
@@ -37,6 +38,8 @@ export type MeProfile = PublicUser & {
     background: string | null;
     // administrateur en mode admin (« mode fantôme »)
     adminMode: boolean;
+    // Flamme : jours de suite, record, bonus de la prochaine victoire
+    streak: StreakInfo | null;
 };
 
 export class UsersService {
@@ -209,7 +212,9 @@ export class UsersService {
     async getMe(userId: string): Promise<MeProfile | undefined> {
         const user = await this.findByUuid(userId);
         if (!user) return undefined;
-        const identities: LinkedIdentity[] = await this.repo.listIdentities(userId);
+        const [identities, streak]: [LinkedIdentity[], StreakInfo | null] = await Promise.all([
+            this.repo.listIdentities(userId), this.repo.streakOf(userId),
+        ]);
         return {
             ...toPublicUser(user),
             isAdmin: user.is_admin === true,
@@ -219,6 +224,7 @@ export class UsersService {
             lastVersion: user.last_version ?? null,
             background: user.background ?? null,
             adminMode: user.is_admin === true && isGhost(userId),
+            streak,
         };
     }
 }

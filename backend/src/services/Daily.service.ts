@@ -185,7 +185,7 @@ export class DailyService {
     async leaderboard(gameCode: DailyGameCode, date: string, limit = 20, members?: string[]) {
         const rows = await this.repo.leaderboard(date, gameCode, limit, members);
         return rows.map((row, i) => ({
-            rank: "rank" in row ? Number(row.rank) : i + 1, username: row.username, avatar: row.avatar, userLevel: row.user_level, durationMs: row.duration_ms,
+            rank: "rank" in row ? Number(row.rank) : i + 1, username: row.username, avatar: row.avatar, userLevel: row.user_level, streak: row.streak, durationMs: row.duration_ms,
         }));
     }
 }

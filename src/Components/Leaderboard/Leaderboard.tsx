@@ -33,10 +33,12 @@ import Loader from "../Loader/Loader.tsx";
 import Avatar from "../Avatar/Avatar.tsx";
 import {currentLevel, levelInWorld, levelName, worldAt} from "../Levels/worlds.ts";
 import WorldBackdrop from "../Levels/WorldBackdrop.tsx";
+import StreakFlame from "../Streak/StreakFlame.tsx";
 // `short` : libellé sur téléphone
 const TABS = [
     {id: "xp", label: "XP globale", short: "XP"},
     {id: "credits", label: "Crédits", short: "Crédits"},
+    {id: "flamme", label: "Flamme", short: "Flamme"},
     {id: "jeu", label: "Par jeu", short: "Par jeu"},
     {id: "defi", label: "Défi du jour", short: "Défi"},
 ] as const;
@@ -86,7 +88,8 @@ const reachedWorld = (levels: number, count: number | undefined) =>
     count ? levelInWorld(currentLevel(levels, count)).world - 1 : undefined;
 
 // world : classement d'un jeu, monde du niveau à faire (à partir de 0), dont le décor passe derrière la ligne
-type Row = { rank: number; username: string; avatar: string; userLevel: number; main: ReactNode; detail?: ReactNode; world?: number };
+// streak : flamme à côté du pseudo (pas sur l'onglet Flamme, où elle est déjà le score)
+type Row = { rank: number; username: string; avatar: string; userLevel: number; streak?: number; main: ReactNode; detail?: ReactNode; world?: number };
 
 /**
  * Décor du monde derrière une ligne du classement d'un jeu, un peu comme un fond de profil Discord : invisible côté
@@ -162,6 +165,7 @@ export default function Leaderboard() {
             })
             : (tab === "xp" ? leaderboardService.xp(controller.signal, friendsOnly)
                 : tab === "credits" ? leaderboardService.credits(controller.signal, friendsOnly)
+                    : tab === "flamme" ? leaderboardService.streak(controller.signal, friendsOnly)
                     : leaderboardService.game(game, controller.signal, friendsOnly))
                 .then(b => {
                     setBoard(b);
@@ -197,31 +201,39 @@ export default function Leaderboard() {
     const friendBadge = (name: string) => friendNames.has(name) && <span className="friend-badge">Ami·e</span>;
 
     // Lignes à afficher, quel que soit l'onglet
-    const rows: Row[] | null = board && tab === "credits"
+    const rows: Row[] | null = board && tab === "flamme"
         ? board.entries.map(e => ({
             rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel,
+            main: <StreakFlame days={e.streak}/>,
+            detail: <>Record : {(e.streakBest ?? 0).toLocaleString("fr-FR")} j</>,
+        }))
+        : board && tab === "credits"
+        ? board.entries.map(e => ({
+            rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel, streak: e.streak,
             main: <span className="leaderboard-credits"><FaCoins aria-hidden/> {(e.credits ?? 0).toLocaleString("fr-FR")}</span>,
             detail: <>Niveau {e.level}</>,
         }))
         : board && tab === "jeu"
         ? board.entries.map(e => ({
-            rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel,
+            rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel, streak: e.streak,
             // Classé par niveaux réussis (mode Niveaux), puis par victoires
             main: <>{reached(e.levels ?? 0, board.levelCount)}</>,
             world: reachedWorld(e.levels ?? 0, board.levelCount),
         }))
         : board
         ? board.entries.map(e => ({
-            rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel,
+            rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel, streak: e.streak,
             // Classé par niveau puis par XP dans le niveau
             main: <>Niveau {e.level}</>,
             detail: <>{e.xp.toLocaleString("fr-FR")} XP</>,
         }))
         : daily
-            ? daily.entries.map(e => ({rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel, main: formatDuration(e.durationMs)}))
+            ? daily.entries.map(e => ({rank: e.rank, username: e.username, avatar: e.avatar, userLevel: e.userLevel, streak: e.streak, main: formatDuration(e.durationMs)}))
             : null;
     const podium = rows?.slice(0, 3) ?? [];
-    const me = board?.me && tab === "credits"
+    const me = board?.me && tab === "flamme"
+        ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · {board.me.streak} jour{(board.me.streak ?? 0) > 1 ? "s" : ""} de suite</>
+        : board?.me && tab === "credits"
         ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · {(board.me.credits ?? 0).toLocaleString("fr-FR")} crédit{(board.me.credits ?? 0) > 1 ? "s" : ""}</>
         : board?.me && tab === "jeu"
         ? <>Ta place : <strong>{ordinal(board.me.rank)}</strong> sur {board.me.total} · {reached(board.me.levels ?? 0, board.levelCount)}</>
@@ -294,6 +306,8 @@ export default function Leaderboard() {
                     <p className="leaderboard-status">
                         {friendsOnly
                             ? daily ? "Ni toi ni tes ami·e·s n'avez réussi ce défi." : "Ni toi ni tes ami·e·s n'êtes encore classé·e·s ici."
+                            : tab === "flamme"
+                            ? "Aucune flamme allumée. Fais une grille pour lancer la tienne !"
                             : !daily
                             ? "Personne n'est encore classé."
                             : selectedDate === month?.today
@@ -313,7 +327,7 @@ export default function Leaderboard() {
                                 <Link to={playerPath(row.username)} className="podium-player" title={`Voir le profil de ${row.username}`}>
                                     <Avatar seed={row.avatar} fallback={row.username} size={podium.indexOf(row) === 0 ? 4.6 : 3.8}
                                             level={row.userLevel} showLevel className="podium-avatar"/>
-                                    <span className="podium-name">{row.username}</span>
+                                    <span className="podium-name">{row.username} <StreakFlame days={row.streak}/></span>
                                     {friendBadge(row.username)}
                                 </Link>
                                 <span className="podium-main">{row.main}</span>
@@ -334,6 +348,7 @@ export default function Leaderboard() {
                                     <Avatar seed={row.avatar} fallback={row.username} size={2.7}
                                             level={row.userLevel} showLevel className="leaderboard-avatar"/>
                                     <span className="leaderboard-name">{row.username}</span>
+                                    <StreakFlame days={row.streak}/>
                                     {friendBadge(row.username)}
                                 </Link>
                                 {row.detail && <span className="leaderboard-detail">{row.detail}</span>}

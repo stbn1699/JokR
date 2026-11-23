@@ -51,6 +51,16 @@ if ((oauth.google || oauth.discord) && !/^https?:\/\/[^/]+$/.test(appUrl)) {
     throw new Error("APP_URL (ex: https://jokr.example.com) est obligatoire avec la connexion Google ou Discord");
 }
 
+// Notifications push : activées quand les trois valeurs sont définies (génération : npx web-push generate-vapid-keys)
+function pushConfig(): { publicKey: string; privateKey: string; subject: string } | undefined {
+    const publicKey = process.env.VAPID_PUBLIC_KEY;
+    const privateKey = process.env.VAPID_PRIVATE_KEY;
+    const subject = process.env.VAPID_SUBJECT;
+    if (!publicKey && !privateKey && !subject) return undefined;
+    if (!publicKey || !privateKey || !subject) throw new Error("VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY et VAPID_SUBJECT vont ensemble");
+    return {publicKey, privateKey, subject};
+}
+
 export const config = {
     port: Number(process.env.PORT ?? 3000),
     // Front servi par le même serveur : pas besoin d'autoriser d'autres origines
@@ -65,4 +75,5 @@ export const config = {
     migrationsDir: process.env.MIGRATIONS_DIR || undefined,
     oauth,
     appUrl,
+    push: pushConfig(),
 } as const;

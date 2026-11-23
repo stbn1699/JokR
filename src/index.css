@@ -10,9 +10,8 @@
  * Taille de base (rem) qui suit la largeur de la fenêtre : 16px à 1920px, moins en dessous.
  * Presque tout le site est en rem : un écran réglé à 125 % / 150 % dans Windows, ou un zoom Ctrl + molette,
  * garde donc la même mise en page qu'en 1920×1080 à 100 % (juste plus ou moins grande à l'écran).
- * Au-delà de 1920px, on ne grossit pas. Sous 1000px (téléphone, tablette, fenêtre trop étroite),
- * le site est remplacé par l'écran « petit écran » (Components/SmallScreen) : les @media (max-width: 999px)
- * ne servent donc plus, gardés pour une future version téléphone.
+ * Au-delà de 1920px, on ne grossit pas. Sous 1000px (téléphone, petite tablette) : taille normale,
+ * sans réduction. Sur ordinateur, une fenêtre aussi étroite montre l'écran « fenêtre trop petite » (Components/SmallScreen).
  */
 html{
 	font-size: min(16px, 100vw / 120);
@@ -28,6 +27,15 @@ html{
 	background-attachment: fixed;
 	color:#f9fafb;
 	font-family: 'Josefin Slab', serif;
+}
+
+@media (max-width: 999px){
+	html{
+		font-size: 16px;
+		/* Android ne doit pas regrossir le texte de lui-même */
+		-webkit-text-size-adjust: 100%;
+		text-size-adjust: 100%;
+	}
 }
 
 /*

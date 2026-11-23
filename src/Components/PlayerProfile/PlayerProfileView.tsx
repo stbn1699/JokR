@@ -20,6 +20,7 @@ import type {Privacy} from "../../Models/user.model.ts";
 import Avatar from "../Avatar/Avatar.tsx";
 import FriendButton from "./FriendButton.tsx";
 import Loader from "../Loader/Loader.tsx";
+import StreakFlame from "../Streak/StreakFlame.tsx";
 
 const fmt = (n: number) => n.toLocaleString("fr-FR");
 const gridLabel = (code: string, size: number) => (code === "RIKUDO" ? `${size} cases` : `${size}×${size}`);
@@ -86,8 +87,11 @@ export default function PlayerProfileView({username, privacy, avatarAction, back
                     {avatarAction}
                 </div>
                 <div className="profile-head-info">
-                    <h1>{shown.username}</h1>
-                    <p className="profile-level">Niveau {shown.level}</p>
+                    <h1>{shown.username} <StreakFlame days={shown.streak}/></h1>
+                    <p className="profile-level">
+                        Niveau {shown.level}
+                        {shown.streakBest > 0 && <> · record de flamme : {fmt(shown.streakBest)} j</>}
+                    </p>
                     {stats && (
                         <>
                             <div className="profile-xp" title={`${stats.xp} / ${xpNext} xp`}>

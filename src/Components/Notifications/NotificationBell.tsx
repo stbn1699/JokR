@@ -15,8 +15,8 @@
 import "./Notifications.scss";
 import {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
-import {FaBell, FaFlagCheckered, FaGift, FaMedal, FaTicketAlt, FaTimes, FaUserFriends} from "react-icons/fa";
-import {type AppNotification, type ChallengeNotification, type DailyResultsNotification, type FriendNotification, isDailyResults, isFriendNotification, isLotteryWin, type LotteryWinNotification, lotteryName, isWelcome} from "../../Services/notification.service.ts";
+import {FaBell, FaFire, FaFlagCheckered, FaGift, FaMedal, FaTicketAlt, FaTimes, FaUserFriends} from "react-icons/fa";
+import {type AppNotification, type ChallengeNotification, type DailyResultsNotification, type FriendNotification, isDailyResults, isFriendNotification, isLotteryWin, type LotteryWinNotification, lotteryName, isWelcome, isStreakReminder, streakReminderText} from "../../Services/notification.service.ts";
 import {challengePath} from "../../Services/challenge.service.ts";
 import {shareTime} from "../../Services/share.ts";
 import {friendsStore, useFriends} from "../../Services/friends.service.ts";
@@ -28,6 +28,7 @@ import DailyRewardPopup from "./DailyRewardPopup.tsx";
 import WelcomePopup from "./WelcomePopup.tsx";
 import {useAuth} from "../../Context/authContext.ts";
 import {useWhatsNewOpen} from "../../Services/popupQueue.ts";
+import {usePush} from "../../Services/push.service.ts";
 
 // Durée d'affichage du toast
 const TOAST_MS = 9000;
@@ -64,6 +65,7 @@ function dailySummary(n: DailyResultsNotification) {
 
 export default function NotificationBell({enabled}: { enabled: boolean }) {
     const {items, rewards, welcome, unread, toast, closeToast, markAllRead, markRead} = useNotifications(enabled);
+    const push = usePush(enabled);
     const [open, setOpen] = useState(false);
     // Popup des XP fermée pendant cette visite (le serveur les marque vues)
     const [rewardsClosed, setRewardsClosed] = useState(false);
@@ -134,6 +136,7 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
                             <FaTimes aria-hidden/>
                         </button>
                     </div>
+                    <PushSetting push={push}/>
                     {items.length === 0 ? (
                         <p className="notif-empty">Rien pour l'instant. Tes places aux défis du jour arriveront ici, chaque soir à minuit.</p>
                     ) : (
@@ -166,6 +169,7 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
             {toast && !open && (
                 <div className="notif-toast" role="status">
                     {isLotteryWin(toast) ? <FaTicketAlt aria-hidden className="notif-toast-icon lottery"/>
+                        : isStreakReminder(toast) ? <FaFire aria-hidden className="notif-toast-icon lottery"/>
                         : isDailyResults(toast) ? <FaBell aria-hidden className="notif-toast-icon"/>
                         : !isFriendNotification(toast) ? <FaFlagCheckered aria-hidden className="notif-toast-icon friend"/>
                         : <FaUserFriends aria-hidden className="notif-toast-icon friend"/>}
@@ -174,6 +178,11 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
                             <>
                                 <strong>Tu as gagné {lotteryName(toast.data.kind)} !</strong>
                                 <span>+{fr(toast.data.prize)} crédits avec {fr(toast.data.tickets)} ticket{toast.data.tickets > 1 ? "s" : ""} sur {fr(toast.data.totalTickets)}</span>
+                            </>
+                        ) : isStreakReminder(toast) ? (
+                            <>
+                                <strong>{streakReminderText(toast.data.days).title}</strong>
+                                <span>{streakReminderText(toast.data.days).body}</span>
                             </>
                         ) : isDailyResults(toast) ? (
                             <>
@@ -212,6 +221,27 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
     );
 }
 
+// Notifications sur cet appareil, même quand JokR est fermé (en haut du panneau)
+function PushSetting({push}: { push: ReturnType<typeof usePush> }) {
+    const {status, busy, error, enable, disable} = push;
+    if (status !== "off" && status !== "on" && status !== "blocked") return null;
+    return (
+        <div className={`notif-push ${status}`}>
+            {status === "blocked" ? (
+                <p>Notifications bloquées : autorise-les dans les réglages de ton appareil.</p>
+            ) : (
+                <>
+                    <p>{status === "on" ? "Notifications activées sur cet appareil" : "Reçois tes demandes d'ami·e, défis et lots sur cet appareil"}</p>
+                    <button type="button" disabled={busy} onClick={() => void (status === "on" ? disable() : enable())}>
+                        {status === "on" ? "Désactiver" : "Activer"}
+                    </button>
+                </>
+            )}
+            {error && <small role="alert">{error}</small>}
+        </div>
+    );
+}
+
 function NotificationItem({notification, onNavigate}: { notification: AppNotification; onNavigate: () => void }) {
     if (isLotteryWin(notification)) return <LotteryItem notification={notification} onNavigate={onNavigate}/>;
     if (isWelcome(notification)) {
@@ -222,6 +252,18 @@ function NotificationItem({notification, onNavigate}: { notification: AppNotific
                     <small>{ago(notification.createdAt)}</small>
                 </div>
                 <p className="notif-daily-xp">+{fr(notification.data.credits)} crédits offerts</p>
+            </div>
+        );
+    }
+    if (isStreakReminder(notification)) {
+        const text = streakReminderText(notification.data.days);
+        return (
+            <div className="notif-daily notif-lottery">
+                <div className="notif-daily-head">
+                    <span><FaFire aria-hidden/> {text.title}</span>
+                    <small>{ago(notification.createdAt)}</small>
+                </div>
+                <p className="notif-lottery-detail">{text.body} <Link to="/" onClick={onNavigate}>Jouer</Link></p>
             </div>
         );
     }

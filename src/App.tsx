@@ -22,9 +22,11 @@ import MaintenanceScreen from "./Components/Maintenance/MaintenanceScreen.tsx";
 import {markSent, showsUpdateScreen, useMaintenance} from "./Services/maintenance.ts";
 import UpdateNotice from "./Components/Maintenance/UpdateNotice.tsx";
 import SmallScreen from "./Components/SmallScreen/SmallScreen.tsx";
-import {useSmallScreen} from "./Services/useSmallScreen.ts";
+import InstallApp from "./Components/SmallScreen/InstallApp.tsx";
+import {isTouchOnly, useSmallScreen} from "./Services/useSmallScreen.ts";
+import {isInstalledApp, screenAccess} from "./Services/installApp.ts";
 import {useAuth} from "./Context/authContext.ts";
-import {isGameRoute} from "./Services/routes.ts";
+import {isCasinoGameRoute, isGameRoute} from "./Services/routes.ts";
 import PlayGame from "./Components/PlayGame/PlayGame.tsx";
 import LevelsMap from "./Components/Levels/LevelsMap.tsx";
 import LevelPlay from "./Components/Levels/LevelPlay.tsx";
@@ -58,6 +60,7 @@ import KenoPage from "./Components/Hasard/Keno/KenoPage.tsx";
 import PokerPage from "./Components/Hasard/Poker/PokerPage.tsx";
 import AchievementsPage from "./Components/Achievements/AchievementsPage.tsx";
 import AchievementToasts from "./Components/Achievements/AchievementToasts.tsx";
+import "./Components/Hasard/CasinoMobile.scss";
 
 /**
  * Composant principal qui gère le routing de l'application
@@ -89,12 +92,14 @@ function App() {
         if (navigationType !== "POP") window.scrollTo(0, 0);
     }, [pathname, navigationType]);
 
-    // Téléphone, tablette ou fenêtre trop étroite : le site n'est pas encore prévu pour (voir index.css)
-    if (smallScreen) return <SmallScreen/>;
+    // Téléphone, tablette ou fenêtre trop étroite : écran dédié, ou page d'installation quand l'app est disponible
+    const access = screenAccess(smallScreen, isTouchOnly(), isInstalledApp());
+    if (access === "install") return <InstallApp/>;
+    if (access === "small") return <SmallScreen/>;
     if (updateScreen) return <MaintenanceScreen/>;
 
     return (
-        <div className={`app-root ${inGame ? "in-game" : ""}`}>
+        <div className={`app-root ${inGame ? "in-game" : ""} ${isCasinoGameRoute(pathname) ? "casino-game" : ""}`}>
             <SiteBackground/>
             <Header/>
             <AchievementToasts/>

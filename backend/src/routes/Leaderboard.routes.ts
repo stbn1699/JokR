@@ -16,6 +16,8 @@ const controller = createLeaderboardController(new LeaderboardRepository(db), ne
 router.get("/xp", optionalAuth, controller.xp);
 // GET /leaderboard/credits : classement par crédits
 router.get("/credits", optionalAuth, controller.credits);
+// GET /leaderboard/streak : classement de la flamme (jours de suite)
+router.get("/streak", optionalAuth, controller.streak);
 // GET /leaderboard/games/:game : classement d'un jeu
 router.get("/games/:game", optionalAuth, controller.game);
 

@@ -31,6 +31,9 @@ export interface PlayerProfile {
     username: string;
     avatar: string;
     level: number;
+    // Flamme : jours de suite (0 sans série en cours) et record
+    streak: number;
+    streakBest: number;
     // C'est le joueur connecté : il voit toujours tout
     isOwner: boolean;
     // Lien avec le joueur connecté (null pour un invité ou sa propre page)

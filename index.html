@@ -1,9 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- application installable : nom, icônes et affichage sont dans public/manifest.webmanifest -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#020617" />
+    <!-- iPhone et iPad : Safari ne lit pas tout le manifest -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="JokR" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <!-- reconnaît une page du site (et pas une page d'erreur du NAS) : voir public/sw.js -->
     <meta name="jokr-app" content="1" />
     <title>JokR</title>

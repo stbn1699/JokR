@@ -23,6 +23,6 @@ export async function recordLevelWin(
     const level = {level: levelNumber, first, tutorialDone: first && levelNumber === levelGame(gameCode)?.tutorial};
     if (!first) return {xp: undefined, durationMs, level};
     const {xp, credits, gridSize, emptyCells} = await reward();
-    const {personalBest} = await progression.recordWin(userId, gameCode, xp, {gridSize, emptyCells, durationMs}, credits);
-    return {xp, credits, rewardMultiplier: 1, durationMs, personalBest, level};
+    const win = await progression.recordWin(userId, gameCode, xp, {gridSize, emptyCells, durationMs}, credits);
+    return {xp: win.xp, credits: win.credits, rewardMultiplier: 1, durationMs, personalBest: win.personalBest, streak: win.streak, level};
 }

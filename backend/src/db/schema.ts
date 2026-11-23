@@ -46,6 +46,12 @@ export type UsersTable = {
     victory_effect: string | null;
     // mode admin (« mode fantôme ») actif : voir services/adminMode.ts
     admin_mode: Generated<boolean>;
+    // Flamme : jours de suite avec une grille réussie, record, dernier jour joué (Paris), restes du bonus (voir utils/streak.ts)
+    streak_days: Generated<number>;
+    streak_best: Generated<number>;
+    streak_last_date: string | null;
+    streak_xp_carry: Generated<number>;
+    streak_credits_carry: Generated<number>;
 };
 
 // Boutique : objets achetés
@@ -137,6 +143,18 @@ export type NotificationsTable = {
     created_at: Generated<Date>;
     // null tant que le joueur ne l'a pas vue
     read_at: Date | null;
+    // version envoyée en push : à envoyer tant qu'elle diffère de created_at
+    pushed_at: Generated<Date | null>;
+};
+
+// Appareils abonnés aux notifications push
+export type PushSubscriptionsTable = {
+    id: Generated<string>;
+    user_id: string;
+    endpoint: string;
+    p256dh: string;
+    auth: string;
+    created_at: Generated<Date>;
 };
 
 // Amis : demande (pending) puis amitié acceptée (accepted)
@@ -318,6 +336,7 @@ export type DB = {
     daily_results: DailyResultsTable;
     game_sessions: GameSessionsTable;
     notifications: NotificationsTable;
+    push_subscriptions: PushSubscriptionsTable;
     friendships: FriendshipsTable;
     friend_challenges: FriendChallengesTable;
     friend_challenge_players: FriendChallengePlayersTable;

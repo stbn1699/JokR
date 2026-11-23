@@ -7,9 +7,9 @@
  * aussi : la case la plus proche est retrouvée, et la position donne le cheval ou le carré. Au survol, un rond gris montre où le jeton sera posé et
  * les numéros couverts ressortent (les autres s'effacent) ; c'est aussi le cas pour couleur, pair, douzaine…
  *
- * Pose au pinceau (souris) : clic maintenu, chaque mise survolée reçoit un jeton ; en tournant sur une zone, un jeton
- * de plus tous les PAINT_STEP pixels parcourus (de petits ronds empilent vite). Au doigt, on garde le simple appui
- * (glisser fait défiler la page).
+ * Pose au pinceau : clic maintenu (ou doigt posé), chaque mise survolée reçoit un jeton ; en tournant sur une zone, un
+ * jeton de plus tous les PAINT_STEP pixels parcourus (de petits ronds empilent vite). Au doigt, seulement sur téléphone,
+ * où le tapis tient dans l'écran et ne fait pas défiler la page (CasinoMobile.scss) ; ailleurs, on garde le simple appui.
  *
  * Deux dispositions, choisies en CSS (Roulette.scss) :
  * - à l'horizontale (ordinateur) : 3 lignes × 12 colonnes de numéros, le zéro à gauche
@@ -44,6 +44,9 @@ const useVertical = () => useSyncExternalStore(subscribe, () => window.matchMedi
 
 // Pose au pinceau : un jeton de plus sur la même mise tous les PAINT_STEP pixels parcourus clic maintenu
 const PAINT_STEP = 60;
+// Au doigt : largeur d'écran où le tapis ne défile pas, et tremblement (px) qui ne compte pas encore comme un glisser
+const TOUCH_PAINT_QUERY = "(max-width: 999px)";
+const TOUCH_SLOP = 12;
 
 // Clic dans l'espace entre les cases : on cherche la case la plus proche dans ce rayon (px, plus large que l'espace)
 const GAP_REACH = 6;
@@ -78,15 +81,31 @@ export default function RouletteTable({bets, winning, result, disabled, onBet}: 
 
     // Appui et passage de la souris (sur une case ou entre deux) : pose au pinceau
     const press = (target: string, e: PointerEvent) => {
-        if (e.pointerType !== "mouse" || e.button !== 0 || disabled) return;
+        const touch = e.pointerType !== "mouse";
+        if ((touch ? !window.matchMedia(TOUCH_PAINT_QUERY).matches : e.button !== 0) || disabled) return;
         e.preventDefault(); // pas de sélection de texte en glissant
-        paint.current = {last: target, travelled: 0, x: e.clientX, y: e.clientY};
+        if (touch) {
+            // le doigt reste « attaché » à la première case : on le libère pour suivre les cases qu'il traverse
+            const pressed = e.target as Element;
+            if (pressed.hasPointerCapture(e.pointerId)) pressed.releasePointerCapture(e.pointerId);
+        }
+        paint.current = {last: target, travelled: 0, x: e.clientX, y: e.clientY, moved: !touch};
         skipClick.current = true;
         onBet(target, true);
     };
     const pass = (target: string, e: PointerEvent) => {
-        if (target !== hovered) setHovered(target);
         const p = paint.current;
+        // pas de survol au doigt : rien tant qu'il ne glisse pas vraiment
+        if (e.pointerType !== "mouse") {
+            if (!p) return;
+            if (!p.moved) {
+                if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < TOUCH_SLOP) return;
+                p.moved = true;
+                p.x = e.clientX;
+                p.y = e.clientY;
+            }
+        }
+        if (target !== hovered) setHovered(target);
         if (!p || disabled) return;
         p.travelled += Math.hypot(e.clientX - p.x, e.clientY - p.y);
         p.x = e.clientX;
@@ -99,13 +118,15 @@ export default function RouletteTable({bets, winning, result, disabled, onBet}: 
         }
     };
 
-    // Pose au pinceau : dernière mise posée, chemin parcouru depuis, et dernière position de la souris
-    const paint = useRef<{ last: string; travelled: number; x: number; y: number } | null>(null);
+    // Pose au pinceau : dernière mise posée, chemin parcouru depuis, dernière position, et si le doigt a vraiment bougé
+    const paint = useRef<{ last: string; travelled: number; x: number; y: number; moved: boolean } | null>(null);
     // le clic qui suit l'appui ne repose pas de jeton (déjà posé à l'appui)
     const skipClick = useRef(false);
     useEffect(() => {
-        const stop = () => {
+        const stop = (e: globalThis.PointerEvent) => {
             paint.current = null;
+            // doigt levé : plus rien n'est visé (à la souris, le survol continue)
+            if (e.pointerType !== "mouse") setHovered(null);
         };
         window.addEventListener("pointerup", stop);
         window.addEventListener("pointercancel", stop);
@@ -159,7 +180,11 @@ export default function RouletteTable({bets, winning, result, disabled, onBet}: 
                             data-key={key}
                             onPointerDown={e => press(targetOf(key, e), e)}
                             onPointerMove={e => pass(targetOf(key, e), e)}
-                            onFocus={() => setHovered(key)} onBlur={() => setHovered(null)}
+                            // au clavier seulement : un appui du doigt ne laisse pas la case surlignée
+                            onFocus={e => {
+                                if (e.currentTarget.matches(":focus-visible")) setHovered(key);
+                            }}
+                            onBlur={() => setHovered(null)}
                             disabled={disabled}
                             // clavier (detail = 0) : la case elle-même ; souris ou doigt : là où on a cliqué
                             onClick={e => {

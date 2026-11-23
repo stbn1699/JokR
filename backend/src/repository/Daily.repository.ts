@@ -1,5 +1,6 @@
 import {type Kysely, sql} from "kysely";
 import type {DB} from "../db/schema.js";
+import {ACTIVE_STREAK} from "./Streak.repository.js";
 
 export type DailyChallenge = {
     puzzle: unknown;
@@ -130,7 +131,7 @@ export class DailyRepository {
                 .selectFrom(eb => eb.selectFrom("daily_results")
                     .innerJoin("users", "users.id", "daily_results.user_id")
                     .select([
-                        "users.id", "users.username", "users.avatar", "users.user_level", "daily_results.duration_ms",
+                        "users.id", "users.username", "users.avatar", "users.user_level", ACTIVE_STREAK.as("streak"), "daily_results.duration_ms",
                         sql<number>`rank() over (order by daily_results.duration_ms)`.as("rank"),
                     ])
                     .where("daily_results.challenge_date", "=", date)
@@ -145,7 +146,7 @@ export class DailyRepository {
         return this.db
             .selectFrom("daily_results")
             .innerJoin("users", "users.id", "daily_results.user_id")
-            .select(["users.username", "users.avatar", "users.user_level", "daily_results.duration_ms"])
+            .select(["users.username", "users.avatar", "users.user_level", ACTIVE_STREAK.as("streak"), "daily_results.duration_ms"])
             .where("daily_results.challenge_date", "=", date)
             .where("daily_results.game_code", "=", gameCode)
             .orderBy("daily_results.duration_ms", "asc")

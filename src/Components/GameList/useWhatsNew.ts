@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import changelog from "../../../CHANGELOG.md?raw";
 import {type ChangelogVersion, parseChangelog} from "../Changelog/parseChangelog.ts";
-import {APP_VERSION, compareVersions, versionsSince} from "../../Services/version.ts";
+import {APP_VERSION, hasNewRelease, releasesSince} from "../../Services/version.ts";
 import {userService} from "../../Services/user.service.ts";
 
 // Dernière version vue par un invité (dans son navigateur)
@@ -31,8 +31,9 @@ const sessionSince = () => read(() => sessionStorage, SESSION_KEY);
 /**
  * Nouveautés depuis la dernière visite du joueur (accueil).
  * - Dernière version vue : sur son compte (connecté, la même sur tous ses appareils) ou dans son navigateur (invité)
- * - Plus ancienne que la version du site : popup avec les nouveautés de chaque version sortie depuis,
+ * - 1er ou 2e chiffre plus ancien que la version du site : popup avec les nouveautés de chaque version sortie depuis,
  *   et `since` (cette version) pour mettre une pastille « Nouveau » sur les jeux apparus depuis
+ * - Seul le 3e chiffre change (petit correctif) : aucune popup
  * - Les pastilles restent jusqu'à la fin de la visite ; la popup ne s'affiche qu'une fois
  * - Première visite (ou compte tout neuf) : rien, la version actuelle est simplement enregistrée
  */
@@ -51,11 +52,11 @@ export function useWhatsNew(isLoggedIn: boolean) {
                 : read(() => localStorage, GUEST_KEY);
             if (cancelled) return;
 
-            const isNewer = previous !== null && compareVersions(previous, APP_VERSION) < 0;
+            const isNewer = previous !== null && hasNewRelease(previous, APP_VERSION);
             write(() => sessionStorage, SESSION_KEY, isNewer ? previous : "");
             if (isNewer) {
                 setSince(previous);
-                setVersions(versionsSince(parseChangelog(changelog), previous, APP_VERSION));
+                setVersions(releasesSince(parseChangelog(changelog), previous, APP_VERSION));
             }
             // Version actuelle vue (aussi la première fois)
             if (previous === null || isNewer) {

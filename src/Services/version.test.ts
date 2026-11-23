@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {compareVersions, isNewSince, versionsSince} from "./version.ts";
+import {compareVersions, hasNewRelease, isNewSince, releasesSince, versionsSince} from "./version.ts";
 
 describe("version", () => {
     it("compare les versions chiffre par chiffre", () => {
@@ -13,6 +13,20 @@ describe("version", () => {
         const versions = [{version: "1.8.0"}, {version: "1.7.0"}, {version: "1.6.0"}, {version: "1.5.0"}];
         expect(versionsSince(versions, "1.5.0", "1.7.0").map(v => v.version)).toEqual(["1.7.0", "1.6.0"]);
         expect(versionsSince(versions, "1.7.0", "1.7.0")).toEqual([]);
+    });
+
+    it("popup : pas pour un petit correctif (3e chiffre), oui pour une vraie version", () => {
+        expect(hasNewRelease("4.0.0", "4.0.1")).toBe(false);
+        expect(hasNewRelease("4.0.1", "4.0.2")).toBe(false);
+        expect(hasNewRelease("4.0.0", "4.0.0")).toBe(false);
+        expect(hasNewRelease("4.0.3", "4.1.0")).toBe(true);
+        expect(hasNewRelease("3.2.0", "4.0.1")).toBe(true);
+    });
+
+    it("popup : les petits correctifs ne sont pas listés", () => {
+        const versions = [{version: "4.1.0"}, {version: "4.0.1"}, {version: "4.0.0"}, {version: "3.2.0"}];
+        expect(releasesSince(versions, "3.2.0", "4.0.1").map(v => v.version)).toEqual(["4.0.0"]);
+        expect(releasesSince(versions, "4.0.0", "4.1.0").map(v => v.version)).toEqual(["4.1.0"]);
     });
 
     it("pastille Nouveau : seulement les jeux apparus après la dernière version vue", () => {

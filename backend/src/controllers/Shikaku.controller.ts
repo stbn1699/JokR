@@ -130,13 +130,13 @@ export function createShikakuController(
             const multiplier = daily?.counted ? DAILY_REWARD_MULTIPLIER : 1;
             const xp = service.computeXp(baseXp, size, hints) * multiplier;
             const credits = service.computeCredits(size, hints) * multiplier;
-            const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
+            const {personalBest, xp: xpWon, credits: creditsWon, streak} = await progressionService.recordWin(userId, GAME_CODE, xp, {
                 gridSize: size,
                 emptyCells: hints,
                 durationMs,
             }, credits);
 
-            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: multiplier, durationMs, personalBest, daily}});
+            res.status(200).json({status: "ok", data: {xp: xpWon, credits: creditsWon, rewardMultiplier: multiplier, durationMs, personalBest, streak, daily}});
         }),
     };
 }

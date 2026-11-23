@@ -15,6 +15,19 @@ export interface WinResult {
     // Mode Niveaux : niveau réussi ; first = première réussite (seule à rapporter XP et crédits),
     // tutorialDone = ce niveau termine le tutoriel (première fois)
     level?: { level: number; first: boolean; tutorialDone: boolean };
+    // Flamme après cette victoire ; xp et credits ci-dessus comprennent déjà son bonus
+    streak?: StreakWin;
+}
+
+export interface StreakWin {
+    days: number;
+    best: number;
+    // Bonus appliqué à cette victoire, en %
+    percent: number;
+    xpBonus: number;
+    creditsBonus: number;
+    // Première grille du jour : la série vient d'avancer
+    extended: boolean;
 }
 
 // Une partie gagnée, dans l'historique du joueur (GET /users/me/results)

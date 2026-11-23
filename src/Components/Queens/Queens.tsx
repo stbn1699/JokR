@@ -261,7 +261,7 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
 
             {flow.victory && level !== undefined && (
                 <SuccessPopup gameName="Queens" gameCode="QUEENS" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
-                              rewardMultiplier={1} before={flow.victory.before}
+                              rewardMultiplier={1} streak={flow.victory.streak} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               title={`${levelName(level)} réussi !`}
                               subtitle="Bien joué, la grille est résolue."
@@ -276,7 +276,7 @@ export default function Queens({daily = false, replayDate, challengeId, level, l
 
             {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Queens" gameCode="QUEENS" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
-                              rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
+                              rewardMultiplier={flow.victory.rewardMultiplier} streak={flow.victory.streak} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
                               challengeId={challengeId}

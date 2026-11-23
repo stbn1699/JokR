@@ -1,8 +1,14 @@
 import {achievements} from "./achievements/index.js";
 import {puzzleWon} from "./achievements/events.js";
-import type {Kysely} from "kysely";
+import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
 import {addXp} from "../utils/leveling.js";
+import {dailyDate} from "../utils/dailyDate.js";
+import {nextStreak, streakBonus, streakBonusPercent} from "../utils/streak.js";
+
+// Flamme après cette victoire : jours de suite, bonus appliqué, et ce qu'il a rapporté
+export type StreakWin = { days: number; best: number; percent: number; xpBonus: number; creditsBonus: number; extended: boolean };
+export type RecordedWin = { personalBest: boolean; xp: number; credits: number; streak: StreakWin };
 
 // Configuration et durée d'une partie gagnée
 export type GameResult = {
@@ -25,14 +31,16 @@ export class ProgressionService {
     /**
      * Retourne `personalBest` : true si c'est le meilleur temps du joueur sur cette configuration
      * (même jeu, même taille, même nombre de cases à remplir).
+     * `xp` et `credits` : gains réels, bonus de la flamme compris.
      */
-    async recordWin(userId: string, gameCode: string, xpGained: number, result: GameResult, creditsGained = 0): Promise<{ personalBest: boolean }> {
-        const win = await this.save(userId, gameCode, xpGained, result, creditsGained);
-        void achievements.track(userId, ctx => puzzleWon(ctx, {gameCode, gridSize: result.gridSize, credits: creditsGained}));
+    async recordWin(userId: string, gameCode: string, baseXp: number, result: GameResult, baseCredits = 0): Promise<RecordedWin> {
+        const win = await this.save(userId, gameCode, baseXp, result, baseCredits);
+        void achievements.track(userId, ctx => puzzleWon(ctx, {gameCode, gridSize: result.gridSize, credits: win.credits}));
         return win;
     }
 
-    private async save(userId: string, gameCode: string, xpGained: number, result: GameResult, creditsGained: number): Promise<{ personalBest: boolean }> {
+    private async save(userId: string, gameCode: string, baseXp: number, result: GameResult, baseCredits: number): Promise<RecordedWin> {
+        const today = dailyDate();
         return this.db.transaction().execute(async (trx) => {
             // Crée la ligne de stats si c'est la première victoire sur ce jeu
             await trx
@@ -43,10 +51,19 @@ export class ProgressionService {
 
             const user = await trx
                 .selectFrom("users")
-                .select(["user_level", "user_xp"])
+                .select(["user_level", "user_xp", "streak_days", "streak_best", "streak_xp_carry", "streak_credits_carry",
+                    sql<string | null>`streak_last_date::text`.as("streak_last")])
                 .where("id", "=", userId)
                 .forUpdate()
                 .executeTakeFirstOrThrow();
+
+            // Flamme : la victoire compte pour aujourd'hui, et son bonus suit la série à jour
+            const days = nextStreak(user.streak_days, user.streak_last, today);
+            const best = Math.max(user.streak_best, days);
+            const xpBonus = streakBonus(baseXp, days, user.streak_xp_carry);
+            const creditsBonus = streakBonus(baseCredits, days, user.streak_credits_carry);
+            const xpGained = baseXp + xpBonus.bonus;
+            const creditsGained = baseCredits + creditsBonus.bonus;
 
             const stats = await trx
                 .selectFrom("game_stats")
@@ -61,8 +78,20 @@ export class ProgressionService {
 
             await trx
                 .updateTable("users")
-                .set(eb => ({user_level: newUser.level, user_xp: newUser.xp, credits: eb("credits", "+", creditsGained)}))
+                .set(eb => ({
+                    user_level: newUser.level, user_xp: newUser.xp, credits: eb("credits", "+", creditsGained),
+                    streak_days: days, streak_best: best, streak_last_date: today,
+                    streak_xp_carry: xpBonus.carry, streak_credits_carry: creditsBonus.carry,
+                }))
                 .where("id", "=", userId)
+                .execute();
+
+            // Grille faite : le rappel du jour n'a plus lieu d'être
+            await trx.updateTable("notifications")
+                .set({read_at: sql`now()`})
+                .where("user_id", "=", userId)
+                .where("kind", "=", "streak_reminder")
+                .where("read_at", "is", null)
                 .execute();
 
             await trx
@@ -76,7 +105,7 @@ export class ProgressionService {
                 .where("game_code", "=", gameCode)
                 .execute();
 
-            const best = await trx
+            const bestTime = await trx
                 .selectFrom("game_results")
                 .select(eb => eb.fn.min("duration_ms").as("best"))
                 .where("user_id", "=", userId)
@@ -98,8 +127,17 @@ export class ProgressionService {
                 })
                 .execute();
 
-            const previousBest = best?.best ?? null;
-            return {personalBest: previousBest === null || result.durationMs < previousBest};
+            const previousBest = bestTime?.best ?? null;
+            return {
+                personalBest: previousBest === null || result.durationMs < previousBest,
+                xp: xpGained,
+                credits: creditsGained,
+                streak: {
+                    days, best, percent: streakBonusPercent(days),
+                    xpBonus: xpBonus.bonus, creditsBonus: creditsBonus.bonus,
+                    extended: user.streak_last !== today,
+                },
+            };
         });
     }
 }

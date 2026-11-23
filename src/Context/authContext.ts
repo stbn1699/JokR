@@ -1,5 +1,6 @@
 import {createContext, useContext} from "react";
 import type {LoggedUser} from "../Models/loggedUser.model.ts";
+import type {UserStreak} from "../Models/user.model.ts";
 
 /*
  * Session de l'utilisateur connecté, partagée dans toute l'app (voir AuthProvider).
@@ -19,6 +20,8 @@ export type AuthState = {
     background: string | null;
     // Mode admin (« mode fantôme ») : niveau max et crédits illimités affichés, rien ne compte
     adminMode: boolean;
+    // Flamme : jours de suite, record, bonus de la prochaine victoire (null tant que le profil n'est pas chargé)
+    streak: UserStreak | null;
 };
 
 export type AuthContextValue = AuthState & {

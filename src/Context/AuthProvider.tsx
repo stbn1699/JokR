@@ -4,10 +4,11 @@ import {AuthContext, type AuthContextValue, type AuthState} from "./authContext.
 import {UNLIMITED_CREDITS} from "../Services/credits.ts";
 import {authService} from "../Services/auth.service.ts";
 import {userService} from "../Services/user.service.ts";
+import {dropPushSubscription} from "../Services/push.service.ts";
 import {ApiError, AUTH_EXPIRED_EVENT} from "../api/api.ts";
 import type {LoggedUser} from "../Models/loggedUser.model.ts";
 
-const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0, credits: 0, avatar: null, isAdmin: false, background: null, adminMode: false};
+const LOGGED_OUT: AuthState = {userId: null, username: null, level: 1, xp: 0, credits: 0, avatar: null, isAdmin: false, background: null, adminMode: false, streak: null};
 
 /*
  * Fournit la session à toute l'app.
@@ -21,10 +22,16 @@ export function AuthProvider({children}: { children: ReactNode }) {
         userId: authService.getSession()?.userId ?? null,
     }));
 
-    const logout = useCallback(() => {
+    const endSession = useCallback(() => {
         authService.clearSession();
         setState(LOGGED_OUT);
     }, []);
+
+    // Déconnexion voulue : cet appareil ne reçoit plus les notifications du compte
+    const logout = useCallback(() => {
+        void dropPushSubscription();
+        endSession();
+    }, [endSession]);
 
     // Recharge le profil depuis le serveur via /users/me : un token expiré (401) ou un compte
     // supprimé (404) ferme la session
@@ -38,6 +45,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
                 isAdmin: user.isAdmin === true,
                 background: user.background ?? null,
                 adminMode: user.adminMode === true,
+                streak: user.streak ?? null,
             });
         } catch (err) {
             const status = err instanceof ApiError ? err.status : undefined;
@@ -49,7 +57,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
     const login = useCallback((user: LoggedUser) => {
         authService.saveSession(user.token, user.userId);
-        setState({userId: user.userId, username: null, level: user.userLevel, xp: user.userXp, credits: 0, avatar: null, isAdmin: false, background: null, adminMode: false});
+        setState({userId: user.userId, username: null, level: user.userLevel, xp: user.userXp, credits: 0, avatar: null, isAdmin: false, background: null, adminMode: false, streak: null});
         void refresh(); // récupère le username et les crédits
     }, [refresh]);
 
@@ -65,15 +73,15 @@ export function AuthProvider({children}: { children: ReactNode }) {
         };
     }, [refresh]);
 
-    // Token expiré ou invalide : déconnexion + retour au login
+    // Token expiré ou invalide : retour au login (l'appareil reste abonné : le joueur n'a pas choisi de partir)
     useEffect(() => {
         const onExpired = () => {
-            logout();
+            endSession();
             navigate("/login");
         };
         window.addEventListener(AUTH_EXPIRED_EVENT, onExpired);
         return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired);
-    }, [logout, navigate]);
+    }, [endSession, navigate]);
 
     const setAvatar = useCallback((avatar: string) => setState(s => ({...s, avatar})), []);
     const setBackground = useCallback((background: string | null) => setState(s => ({...s, background})), []);
