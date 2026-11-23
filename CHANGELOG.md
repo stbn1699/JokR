@@ -4,6 +4,40 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 4.0.0 — 23 novembre 2026
+
+JokR débarque sur ton téléphone ! Installe l'application, emporte tes puzzles et le Hasard partout, reçois tes notifications même quand JokR est fermé, et garde ta nouvelle Flamme allumée jour après jour.
+
+### L'application mobile
+- JokR s'installe sur Android et iPhone, sur téléphone comme sur tablette, avec sa propre icône sur l'écran d'accueil
+- Sur Android, un bouton « Installer JokR » suffit quand ton navigateur le propose ; sinon, et sur iPhone, la page d'installation te guide en quelques étapes
+- Lien ouvert depuis Discord, Instagram ou une autre appli : un bouton copie l'adresse pour l'ouvrir dans Chrome ou Safari
+- Sur téléphone et tablette, JokR se joue maintenant dans l'application
+- Ton compte, ton niveau, tes crédits et tes succès te suivent : connecte-toi et reprends là où tu en étais
+
+### Pensé pour le doigt
+- Boutique, Personnaliser et Succès refaits pour les petits écrans
+- Hasard : le plateau en haut, la barre de mise en bas, et un bouton Réglages pour garder le jeu bien visible
+- Roulette : pose tes jetons en glissant le doigt sur le tapis
+- Puzzles : plus de clavier qui surgit au Sudoku, plus de curseur clavier quand tu joues au doigt
+- Les visites guidées s'adaptent au téléphone
+
+### La Flamme
+- Fais au moins une grille par jour pour faire grandir ta Flamme : un jour manqué, et elle s'éteint
+- Chaque jour de série ajoute +0,5 % d'XP et de crédits à tes victoires, jusqu'à +25 %
+- Tes jours déjà joués comptent : si tu joues depuis 17 jours, ta Flamme démarre à 17
+- Elle s'affiche à côté de ton pseudo dans les classements et sur ton profil, et dans le header, grisée tant que la grille du jour n'est pas faite
+- Elle change de couleur à 7, 30 et 100 jours
+- Nouvel onglet « Flamme » dans les Classements, avec ton record et le filtre Mes ami·e·s
+- La popup de victoire montre ta série et le bonus gagné
+
+### Notifications
+- Active les notifications depuis la cloche, sur ton téléphone comme sur ton ordinateur
+- Demandes d'ami·e, défis, loteries gagnées et résultats du jour arrivent même quand JokR est fermé
+- Un appui sur la notification ouvre directement la bonne page
+- Pas encore de grille à 17 h 30 ? Un petit rappel t'évite de perdre ta Flamme
+- Loteries et résultats du jour attendent 9 h s'ils tombent la nuit : ton téléphone te laisse dormir
+
 ## 3.2.0 — 18 novembre 2026
 
 Les succès arrivent : 561 défis à relever dans tout le site, chacun avec sa récompense. Et la boutique fait peau neuve, avec des améliorations qui changent les jeux eux-mêmes.
