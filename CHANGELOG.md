@@ -4,6 +4,12 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 4.0.1 — 23 novembre 2026
+
+### Sur téléphone
+- Pendant une partie, le haut de l'écran tient sur une seule ligne et ne passe plus par-dessus le nom du jeu et les boutons
+- Sur l'accueil, le décor du monde ne recouvre plus l'image du jeu : ton monde et ton niveau s'affichent sous la carte
+
 ## 4.0.0 — 23 novembre 2026
 
 JokR débarque sur ton téléphone ! Installe l'application, emporte tes puzzles et le Hasard partout, reçois tes notifications même quand JokR est fermé, et garde ta nouvelle Flamme allumée jour après jour.
