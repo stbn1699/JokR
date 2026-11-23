@@ -22,6 +22,7 @@ import Tuyaux from "../Tuyaux/Tuyaux.tsx";
 import Liens from "../Liens/Liens.tsx";
 import Bouchon from "../Bouchon/Bouchon.tsx";
 import Paturages from "../Paturages/Paturages.tsx";
+import Boucle from "../Boucle/Boucle.tsx";
 import Devimot from "../WordGames/Devimot.tsx";
 import Echelle from "../WordGames/Echelle.tsx";
 import MotsMeles from "../WordGames/MotsMeles.tsx";
@@ -76,7 +77,9 @@ export default function PlayGame({daily = false, challengeGame, challengeId}: { 
                 return <Queens daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "TRACE":
                 return <Trace daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
-            // Coloria, Tuyaux, Liens, Bouchon, Pâturages et jeux de mots : partie libre uniquement pour l'instant
+            // Coloria, Tuyaux, Liens, Bouchon, Pâturages, Boucle et jeux de mots : partie libre uniquement pour l'instant
+            case "BOUCLE":
+                return <Boucle/>;
             case "PATURAGES":
                 return <Paturages/>;
             case "BOUCHON":

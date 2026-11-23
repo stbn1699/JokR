@@ -1,0 +1,84 @@
+// Plateau de Boucle (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.boucle {
+	.boucle-board {
+		display       : block;
+		box-sizing    : border-box;
+		width         : min(44rem, calc(100vh - 11rem), calc(100vw - 2rem));
+		height        : auto;
+		overflow      : hidden;
+		border        : 3px solid var(--board-frame);
+		border-radius : 10px;
+		background    : var(--board-paper);
+		cursor        : pointer;
+		// glisser trace la boucle : pas de défilement ni de sélection du texte
+		touch-action  : none;
+		user-select   : none;
+
+		&.drawing { cursor : grabbing; }
+	}
+
+	.boucle-grid line {
+		stroke           : var(--board-line);
+		stroke-width     : 0.025;
+		stroke-dasharray : 0.12 0.1;
+	}
+
+	.boucle-dot {
+		fill         : var(--board-line);
+		pointer-events : none;
+	}
+
+	.boucle-link {
+		stroke         : #3b82f6;
+		stroke-width   : 0.3;
+		stroke-linecap : round;
+		pointer-events : none;
+	}
+
+	.closed .boucle-link { stroke : var(--board-good); }
+
+	.boucle-wall {
+		stroke         : var(--board-wall);
+		stroke-width   : 0.11;
+		stroke-linecap : round;
+		pointer-events : none;
+	}
+
+	.boucle-progress {
+		margin     : 1.5rem 1rem 0.5rem;
+		font-size  : 1.4rem;
+		text-align : center;
+
+		strong {
+			font-size : 2.2rem;
+			color     : #3bf644;
+		}
+	}
+
+	.boucle-warning {
+		margin     : 0 1rem 0.5rem;
+		color      : #fbbf24;
+		font-size  : 1.15rem;
+		text-align : center;
+	}
+}
+
+@media (max-width: 999px) {
+	.puzzle-layout.boucle {
+		.game { align-items : center; }
+
+		.boucle-board { width : min(100cqw, 100cqh); }
+
+		.boucle-progress {
+			margin    : 0;
+			font-size : 1.1rem;
+
+			strong { font-size : 1.5rem; }
+		}
+
+		.boucle-warning {
+			margin    : 0;
+			font-size : 1rem;
+		}
+	}
+}

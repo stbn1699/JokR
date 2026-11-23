@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_boucle)">
+<rect width="512" height="512" rx="50" fill="white"/>
+<path d="M171 -2V514" stroke="black" stroke-width="3"/>
+<path d="M341 -2V514" stroke="black" stroke-width="3"/>
+<path d="M-2 171H514" stroke="black" stroke-width="3"/>
+<path d="M-2 341H514" stroke="black" stroke-width="3"/>
+<path d="M86 86H426V256H256V426H86V86Z" stroke="#88C9FF" stroke-width="55" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M171 171H341" stroke="black" stroke-width="10" stroke-linecap="round"/>
+<path d="M171 171V341" stroke="black" stroke-width="10" stroke-linecap="round"/>
+<path d="M341 341H514" stroke="black" stroke-width="10" stroke-linecap="round"/>
+<path d="M341 341V514" stroke="black" stroke-width="10" stroke-linecap="round"/>
+</g>
+<defs>
+<clipPath id="clip_boucle">
+<rect width="512" height="512" rx="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>

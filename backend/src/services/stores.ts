@@ -15,6 +15,7 @@ import type {TuyauxPuzzle} from "../utils/tuyaux.js";
 import type {LiensPuzzle} from "../utils/liens.js";
 import type {BouchonPuzzle} from "../utils/bouchon.js";
 import type {PaturagesPuzzle} from "../utils/paturages.js";
+import type {BouclePuzzle} from "../utils/boucle.js";
 
 /*
  * Parties en cours, une mémoire par jeu, partagées entre les routes du jeu
@@ -48,3 +49,5 @@ export const liensStore = new PuzzleStore<LiensPuzzle>();
 export const bouchonStore = new PuzzleStore<BouchonPuzzle>();
 // Pâturages : cluesCount = carrés donnés
 export const paturagesStore = new PuzzleStore<PaturagesPuzzle>();
+// Boucle : cluesCount = nombre de murs
+export const boucleStore = new PuzzleStore<BouclePuzzle>();
