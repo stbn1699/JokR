@@ -3,6 +3,7 @@ import {handleKeyDown} from "./keyboardNavigation";
 import {sanitizeInput} from "./sanitizeInput";
 import {hasNote} from "./gridValues.ts";
 import {SkeletonLabel} from "../PuzzleUI/GridSkeleton.tsx";
+import {isTouchOnly} from "../../Services/useSmallScreen.ts";
 
 // Touches qui modifieraient une case pré-remplie
 const BLOCKED_ON_CLUES = new Set(["Backspace", "Delete", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
@@ -35,6 +36,7 @@ const valueOf = (el: HTMLInputElement) => (el.value === '' ? null : Number(el.va
  */
 export default function SudokuGrid(props: SudokuGridProps) {
     const {inputs, onHover, onCellInput, onSelectCell, notes, notesMode, onToggleNote} = props;
+    const touchOnly = isTouchOnly();
 
     const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.currentTarget.readOnly && BLOCKED_ON_CLUES.has(e.key)) {
@@ -68,10 +70,11 @@ export default function SudokuGrid(props: SudokuGridProps) {
                             else delete inputs.current[i];
                         }}
                         className="cell"
-                        type="number"
+                        // Pas de clavier virtuel sur téléphone (il cacherait la grille) : on joue avec le panneau.
+                        // Android ignore inputMode="none" sur un champ "number" : champ texte sur écran tactile
+                        type={touchOnly ? "text" : "number"}
                         min={1}
                         max={9}
-                        // Pas de clavier virtuel sur téléphone (il cacherait la grille) : on joue avec le panneau
                         inputMode="none"
                         pattern="[0-9]*"
                         placeholder=" "

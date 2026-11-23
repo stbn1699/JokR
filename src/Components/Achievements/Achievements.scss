@@ -545,3 +545,99 @@ $tiers : (
 	from { transform : scale(0); }
 	to { transform : scale(1); }
 }
+
+// ---------- Téléphone et tablette : une seule colonne, catégories en bandeau qui défile
+@media (max-width : 999px) {
+	.achievements-page {
+		width   : calc(100% - 1.5rem);
+		padding : 0.5rem 0 5rem;
+	}
+
+	.ach-hero {
+		grid-template-columns : minmax(0, 1fr);
+		gap                   : 1rem;
+		padding               : 1.1rem;
+
+		h1 { font-size : 2.2rem; }
+
+		.ach-hero-title p { font-size : 1rem; }
+	}
+
+	.ach-hero-stats {
+		flex-direction : column;
+		align-items    : stretch;
+		gap            : 0.9rem;
+	}
+
+	.ach-total { min-width : 0; }
+
+	.ach-tiers li { grid-template-columns : 0.8rem minmax(0, 1fr) 4rem 3.5rem; }
+
+	.ach-layout {
+		grid-template-columns : minmax(0, 1fr);
+		gap                   : 0.75rem;
+		margin-top            : 0.9rem;
+	}
+
+	.ach-nav {
+		position        : static;
+		flex-direction  : row;
+		gap             : 0.4rem;
+		margin          : 0 -0.75rem;
+		padding         : 0 0.75rem 0.2rem;
+		overflow-x      : auto;
+		scrollbar-width : none;
+
+		&::-webkit-scrollbar { display : none; }
+
+		button {
+			display      : inline-flex;
+			flex         : none;
+			align-items  : center;
+			gap          : 0.45rem;
+			padding      : 0.5rem 0.8rem;
+			border-color : rgba(249, 250, 251, 0.14);
+			border-radius : 999px;
+			font-size    : 1rem;
+			white-space  : nowrap;
+		}
+
+		.ach-nav-bar { display : none; }
+	}
+
+	.ach-toolbar { flex-wrap : wrap; }
+
+	.ach-status {
+		display : flex;
+		width   : 100%;
+
+		button {
+			flex    : 1;
+			padding : 0.45rem 0.3rem;
+		}
+	}
+
+	.ach-search {
+		flex       : 1 1 100%;
+		box-sizing : border-box;
+
+		input {
+			flex      : 1;
+			width     : auto;
+			min-width : 0;
+			font-size : 16px;
+		}
+	}
+
+	.ach-section h2 { font-size : 1.6rem; }
+
+	.ach-grid { grid-template-columns : minmax(0, 1fr); }
+
+	// popups de déblocage : toute la largeur de l'écran, sans dépasser
+	.achievement-toasts {
+		top   : 3.6rem;
+		right : 0.5rem;
+		left  : 0.5rem;
+		width : auto;
+	}
+}

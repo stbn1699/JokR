@@ -32,6 +32,7 @@ import {
     slotMachine,
 } from "../../../../backend/src/utils/slots.ts";
 import RulesButton from "../RulesButton.tsx";
+import SettingsToggle from "../SettingsToggle.tsx";
 import {TOURS} from "../tours.ts";
 import SlotReels, {type SlotReelsHandle} from "./SlotReels.tsx";
 import SlotRules from "./SlotRules.tsx";
@@ -104,6 +105,8 @@ export default function SlotMachinePage() {
     // tracés des lignes jouées masqués (choix retenu dans le navigateur)
     const [hideLines, setHideLines] = useStoredFlag("jokr:slots:hideLines");
     const [bet, setBet] = useState<number>(SLOT_BETS[0]);
+    // Téléphone : colonnes, lignes et lancers sont repliés
+    const [settingsOpen, setSettingsOpen] = useState(false);
     const [spinning, setSpinning] = useState(false);
     const [error, setError] = useState<string | null>(null);
     // résultat en cours d'animation, puis lignes gagnantes et gain une fois les rouleaux arrêtés
@@ -278,10 +281,11 @@ export default function SlotMachinePage() {
     return (
         <main className="slots">
             <div className="slots-layout">
-                <section className="slots-controls">
-                    <Link to="/hasard/machines" className="slots-back"><FaChevronLeft aria-hidden/> Machines à sous</Link>
+                <section className={`slots-controls ${settingsOpen ? "settings-open" : ""}`}>
+                    <Link to="/hasard/machines" className="slots-back"><FaChevronLeft aria-hidden/> Machines</Link>
                     <div className="casino-title">
                         <h1>{machine.name}</h1>
+                        <SettingsToggle open={settingsOpen} onToggle={() => setSettingsOpen(o => !o)}/>
                         <RulesButton tour={TOURS.SLOTS} title={`Règles · ${machine.name}`}><SlotRules machine={machine} reels={reelCount} lines={lineCount}/></RulesButton>
                     </div>
 

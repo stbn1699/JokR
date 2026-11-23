@@ -14,8 +14,11 @@ const tour = (code: string, steps: TourStep[]) => ({code, steps});
 export const TOURS = {
     PLINKO: tour("PLINKO", [
         {target: ".plinko-bets", text: "Choisis ta mise en touchant un jeton."},
+        // téléphone seulement (le bouton est caché sur ordinateur, l'étape est alors sautée)
+        {target: ".plinko-controls .casino-settings-toggle", text: "Le tableau de gains, le nombre de billes et l'affichage des autres joueurs sont rangés ici."},
         {target: ".plinko-risks:not(.plinko-counts)", text: "Le tableau de gains : prudent gagne souvent mais peu, risqué paie gros sur les bords et presque rien au centre."},
-        {target: [".plinko-counts", ".plinko-drop"], text: "Combien de billes lâcher d'un coup, puis ce bouton pour les lâcher."},
+        {target: ".plinko-counts", text: "Combien de billes lâcher d'un coup."},
+        {target: ".plinko-drop", text: "Ce bouton lâche tes billes."},
         {target: ".plinko-board", text: "La bille rebondit sur les clous : la case où elle tombe multiplie ta mise."},
         {target: ".plinko-side", text: "Tes dernières billes et ce qu'elles t'ont rapporté."},
         CREDITS,
@@ -31,6 +34,8 @@ export const TOURS = {
     ]),
     SLOTS: tour("SLOTS", [
         {target: ".slots-bets", text: "Choisis ta mise par lancer."},
+        // téléphone seulement (le bouton est caché sur ordinateur, l'étape est alors sautée)
+        {target: ".slots-controls .casino-settings-toggle", text: "Le nombre de colonnes, de lignes de gain et de lancers à enchaîner sont rangés ici."},
         {target: ".slots-controls .slots-choices", text: "Le nombre de colonnes, de lignes de gain et de lancers à enchaîner."},
         {target: ".slots-spin", text: "Lance les rouleaux (ou arrête une série en cours)."},
         {target: ".slot-window", text: "Au moins 3 symboles identiques à la suite sur une ligne de gain, en partant de la gauche : la ligne gagne."},

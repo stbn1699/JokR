@@ -69,6 +69,11 @@
 		stroke       : #93c5fd;
 		stroke-width : 0.5;
 		rx           : 1;
+
+		// repère du jeu au clavier : inutile (et figé) sur un écran tactile
+		@media (hover : none) and (pointer : coarse) {
+			display : none;
+		}
 	}
 
 	.shikaku-clue {

@@ -503,6 +503,13 @@
 					font-size : 1rem;
 				}
 			}
+
+			// un bouton de plus (croix automatiques du Queens) : titre plus petit et chrono sans icône
+			&:has(.extra) {
+				.game-toolbar-title strong { font-size : 1.3rem; }
+
+				.game-timer .game-timer-icon { display : none; }
+			}
 		}
 
 		.game-toolbar-title {

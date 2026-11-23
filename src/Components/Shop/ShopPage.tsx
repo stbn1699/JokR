@@ -89,6 +89,7 @@ export default function ShopPage() {
     const [owned, setOwned] = useState<string[]>([]);
     const [bestSellers, setBestSellers] = useState<BestSeller[] | null>(null);
     const [filter, setFilter] = useState<Filter>("all");
+    const [factsOpen, setFactsOpen] = useState(false);
     const balls = usePlinkoBalls();
     const imageSets = useImageBackgrounds();
     const chipSets = useChipSets();
@@ -180,7 +181,11 @@ export default function ShopPage() {
     };
 
     return (
-        <main className="shop">
+        // Téléphone : un appui sur le nom de l'objet déplie ses détails (voir Shop.scss)
+        <main className={`shop ${factsOpen ? "facts-open" : ""}`}
+              onClick={e => {
+                  if ((e.target as Element).closest(".shop-detail-info")) setFactsOpen(open => !open);
+              }}>
             <nav className="shop-tabs" aria-label="Boutiques">
                 <Link to="/boutique" className={tab === "cosmetiques" ? "active" : ""}><FaPalette aria-hidden/> Cosmétiques</Link>
                 <Link to="/boutique/ameliorations" className={tab === "ameliorations" ? "active" : ""}><FaBolt aria-hidden/> Améliorations</Link>

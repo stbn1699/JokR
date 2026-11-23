@@ -89,6 +89,14 @@ export default function InterfaceTour({steps, onClose}: { steps: TourStep[]; onC
         return () => window.clearTimeout(timer);
     }, [shown, onClose]);
 
+    // Téléphone : la visite descend parfois jusqu'à l'historique ; à la fin, on revient là où était le joueur
+    useEffect(() => {
+        const startY = window.scrollY;
+        return () => {
+            if (window.matchMedia("(max-width: 999px)").matches) window.scrollTo(0, startY);
+        };
+    }, []);
+
     const nextRef = useRef<HTMLButtonElement>(null);
     useEffect(() => nextRef.current?.focus(), [index, shown]);
 

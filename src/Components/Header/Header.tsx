@@ -23,7 +23,7 @@ import NotificationBell from "../Notifications/NotificationBell.tsx";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
-import {isGameRoute} from "../../Services/routes.ts";
+import {isCasinoGameRoute, isGameRoute} from "../../Services/routes.ts";
 import {useHeaderProgress} from "./useHeaderProgress.ts";
 import {useHideOnScroll} from "./useHideOnScroll.ts";
 import {createPortal} from "react-dom";
@@ -122,7 +122,7 @@ export default function Header() {
     return (
         <>
         {adminMode && createPortal(<div className="admin-mode-frame" aria-hidden><span>Mode admin</span></div>, document.body)}
-        <div ref={headerRef} className={`header ${isGameRoute(pathname) ? "in-game" : ""} ${autoHide ? "auto-hide" : ""} ${autoHidden ? "scrolled-away" : ""}`}>
+        <div ref={headerRef} className={`header ${isGameRoute(pathname) || isCasinoGameRoute(pathname) ? "in-game" : ""} ${autoHide ? "auto-hide" : ""} ${autoHidden ? "scrolled-away" : ""}`}>
             <img
                 src="/JokR_Logo_Full.svg"
                 alt="logo"

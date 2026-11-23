@@ -47,6 +47,109 @@
 	font-size  : 15px;
 }
 
+// Page « Installe JokR » (InstallApp.tsx)
+.small-screen.install-app {
+	justify-content : safe center;
+	gap             : 22px;
+}
+
+.install-app-icon {
+	flex-shrink   : 0;
+	width         : 96px;
+	height        : 96px;
+	border-radius : 22px;
+	box-shadow    : 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.install-app-text {
+	display        : flex;
+	flex-direction : column;
+	gap            : 8px;
+	max-width      : 520px;
+
+	h1 {
+		margin      : 0;
+		font-size   : clamp(26px, 7vw, 34px);
+		font-weight : 500;
+		line-height : 1.15;
+	}
+}
+
+.install-button {
+	display         : inline-flex;
+	align-items     : center;
+	justify-content : center;
+	gap             : 10px;
+	min-height      : 52px;
+	padding         : 12px 28px;
+	border          : 0;
+	border-radius   : 14px;
+	background      : #fbbf24;
+	color           : #1c1917;
+	font            : inherit;
+	font-size       : 20px;
+	cursor          : pointer;
+
+	&:active { background : #f59e0b; }
+
+	&:focus-visible {
+		outline        : 3px solid #f8fafc;
+		outline-offset : 3px;
+	}
+}
+
+.install-steps {
+	display        : flex;
+	flex-direction : column;
+	gap            : 10px;
+	width          : min(100%, 420px);
+	margin         : 0;
+	padding        : 0;
+	list-style     : none;
+	counter-reset  : install-step;
+	text-align     : left;
+
+	li {
+		position        : relative;
+		padding         : 16px 14px 16px 56px;
+		border-radius   : 12px;
+		background      : rgba(255, 255, 255, 0.07);
+		font-size       : 17px;
+		line-height     : 1.3;
+		counter-increment : install-step;
+
+		&::before {
+			content         : counter(install-step);
+			position        : absolute;
+			left            : 14px;
+			top             : 50%;
+			display         : flex;
+			align-items     : center;
+			justify-content : center;
+			width           : 30px;
+			height          : 30px;
+			border-radius   : 50%;
+			background      : #fbbf24;
+			color           : #1c1917;
+			transform       : translateY(-50%);
+		}
+	}
+
+	strong {
+		font-weight : 500;
+		color       : #fde68a;
+	}
+}
+
+.install-inline-icon {
+	margin-left    : 3px;
+	font-size      : 19px;
+	color          : #fbbf24;
+	vertical-align : -3px;
+}
+
+.small-screen.install-app .small-screen-hint { margin-top : 0; }
+
 @keyframes small-screen-in {
 	from { opacity : 0; }
 }

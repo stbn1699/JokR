@@ -67,4 +67,10 @@
 			color : #fbbf24;
 		}
 	}
+
+	@media (max-width : 999px) {
+		.customize-head h1 { font-size : 1.5rem; }
+
+		.customize-shop-link { padding : 0.35rem 0.85rem; }
+	}
 }
