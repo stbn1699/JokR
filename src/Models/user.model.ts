@@ -22,6 +22,17 @@ export interface User {
     background?: string | null;
     // Seulement dans GET /users/me : administrateur en mode admin (« mode fantôme »)
     adminMode?: boolean;
+    // Seulement dans GET /users/me : flamme du joueur
+    streak?: UserStreak;
+}
+
+// Flamme : jours de suite avec au moins une grille réussie
+export interface UserStreak {
+    days: number;
+    best: number;
+    // Bonus d'XP et de crédits de la prochaine victoire, en %
+    percent: number;
+    playedToday: boolean;
 }
 
 // Visibilité de sa page pour les autres joueurs (le pseudo, l'icône et le niveau restent visibles)

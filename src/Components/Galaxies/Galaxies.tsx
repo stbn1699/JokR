@@ -204,7 +204,7 @@ export default function Galaxies({daily = false, replayDate, challengeId, level,
 
             {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Galaxies" gameCode="GALAXIES" xpAwarded={flow.victory.xpAwarded} creditsAwarded={flow.victory.creditsAwarded}
-                              rewardMultiplier={flow.victory.rewardMultiplier} before={flow.victory.before}
+                              rewardMultiplier={flow.victory.rewardMultiplier} streak={flow.victory.streak} before={flow.victory.before}
                               durationMs={flow.victory.durationMs} personalBest={flow.victory.personalBest}
                               daily={flow.victory.daily}
                               challengeId={challengeId}

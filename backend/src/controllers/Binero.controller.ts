@@ -116,8 +116,8 @@ export function createBineroController(
                 const baseXp = await gamesService.getBaseXp(GAME_CODE) ?? 0;
                 const xp = service.computeXp(baseXp, size, empty);
                 const credits = service.computeCredits(size, empty);
-                const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {gridSize: size, emptyCells: empty, durationMs}, credits);
-                res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: 1, durationMs, personalBest, level}});
+                const {personalBest, xp: xpWon, credits: creditsWon, streak} = await progressionService.recordWin(userId, GAME_CODE, xp, {gridSize: size, emptyCells: empty, durationMs}, credits);
+                res.status(200).json({status: "ok", data: {xp: xpWon, credits: creditsWon, rewardMultiplier: 1, durationMs, personalBest, streak, level}});
                 return;
             }
 
@@ -133,13 +133,13 @@ export function createBineroController(
             const multiplier = daily?.counted ? DAILY_REWARD_MULTIPLIER : 1;
             const xp = service.computeXp(baseXp, size, size * size - game.cluesCount) * multiplier;
             const credits = service.computeCredits(size, size * size - game.cluesCount) * multiplier;
-            const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
+            const {personalBest, xp: xpWon, credits: creditsWon, streak} = await progressionService.recordWin(userId, GAME_CODE, xp, {
                 gridSize: size,
                 emptyCells: size * size - game.cluesCount,
                 durationMs,
             }, credits);
 
-            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: multiplier, durationMs, personalBest, daily}});
+            res.status(200).json({status: "ok", data: {xp: xpWon, credits: creditsWon, rewardMultiplier: multiplier, durationMs, personalBest, streak, daily}});
         }),
     };
 }

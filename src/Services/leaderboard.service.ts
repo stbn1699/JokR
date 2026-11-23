@@ -15,12 +15,15 @@ export interface LeaderboardEntry {
     levels?: number;
     // Seulement pour le classement des crédits
     credits?: number;
+    // Flamme du joueur : jours de suite (0 sans série), et son record (classement de la flamme)
+    streak?: number;
+    streakBest?: number;
 }
 
 export interface Leaderboard {
     entries: LeaderboardEntry[];
     // Place du joueur connecté (null si invité ou jamais classé)
-    me: { rank: number; total: number; level: number; xp?: number; gamesWon?: number; levels?: number; credits?: number } | null;
+    me: { rank: number; total: number; level: number; xp?: number; gamesWon?: number; levels?: number; credits?: number; streak?: number; streakBest?: number } | null;
     // Seulement pour le classement d'un jeu qui a un mode Niveaux : nombre de niveaux du jeu
     levelCount?: number;
 }
@@ -35,6 +38,11 @@ export const leaderboardService = {
     // Classement par crédits (ceux que le joueur a en ce moment)
     credits(signal?: AbortSignal, friendsOnly = false): Promise<Leaderboard> {
         return api<Leaderboard>(`/leaderboard/credits${friendsOnly ? "?amis=1" : ""}`, {method: "GET"}, signal);
+    },
+
+    // Classement de la flamme (jours de suite avec une grille réussie)
+    streak(signal?: AbortSignal, friendsOnly = false): Promise<Leaderboard> {
+        return api<Leaderboard>(`/leaderboard/streak${friendsOnly ? "?amis=1" : ""}`, {method: "GET"}, signal);
     },
 
     // Classement d'un jeu (niveau / XP sur ce jeu)

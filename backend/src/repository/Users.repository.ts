@@ -4,6 +4,7 @@ import type {DB} from "../db/schema.js";
 import type {User} from "../models/User.model.js";
 import type {NewUser} from "../models/NewUser.model.js";
 import type {ExternalProfile, Provider} from "../services/oauth.js";
+import {StreakRepository} from "./Streak.repository.js";
 
 export type LinkedIdentity = { provider: string; display_name: string | null };
 
@@ -39,6 +40,11 @@ export class UsersRepository {
             .selectAll()
             .where('id', '=', uuid)
             .executeTakeFirst();
+    }
+
+    // Flamme du joueur
+    async streakOf(id: string) {
+        return new StreakRepository(this.db).of(id);
     }
 
     // Change l'icône de profil

@@ -1,5 +1,6 @@
 import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
+import {ACTIVE_STREAK} from "./Streak.repository.js";
 
 export type Ranking = { rank: number; total: number };
 
@@ -24,7 +25,7 @@ export class LeaderboardRepository {
         if (members) {
             return this.db
                 .selectFrom(eb => eb.selectFrom("users")
-                    .select(["id", "username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp",
+                    .select(["id", "username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp", ACTIVE_STREAK.as("streak"),
                         sql<number>`rank() over (order by user_level desc, user_xp desc)`.as("rank")])
                     .as("r"))
                 .selectAll()
@@ -35,7 +36,7 @@ export class LeaderboardRepository {
         }
         return this.db
             .selectFrom("users")
-            .select(["username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp"])
+            .select(["username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp", ACTIVE_STREAK.as("streak")])
             .orderBy("user_level", "desc")
             .orderBy("user_xp", "desc")
             .orderBy("username", "asc")
@@ -69,7 +70,7 @@ export class LeaderboardRepository {
         if (members) {
             return this.db
                 .selectFrom(eb => eb.selectFrom("users")
-                    .select(["id", "username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp", "credits",
+                    .select(["id", "username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp", ACTIVE_STREAK.as("streak"), "credits",
                         sql<number>`rank() over (order by credits desc)`.as("rank")])
                     .as("r"))
                 .selectAll()
@@ -80,7 +81,7 @@ export class LeaderboardRepository {
         }
         return this.db
             .selectFrom("users")
-            .select(["username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp", "credits"])
+            .select(["username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp", ACTIVE_STREAK.as("streak"), "credits"])
             .orderBy("credits", "desc")
             .orderBy("username", "asc")
             .limit(limit)
@@ -106,13 +107,46 @@ export class LeaderboardRepository {
         return {rank: Number(row.ahead) + 1, total: Number(row.total), level: me.user_level, credits: me.credits};
     }
 
+    // Flamme : séries encore en vie, la plus longue d'abord (ex aequo : même place)
+    async topStreak(limit: number, members?: string[]) {
+        let query = this.db
+            .selectFrom(eb => eb.selectFrom("users")
+                .select(["id", "username", "avatar", "user_level as level", "user_level as userLevel", "user_xp as xp",
+                    "streak_best as streakBest", ACTIVE_STREAK.as("streak"),
+                    sql<number>`rank() over (order by ${ACTIVE_STREAK} desc)`.as("rank")])
+                .as("r"))
+            .selectAll()
+            .where("streak", ">", 0);
+        if (members) query = query.where("id", "in", members);
+        return query.orderBy("rank").orderBy("username").limit(members ? MEMBERS_LIMIT : limit).execute();
+    }
+
+    // Place d'un joueur au classement de la flamme (null s'il n'a pas de série en cours)
+    async streakRankOf(userId: string): Promise<(Ranking & { level: number; streak: number; streakBest: number }) | null> {
+        const me = await this.db
+            .selectFrom("users")
+            .select(["user_level", "streak_best", ACTIVE_STREAK.as("streak")])
+            .where("id", "=", userId)
+            .executeTakeFirst();
+        if (!me || me.streak <= 0) return null;
+
+        const row = await this.db
+            .selectFrom(eb => eb.selectFrom("users").select(ACTIVE_STREAK.as("streak")).as("s"))
+            .select(eb => [
+                eb.fn.countAll<string>().filterWhere("streak", ">", 0).as("total"),
+                eb.fn.countAll<string>().filterWhere("streak", ">", me.streak).as("ahead"),
+            ])
+            .executeTakeFirstOrThrow();
+        return {rank: Number(row.ahead) + 1, total: Number(row.total), level: me.user_level, streak: me.streak, streakBest: me.streak_best};
+    }
+
     async topGame(gameCode: string, limit: number, members?: string[]) {
         if (members) {
             return this.db
                 .selectFrom(eb => eb.selectFrom("game_stats")
                     .innerJoin("users", "users.id", "game_stats.user_id")
                     .select([
-                        "users.id", "users.username", "users.avatar", "users.user_level as userLevel",
+                        "users.id", "users.username", "users.avatar", "users.user_level as userLevel", ACTIVE_STREAK.as("streak"),
                         "game_stats.game_level as level", "game_stats.game_xp as xp", "game_stats.games_won as gamesWon",
                         LEVELS_DONE.as("levels"),
                         sql<number>`rank() over (order by ${LEVELS_DONE} desc, game_stats.games_won desc)`.as("rank"),
@@ -132,7 +166,7 @@ export class LeaderboardRepository {
                 "users.username",
                 "users.avatar",
                 // niveau global (contour de l'icône), à côté du niveau sur ce jeu
-                "users.user_level as userLevel",
+                "users.user_level as userLevel", ACTIVE_STREAK.as("streak"),
                 "game_stats.game_level as level",
                 "game_stats.game_xp as xp",
                 "game_stats.games_won as gamesWon",

@@ -127,13 +127,13 @@ export function createTectonicController(
             const multiplier = daily?.counted ? DAILY_REWARD_MULTIPLIER : 1;
             const xp = service.computeXp(baseXp, size, emptyCells) * multiplier;
             const credits = service.computeCredits(size, emptyCells) * multiplier;
-            const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
+            const {personalBest, xp: xpWon, credits: creditsWon, streak} = await progressionService.recordWin(userId, GAME_CODE, xp, {
                 gridSize: size,
                 emptyCells,
                 durationMs,
             }, credits);
 
-            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: multiplier, durationMs, personalBest, daily}});
+            res.status(200).json({status: "ok", data: {xp: xpWon, credits: creditsWon, rewardMultiplier: multiplier, durationMs, personalBest, streak, daily}});
         }),
     };
 }

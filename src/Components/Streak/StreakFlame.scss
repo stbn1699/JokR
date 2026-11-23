@@ -1,0 +1,47 @@
+.streak-flame {
+	display     : inline-flex;
+	flex        : none;
+	align-items : center;
+	gap         : 0.18em;
+	color       : #f97316;
+	font-weight : 700;
+	line-height : 1;
+
+	svg {
+		flex : none;
+	}
+
+	&.red {
+		color : #ef4444;
+	}
+
+	&.violet {
+		color : #a855f7;
+	}
+
+	&.blue {
+		color : #38bdf8;
+	}
+
+	// Pas encore de grille aujourd'hui
+	&.dim {
+		filter  : grayscale(0.85);
+		opacity : 0.65;
+	}
+}
+
+// Popup de victoire : où en est la flamme
+.streak-win {
+	display         : flex;
+	flex-wrap       : wrap;
+	align-items     : center;
+	justify-content : center;
+	gap             : 0.4rem;
+	margin          : 0.4rem 0 0.8rem;
+	font-size       : 1.15rem;
+
+	small {
+		font-size : 1rem;
+		opacity   : 0.75;
+	}
+}

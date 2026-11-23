@@ -59,7 +59,20 @@ export interface WelcomeNotification extends BaseNotification {
     data: { credits: number };
 }
 
-export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification | LotteryWinNotification | WelcomeNotification;
+// Rappel de 17 h 30 : pas encore de grille aujourd'hui (days : série à sauver, 0 s'il n'y en a pas)
+export interface StreakReminderNotification extends BaseNotification {
+    kind: "streak_reminder";
+    data: { date: string; days: number };
+}
+
+export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification | LotteryWinNotification | WelcomeNotification | StreakReminderNotification;
+
+export const isStreakReminder = (n: AppNotification): n is StreakReminderNotification => n.kind === "streak_reminder";
+
+// Texte du rappel de la flamme
+export const streakReminderText = (days: number) => days > 0
+    ? {title: `Ta flamme de ${days.toLocaleString("fr-FR")} jour${days > 1 ? "s" : ""} va s'éteindre`, body: "Fais une grille avant minuit pour la garder !"}
+    : {title: "Allume ta flamme", body: "Fais une grille aujourd'hui et gagne un peu plus d'XP et de crédits chaque jour."};
 
 export const isFriendNotification = (n: AppNotification): n is FriendNotification =>
     n.kind === "friend_request" || n.kind === "friend_accepted";

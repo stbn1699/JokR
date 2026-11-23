@@ -49,6 +49,16 @@ export function createLeaderboardController(repo: LeaderboardRepository, games: 
             res.status(200).json({status: "ok", data: {entries: withRank(entries), me}});
         }),
 
+        streak: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const userId = res.locals.userId;
+            const members = await membersOf(req, userId);
+            const [entries, me] = await Promise.all([
+                repo.topStreak(TOP, members),
+                userId ? repo.streakRankOf(userId) : Promise.resolve(null),
+            ]);
+            res.status(200).json({status: "ok", data: {entries: withRank(entries), me}});
+        }),
+
         game: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
             const code = routeParam(req.params, "game")?.toUpperCase() ?? "";
             if (await games.getBaseXp(code) === undefined) {

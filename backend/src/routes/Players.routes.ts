@@ -50,6 +50,9 @@ router.get("/:username", optionalAuth, asyncHandler(async (req, res: Response<un
             username: player.username,
             avatar: player.avatar,
             level: player.level,
+            // la flamme est visible de tous, comme dans les classements
+            streak: player.streak,
+            streakBest: player.streakBest,
             isOwner,
             friendship,
             stats: showStats && games && daily ? {

@@ -31,6 +31,7 @@ import {useTierUp} from "../Avatar/useTierUp.ts";
 import TierUpPopup from "../Avatar/TierUpPopup.tsx";
 import LevelBubble from "../Avatar/LevelBubble.tsx";
 import ProfileMenu from "./ProfileMenu.tsx";
+import StreakFlame from "../Streak/StreakFlame.tsx";
 import {useEffect, useRef, useState} from "react";
 import {dailyService} from "../../Services/daily.service.ts";
 import {casinoService, WHEEL_SPUN_EVENT} from "../../Services/casino.service.ts";
@@ -175,6 +176,17 @@ export default function Header() {
                         {bubbleTop !== null && (
                             <LevelBubble level={level} xp={xp} seed={auth.avatar ?? undefined} fallback={auth.username ?? undefined}
                                          top={bubbleTop} onClose={() => setBubbleTop(null)}/>
+                        )}
+
+                        {/* Flamme : grisée tant que la grille du jour n'est pas faite ; un clic mène à son classement */}
+                        {!adminMode && auth.streak && auth.streak.days > 0 && (
+                            <>
+                                <span className="user-divider" aria-hidden/>
+                                <Link to="/classements?onglet=flamme" className="header-streak"
+                                      title={`${auth.streak.playedToday ? "Flamme du jour gardée" : "Fais une grille aujourd'hui pour garder ta flamme"} · prochain bonus +${auth.streak.percent.toLocaleString("fr-FR")} %`}>
+                                    <StreakFlame days={auth.streak.days} dim={!auth.streak.playedToday}/>
+                                </Link>
+                            </>
                         )}
 
                         <span className="user-divider" aria-hidden/>

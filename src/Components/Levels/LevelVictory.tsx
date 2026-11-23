@@ -39,7 +39,7 @@ export default function LevelVictory({gameCode, gameName, level, info, victory}:
     if (!victory) return null;
     return (
         <SuccessPopup gameName={gameName} gameCode={gameCode} xpAwarded={victory.xpAwarded} creditsAwarded={victory.creditsAwarded}
-                      rewardMultiplier={1} before={victory.before}
+                      rewardMultiplier={1} streak={victory.streak} before={victory.before}
                       durationMs={victory.durationMs} personalBest={victory.personalBest}
                       title={`${levelName(level)} réussi !`}
                       subtitle="Bien joué, la grille est résolue."

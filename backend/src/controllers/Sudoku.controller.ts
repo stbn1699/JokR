@@ -142,13 +142,13 @@ export function createSudokuController(
             const xp = service.computeXp(baseXp, game.cluesCount) * multiplier;
             const credits = service.computeCredits(81 - game.cluesCount) * multiplier;
 
-            const {personalBest} = await progressionService.recordWin(userId, GAME_CODE, xp, {
+            const {personalBest, xp: xpWon, credits: creditsWon, streak} = await progressionService.recordWin(userId, GAME_CODE, xp, {
                 gridSize: 9,
                 emptyCells: 81 - game.cluesCount,
                 durationMs,
             }, credits);
 
-            res.status(200).json({status: 'ok', data: {xp, credits, rewardMultiplier: multiplier, durationMs, personalBest, daily}});
+            res.status(200).json({status: 'ok', data: {xp: xpWon, credits: creditsWon, rewardMultiplier: multiplier, durationMs, personalBest, streak, daily}});
         })
     };
 }

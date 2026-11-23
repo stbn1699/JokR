@@ -143,6 +143,15 @@
 			background    : rgba(55, 65, 81, 0.25);
 		}
 
+		// Flamme, entre le niveau et les crédits
+		.header-streak {
+			display         : inline-flex;
+			align-items     : center;
+			margin-right    : 0.2rem;
+			font-size       : 1.3rem;
+			text-decoration : none;
+		}
+
 		// Un peu plus d'air avant l'icône de profil
 		.profile-menu {
 			margin-left : 0.4rem;

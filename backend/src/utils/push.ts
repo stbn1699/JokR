@@ -99,6 +99,12 @@ export function pushMessage(n: { id: string; kind: string; data: unknown }): Pus
                 body: `Tu termines ${best.rank}${best.rank === 1 ? "er" : "e"} sur ${best.total} au ${best.name}${others > 0 ? ` (et ${others} autre${others > 1 ? "s" : ""} défi${others > 1 ? "s" : ""})` : ""}`,
                 url: "/defi", tag};
         }
+        case "streak_reminder": {
+            const days = data.days as number;
+            return days > 0
+                ? {title: `Ta flamme de ${fr(days)} jour${days > 1 ? "s" : ""} va s'éteindre`, body: "Fais une grille avant minuit pour la garder !", url: "/", tag}
+                : {title: "Allume ta flamme", body: "Fais une grille aujourd'hui et gagne un peu plus d'XP et de crédits chaque jour.", url: "/", tag};
+        }
         default:
             return null;
     }

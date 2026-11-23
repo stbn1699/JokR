@@ -1,6 +1,8 @@
 import {FaCheck, FaCoins} from "react-icons/fa";
 import {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import "./SuccessPopup.scss";
+import StreakFlame from "../Streak/StreakFlame.tsx";
+import type {StreakWin} from "../../Models/gameResult.model.ts";
 import {Link, useNavigate} from "react-router-dom";
 import {playMyVictoryEffect} from "../../Services/victoryEffects.ts";
 import {xpSteps} from "../../Services/leveling.ts";
@@ -49,6 +51,8 @@ type SuccessPopupProps = {
     personalBest: boolean;
     // Défi du jour : place du joueur (absent hors défi)
     daily?: { counted: boolean; rank: number; total: number } | null;
+    // Flamme après cette victoire (absente pour un invité ou une partie qui ne rapporte rien)
+    streak?: StreakWin | null;
     onNewGame: () => void;
     // Libellé du bouton "Nouvelle partie" (ex. "Partie libre" après un défi)
     newGameLabel?: string;
@@ -260,6 +264,20 @@ export function SuccessPopup(props: SuccessPopupProps) {
                             ? <>Défi du jour : <strong>{daily.rank}<sup>{daily.rank === 1 ? "er" : "e"}</sup></strong> sur {daily.total}</>
                             : <>Défi déjà réussi aujourd'hui : cette partie ne compte pas.</>}
                         {" · "}<Link to="/classements?onglet=defi">Voir le classement</Link>
+                    </p>
+                )}
+
+                {props.streak && (
+                    <p className="streak-win">
+                        <StreakFlame days={props.streak.days}/>
+                        <span>{props.streak.extended ? (props.streak.days === 1 ? "Flamme allumée !" : "Flamme ravivée !") : "Flamme déjà ravivée aujourd'hui"}</span>
+                        {props.streak.percent > 0 && (
+                            <small>
+                                bonus +{props.streak.percent.toLocaleString("fr-FR")} %
+                                {props.streak.xpBonus > 0 && <> · +{props.streak.xpBonus} XP</>}
+                                {props.streak.creditsBonus > 0 && <> · +{props.streak.creditsBonus} crédit{props.streak.creditsBonus > 1 ? "s" : ""}</>}
+                            </small>
+                        )}
                     </p>
                 )}
 
