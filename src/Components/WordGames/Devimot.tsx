@@ -182,7 +182,7 @@ export default function Devimot() {
         >
             {puzzle && (
                 <>
-                    <div className="word-rows" style={{"--letters": puzzle.length} as React.CSSProperties}>
+                    <div className="word-rows" style={{"--letters": puzzle.length, "--rows": puzzle.maxAttempts} as React.CSSProperties}>
                         {Array.from({length: puzzle.maxAttempts}, (_, row) => {
                             const guess = puzzle.guesses[row];
                             const isCurrent = row === used && playing;
@@ -213,7 +213,7 @@ export default function Devimot() {
                         </div>
                     )}
 
-                    {answer === null && <LetterKeyboard disabled={!playing || busy} marks={keyMarks} {...handlers}/>}
+                    {answer === null && <LetterKeyboard disabled={!playing || busy} busy={playing && busy} marks={keyMarks} {...handlers}/>}
                 </>
             )}
         </WordGameShell>

@@ -5,6 +5,8 @@ import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
 import {clearSavedGame, saveGame, useResumableGame} from "../PuzzleUI/savedGame.ts";
 import {motsACaserService} from "../../Services/wordGames.service.ts";
 import type {MotsACaserPuzzle} from "../../Models/wordGames.model.ts";
+import {isTouchOnly} from "../../Services/useSmallScreen.ts";
+import PhoneKeyboard from "./PhoneKeyboard.tsx";
 import {useLetterKeys} from "./useLetterKeys.ts";
 import WordGameShell from "./WordGameShell.tsx";
 import WordSettingsPopup from "./WordSettingsPopup.tsx";
@@ -323,6 +325,9 @@ export default function MotsACaser() {
                                    amountLabel="Mots déjà placés" easierWhenHigher/>
             }
         >
+            {puzzle && isTouchOnly() && (
+                <PhoneKeyboard disabled={!playing} onLetter={writeLetter} onBackspace={erase} onEnter={toggleDirection}/>
+            )}
             {puzzle && (
                 <div className="caser-board" style={{"--size": puzzle.size} as CSSProperties} role="grid" aria-label="Grille de mots à caser">
                     {Array.from(puzzle.cells, (cell, i) => {

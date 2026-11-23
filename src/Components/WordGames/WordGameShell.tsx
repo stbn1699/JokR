@@ -27,13 +27,21 @@ type WordGameShellProps = {
 
 const noop = () => undefined;
 
+// Crédit demandé par la licence du dictionnaire
+const wordCredit = (
+    <p className="word-credit">
+        Mots issus de <a href="https://www.lexique.org" target="_blank" rel="noreferrer">Lexique 4.10</a>,
+        sous licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noreferrer">CC BY-SA 4.0</a>
+    </p>
+);
+
 // Mise en page commune aux jeux de mots : progression à gauche, jeu au centre, actions et règles à droite
 export default function WordGameShell({className, gameCode, gameName, flow, clock = flow.clock, rules, info, history, settings, children}: WordGameShellProps) {
     return (
         <div className={`puzzle-layout word-game ${className}`}>
             <GameToolbar gameName={gameName} clock={clock}
                          canUndo={history?.canUndo ?? false} canRedo={history?.canRedo ?? false}
-                         onUndo={history?.onUndo ?? noop} onRedo={history?.onRedo ?? noop} rules={rules}/>
+                         onUndo={history?.onUndo ?? noop} onRedo={history?.onRedo ?? noop} rules={<>{rules}{wordCredit}</>}/>
 
             <div className="options">
                 <h2 className="title">{gameName}</h2>
@@ -53,11 +61,7 @@ export default function WordGameShell({className, gameCode, gameName, flow, cloc
                 <div className="rules">
                     <h3>Règles</h3>
                     {rules}
-                    {/* Crédit demandé par la licence du dictionnaire */}
-                    <p className="word-credit">
-                        Mots issus de <a href="https://www.lexique.org" target="_blank" rel="noreferrer">Lexique 4.10</a>,
-                        sous licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noreferrer">CC BY-SA 4.0</a>
-                    </p>
+                    {wordCredit}
                 </div>
             </div>
 

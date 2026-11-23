@@ -176,7 +176,10 @@
 			cursor          : pointer;
 			transition      : background 0.12s ease;
 
-			&:hover:not(:disabled) { background : var(--board-hover); }
+			// au doigt, :hover resterait collé sur la dernière touche
+			@media (hover: hover) {
+				&:hover:not(:disabled) { background : var(--board-hover); }
+			}
 
 			&:disabled {
 				cursor  : default;
@@ -314,9 +317,11 @@
 			font          : inherit;
 			cursor        : pointer;
 
-			&:hover:not(:disabled) {
-				background : var(--board-focus);
-				color      : white;
+			@media (hover: hover) {
+				&:hover:not(:disabled) {
+					background : var(--board-focus);
+					color      : white;
+				}
 			}
 
 			&:disabled { cursor : default; }
@@ -359,7 +364,10 @@
 		outline         : none;
 
 		&:disabled { cursor : default; }
-		&:hover:not(:disabled) { background : var(--board-hover); }
+
+		@media (hover: hover) {
+			&:hover:not(:disabled) { background : var(--board-hover); }
+		}
 
 		&.black {
 			border     : none;
@@ -389,6 +397,173 @@
 // Devimot : une lettre bien placée est verte
 .word-game.devimot {
 	--word-correct : var(--board-good);
+}
+
+// Téléphone et tablette : la partie tient dans l'écran, le clavier reste entier sous les lettres
+@media (max-width: 999px) {
+	.puzzle-layout.word-game {
+		.game {
+			align-items : center;
+			gap         : 0.5rem;
+		}
+
+		.options .word-info {
+			flex-direction  : row;
+			flex-wrap       : wrap;
+			justify-content : center;
+			gap             : 0.2rem 1rem;
+			padding         : 0;
+			font-size       : 1.05rem;
+		}
+
+		.word-rows {
+			--row-gap : 0.3rem;
+			--cell    : min(4rem,
+				calc((100cqw - (var(--letters) - 1) * var(--row-gap)) / var(--letters)),
+				calc((100cqh - var(--keyboard-space, 10.5rem) - (var(--rows, 1) - 1) * var(--row-gap)) / var(--rows, 1)));
+
+			flex            : 1;
+			min-height      : 0;
+			justify-content : center;
+			gap             : var(--row-gap);
+			margin          : 0;
+		}
+
+		.word-row { gap : var(--row-gap); }
+
+		// L'échelle s'allonge à chaque étape : elle défile au-dessus du clavier
+		.word-rows.ladder {
+			--cell          : min(3.2rem, calc((100cqw - 1rem - (var(--letters) - 1) * var(--row-gap)) / var(--letters)));
+
+			align-self      : stretch;
+			justify-content : flex-start;
+			max-height      : none;
+			overscroll-behavior : contain;
+		}
+
+		.letter-keyboard {
+			flex  : none;
+			width : 100%;
+			gap   : 0.3rem;
+		}
+
+		.letter-keyboard-row {
+			width : 100%;
+			gap   : 0.2rem;
+
+			button {
+				flex         : 1 1 0;
+				min-width    : 0;
+				height       : 3rem;
+				padding      : 0;
+				font-size    : 1.15rem;
+				touch-action : manipulation;
+
+				&.wide {
+					flex      : 1.6 1 0;
+					min-width : 0;
+					font-size : 0.85rem;
+				}
+			}
+		}
+	}
+
+	// Clavier du téléphone : la partie occupe la place qu'il laisse au-dessus de lui
+	.app-root.in-game:has(.phone-keyboard) {
+		height : var(--phone-keyboard-height, 100dvh);
+	}
+
+	.puzzle-layout.word-game:has(.phone-keyboard) {
+		--keyboard-space : 3.2rem;
+	}
+
+	.phone-keyboard {
+		position : relative;
+		flex     : none;
+		display  : flex;
+		gap      : 0.3rem;
+		width    : 100%;
+
+		button {
+			flex            : 1 1 0;
+			display         : flex;
+			align-items     : center;
+			justify-content : center;
+			gap             : 0.35rem;
+			min-width       : 0;
+			height          : 2.6rem;
+			padding         : 0 0.3rem;
+			border          : 1px solid var(--board-wall);
+			border-radius   : 0.5rem;
+			background      : var(--board-paper);
+			color           : var(--board-given);
+			font            : inherit;
+			font-size       : 1rem;
+			font-weight     : 700;
+			touch-action    : manipulation;
+
+			&:disabled { opacity : 0.6; }
+		}
+	}
+
+	// Champ invisible, en 16px pour que l'iPhone ne zoome pas dessus
+	.phone-keyboard-input {
+		position       : absolute;
+		left           : 0;
+		bottom         : 0;
+		width          : 1px;
+		height         : 1px;
+		padding        : 0;
+		border         : none;
+		opacity        : 0;
+		font-size      : 16px;
+		pointer-events : none;
+	}
+
+	// Devimot et Échelle : la progression au-dessus, le clavier tout en bas
+	.puzzle-layout.word-game.devimot,
+	.puzzle-layout.word-game.echelle {
+		.options { order : 0; }
+
+		.word-hint { display : none; }
+	}
+
+	// Mots à caser : la grille prend la place, la liste des mots défile en dessous
+	.puzzle-layout.word-game.mots-a-caser {
+		.options {
+			display        : flex;
+			flex-direction : column;
+			width          : 100%;
+			height         : auto;
+			max-height     : 30dvh;
+			min-height     : 0;
+		}
+
+		.options .word-info {
+			flex                : 1;
+			flex-direction      : column;
+			flex-wrap           : nowrap;
+			justify-content     : flex-start;
+			gap                 : 0.3rem;
+			min-height          : 0;
+			padding             : 0 0.3rem;
+			overscroll-behavior : contain;
+		}
+
+		// Clavier du téléphone ouvert : toute la place restante va à la grille
+		&:has(.phone-keyboard-input:focus) .options { display : none; }
+
+		.actions { height : auto; }
+
+		.caser-board {
+			--caser-side : calc(min(100cqw, 100cqh - var(--keyboard-space, 0rem)) - 6px);
+		}
+
+		.caser-cell,
+		.caser-group button { touch-action : manipulation; }
+
+		.caser-group button { padding : 0.1rem 0.3rem; }
+	}
 }
 
 @keyframes word-shake {

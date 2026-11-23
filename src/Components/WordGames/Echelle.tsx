@@ -29,12 +29,18 @@ export default function Echelle() {
     const [busy, setBusy] = useState(false);
     const [shake, setShake] = useState(0);
     const gameId = useRef<string | null>(null);
+    const ladder = useRef<HTMLDivElement>(null);
 
     const playing = puzzle !== null && !flow.showSettings && !flow.victory;
     const last = path[path.length - 1] ?? "";
 
     useEffect(() => {
         if (gameId.current && path.length > 0) saveGame<Saved>(CODE, {gameId: gameId.current, path});
+    }, [path]);
+
+    // Petit écran : la ligne à remplir et l'arrivée restent visibles quand l'échelle s'allonge
+    useEffect(() => {
+        if (ladder.current) ladder.current.scrollTop = ladder.current.scrollHeight;
     }, [path]);
 
     const start = (next: EchellePuzzle, id: string, words: string[]) => {
@@ -169,7 +175,7 @@ export default function Echelle() {
         >
             {puzzle && (
                 <>
-                    <div className="word-rows ladder" style={{"--letters": puzzle.length} as CSSProperties}>
+                    <div className="word-rows ladder" ref={ladder} style={{"--letters": puzzle.length} as CSSProperties}>
                         {path.map((word, row) => (
                             <div className="word-row" key={`${row}-${word}`} aria-label={word}>
                                 {Array.from(word, (letter, i) => (
@@ -196,7 +202,7 @@ export default function Echelle() {
                             </>
                         )}
                     </div>
-                    <LetterKeyboard disabled={!playing || busy} {...handlers}/>
+                    <LetterKeyboard disabled={!playing || busy} busy={playing && busy} {...handlers}/>
                 </>
             )}
         </WordGameShell>
