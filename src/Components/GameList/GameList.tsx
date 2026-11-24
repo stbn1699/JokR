@@ -7,7 +7,7 @@ import type {Game} from "../../Models/game.model.ts";
 import {gameService} from "../../Services/game.service.ts";
 import type {GameStats} from "../../Models/gameStats.model.ts";
 import {gameStatsService} from "../../Services/gameStats.service.ts";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useNavigate, useSearchParams} from "react-router-dom";
 import {FaCalendarDay, FaCheck, FaLock, FaPlay, FaStar, FaTrophy} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
@@ -171,7 +171,14 @@ export default function GameList() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null);
     const [overlayVisible, setOverlayVisible] = useState(false);
-    const [filter, setFilter] = useState<GameFilter>(lastGameFilter);
+    const [searchParams, setSearchParams] = useSearchParams();
+    // « Retour aux défis » (?filtre=defi) : l'accueil s'ouvre sur les défis du jour
+    const [filter, setFilter] = useState<GameFilter>(() => (searchParams.get("filtre") === "defi" ? "defi" : lastGameFilter()));
+    useEffect(() => {
+        if (searchParams.get("filtre") !== "defi") return;
+        setFilter("defi");
+        setSearchParams({}, {replace: true});
+    }, [searchParams, setSearchParams]);
     const timeoutRef = useRef<number | null>(null);
     const {userId, isLoggedIn} = useAuth();
     const navigate = useNavigate();

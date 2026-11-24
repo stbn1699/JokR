@@ -1,3 +1,4 @@
+import {DAILY_HOME} from "../../Services/dailyGames.ts";
 import {useLocation, useNavigate} from "react-router-dom";
 import "../SuccessPopup/SuccessPopup.scss";
 
@@ -26,7 +27,7 @@ export default function DailyLoginRequired() {
                         Se connecter
                     </button>
                 </div>
-                <button type="button" className="daily-login-home" onClick={() => navigate("/defi")}>
+                <button type="button" className="daily-login-home" onClick={() => navigate(DAILY_HOME)}>
                     Retour aux défis
                 </button>
             </div>

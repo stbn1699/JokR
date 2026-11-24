@@ -8,6 +8,7 @@ import {playMyVictoryEffect} from "../../Services/victoryEffects.ts";
 import {xpSteps} from "../../Services/leveling.ts";
 import {formatDuration} from "../../Services/format.ts";
 import {rewardFx} from "../../Services/rewardFx.ts";
+import {DAILY_HOME} from "../../Services/dailyGames.ts";
 import CountUp from "./CountUp.tsx";
 import ShareButton from "../PuzzleUI/ShareButton.tsx";
 import DefyFriendsButton from "../FriendChallenge/DefyFriendsButton.tsx";
@@ -71,7 +72,7 @@ type SuccessPopupProps = {
 
 const BACK = {
     home: {to: "/", label: "Retour à l'accueil", short: "Accueil"},
-    daily: {to: "/defi", label: "Retour aux défis", short: "Défis"},
+    daily: {to: DAILY_HOME, label: "Retour aux défis", short: "Défis"},
 } as const;
 
 // start → base (gain de base en bleu) → awaitBonus (attend le « ×2 ») → bonus (en doré)

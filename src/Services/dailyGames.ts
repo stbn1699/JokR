@@ -1,6 +1,9 @@
 // XP et crédits multipliés au défi du jour (même valeur que DAILY_REWARD_MULTIPLIER côté serveur)
 export const DAILY_REWARD_MULTIPLIER = 2;
 
+// « Retour aux défis » : l'accueil, avec le filtre « Défi du jour » choisi
+export const DAILY_HOME = "/?filtre=defi";
+
 // Noms des jeux du défi du jour et description de leur grille (taille, cases à remplir)
 export const DAILY_GAME_NAMES: Record<string, string> = {SUDOKU: "Sudoku", BINERO: "Binero", RIKUDO: "Rikudo", TECTONIC: "Tectonic", GALAXIES: "Galaxies", SHIKAKU: "Shikaku", QUEENS: "Queens", TRACE: "Tracé", DEVIMOT: "Devimot", ECHELLE: "Échelle", MOTSMELES: "Mots mêlés", MOTSACASER: "Mots à caser", COLORIA: "Coloria", TUYAUX: "Tuyaux", LIENS: "Liens", BOUCHON: "Bouchon", PATURAGES: "Pâturages", BOUCLE: "Boucle", DEMINEUR: "Démineur"};
 

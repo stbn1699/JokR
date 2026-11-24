@@ -355,13 +355,16 @@
 		box-shadow : 0 0.5rem 1.4rem color-mix(in srgb, var(--type) 25%, transparent);
 	}
 
-	// déjà réussi aujourd'hui : carte éteinte, plus cliquable, avec le temps et la place
+	// déjà réussi aujourd'hui : carte verte mais éteinte, plus cliquable, avec le temps et la place
 	.game-card.done {
+		--type : #4ade80;
+
 		&:hover { transform : none; }
 
 		.game {
 			cursor     : default;
-			filter     : saturate(0.35) brightness(0.8);
+			background : linear-gradient(160deg, color-mix(in srgb, var(--type) 50%, #18181b), color-mix(in srgb, #166534 45%, #18181b));
+			filter     : saturate(0.6) brightness(0.75);
 			box-shadow : none;
 
 			&:hover {
@@ -385,6 +388,11 @@
 	background  : var(--type);
 	color       : #1f1300;
 	font-weight : 800;
+}
+
+// défi réussi : pastille verte, comme la carte
+.game-card.done .game-type.daily {
+	--type : #4ade80;
 }
 
 // Ligne sous les filtres en mode défi : date, gains doublés, défis passés
