@@ -32,6 +32,8 @@ export type MeProfile = PublicUser & {
     linkedAccounts: { provider: string; displayName: string | null }[];
     // Ce que les autres joueurs voient sur sa page
     privacy: { showStats: boolean; showHistory: boolean };
+    // Pronoms affichés sur sa page (null : rien d'affiché)
+    pronouns: string | null;
     // Dernière version du site vue (popup des nouveautés), null pour un compte tout neuf
     lastVersion: string | null;
     // Fond du site choisi dans la boutique (null : fond par défaut)
@@ -181,6 +183,10 @@ export class UsersService {
         await this.repo.updatePrivacy(userId, privacy);
     }
 
+    async changePronouns(userId: string, pronouns: string | null): Promise<void> {
+        await this.repo.updatePronouns(userId, pronouns);
+    }
+
     // false si le mot de passe actuel est incorrect.
     // Un joueur sans mot de passe (Google / Discord) en définit un sans donner l'actuel.
     async changePassword(userId: string, currentPassword: string | undefined, newPassword: string): Promise<boolean> {
@@ -221,6 +227,7 @@ export class UsersService {
             hasPassword: user.password !== null,
             linkedAccounts: identities.map(i => ({provider: i.provider, displayName: i.display_name})),
             privacy: {showStats: user.show_stats !== false, showHistory: user.show_history !== false},
+            pronouns: user.pronouns ?? null,
             lastVersion: user.last_version ?? null,
             background: user.background ?? null,
             adminMode: user.is_admin === true && isGhost(userId),

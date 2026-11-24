@@ -50,6 +50,19 @@ function isNonEmptyString(v: unknown, maxLength: number): v is string {
     return typeof v === 'string' && v.length > 0 && v.length <= maxLength;
 }
 
+// Pronoms : texte libre d'une ligne, 50 caractères au plus (après nettoyage des espaces)
+const PRONOUNS_MAX = 50;
+
+// Pronoms nettoyés (espaces fusionnés), null pour les retirer ; undefined si invalides
+function cleanPronouns(v: unknown): string | null | undefined {
+    if (v === null) return null;
+    if (typeof v !== 'string') return undefined;
+    const text = v.replace(/\s+/g, ' ').trim();
+    if (text === '') return null;
+    if (text.length > PRONOUNS_MAX || /\p{Cc}/u.test(text)) return undefined;
+    return text;
+}
+
 function isAvatar(v: unknown): v is string {
     return typeof v === 'string' && AVATAR_REGEX.test(v);
 }
@@ -279,6 +292,16 @@ export function createUsersController(service: UsersService, results: GameResult
             }
             await service.changePrivacy(res.locals.userId!, {showStats, showHistory});
             res.status(200).json({status: 'ok', data: {showStats, showHistory}});
+        }),
+
+        // Pronoms affichés sur sa page : { pronouns } (texte libre, null ou vide pour les retirer)
+        changePronouns: asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
+            const pronouns = cleanPronouns((req.body ?? {}).pronouns);
+            if (pronouns === undefined) {
+                return res.status(400).json({status: 'error', message: `Pronoms invalides (${PRONOUNS_MAX} caractères au plus)`});
+            }
+            await service.changePronouns(res.locals.userId!, pronouns);
+            res.status(200).json({status: 'ok', data: {pronouns}});
         }),
 
         // Parties gagnées par le joueur connecté, par pages : ?limit=10&offset=0 (limit ≤ 50)

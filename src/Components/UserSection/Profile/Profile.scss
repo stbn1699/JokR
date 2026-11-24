@@ -71,6 +71,17 @@
 		margin    : 0.25rem 0 1rem;
 	}
 
+	// Pronoms, sous le pseudo
+	.profile-pronouns {
+		margin        : 0.35rem 0 0;
+		padding       : 0.15rem 0.8rem;
+		border        : 1px solid rgba(249, 250, 251, 0.35);
+		border-radius : 999px;
+		font-size     : 1.15rem;
+		color         : rgba(249, 250, 251, 0.85);
+		word-break    : break-word;
+	}
+
 	.profile-xp {
 		width         : 100%;
 		max-width     : 20rem;
@@ -256,6 +267,70 @@
 			opacity : 0.5;
 			cursor  : default;
 		}
+	}
+
+	.settings-button-secondary {
+		background : rgba(249, 250, 251, 0.15);
+	}
+
+	// Pronoms : pastilles à cocher, par groupe
+	.pronoun-group h3 {
+		margin         : 0.4rem 0 0.4rem;
+		font-size      : 1rem;
+		font-weight    : 600;
+		text-transform : uppercase;
+		letter-spacing : 0.05em;
+		color          : rgba(249, 250, 251, 0.6);
+	}
+
+	.pronoun-chips {
+		display   : flex;
+		flex-wrap : wrap;
+		gap       : 0.4rem;
+	}
+
+	.pronoun-chip {
+		display       : inline-flex;
+		align-items   : center;
+		gap           : 0.4rem;
+		padding       : 0.35rem 0.85rem;
+		border-radius : 999px;
+		border        : 1px solid rgba(249, 250, 251, 0.35);
+		background    : transparent;
+		color         : #f9fafb;
+		font-family   : inherit;
+		font-size     : 1.1rem;
+		cursor        : pointer;
+		transition    : background 0.15s ease, border-color 0.15s ease;
+
+		&:hover:not(:disabled) {
+			border-color : rgba(249, 250, 251, 0.7);
+		}
+
+		&[aria-pressed="true"] {
+			background   : #10b981;
+			border-color : #10b981;
+			font-weight  : 600;
+		}
+
+		&:disabled {
+			opacity : 0.4;
+			cursor  : default;
+		}
+
+		svg {
+			font-size : 0.85em;
+		}
+	}
+
+	.pronoun-chip-own {
+		margin-top : 0.3rem;
+	}
+
+	.pronoun-preview {
+		margin     : 0.2rem 0 0;
+		font-size  : 1.15rem;
+		word-break : break-word;
 	}
 
 	.settings-hint {

@@ -30,6 +30,8 @@ export interface PlayerStats {
 export interface PlayerProfile {
     username: string;
     avatar: string;
+    // Pronoms choisis par le joueur (null : aucun), toujours visibles
+    pronouns: string | null;
     level: number;
     // Flamme : jours de suite (0 sans série en cours) et record
     streak: number;

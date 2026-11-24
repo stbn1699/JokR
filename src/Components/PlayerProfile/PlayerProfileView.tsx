@@ -1,7 +1,7 @@
 /**
  * Page d'un joueur, la même pour tout le monde : depuis les classements (/joueur/:pseudo) et pour
  * son propre profil (onglet « Profil » de /profile).
- * - Toujours visibles : icône (contour selon le niveau), pseudo, niveau
+ * - Toujours visibles : icône (contour selon le niveau), pseudo, pronoms, niveau
  * - Si le joueur les montre : barre d'XP, date d'inscription, chiffres clés (classement, victoires,
  *   crédits, défis), stats par jeu ; et ses dernières victoires. Sinon, un encart « privé » à la place.
  * - Le joueur connecté voit toujours tout de sa propre page, avec un rappel de ce que les autres ne voient pas.
@@ -88,6 +88,7 @@ export default function PlayerProfileView({username, privacy, avatarAction, back
                 </div>
                 <div className="profile-head-info">
                     <h1>{shown.username} <StreakFlame days={shown.streak}/></h1>
+                    {shown.pronouns && <p className="profile-pronouns" title="Pronoms">{shown.pronouns}</p>}
                     <p className="profile-level">
                         Niveau {shown.level}
                         {shown.streakBest > 0 && <> · record de flamme : {fmt(shown.streakBest)} j</>}

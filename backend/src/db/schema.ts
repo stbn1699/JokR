@@ -35,6 +35,8 @@ export type UsersTable = {
     // Visibilité de sa page pour les autres joueurs (stats, dernières victoires)
     show_stats: Generated<boolean>;
     show_history: Generated<boolean>;
+    // Pronoms affichés sur sa page (texte libre, null : rien d'affiché)
+    pronouns: string | null;
     // Dernière version du site vue (popup des nouveautés), null pour un compte tout neuf
     last_version: string | null;
     // Fond du site choisi dans la boutique (null : fond par défaut)

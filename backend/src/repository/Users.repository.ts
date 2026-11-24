@@ -70,6 +70,11 @@ export class UsersRepository {
             .execute();
     }
 
+    // Pronoms affichés sur sa page (null : rien d'affiché)
+    async updatePronouns(id: string, pronouns: string | null): Promise<void> {
+        await this.db.updateTable('users').set({pronouns}).where('id', '=', id).execute();
+    }
+
     // Remplace le mot de passe (déjà hashé)
     async updatePassword(id: string, passwordHash: string): Promise<void> {
         await this.db.updateTable('users').set({password: passwordHash}).where('id', '=', id).execute();

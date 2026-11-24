@@ -16,6 +16,8 @@ export interface User {
     linkedAccounts?: { provider: string; displayName: string | null }[];
     // Seulement dans GET /users/me : ce que les autres joueurs voient sur sa page
     privacy?: Privacy;
+    // Seulement dans GET /users/me : pronoms affichés sur sa page (null : rien d'affiché)
+    pronouns?: string | null;
     // Seulement dans GET /users/me : dernière version du site vue (null pour un compte tout neuf)
     lastVersion?: string | null;
     // Seulement dans GET /users/me : fond du site choisi dans la boutique (null : fond par défaut)

@@ -3,7 +3,7 @@
  * - Profil : sa page telle que les autres la voient (PlayerProfileView), avec tout visible pour lui
  *   et un rappel de ce qu'il cache aux autres
  * - Amis : ajouter un ami, demandes reçues à accepter, liste d'amis
- * - Paramètres : icône, pseudo, visibilité de sa page, comptes liés, mot de passe, zone de danger
+ * - Paramètres : icône, pseudo, pronoms, visibilité de sa page, comptes liés, mot de passe, zone de danger
  * Redirige vers /login si personne n'est connecté.
  */
 
@@ -38,11 +38,16 @@ export default function Profile() {
     // Vrai quand le joueur quitte volontairement (déconnexion, compte supprimé) : retour à l'accueil
     const [leaving, setLeaving] = useState(false);
     const [privacy, setPrivacy] = useState<Privacy | null>(null);
+    // undefined tant que le profil n'est pas chargé
+    const [pronouns, setPronouns] = useState<string | null | undefined>(undefined);
 
     useEffect(() => {
         if (!isLoggedIn) return;
         userService.getMe()
-            .then(me => setPrivacy(me.privacy ?? {showStats: true, showHistory: true}))
+            .then(me => {
+                setPrivacy(me.privacy ?? {showStats: true, showHistory: true});
+                setPronouns(me.pronouns ?? null);
+            })
             .catch(() => undefined);
     }, [isLoggedIn]);
 
@@ -85,7 +90,7 @@ export default function Profile() {
                 {tab === "amis" && <FriendsTab/>}
 
                 {tab === "parametres" && (
-                    <ProfileSettings privacy={privacy} onPrivacyChange={setPrivacy}
+                    <ProfileSettings privacy={privacy} onPrivacyChange={setPrivacy} pronouns={pronouns} onPronounsChange={setPronouns}
                                      onPickAvatar={() => setPickingAvatar(true)} onLogout={handleLogout}/>
                 )}
             </div>

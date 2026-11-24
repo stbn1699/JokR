@@ -42,6 +42,15 @@ export const userService = {
     },
 
     // Ce que les autres joueurs voient sur sa page
+    // Pronoms affichés sur sa page (null : les retirer)
+    async changePronouns(pronouns: string | null): Promise<void> {
+        await api(`/users/me/pronouns`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({pronouns}),
+        });
+    },
+
     async changePrivacy(privacy: Privacy): Promise<void> {
         await api(`/users/me/privacy`, {
             method: "PUT",

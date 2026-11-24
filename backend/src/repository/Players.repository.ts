@@ -14,7 +14,7 @@ export class PlayersRepository {
         return this.db
             .selectFrom("users")
             .select(["id", "username", "avatar", "user_level as level", "user_xp as xp", "credits", "created_at as createdAt",
-                "show_stats as showStats", "show_history as showHistory", ACTIVE_STREAK.as("streak"), "streak_best as streakBest"])
+                "pronouns", "show_stats as showStats", "show_history as showHistory", ACTIVE_STREAK.as("streak"), "streak_best as streakBest"])
             .where("username", "=", username)
             .executeTakeFirst();
     }

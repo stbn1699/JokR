@@ -16,7 +16,7 @@ const RECENT_WINS = 8;
  * - GET /players/:username : niveau, crédits, stats par jeu, défis du jour et dernières victoires
  *
  * Le joueur choisit ce que les autres voient (show_stats, show_history) : une partie masquée vaut null.
- * Le pseudo, l'icône et le niveau restent toujours visibles. Le joueur connecté voit toujours tout de sa page.
+ * Le pseudo, les pronoms, l'icône et le niveau restent toujours visibles. Le joueur connecté voit toujours tout de sa page.
  * friendship : lien avec le joueur connecté (friends, outgoing, incoming, none ; null pour un invité ou sa propre page).
  */
 const router = Router();
@@ -49,6 +49,8 @@ router.get("/:username", optionalAuth, asyncHandler(async (req, res: Response<un
             // jamais l'identifiant interne
             username: player.username,
             avatar: player.avatar,
+            // pronoms : toujours visibles, comme le pseudo
+            pronouns: player.pronouns,
             level: player.level,
             // la flamme est visible de tous, comme dans les classements
             streak: player.streak,

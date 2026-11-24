@@ -5,11 +5,13 @@ import type {Privacy} from "../../../Models/user.model.ts";
 import {ApiError} from "../../../api/api.ts";
 import Avatar from "../../Avatar/Avatar.tsx";
 import AccountSettings from "./AccountSettings.tsx";
+import PronounsField from "./PronounsField.tsx";
 
 /**
  * Onglet « Paramètres » du profil, rangé par sections :
  * - Icône de profil (ouvre le choix d'icône)
  * - Pseudo (mêmes règles qu'à l'inscription, refusé s'il est déjà pris)
+ * - Pronoms : choisis dans la liste ou écrits à la main (PronounsField)
  * - Visibilité de sa page : statistiques, dernières victoires (le pseudo, l'icône et le niveau restent visibles)
  * - Compte : comptes Google / Discord liés, mot de passe, zone de danger (AccountSettings)
  */
@@ -17,6 +19,9 @@ type ProfileSettingsProps = {
     // null tant que les réglages ne sont pas chargés
     privacy: Privacy | null;
     onPrivacyChange: (privacy: Privacy) => void;
+    // undefined tant que le profil n'est pas chargé, null : aucun
+    pronouns: string | null | undefined;
+    onPronounsChange: (pronouns: string | null) => void;
     onPickAvatar: () => void;
     onLogout: () => void;
 };
@@ -30,7 +35,7 @@ const PRIVACY_OPTIONS: { key: keyof Privacy; label: string; hint: string }[] = [
 
 type Message = { ok: boolean; text: string } | null;
 
-export default function ProfileSettings({privacy, onPrivacyChange, onPickAvatar, onLogout}: ProfileSettingsProps) {
+export default function ProfileSettings({privacy, onPrivacyChange, pronouns, onPronounsChange, onPickAvatar, onLogout}: ProfileSettingsProps) {
     const {username, avatar, level, refresh} = useAuth();
 
     const [newName, setNewName] = useState(username ?? "");
@@ -107,10 +112,12 @@ export default function ProfileSettings({privacy, onPrivacyChange, onPickAvatar,
                 {nameMessage && <p className={nameMessage.ok ? "account-success" : "account-error"} role="status">{nameMessage.text}</p>}
             </form>
 
+            <PronounsField pronouns={pronouns} onChange={onPronounsChange}/>
+
             <div className="settings-section">
                 <h2>Ce que les autres voient</h2>
                 <p className="settings-hint">
-                    Ton pseudo, ton icône et ton niveau restent toujours visibles. Toi, tu vois toujours toute ta page.
+                    Ton pseudo, tes pronoms, ton icône et ton niveau restent toujours visibles. Toi, tu vois toujours toute ta page.
                 </p>
                 {!privacy ? <p className="settings-hint">Chargement…</p> : (
                     <ul className="settings-toggles">
@@ -128,7 +135,7 @@ export default function ProfileSettings({privacy, onPrivacyChange, onPickAvatar,
                         ))}
                     </ul>
                 )}
-                {everythingHidden && <p className="settings-hint">Ta page est privée : les autres voient seulement ton pseudo, ton icône et ton niveau.</p>}
+                {everythingHidden && <p className="settings-hint">Ta page est privée : les autres voient seulement ton pseudo, tes pronoms, ton icône et ton niveau.</p>}
                 {privacyMessage && <p className={privacyMessage.ok ? "account-success" : "account-error"} role="status">{privacyMessage.text}</p>}
             </div>
 
