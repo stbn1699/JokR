@@ -3,7 +3,8 @@
  * - coin saillant (90°) : la case couverte a son coin arrondi
  * - coin rentrant (270°) : un petit congé bleu comble le coin de la case libérée
  * - frontières noires entre la zone et les cases libérées, raccourcies là où un coin arrondi prend le relais
- * Hors du plateau compte comme couvert : pas d'arrondi ni de trait contre le cadre.
+ * Hors du plateau compte comme couvert : pas d'arrondi ni de trait contre le cadre, et les frontières
+ * qui arrivent au bord filent droit jusqu'au cadre.
  */
 
 export type CoveredShape = {
@@ -42,8 +43,8 @@ export function coveredShape(size: number, isCovered: (cell: number) => boolean,
                 // coin rentrant : les deux voisines du coin et la diagonale sont couvertes
                 CORNERS.forEach(({ox, oy, dx, dy}, i) => {
                     const [sx, sy] = [x - dx, y - dy];
-                    // (coin du plateau : rien, le cadre est déjà arrondi)
-                    if (covered(sx, y) && covered(x, sy) && covered(sx, sy) && (inside(sx, y) || inside(x, sy))) {
+                    // contre le cadre, rien : la frontière file droit jusqu'au bord
+                    if (inside(sx, sy) && covered(sx, y) && covered(x, sy) && covered(sx, sy)) {
                         const [cx, cy] = [x + ox, y + oy];
                         const d = arc(cx, cy, dx, dy, r);
                         shape.fillets.push({key: `${cell}-${i}`, d: `M${cx} ${cy} L${d.slice(1)} Z`});
@@ -84,6 +85,8 @@ export function coveredShape(size: number, isCovered: (cell: number) => boolean,
                 const [ax, ay] = along;
                 // bout de côté : voisine dans le prolongement (côté de la case) et sa diagonale côté libéré
                 const rounded = (ex: number, ey: number) => {
+                    // au bord du plateau : le trait va droit jusqu'au cadre
+                    if (!inside(x + ex, y + ey)) return false;
                     const sideCovered = covered(x + ex, y + ey);
                     const diagCovered = covered(nx + ex, ny + ey);
                     return !sideCovered || diagCovered;

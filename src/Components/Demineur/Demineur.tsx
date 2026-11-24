@@ -29,7 +29,7 @@ const LONG_PRESS_MS = 380;
 const MOVE_TOLERANCE_PX = 12;
 const HIGHLIGHT_MS = 550;
 // Arrondi des coins de la zone couverte (en cases)
-const CORNER_RADIUS = 0.32;
+const CORNER_RADIUS = 0.2;
 // Temps laissé pour voir la mine avant la popup
 const LOST_POPUP_DELAY_MS = 900;
 
