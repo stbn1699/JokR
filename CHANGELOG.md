@@ -4,6 +4,40 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 4.1.0 — 24 novembre 2026
+
+Onze nouveaux jeux d'un coup ! Quatre jeux de mots et sept casse-têtes de grille, tous avec leur défi du jour et leurs défis entre ami·e·s. Et l'accueil se range désormais par types de jeux.
+
+### Jeux de mots
+- Devimot : devine un mot de 4 à 6 lettres en quelques essais
+- Échelle : passe d'un mot à l'autre en changeant une seule lettre à chaque marche
+- Mots mêlés : retrouve les mots cachés dans la grille
+- Mots à caser : remplis une grande grille dense, de 13×13 à 20×20, avec la liste de mots ; un clic sur un mot l'écrit dans la zone choisie
+- Annuler / Rétablir partout (Ctrl+Z et Ctrl+Y au clavier)
+- Sur téléphone, joue avec le clavier de JokR ou celui de ton téléphone
+- Dictionnaire tiré de Lexique 4.10 (CC BY-SA 4.0)
+
+### Jeux de grille
+- Coloria : colorie les zones sans que deux voisines aient la même couleur, de 12 à 60 zones et de 3 à 5 couleurs
+- Tuyaux : tourne les pièces pour former un seul réseau, sans boucle ni sortie ouverte, et regarde l'eau le remplir
+- Liens : relie les paires de même couleur en remplissant toute la grille
+- Bouchon : fais coulisser les véhicules pour libérer la sortie
+- Pâturages : découpe le pré en carrés, une vache par carré
+- Boucle : trace une boucle qui passe par toutes les cases sans traverser les murs
+- Démineur : libère les cases d'un clic, pose un drapeau d'un clic droit ou d'un appui long ; un clic sur un chiffre entouré d'assez de drapeaux libère ses voisines
+- Toutes les grilles adoptent un même thème, avec des pointillés entre les cases et des murs plus épais
+
+### Défis
+- Les 11 nouveaux jeux ont leur défi du jour, leurs défis passés, leurs gains doublés et leur classement
+- Après une victoire, « Défier des ami·e·s » marche aussi pour ces 11 jeux
+- En défi, Devimot continue après le dernier essai et Démineur après une mine, avec 30 s de pénalité : une partie perdue ne se rejoue pas en connaissant la réponse
+
+### Accueil
+- Les jeux se rangent par types (Chiffres, Grille, Mots), avec une pastille et un filtre qui se souvient de ton choix
+- Cartes plus compactes, à la couleur de leur type
+- Le filtre doré « Défi du jour » remplace le bandeau : la carte ouvre la grille du jour, et un défi réussi passe en vert avec ton temps
+- « Retour aux défis » te ramène directement aux défis du jour
+
 ## 4.0.1 — 23 novembre 2026
 
 ### Sur téléphone
