@@ -31,6 +31,10 @@ export default function LevelVictory({gameCode, gameName, level, info, victory}:
     const isLast = info?.count !== null && info?.count !== undefined && level >= info.count;
     // dernier niveau d'un monde : pas de « Niveau suivant », on part fêter le nouveau monde sur la carte
     const opened = worldOpenedBy(level, info?.count);
+    // leçon du tutoriel guidé (jeux dont la leçon se joue dans le jeu lui-même)
+    const tutorial = info?.tutorial ?? null;
+    const lesson = tutorial !== null && level <= tutorial;
+    const tutorialDone = lesson && level === tutorial;
 
     useEffect(() => {
         if (victory && !isLoggedIn) rememberGuestLevel(gameCode, level);
@@ -41,13 +45,14 @@ export default function LevelVictory({gameCode, gameName, level, info, victory}:
         <SuccessPopup gameName={gameName} gameCode={gameCode} xpAwarded={victory.xpAwarded} creditsAwarded={victory.creditsAwarded}
                       rewardMultiplier={1} streak={victory.streak} before={victory.before}
                       durationMs={victory.durationMs} personalBest={victory.personalBest}
-                      title={`${levelName(level)} réussi !`}
-                      subtitle="Bien joué, la grille est résolue."
+                      title={tutorialDone ? "Tutoriel terminé !" : lesson ? "Leçon réussie !" : `${levelName(level)} réussi !`}
+                      subtitle={tutorialDone ? `Tu sais maintenant jouer : à toi les grilles aléatoires${isLast ? " en attendant les niveaux" : ""} !`
+                          : lesson ? "La suite t'attend : une nouvelle technique." : "Bien joué, la grille est résolue."}
                       noXpNote={adminMode ? "Mode admin : rien n'est enregistré." : isLoggedIn ? "Niveau déjà réussi : l'XP et les crédits ne sont donnés qu'à la première réussite." : undefined}
                       onNewGame={isLast ? () => navigate(map)
                           : opened !== null ? () => navigate(map, {state: {worldOpened: opened}})
                               : () => navigate(`${map}/${level + 1}`)}
-                      newGameLabel={isLast ? "Carte des niveaux" : opened !== null ? "Monde suivant" : "Niveau suivant"}
+                      newGameLabel={isLast ? "Carte des niveaux" : opened !== null ? "Monde suivant" : lesson && level < tutorial ? "Leçon suivante" : "Niveau suivant"}
                       extraAction={isLast ? {label: "Grille aléatoire", onClick: () => navigate(`/playgame/${gameCode}`)} : undefined}
                       back={{to: map, label: "Carte des niveaux", short: "Carte"}}/>
     );

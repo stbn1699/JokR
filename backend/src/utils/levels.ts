@@ -13,6 +13,10 @@ import {GALAXIES_LEVELS, GALAXIES_TUTORIAL} from "./galaxiesLevels.js";
 import type {GalaxiesPuzzle} from "./galaxies.js";
 import {BINERO_LEVELS, BINERO_TUTORIAL} from "./bineroLevels.js";
 import {type BineroGrid, countBineroClues} from "./binero.js";
+import {
+    BOUCHON_LESSONS, BOUCLE_LESSONS, COLORIA_LESSONS, DEMINEUR_LESSONS, DEVIMOT_LESSONS, ECHELLE_LESSONS, LIENS_LESSONS,
+    MOTS_A_CASER_LESSONS, MOTS_MELES_LESSONS, PATURAGES_LESSONS, TUYAUX_LESSONS,
+} from "./gridLessons.js";
 
 /*
  * Mode Niveaux des puzzles : pour chaque jeu, une suite de grilles fixes (les mêmes pour tout le monde), du tutoriel
@@ -71,6 +75,25 @@ export const LEVEL_GAMES: Record<string, LevelGame> = {
         describe: p => ({size: (p as TracePuzzle).size, hints: 0}),
     },
 };
+
+// Jeux ajoutés depuis 3.3 : pour l'instant, seulement les 3 leçons du tutoriel guidé (voir gridLessons.ts).
+// `hints` est aussi le curseur de la partie (voir puzzleGames.ts) : il compte dans l'XP de certains jeux.
+const lessonsOnly = <P>(levels: P[], describe: (puzzle: P) => { size: number; hints: number }): LevelGame =>
+    ({levels, tutorial: levels.length, describe: p => describe(p as P)});
+
+Object.assign(LEVEL_GAMES, {
+    COLORIA: lessonsOnly(COLORIA_LESSONS, p => ({size: p.zones, hints: p.given.filter(c => c >= 0).length})),
+    TUYAUX: lessonsOnly(TUYAUX_LESSONS, p => ({size: p.size, hints: p.locked.length})),
+    LIENS: lessonsOnly(LIENS_LESSONS, p => ({size: p.size, hints: p.pairs.length})),
+    BOUCHON: lessonsOnly(BOUCHON_LESSONS, p => ({size: p.size, hints: p.minMoves})),
+    PATURAGES: lessonsOnly(PATURAGES_LESSONS, p => ({size: p.size, hints: p.given.length})),
+    BOUCLE: lessonsOnly(BOUCLE_LESSONS, p => ({size: p.size, hints: p.walls.length})),
+    DEMINEUR: lessonsOnly(DEMINEUR_LESSONS, p => ({size: p.size, hints: p.mineCount})),
+    DEVIMOT: lessonsOnly(DEVIMOT_LESSONS, p => ({size: p.length, hints: p.maxAttempts})),
+    ECHELLE: lessonsOnly(ECHELLE_LESSONS, p => ({size: p.length, hints: p.par})),
+    MOTSMELES: lessonsOnly(MOTS_MELES_LESSONS, p => ({size: p.size, hints: p.words.length})),
+    MOTSACASER: lessonsOnly(MOTS_A_CASER_LESSONS, p => ({size: p.size, hints: 0})),
+});
 
 export const levelGame = (code: string): LevelGame | undefined => LEVEL_GAMES[code];
 

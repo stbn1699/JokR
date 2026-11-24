@@ -24,6 +24,9 @@ import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import WordSettingsPopup from "../WordGames/WordSettingsPopup.tsx";
 import {tuyauxService} from "../../Services/tuyaux.service.ts";
 import type {TuyauxPuzzle} from "../../Models/tuyaux.model.ts";
+import {useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import LessonSpots from "../Lessons/LessonSpots.tsx";
+import {TUYAUX_LESSONS} from "../Lessons/tuyauxLessons.ts";
 import {DIRECTIONS, isSolved, nextFills, openEnds, rotateTile, type WaterFill, type WaterStep, waterFlow} from "./tuyauxRules.ts";
 
 const CODE = "TUYAUX";
@@ -70,10 +73,10 @@ function Water({mask, inlet, fill}: { mask: number; inlet: number; fill: WaterFi
     );
 }
 
-export default function Tuyaux({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function Tuyaux({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, TuyauxPuzzle>({
-        code: CODE, gameName: "Tuyaux", daily, replayDate, challengeId,
+        code: CODE, gameName: "Tuyaux", daily, replayDate, challengeId, level, levelInfo, lessonTitles: TUYAUX_LESSONS.titles,
         fetchStatus: tuyauxService.getGame,
         emptySave: gameId => ({gameId, turns: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -110,6 +113,7 @@ export default function Tuyaux({daily = false, replayDate, challengeId}: GridCha
     }
     const open = useMemo(() => (puzzle ? openEnds(masks, puzzle.size) : new Set<number>()), [puzzle, masks]);
     const solved = puzzle !== null && isSolved(masks, puzzle.size);
+    const coach = useLessonCoach(TUYAUX_LESSONS, level, challenge.lesson, puzzle ? {size: puzzle.size, masks} : null, playing);
 
     useEffect(() => {
         if (gameId.current && turns.length > 0) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, turns, pins: [...pins]});
@@ -318,8 +322,10 @@ export default function Tuyaux({daily = false, replayDate, challengeId}: GridCha
                                 </g>
                             );
                         })}
+                        <LessonSpots size={puzzle.size} lit={coach.lit}/>
                     </svg>
                 )}
+                {coach.bubble}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
@@ -344,7 +350,9 @@ export default function Tuyaux({daily = false, replayDate, challengeId}: GridCha
 
             {challenge.donePopup}
 
-            {flow.victory && (
+            {challenge.levelVictory(flow.victory)}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Tuyaux" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}

@@ -8,7 +8,11 @@ import type {DailyStart} from "../Models/daily.model.ts";
  */
 
 // Jeux qui ont un mode Niveaux (la carte de ces jeux ouvre la carte des niveaux)
-export const LEVEL_GAMES = new Set(["QUEENS", "GALAXIES", "BINERO", "SUDOKU", "SHIKAKU", "TECTONIC", "RIKUDO", "TRACE"]);
+export const LEVEL_GAMES = new Set([
+    "QUEENS", "GALAXIES", "BINERO", "SUDOKU", "SHIKAKU", "TECTONIC", "RIKUDO", "TRACE",
+    // jeux ajoutés depuis 3.3 : pour l'instant, les 3 leçons du tutoriel guidé
+    "COLORIA", "TUYAUX", "LIENS", "BOUCHON", "PATURAGES", "BOUCLE", "DEMINEUR", "DEVIMOT", "ECHELLE", "MOTSMELES", "MOTSACASER",
+]);
 
 export type LevelInfo = { level: number; size: number; hints: number; done: boolean; bestMs: number | null };
 export type LevelsOverview = { tutorial: number; levels: LevelInfo[] };

@@ -24,6 +24,9 @@ import type {DemineurPuzzle} from "../../Models/demineur.model.ts";
 import {planClick} from "./demineurRules.ts";
 import LostPopup from "./LostPopup.tsx";
 import {coveredShape} from "./coveredShape.ts";
+import {useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import LessonSpots from "../Lessons/LessonSpots.tsx";
+import {DEMINEUR_LESSONS} from "../Lessons/demineurLessons.ts";
 
 const CODE = "DEMINEUR";
 // Défi du jour : temps ajouté par une mine (le serveur fait foi)
@@ -43,10 +46,10 @@ type Press = { pointerId: number; cell: number; x: number; y: number; timer: num
 
 const noop = () => undefined;
 
-export default function Demineur({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function Demineur({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, DemineurPuzzle>({
-        code: CODE, gameName: "Démineur", daily, replayDate, challengeId,
+        code: CODE, gameName: "Démineur", daily, replayDate, challengeId, level, levelInfo, lessonTitles: DEMINEUR_LESSONS.titles,
         fetchStatus: demineurService.getGame,
         emptySave: gameId => ({gameId, flags: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -72,6 +75,7 @@ export default function Demineur({daily = false, replayDate, challengeId}: GridC
     const size = puzzle?.size ?? 0;
     const totalCells = size * size;
     const cleared = puzzle !== null && !lost && revealed.size === totalCells - puzzle.mines;
+    const coach = useLessonCoach(DEMINEUR_LESSONS, level, challenge.lesson, puzzle ? {revealed, flags} : null, playing);
 
     useEffect(() => {
         if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, flags: [...flags]});
@@ -319,8 +323,10 @@ export default function Demineur({daily = false, replayDate, challengeId}: GridC
                         {shape.dashes.map(({key, d}) => <path key={key} className="dm-hidden-dash" d={d}/>)}
                         {shape.borders.map(({key, d}) => <path key={key} className="dm-border" d={d}/>)}
                         {Array.from({length: totalCells}, (_, cell) => renderContent(cell))}
+                        <LessonSpots size={size} lit={coach.lit}/>
                     </svg>
                 )}
+                {coach.bubble}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
@@ -348,7 +354,9 @@ export default function Demineur({daily = false, replayDate, challengeId}: GridC
 
             {challenge.donePopup}
 
-            {flow.victory && (
+            {challenge.levelVictory(flow.victory)}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Démineur" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}

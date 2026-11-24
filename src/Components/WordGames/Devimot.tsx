@@ -9,6 +9,8 @@ import LetterKeyboard from "./LetterKeyboard.tsx";
 import {useLetterKeys} from "./useLetterKeys.ts";
 import WordGameShell from "./WordGameShell.tsx";
 import WordSettingsPopup from "./WordSettingsPopup.tsx";
+import {useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import {DEVIMOT_LESSONS} from "../Lessons/wordLessons.ts";
 
 const CODE = "DEVIMOT";
 const MARK_RANK: Record<LetterMark, number> = {absent: 0, present: 1, correct: 2};
@@ -20,10 +22,10 @@ type Saved = { gameId: string };
  * Devimot : deviner un mot en un nombre d'essais limité.
  * Le serveur garde le mot et renvoie le résultat de chaque essai ; il ne le révèle qu'à la fin de la partie.
  */
-export default function Devimot({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function Devimot({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, DevimotPuzzle>({
-        code: CODE, gameName: "Devimot", daily, replayDate, challengeId,
+        code: CODE, gameName: "Devimot", daily, replayDate, challengeId, level, levelInfo, lessonTitles: DEVIMOT_LESSONS.titles,
         fetchStatus: devimotService.getGame,
         emptySave: gameId => ({gameId}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -44,6 +46,7 @@ export default function Devimot({daily = false, replayDate, challengeId}: GridCh
     const gameId = useRef<string | null>(null);
 
     const playing = puzzle !== null && !flow.showSettings && !flow.victory && answer === null;
+    const coach = useLessonCoach(DEVIMOT_LESSONS, level, challenge.lesson, puzzle ? {guesses: puzzle.guesses} : null, playing);
 
     const keyMarks = useMemo(() => {
         const best: Record<string, LetterMark> = {};
@@ -235,6 +238,8 @@ export default function Devimot({daily = false, replayDate, challengeId}: GridCh
                             <button type="button" className="modal-button" onClick={flow.newGame}>Nouvelle partie</button>
                         </div>
                     )}
+
+                    {coach.bubble}
 
                     {answer === null && <LetterKeyboard disabled={!playing || busy} busy={playing && busy} marks={keyMarks} {...handlers}/>}
                 </>

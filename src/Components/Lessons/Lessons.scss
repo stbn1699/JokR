@@ -1,0 +1,98 @@
+// ---------- Tutoriel guidé des jeux ajoutés depuis 3.3 : bulle sous la grille, ombre et projecteur (voir useLessonCoach.tsx)
+// Mêmes couleurs que la bulle des autres tutoriels (Levels/QueensTutorial.scss)
+
+.lesson-coach {
+	position       : relative;
+	display        : flex;
+	flex-direction : column;
+	align-items    : center;
+	gap            : 0.7rem;
+	width          : min(30rem, 100%);
+	margin         : 1.1rem auto 0.5rem;
+	padding        : 1rem 1.25rem;
+	box-sizing     : border-box;
+	border         : 2px solid #fbbf24;
+	border-radius  : 14px;
+	background     : #0f172a;
+	color          : #f9fafb;
+	box-shadow     : 0 0.6rem 1.6rem rgba(0, 0, 0, 0.5);
+	text-align     : center;
+	animation      : lesson-coach-in 0.3s cubic-bezier(.2, .9, .3, 1.3);
+
+	// petite flèche vers la grille
+	&::before {
+		content     : "";
+		position    : absolute;
+		top         : -0.65rem;
+		left        : 50%;
+		width       : 1.1rem;
+		height      : 1.1rem;
+		border-top  : 2px solid #fbbf24;
+		border-left : 2px solid #fbbf24;
+		background  : #0f172a;
+		transform   : translateX(-50%) rotate(45deg);
+	}
+
+	p {
+		margin      : 0;
+		font-size   : 1.1rem;
+		line-height : 1.4;
+	}
+
+	button {
+		padding       : 0.5rem 1.6rem;
+		border        : none;
+		border-radius : 999px;
+		background    : #10b981;
+		color         : #f9fafb;
+		font-family   : inherit;
+		font-size     : 1.1rem;
+		font-weight   : 700;
+		cursor        : pointer;
+
+		&:hover { background : #059669; }
+	}
+}
+
+// Plateaux SVG (une unité par case)
+.lesson-spots {
+	pointer-events : none;
+
+	.lesson-veil { fill : rgba(2, 6, 23, 0.62); }
+
+	.lesson-spot {
+		fill         : none;
+		stroke       : #fde047;
+		stroke-width : 0.07;
+		animation    : lesson-spot 1.1s ease-in-out infinite;
+	}
+}
+
+// Cases HTML
+.lesson-dim { filter : brightness(0.4) saturate(0.6); transition : filter 0.3s ease; }
+
+.lesson-lit {
+	position  : relative;
+	z-index   : 1;
+	animation : lesson-lit 1.1s ease-in-out infinite;
+}
+
+@keyframes lesson-coach-in {
+	from { opacity : 0; transform : translateY(0.5rem) scale(0.96); }
+}
+
+@keyframes lesson-spot {
+	0%, 100% { stroke-width : 0.05; }
+	50% { stroke-width : 0.11; }
+}
+
+@keyframes lesson-lit {
+	0%, 100% { box-shadow : inset 0 0 0 3px #fde047; }
+	50% { box-shadow : inset 0 0 0 5px #fde047; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lesson-coach { animation : none; }
+	.lesson-spots .lesson-spot { animation : none; stroke-width : 0.08; }
+	.lesson-lit { animation : none; box-shadow : inset 0 0 0 4px #fde047; }
+}

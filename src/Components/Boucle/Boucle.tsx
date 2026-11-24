@@ -23,6 +23,9 @@ import WordSettingsPopup from "../WordGames/WordSettingsPopup.tsx";
 import {boucleService} from "../../Services/boucle.service.ts";
 import type {BouclePuzzle} from "../../Models/boucle.model.ts";
 import {cleanLinks, countLoops, fullCells, linkCells, solvedLoop, startStroke, type Stroke, strokeTo} from "./boucleRules.ts";
+import {useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import LessonSpots from "../Lessons/LessonSpots.tsx";
+import {BOUCLE_LESSONS} from "../Lessons/boucleLessons.ts";
 
 const CODE = "BOUCLE";
 
@@ -34,10 +37,10 @@ const sameLinks = (a: readonly number[], b: readonly number[]) => {
     return b.every(key => set.has(key));
 };
 
-export default function Boucle({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function Boucle({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, BouclePuzzle>({
-        code: CODE, gameName: "Boucle", daily, replayDate, challengeId,
+        code: CODE, gameName: "Boucle", daily, replayDate, challengeId, level, levelInfo, lessonTitles: BOUCLE_LESSONS.titles,
         fetchStatus: boucleService.getGame,
         emptySave: gameId => ({gameId, links: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -62,6 +65,7 @@ export default function Boucle({daily = false, replayDate, challengeId}: GridCha
     const filled = size ? fullCells(shown, size) : 0;
     const loops = size ? countLoops(shown, size) : 0;
     const loop = useMemo(() => (puzzle && !stroke ? solvedLoop(puzzle, links) : null), [puzzle, links, stroke]);
+    const coach = useLessonCoach(BOUCLE_LESSONS, level, challenge.lesson, puzzle ? {puzzle, links, loops} : null, playing);
 
     useEffect(() => {
         if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, links});
@@ -242,8 +246,10 @@ export default function Boucle({daily = false, replayDate, challengeId}: GridCha
                                 ? <line key={`${a}-${b}`} className="boucle-wall" x1={col + 1} y1={row} x2={col + 1} y2={row + 1}/>
                                 : <line key={`${a}-${b}`} className="boucle-wall" x1={col} y1={row + 1} x2={col + 1} y2={row + 1}/>;
                         })}
+                        <LessonSpots size={size} lit={coach.lit}/>
                     </svg>
                 )}
+                {coach.bubble}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
@@ -267,7 +273,9 @@ export default function Boucle({daily = false, replayDate, challengeId}: GridCha
 
             {challenge.donePopup}
 
-            {flow.victory && (
+            {challenge.levelVictory(flow.victory)}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Boucle" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}

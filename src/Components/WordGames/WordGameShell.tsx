@@ -75,7 +75,9 @@ export default function WordGameShell({className, gameCode, gameName, flow, cloc
 
             {challenge.donePopup}
 
-            {flow.victory && (
+            {challenge.levelVictory(flow.victory)}
+
+            {flow.victory && challenge.level === undefined && (
                 <SuccessPopup gameName={gameName} gameCode={gameCode} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}

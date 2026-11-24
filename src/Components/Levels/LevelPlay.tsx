@@ -9,6 +9,17 @@ import Shikaku from "../Shikaku/Shikaku.tsx";
 import Sudoku from "../Sudoku/Sudoku.tsx";
 import Tectonic from "../Tectonic/Tectonic.tsx";
 import Trace from "../Trace/Trace.tsx";
+import Coloria from "../Coloria/Coloria.tsx";
+import Tuyaux from "../Tuyaux/Tuyaux.tsx";
+import Liens from "../Liens/Liens.tsx";
+import Bouchon from "../Bouchon/Bouchon.tsx";
+import Paturages from "../Paturages/Paturages.tsx";
+import Boucle from "../Boucle/Boucle.tsx";
+import Demineur from "../Demineur/Demineur.tsx";
+import Devimot from "../WordGames/Devimot.tsx";
+import Echelle from "../WordGames/Echelle.tsx";
+import MotsMeles from "../WordGames/MotsMeles.tsx";
+import MotsACaser from "../WordGames/MotsACaser.tsx";
 import type {LevelInfo} from "./LevelVictory.tsx";
 import Loader from "../Loader/Loader.tsx";
 import QueensTutorial from "./QueensTutorial.tsx";
@@ -36,7 +47,8 @@ const TUTORIALS: Record<string, ComponentType<LessonProps>> = {
 
 type LevelGameProps = { level: number; levelInfo: LevelInfo };
 
-// Jeu de chaque puzzle, chargé sur la grille d'un niveau (niveaux après le tutoriel)
+// Jeu de chaque puzzle, chargé sur la grille d'un niveau (niveaux après le tutoriel). Les jeux ajoutés depuis 3.3
+// n'ont pas de composant de leçon : leurs leçons se jouent dans le jeu lui-même (voir Lessons/useLessonCoach.tsx).
 const GAMES: Record<string, ComponentType<LevelGameProps>> = {
     QUEENS: Queens,
     GALAXIES: Galaxies,
@@ -46,6 +58,17 @@ const GAMES: Record<string, ComponentType<LevelGameProps>> = {
     RIKUDO: Rikudo,
     TECTONIC: Tectonic,
     SHIKAKU: Shikaku,
+    COLORIA: Coloria,
+    TUYAUX: Tuyaux,
+    LIENS: Liens,
+    BOUCHON: Bouchon,
+    PATURAGES: Paturages,
+    BOUCLE: Boucle,
+    DEMINEUR: Demineur,
+    DEVIMOT: Devimot,
+    ECHELLE: Echelle,
+    MOTSMELES: MotsMeles,
+    MOTSACASER: MotsACaser,
 };
 
 /**

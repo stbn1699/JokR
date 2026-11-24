@@ -21,6 +21,9 @@ import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
 import WordSettingsPopup from "../WordGames/WordSettingsPopup.tsx";
 import {liensService} from "../../Services/liens.service.ts";
+import {useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import LessonSpots from "../Lessons/LessonSpots.tsx";
+import {LIENS_LESSONS} from "../Lessons/liensLessons.ts";
 import type {LiensPuzzle} from "../../Models/liens.model.ts";
 import {drawTo, type Drawing, filledCells, isLinked, isSolved, overlayDrawing, startDrawing} from "./liensRules.ts";
 
@@ -31,10 +34,10 @@ const COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#eab308", "#f97316", "#a855f7"
 
 type Saved = { gameId: string; paths: number[][] };
 
-export default function Liens({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function Liens({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, LiensPuzzle>({
-        code: CODE, gameName: "Liens", daily, replayDate, challengeId,
+        code: CODE, gameName: "Liens", daily, replayDate, challengeId, level, levelInfo, lessonTitles: LIENS_LESSONS.titles,
         fetchStatus: liensService.getGame,
         emptySave: gameId => ({gameId, paths: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -58,6 +61,7 @@ export default function Liens({daily = false, replayDate, challengeId}: GridChal
     const totalCells = puzzle ? puzzle.size * puzzle.size : 0;
     const emptyCells = totalCells - filledCells(shown);
     const solved = puzzle !== null && drawing === null && isSolved(puzzle, paths);
+    const coach = useLessonCoach(LIENS_LESSONS, level, challenge.lesson, puzzle ? {paths, size: puzzle.size} : null, playing);
 
     useEffect(() => {
         if (gameId.current && paths.length > 0) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, paths});
@@ -249,8 +253,10 @@ export default function Liens({daily = false, replayDate, challengeId}: GridChal
                                 <text>{String.fromCharCode(65 + pair)}</text>
                             </g>
                         )))}
+                        <LessonSpots size={puzzle.size} lit={coach.lit}/>
                     </svg>
                 )}
+                {coach.bubble}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
@@ -274,7 +280,9 @@ export default function Liens({daily = false, replayDate, challengeId}: GridChal
 
             {challenge.donePopup}
 
-            {flow.victory && (
+            {challenge.levelVictory(flow.victory)}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Liens" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}

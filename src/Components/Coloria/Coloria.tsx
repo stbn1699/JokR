@@ -24,6 +24,8 @@ import {useShowErrors} from "../PuzzleUI/useShowErrors.ts";
 import WordSettingsPopup from "../WordGames/WordSettingsPopup.tsx";
 import {coloriaService} from "../../Services/coloria.service.ts";
 import type {ColoriaPuzzle} from "../../Models/coloria.model.ts";
+import {lessonClass, useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import {COLORIA_LESSONS} from "../Lessons/coloriaLessons.ts";
 
 const CODE = "COLORIA";
 // Couleurs du thème des grilles, choisies pour bien se distinguer
@@ -31,10 +33,10 @@ const PALETTE = ["var(--board-region-1)", "var(--board-region-0)", "var(--board-
 
 type Saved = { gameId: string; colors: number[] };
 
-export default function Coloria({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function Coloria({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, ColoriaPuzzle>({
-        code: CODE, gameName: "Coloria", daily, replayDate, challengeId,
+        code: CODE, gameName: "Coloria", daily, replayDate, challengeId, level, levelInfo, lessonTitles: COLORIA_LESSONS.titles,
         fetchStatus: coloriaService.getGame,
         emptySave: gameId => ({gameId, colors: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -53,6 +55,8 @@ export default function Coloria({daily = false, replayDate, challengeId}: GridCh
     const gameId = useRef<string | null>(null);
 
     const playing = puzzle !== null && !flow.showSettings && !flow.victory;
+    // leçon du tutoriel : `lit` désigne des zones
+    const coach = useLessonCoach(COLORIA_LESSONS, level, challenge.lesson, puzzle ? {puzzle, colors} : null, playing);
 
     const links = useMemo(() => {
         if (!puzzle) return [];
@@ -255,6 +259,7 @@ export default function Coloria({daily = false, replayDate, challengeId}: GridCh
                                 cell % w === 0 || puzzle.regions[cell - 1] !== zone ? "b-left" : "",
                                 hovered === zone && puzzle.given[zone]! < 0 ? "hovered" : "",
                                 showErrors && conflicts.has(zone) ? "conflict" : "",
+                                lessonClass(coach.lit, zone),
                             ];
                             const isLabel = labelCells.get(cell) === zone;
                             return (
@@ -269,6 +274,7 @@ export default function Coloria({daily = false, replayDate, challengeId}: GridCh
                         })}
                     </div>
                 )}
+                {coach.bubble}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
@@ -293,7 +299,9 @@ export default function Coloria({daily = false, replayDate, challengeId}: GridCh
 
             {challenge.donePopup}
 
-            {flow.victory && (
+            {challenge.levelVictory(flow.victory)}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Coloria" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}

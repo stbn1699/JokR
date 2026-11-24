@@ -8,6 +8,8 @@ import type {FoundWord, MotsMelesPuzzle} from "../../Models/wordGames.model.ts";
 import WordGameShell from "./WordGameShell.tsx";
 import WordSettingsPopup from "./WordSettingsPopup.tsx";
 import {regionColor} from "../PuzzleUI/regionColors.ts";
+import {lessonClass, useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import {MOTS_MELES_LESSONS} from "../Lessons/wordLessons.ts";
 
 const CODE = "MOTSMELES";
 
@@ -54,10 +56,10 @@ function snapToLine(size: number, from: number, hover: number): number {
  * Mots mêlés : glisser d'une lettre à l'autre pour entourer chaque mot de la liste.
  * Le serveur relit les lettres sélectionnées à la fin de la partie.
  */
-export default function MotsMeles({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function MotsMeles({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, MotsMelesPuzzle>({
-        code: CODE, gameName: "Mots mêlés", daily, replayDate, challengeId,
+        code: CODE, gameName: "Mots mêlés", daily, replayDate, challengeId, level, levelInfo, lessonTitles: MOTS_MELES_LESSONS.titles,
         fetchStatus: motsMelesService.getGame,
         emptySave: gameId => ({gameId, found: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -74,6 +76,7 @@ export default function MotsMeles({daily = false, replayDate, challengeId}: Grid
     const board = useRef<HTMLDivElement>(null);
 
     const playing = puzzle !== null && !flow.showSettings && !flow.victory;
+    const coach = useLessonCoach(MOTS_MELES_LESSONS, level, challenge.lesson, puzzle ? {found} : null, playing);
 
     useEffect(() => {
         if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, found});
@@ -235,10 +238,11 @@ export default function MotsMeles({daily = false, replayDate, challengeId}: Grid
                         {selection && <WordStroke size={puzzle.size} from={selection.from} to={selection.to} className="search-stroke selecting"/>}
                     </svg>
                     {Array.from(puzzle.letters, (letter, cell) => (
-                        <span key={cell} role="gridcell" className="search-cell">{letter}</span>
+                        <span key={cell} role="gridcell" className={`search-cell ${lessonClass(coach.lit, cell)}`}>{letter}</span>
                     ))}
                 </div>
             )}
+            {coach.bubble}
         </WordGameShell>
     );
 }

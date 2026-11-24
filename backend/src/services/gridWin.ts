@@ -6,13 +6,22 @@ import {DAILY_REWARD_MULTIPLIER, type DailyService} from "./Daily.service.js";
 import type {StoredPuzzle} from "./PuzzleStore.js";
 import {gridGame, type GridGameCode} from "./gridGames.js";
 import {tracker} from "./tracker.js";
+import {recordLevelWin} from "./levelWin.js";
+import {LevelsRepository} from "../repository/Levels.repository.js";
+import {createDb} from "../db/kysely.js";
+import {pool} from "../db/pool.js";
 
 export type GridWinDeps = { progression: ProgressionService; games: GamesService; daily: DailyService };
+
+// Progression du mode Niveaux (créée au premier niveau réussi)
+let levelsRepository: LevelsRepository | null = null;
+const levels = () => (levelsRepository ??= new LevelsRepository(createDb(pool)));
 
 /*
  * Fin d'une partie gagnée d'un jeu de grille ajouté depuis 3.3 (la grille vient d'être reconnue juste) :
  * la partie est retirée (pas de double validation), le temps est mesuré par le serveur, et le joueur connecté
  * reçoit son XP et ses crédits. Défi du jour : seule la première réussite compte, avec des gains doublés.
+ * Mode Niveaux : la réussite du niveau est enregistrée, et seule la première rapporte de l'XP et des crédits.
  */
 export async function finishGridWin(
     res: Response<unknown, AuthLocals>, code: GridGameCode, gameId: string, game: StoredPuzzle<unknown>, deps: GridWinDeps,
@@ -27,6 +36,16 @@ export async function gridWinResult(code: GridGameCode, gameId: string, game: St
     const durationMs = Date.now() - game.createdAt;
     tracker.finished(gameId, durationMs, userId);
     if (!userId) return {xp: undefined, durationMs};
+
+    if (game.level) {
+        return recordLevelWin(levels(), deps.progression, code, game.level, userId, durationMs, async () => {
+            const baseXp = await deps.games.getBaseXp(code) ?? 0;
+            return {
+                xp: def.xp(baseXp, game.puzzle, game.cluesCount), credits: def.credits(game.puzzle, game.cluesCount),
+                gridSize: def.gridSize(game.puzzle), emptyCells: game.cluesCount,
+            };
+        });
+    }
 
     const daily = game.daily ? await deps.daily.recordResult(code, game.daily, userId, durationMs) : undefined;
     if (daily && !daily.counted) return {xp: undefined, durationMs, daily};

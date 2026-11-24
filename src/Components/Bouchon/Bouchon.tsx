@@ -23,6 +23,9 @@ import WordSettingsPopup from "../WordGames/WordSettingsPopup.tsx";
 import {bouchonService} from "../../Services/bouchon.service.ts";
 import type {BouchonMove, BouchonPuzzle, BouchonVehicle} from "../../Models/bouchon.model.ts";
 import {countMoves, isOut, positionsAfter, slideRange} from "./bouchonRules.ts";
+import {useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import LessonSpots from "../Lessons/LessonSpots.tsx";
+import {BOUCHON_LESSONS} from "../Lessons/bouchonLessons.ts";
 
 const CODE = "BOUCHON";
 // Place à droite du plateau pour dessiner la sortie
@@ -60,10 +63,10 @@ function VehicleShape({vehicle, taxi}: { vehicle: BouchonVehicle; taxi: boolean 
     );
 }
 
-export default function Bouchon({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function Bouchon({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, BouchonPuzzle>({
-        code: CODE, gameName: "Bouchon", daily, replayDate, challengeId,
+        code: CODE, gameName: "Bouchon", daily, replayDate, challengeId, level, levelInfo, lessonTitles: BOUCHON_LESSONS.titles,
         fetchStatus: bouchonService.getGame,
         emptySave: gameId => ({gameId, moves: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -84,6 +87,7 @@ export default function Bouchon({daily = false, replayDate, challengeId}: GridCh
     const playing = puzzle !== null && !flow.showSettings && !flow.victory;
     const positions = useMemo(() => (puzzle ? positionsAfter(puzzle, moves) : []), [puzzle, moves]);
     const solved = puzzle !== null && drag === null && isOut(puzzle, positions);
+    const coach = useLessonCoach(BOUCHON_LESSONS, level, challenge.lesson, puzzle ? {puzzle, positions} : null, playing && drag === null);
 
     useEffect(() => {
         if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, moves});
@@ -277,8 +281,10 @@ export default function Bouchon({daily = false, replayDate, challengeId}: GridCh
                                 </g>
                             );
                         })}
+                        <LessonSpots size={puzzle.size} lit={coach.lit}/>
                     </svg>
                 )}
+                {coach.bubble}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
@@ -302,7 +308,9 @@ export default function Bouchon({daily = false, replayDate, challengeId}: GridCh
 
             {challenge.donePopup}
 
-            {flow.victory && (
+            {challenge.levelVictory(flow.victory)}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Bouchon" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}

@@ -71,6 +71,10 @@ function smoothPath(points: [number, number][]): string {
     return d;
 }
 
+// Taille d'un niveau sous son rond : lettres des jeux de mots, zones du Coloria, sinon la grille
+const sizeLabel = (code: string, size: number) =>
+    code === "DEVIMOT" || code === "ECHELLE" ? `${size} lettres` : code === "COLORIA" ? `${size} zones` : `${size}×${size}`;
+
 export default function LevelsMap() {
     const {gameCode = ""} = useParams<{ gameCode: string }>();
     const code = gameCode.toUpperCase();
@@ -278,7 +282,7 @@ export default function LevelsMap() {
                                             {l.level <= tutorial && <span className="levels-cap"><FaGraduationCap aria-hidden/></span>}
                                         </button>
                                         <span className="levels-label">
-                                            {state === "current" ? "Jouer" : `${l.size}×${l.size}`}
+                                            {state === "current" ? "Jouer" : sizeLabel(code, l.size)}
                                             {l.bestMs !== null && <small>{formatDuration(l.bestMs)}</small>}
                                         </span>
                                     </div>

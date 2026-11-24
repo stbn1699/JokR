@@ -1,13 +1,18 @@
 import {type ReactNode} from "react";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {useDailyGame} from "./useDailyGame.ts";
 import DailyDonePopup from "./DailyDonePopup.tsx";
 import {dailyService, formatDailyDate} from "../../Services/daily.service.ts";
 import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
+import {levelsService} from "../../Services/levels.service.ts";
+import LevelVictory, {type LevelInfo} from "../Levels/LevelVictory.tsx";
+import {levelName} from "../Levels/worlds.ts";
+import type {Victory} from "./useGameFlow.ts";
 
-// Props des jeux qui ont des défis : défi du jour, défi d'un jour passé rejoué (AAAA-MM-JJ), défi d'un·e ami·e
-export type GridChallengeProps = { daily?: boolean; replayDate?: string; challengeId?: string };
+// Props des jeux qui ont des défis : défi du jour, défi d'un jour passé rejoué (AAAA-MM-JJ), défi d'un·e ami·e,
+// ou niveau du mode Niveaux (avec le nombre de niveaux et la taille du tutoriel)
+export type GridChallengeProps = { daily?: boolean; replayDate?: string; challengeId?: string; level?: number; levelInfo?: LevelInfo };
 
 type GridChallengeOptions<Saved extends { gameId: string }, Grid> = GridChallengeProps & {
     code: string;
@@ -16,21 +21,31 @@ type GridChallengeOptions<Saved extends { gameId: string }, Grid> = GridChalleng
     // sauvegarde d'un défi qui vient de commencer
     emptySave: (gameId: string) => Saved;
     onLoad: (grid: Grid, saved: Saved, elapsedMs: number) => void;
+    // titres des leçons du tutoriel guidé (mode Niveaux)
+    lessonTitles?: readonly string[];
 };
 
 /**
  * Défis des jeux réglés par une taille et un curseur (jeux de grille et de mots ajoutés depuis 3.3) :
- * défi du jour, défi d'un jour passé (hors classement) ou défi d'un·e ami·e (sa grille, à faire une fois).
+ * défi du jour, défi d'un jour passé (hors classement), défi d'un·e ami·e (sa grille, à faire une fois)
+ * ou niveau du mode Niveaux (les premiers sont les leçons du tutoriel guidé, voir Lessons/useLessonCoach.tsx).
  * Pas de popup de réglages : la grille arrive toute seule, avec sa propre sauvegarde.
  * Renvoie ce que le jeu affiche autour de sa grille : sous-titre de la barre d'outils, bandeau au-dessus
- * de la grille, popup « déjà réussi » et réglages de la popup de victoire (dont « Défier des ami·e·s »).
+ * de la grille, popup « déjà réussi » et réglages de la popup de victoire (dont « Défier des ami·e·s ») ;
+ * pour un niveau, sa propre popup de victoire (levelVictory).
  */
 export function useGridChallenge<Saved extends { gameId: string }, Grid>(options: GridChallengeOptions<Saved, Grid>) {
-    const {code, gameName, daily = false, replayDate, challengeId} = options;
+    const {code, gameName, daily = false, replayDate, challengeId, level, levelInfo} = options;
     const navigate = useNavigate();
-    const challenge = daily || replayDate !== undefined || challengeId !== undefined;
+    const challenge = daily || replayDate !== undefined || challengeId !== undefined || level !== undefined;
     // sauvegardes séparées : on peut avoir une partie libre et un défi en cours en parallèle
-    const saveKey = challengeId ? `${code}:challenge:${challengeId}` : replayDate ? `${code}:replay:${replayDate}` : daily ? `${code}:daily` : code;
+    const saveKey = level ? `${code}:level:${level}` : challengeId ? `${code}:challenge:${challengeId}`
+        : replayDate ? `${code}:replay:${replayDate}` : daily ? `${code}:daily` : code;
+    // leçon du tutoriel guidé : « Leçon 2/3 · titre »
+    const tutorial = levelInfo?.tutorial ?? null;
+    const lesson = level !== undefined && tutorial !== null && level <= tutorial;
+    const levelLabel = level === undefined ? "" : lesson
+        ? `Leçon ${level}/${tutorial}${options.lessonTitles?.[level - 1] ? ` · ${options.lessonTitles[level - 1]}` : ""}` : levelName(level);
 
     const dailyGame = useDailyGame<Saved, Grid>({
         enabled: challenge,
@@ -38,15 +53,18 @@ export function useGridChallenge<Saved extends { gameId: string }, Grid>(options
         saveKey,
         fetchStatus: options.fetchStatus,
         emptySave: options.emptySave,
-        start: challengeId ? () => challengeService.start<Grid>(challengeId)
+        start: level ? () => levelsService.start<Grid>(code, level)
+            : challengeId ? () => challengeService.start<Grid>(challengeId)
             : replayDate ? () => dailyService.replay<Grid>(code, replayDate) : undefined,
         onLoad: options.onLoad,
     });
 
-    const toolbarLabel: ReactNode = daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
+    const toolbarLabel: ReactNode = level !== undefined ? (lesson ? `Leçon ${level}/${tutorial}` : levelName(level)) : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
         : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined;
 
-    const banner: ReactNode = daily ? (
+    const banner: ReactNode = level !== undefined ? (
+        <p className="daily-label level-label"><Link to={`/niveaux/${code}`}>Niveaux</Link> · {levelLabel}</p>
+    ) : daily ? (
         <p className="daily-label">
             Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
             <span className="daily-x2">XP et crédits ×{DAILY_REWARD_MULTIPLIER}</span>
@@ -54,7 +72,7 @@ export function useGridChallenge<Saved extends { gameId: string }, Grid>(options
     ) : replayDate ? <p className="daily-label">Défi du {formatDailyDate(replayDate)} · hors classement</p>
         : challengeId ? <p className="daily-label">Défi d'un·e ami·e · la même grille, à toi de jouer</p> : null;
 
-    const donePopup: ReactNode = dailyGame.done ? <DailyDonePopup gameCode={code} gameName={gameName} result={dailyGame.done}/> : null;
+    const donePopup: ReactNode = dailyGame.done && level === undefined ? <DailyDonePopup gameCode={code} gameName={gameName} result={dailyGame.done}/> : null;
 
     // Popup de victoire : après un défi, « Partie libre » (ou les autres défis pour un jour passé) ;
     // défier des ami·e·s après une partie libre ou le défi du jour ; résultat du défi d'un·e ami·e
@@ -66,5 +84,12 @@ export function useGridChallenge<Saved extends { gameId: string }, Grid>(options
         challengeId,
     });
 
-    return {challenge, saveKey, loading: dailyGame.loading, error: dailyGame.error, toolbarLabel, banner, donePopup, victory};
+    // Niveau réussi : popup du mode Niveaux (« Leçon suivante », « Niveau suivant »…) à la place de la victoire habituelle
+    const levelVictory = (won: Victory | null): ReactNode =>
+        level !== undefined ? <LevelVictory gameCode={code} gameName={gameName} level={level} info={levelInfo} victory={won}/> : null;
+
+    return {
+        challenge, saveKey, loading: dailyGame.loading, error: dailyGame.error, toolbarLabel, banner, donePopup, victory,
+        level, levelInfo, lesson, levelVictory,
+    };
 }

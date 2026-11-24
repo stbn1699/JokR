@@ -9,6 +9,8 @@ import LetterKeyboard from "./LetterKeyboard.tsx";
 import {useLetterKeys} from "./useLetterKeys.ts";
 import WordGameShell from "./WordGameShell.tsx";
 import WordSettingsPopup from "./WordSettingsPopup.tsx";
+import {useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import {ECHELLE_LESSONS} from "../Lessons/wordLessons.ts";
 
 const CODE = "ECHELLE";
 
@@ -20,10 +22,10 @@ const lettersApart = (a: string, b: string) => Array.from(a).filter((letter, i) 
  * Échelle : relier deux mots en changeant une lettre à chaque étape.
  * Chaque mot est vérifié par le serveur, qui valide aussi le chemin complet à l'arrivée.
  */
-export default function Echelle({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function Echelle({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, EchellePuzzle>({
-        code: CODE, gameName: "Échelle", daily, replayDate, challengeId,
+        code: CODE, gameName: "Échelle", daily, replayDate, challengeId, level, levelInfo, lessonTitles: ECHELLE_LESSONS.titles,
         fetchStatus: echelleService.getGame,
         emptySave: gameId => ({gameId, path: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -43,6 +45,7 @@ export default function Echelle({daily = false, replayDate, challengeId}: GridCh
 
     const playing = puzzle !== null && !flow.showSettings && !flow.victory;
     const last = path[path.length - 1] ?? "";
+    const coach = useLessonCoach(ECHELLE_LESSONS, level, challenge.lesson, puzzle ? {path} : null, playing);
 
     useEffect(() => {
         if (gameId.current && path.length > 0) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, path});
@@ -217,6 +220,7 @@ export default function Echelle({daily = false, replayDate, challengeId}: GridCh
                             </>
                         )}
                     </div>
+                    {coach.bubble}
                     <LetterKeyboard disabled={!playing || busy} busy={playing && busy} {...handlers}/>
                 </>
             )}

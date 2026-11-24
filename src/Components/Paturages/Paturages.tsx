@@ -24,6 +24,9 @@ import WordSettingsPopup from "../WordGames/WordSettingsPopup.tsx";
 import {paturagesService} from "../../Services/paturages.service.ts";
 import type {PaturagesPuzzle, PaturagesSquare} from "../../Models/paturages.model.ts";
 import {contains, cowsIn, initialSquares, isGiven, isSolved, overlaps, placeSquare, type PlacedSquare, squareFromDrag} from "./paturagesRules.ts";
+import {useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import LessonSpots from "../Lessons/LessonSpots.tsx";
+import {PATURAGES_LESSONS} from "../Lessons/paturagesLessons.ts";
 
 const CODE = "PATURAGES";
 
@@ -48,10 +51,10 @@ function Cow({row, col}: { row: number; col: number }) {
     );
 }
 
-export default function Paturages({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function Paturages({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, PaturagesPuzzle>({
-        code: CODE, gameName: "Pâturages", daily, replayDate, challengeId,
+        code: CODE, gameName: "Pâturages", daily, replayDate, challengeId, level, levelInfo, lessonTitles: PATURAGES_LESSONS.titles,
         fetchStatus: paturagesService.getGame,
         emptySave: gameId => ({gameId, squares: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -71,6 +74,7 @@ export default function Paturages({daily = false, replayDate, challengeId}: Grid
 
     const playing = puzzle !== null && !flow.showSettings && !flow.victory;
     const solved = puzzle !== null && drag === null && isSolved(puzzle, squares);
+    const coach = useLessonCoach(PATURAGES_LESSONS, level, challenge.lesson, puzzle ? {size: puzzle.size, squares} : null, playing && drag === null);
     const settled = useMemo(
         () => (puzzle ? squares.filter(square => cowsIn(square, puzzle.cows, puzzle.size) === 1).length : 0),
         [puzzle, squares],
@@ -272,8 +276,10 @@ export default function Paturages({daily = false, replayDate, challengeId}: Grid
                             <rect x={drag.square.col + 0.03} y={drag.square.row + 0.03} width={drag.square.side - 0.06} height={drag.square.side - 0.06} rx={0.1}
                                   className={`paturages-preview ${previewValid ? "valid" : "invalid"}`}/>
                         )}
+                        <LessonSpots size={puzzle.size} lit={coach.lit}/>
                     </svg>
                 )}
+                {coach.bubble}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
@@ -297,7 +303,9 @@ export default function Paturages({daily = false, replayDate, challengeId}: Grid
 
             {challenge.donePopup}
 
-            {flow.victory && (
+            {challenge.levelVictory(flow.victory)}
+
+            {flow.victory && level === undefined && (
                 <SuccessPopup gameName="Pâturages" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}

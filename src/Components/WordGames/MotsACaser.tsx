@@ -11,6 +11,8 @@ import PhoneKeyboard from "./PhoneKeyboard.tsx";
 import {useLetterKeys} from "./useLetterKeys.ts";
 import WordGameShell from "./WordGameShell.tsx";
 import WordSettingsPopup from "./WordSettingsPopup.tsx";
+import {lessonClass, useLessonCoach} from "../Lessons/useLessonCoach.tsx";
+import {MOTS_A_CASER_LESSONS} from "../Lessons/wordLessons.ts";
 
 const CODE = "MOTSACASER";
 const ARROWS: Record<string, [number, number]> = {ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1]};
@@ -48,10 +50,10 @@ const startLetters = (puzzle: MotsACaserPuzzle) => Array.from(puzzle.cells, cell
  * Un clic choisit une case, un second clic (ou Entrée) change le sens d'écriture.
  * Le serveur vérifie la grille dès qu'elle est remplie.
  */
-export default function MotsACaser({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+export default function MotsACaser({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, MotsACaserPuzzle>({
-        code: CODE, gameName: "Mots à caser", daily, replayDate, challengeId,
+        code: CODE, gameName: "Mots à caser", daily, replayDate, challengeId, level, levelInfo, lessonTitles: MOTS_A_CASER_LESSONS.titles,
         fetchStatus: motsACaserService.getGame,
         emptySave: gameId => ({gameId, letters: ""}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -69,6 +71,7 @@ export default function MotsACaser({daily = false, replayDate, challengeId}: Gri
     const gameId = useRef<string | null>(null);
 
     const playing = puzzle !== null && !flow.showSettings && !flow.victory;
+    const coach = useLessonCoach(MOTS_A_CASER_LESSONS, level, challenge.lesson, puzzle ? {letters} : null, playing);
     const slots = useMemo(() => (puzzle ? wordSlots(puzzle.cells, puzzle.size) : []), [puzzle]);
     const isGiven = (cell: number) => puzzle !== null && puzzle.cells[cell] !== ".";
     const isBlack = (cell: number) => puzzle?.cells[cell] === "#";
@@ -348,7 +351,8 @@ export default function MotsACaser({daily = false, replayDate, challengeId}: Gri
                     {Array.from(puzzle.cells, (cell, i) => {
                         if (cell === "#") return <span key={i} className="caser-cell black" aria-hidden/>;
                         const classes = ["caser-cell", isGiven(i) ? "given" : "", activeSlot?.includes(i) ? "active" : "",
-                            placedCells.has(i) ? "placed" : "", wrongCells.has(i) ? "wrong" : "", i === selected ? "selected" : ""];
+                            placedCells.has(i) ? "placed" : "", wrongCells.has(i) ? "wrong" : "", i === selected ? "selected" : "",
+                            lessonClass(coach.lit, i)];
                         return (
                             <button key={i} type="button" role="gridcell" className={classes.join(" ")} disabled={!playing}
                                     aria-label={`Ligne ${Math.floor(i / puzzle.size) + 1}, colonne ${i % puzzle.size + 1}${letters[i] ? `, ${letters[i]}` : ""}`}
@@ -359,6 +363,7 @@ export default function MotsACaser({daily = false, replayDate, challengeId}: Gri
                     })}
                 </div>
             )}
+            {coach.bubble}
         </WordGameShell>
     );
 }
