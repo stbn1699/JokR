@@ -20,24 +20,40 @@
 	}
 
 	.demineur-grid line {
+		pointer-events   : none;
 		stroke           : var(--board-dash);
 		stroke-width     : 0.025;
 		stroke-dasharray : 0.12 0.1;
 	}
 
-	.dm-open {
-		fill : var(--board-paper);
+	.dm-exploded { fill : #f87171; }
 
-		&.dm-exploded { fill : #f87171; }
+	// Zone encore couverte : un seul aplat bleu aux coins arrondis
+	.dm-hidden,
+	.dm-fillet {
+		fill       : var(--board-region-1);
+		transition : fill 0.15s;
 	}
 
-	.dm-hidden {
-		fill         : var(--board-region-1);
-		stroke       : var(--board-wall);
-		stroke-width : 0.04;
-		transition   : fill 0.15s;
+	.dm-hidden.dm-highlight { fill : #fde68a; }
 
-		&.dm-highlight { fill : #fde68a; }
+	.dm-fillet { pointer-events : none; }
+
+	// pointillés à peine visibles sur la zone couverte
+	.dm-hidden-dash {
+		stroke           : var(--board-dash);
+		stroke-opacity   : 0.25;
+		stroke-width     : 0.025;
+		stroke-dasharray : 0.12 0.1;
+		pointer-events   : none;
+	}
+
+	.dm-border {
+		fill           : none;
+		stroke         : var(--board-wall);
+		stroke-width   : 0.08;
+		stroke-linecap : round;
+		pointer-events : none;
 	}
 
 	.demineur-board:not(.lost) .dm-hidden:hover { filter : brightness(1.08); }
@@ -99,19 +115,6 @@
 		}
 	}
 
-	.demineur-retry {
-		margin        : 1rem auto 0;
-		padding       : 0.6rem 1.4rem;
-		border        : none;
-		border-radius : 8px;
-		background    : #3b82f6;
-		color         : white;
-		font          : inherit;
-		font-weight   : 700;
-		cursor        : pointer;
-
-		&:hover { background : #2563eb; }
-	}
 }
 
 @media (max-width: 999px) {
@@ -127,4 +130,11 @@
 			strong { font-size : 1.5rem; }
 		}
 	}
+}
+
+// Barre « Voir la grille » d'une partie perdue : rouge au lieu de vert
+.game-review-bar.lost-review-bar {
+	border-color : rgba(248, 113, 113, 0.5);
+
+	.game-review-text svg { color : #f87171; }
 }

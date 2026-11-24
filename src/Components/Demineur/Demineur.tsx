@@ -5,7 +5,7 @@
  * Les mines restent sur le serveur, qui répond case par case ; la partie gagnée est validée toute seule.
  */
 
-import {type PointerEvent, useEffect, useRef, useState} from "react";
+import {type PointerEvent, useEffect, useMemo, useRef, useState} from "react";
 import "../PuzzleUI/PuzzleLayout.scss";
 import "./Demineur.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
@@ -20,15 +20,21 @@ import WordSettingsPopup from "../WordGames/WordSettingsPopup.tsx";
 import {demineurService} from "../../Services/demineur.service.ts";
 import type {DemineurPuzzle} from "../../Models/demineur.model.ts";
 import {planClick} from "./demineurRules.ts";
+import LostPopup from "./LostPopup.tsx";
+import {coveredShape} from "./coveredShape.ts";
 
 const CODE = "DEMINEUR";
 // Durée d'appui pour poser un drapeau au doigt, et distance au-delà de laquelle l'appui est annulé
 const LONG_PRESS_MS = 380;
 const MOVE_TOLERANCE_PX = 12;
 const HIGHLIGHT_MS = 550;
+// Arrondi des coins de la zone couverte (en cases)
+const CORNER_RADIUS = 0.32;
+// Temps laissé pour voir la mine avant la popup
+const LOST_POPUP_DELAY_MS = 900;
 
 type Saved = { gameId: string; flags: number[] };
-type Lost = { cell: number; mines: Set<number> };
+type Lost = { cell: number; mines: Set<number>; durationMs: number };
 type Press = { pointerId: number; cell: number; x: number; y: number; timer: number; flagged: boolean };
 
 const noop = () => undefined;
@@ -41,6 +47,7 @@ export default function Demineur() {
     const [flags, setFlags] = useState<Set<number>>(new Set());
     const [lost, setLost] = useState<Lost | null>(null);
     const [highlight, setHighlight] = useState<Set<number>>(new Set());
+    const [showLost, setShowLost] = useState(false);
     const board = useRef<SVGSVGElement>(null);
     const gameId = useRef<string | null>(null);
     const press = useRef<Press | null>(null);
@@ -64,6 +71,7 @@ export default function Demineur() {
         setRevealed(open);
         setFlags(new Set(initialFlags.filter(cell => !open.has(cell))));
         setLost(null);
+        setShowLost(false);
         setHighlight(new Set());
     };
 
@@ -97,8 +105,9 @@ export default function Demineur() {
                 gameId.current = null;
                 clearSavedGame(CODE);
                 flow.stop();
-                setLost({cell: outcome.cell, mines: new Set(outcome.mines)});
-                flow.setNotice("Boum ! Tu es tombé sur une mine.");
+                const {startedAt} = flow.clock;
+                setLost({cell: outcome.cell, mines: new Set(outcome.mines), durationMs: startedAt === null ? 0 : Date.now() - startedAt});
+                window.setTimeout(() => setShowLost(true), LOST_POPUP_DELAY_MS);
                 return;
             }
             setRevealed(previous => {
@@ -206,35 +215,23 @@ export default function Demineur() {
 
     const minesLeft = puzzle ? puzzle.mines - flags.size : 0;
 
-    const renderCell = (cell: number) => {
+    // Case encore couverte (la zone bleue) : ni libérée, ni mine montrée après l'explosion
+    const covered = (cell: number) =>
+        !revealed.has(cell) && !(lost && lost.mines.has(cell) && !flags.has(cell));
+
+    const shape = useMemo(() => coveredShape(size, covered, CORNER_RADIUS),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [revealed, lost, flags, size]);
+
+    const renderContent = (cell: number) => {
         const x = cell % size, y = Math.floor(cell / size);
         const count = revealed.get(cell);
-        const mine = lost?.mines.has(cell) ?? false;
-        const flagged = flags.has(cell);
-
         if (count !== undefined) {
-            return (
-                <g key={cell}>
-                    <rect className="dm-open" x={x} y={y} width={1} height={1}/>
-                    {count > 0 && <text className={`dm-count dm-n${count}`} x={x + 0.5} y={y + 0.54}>{count}</text>}
-                </g>
-            );
+            return count > 0 ? <text key={cell} className={`dm-count dm-n${count}`} x={x + 0.5} y={y + 0.54}>{count}</text> : null;
         }
-        if (lost && mine && !flagged) {
-            return (
-                <g key={cell}>
-                    <rect className={`dm-open ${cell === lost.cell ? "dm-exploded" : ""}`} x={x} y={y} width={1} height={1}/>
-                    <Mine x={x} y={y}/>
-                </g>
-            );
-        }
-        return (
-            <g key={cell}>
-                <rect className={`dm-hidden ${highlight.has(cell) ? "dm-highlight" : ""}`}
-                      x={x + 0.05} y={y + 0.05} width={0.9} height={0.9} rx={0.14}/>
-                {flagged && <Flag x={x} y={y} wrong={lost !== null && !mine}/>}
-            </g>
-        );
+        const mine = lost?.mines.has(cell) ?? false;
+        if (flags.has(cell)) return <Flag key={cell} x={x} y={y} wrong={lost !== null && !mine}/>;
+        return lost && mine ? <Mine key={cell} x={x} y={y}/> : null;
     };
 
     const rules = (
@@ -269,17 +266,21 @@ export default function Demineur() {
                          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
                          onPointerCancel={cancelPress} onPointerLeave={cancelPress}
                          onContextMenu={e => e.preventDefault()}>
+                        {lost && <rect className="dm-exploded" x={lost.cell % size} y={Math.floor(lost.cell / size)} width={1} height={1}/>}
                         {Array.from({length: size - 1}, (_, i) => (
                             <g key={i} className="demineur-grid">
                                 <line x1={i + 1} y1={0} x2={i + 1} y2={size}/>
                                 <line x1={0} y1={i + 1} x2={size} y2={i + 1}/>
                             </g>
                         ))}
-                        {Array.from({length: totalCells}, (_, cell) => renderCell(cell))}
+                        {shape.cells.map(({cell, d}) => <path key={cell} className={`dm-hidden ${highlight.has(cell) ? "dm-highlight" : ""}`} d={d}/>)}
+                        {shape.fillets.map(({key, d}) => <path key={key} className="dm-fillet" d={d}/>)}
+                        {shape.dashes.map(({key, d}) => <path key={key} className="dm-hidden-dash" d={d}/>)}
+                        {shape.borders.map(({key, d}) => <path key={key} className="dm-border" d={d}/>)}
+                        {Array.from({length: totalCells}, (_, cell) => renderContent(cell))}
                     </svg>
                 )}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
-                {lost && <button type="button" className="demineur-retry" onClick={flow.newGame}>Nouvelle partie</button>}
             </div>
 
             <div className="actions">
@@ -296,6 +297,13 @@ export default function Demineur() {
                                resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                sizeLegend="Taille de la grille" sizeLabel={s => `${s}×${s}`}
                                amountLabel="Mines"/>
+
+            {lost && showLost && !flow.showSettings && (
+                <LostPopup durationMs={lost.durationMs} onNewGame={() => {
+                    setShowLost(false);
+                    flow.newGame();
+                }}/>
+            )}
 
             {flow.victory && (
                 <SuccessPopup gameName="Démineur" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
