@@ -23,7 +23,9 @@
 		justify-content : center;
 		box-sizing      : border-box;
 		padding         : 0;
-		border          : none;
+		// Pointillés entre les cases : un seul trait, à droite et en bas
+		border          : 0 dashed var(--board-dash);
+		border-width    : 0 1px 1px 0;
 		background      : var(--zone, var(--board-paper));
 		color           : var(--board-given);
 		font            : inherit;
@@ -37,10 +39,10 @@
 		&:disabled { cursor : default; }
 
 		// Traits épais entre les zones
-		&.b-top { border-top : 2px solid var(--board-wall); }
-		&.b-right { border-right : 2px solid var(--board-wall); }
-		&.b-bottom { border-bottom : 2px solid var(--board-wall); }
-		&.b-left { border-left : 2px solid var(--board-wall); }
+		&.b-top { border-top : 3px solid var(--board-wall); }
+		&.b-right { border-right : 3px solid var(--board-wall); }
+		&.b-bottom { border-bottom : 3px solid var(--board-wall); }
+		&.b-left { border-left : 3px solid var(--board-wall); }
 
 		// Zone sous la souris
 		&.hovered { filter : brightness(0.93); }

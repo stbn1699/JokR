@@ -27,13 +27,14 @@
 	}
 
 	.shikaku-gridline {
-		stroke       : var(--board-line);
-		stroke-width : 0.25;
+		stroke           : var(--board-dash);
+		stroke-width     : 0.25;
+		stroke-dasharray : 1.2 1;
 	}
 
 	.shikaku-rect {
 		stroke       : var(--board-wall);
-		stroke-width : 0.8;
+		stroke-width : 1.1;
 		transition   : fill 0.2s ease;
 
 		// Rectangles donnés au départ : bord plus discret

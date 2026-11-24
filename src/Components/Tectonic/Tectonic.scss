@@ -20,7 +20,9 @@
 				align-items     : center;
 				justify-content : center;
 				background      : var(--region, var(--board-paper));
-				border          : 1px solid var(--board-line);
+				// Pointillés entre les cases : un seul trait, à droite et en bas
+				border          : 0 dashed var(--board-dash);
+				border-width    : 0 1px 1px 0;
 				color           : var(--board-ink);
 				font-family     : inherit;
 				font-size       : calc(var(--cell-size) * 0.6);

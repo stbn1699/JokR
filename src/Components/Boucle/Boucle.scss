@@ -18,7 +18,7 @@
 	}
 
 	.boucle-grid line {
-		stroke           : var(--board-line);
+		stroke           : var(--board-dash);
 		stroke-width     : 0.025;
 		stroke-dasharray : 0.12 0.1;
 	}

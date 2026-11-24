@@ -16,20 +16,21 @@
 	}
 
 	.paturages-grid line {
-		stroke       : var(--board-line);
-		stroke-width : 0.025;
+		stroke           : var(--board-dash);
+		stroke-width     : 0.025;
+		stroke-dasharray : 0.12 0.1;
 	}
 
 	.paturages-square {
 		stroke       : var(--board-wall);
-		stroke-width : 0.06;
+		stroke-width : 0.1;
 
 		&.wrong {
 			stroke           : var(--board-error);
 			stroke-dasharray : 0.16 0.1;
 		}
 
-		&.given { stroke-width : 0.11; }
+		&.given { stroke-width : 0.14; }
 		&.covered { opacity : 0.3; }
 	}
 

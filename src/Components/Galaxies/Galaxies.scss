@@ -30,8 +30,9 @@
 	}
 
 	.galaxies-gridline {
-		stroke       : var(--board-line);
-		stroke-width : 0.25;
+		stroke           : var(--board-dash);
+		stroke-width     : 0.25;
+		stroke-dasharray : 1.2 1;
 	}
 
 	.galaxies-wall {

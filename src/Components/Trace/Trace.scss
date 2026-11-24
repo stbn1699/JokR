@@ -34,7 +34,9 @@
 
 	.trace-cell {
 		box-sizing : border-box;
-		border     : 1px solid var(--board-line);
+		// Pointillés entre les cases : un seul trait, à droite et en bas
+		border       : 0 dashed var(--board-dash);
+		border-width : 0 1px 1px 0;
 		transition : background 0.12s ease;
 
 		// case déjà couverte par le chemin
