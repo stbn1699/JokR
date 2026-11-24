@@ -43,10 +43,10 @@ type Press = { pointerId: number; cell: number; x: number; y: number; timer: num
 
 const noop = () => undefined;
 
-export default function Demineur({daily = false, replayDate}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+export default function Demineur({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
     const challenge = useGridChallenge<Saved, DemineurPuzzle>({
-        code: CODE, gameName: "Démineur", daily, replayDate,
+        code: CODE, gameName: "Démineur", daily, replayDate, challengeId,
         fetchStatus: demineurService.getGame,
         emptySave: gameId => ({gameId, flags: []}),
         onLoad: (grid, saved, elapsedMs) => {

@@ -18,5 +18,9 @@ export function dailyGridLabel(code: string, size: number, emptyCells: number): 
     if (code === "PATURAGES") return `${size}×${size} · ${emptyCells === 0 ? "sans aide" : `${emptyCells} carrés donnés`}`;
     if (code === "BOUCLE") return `${size}×${size} · ${emptyCells} murs`;
     if (code === "DEMINEUR") return `${size}×${size} · ${emptyCells} mines`;
+    if (code === "DEVIMOT") return `${size} lettres · ${emptyCells} essais`;
+    if (code === "ECHELLE") return `${size} lettres · ${emptyCells} étapes`;
+    if (code === "MOTSMELES") return `${size}×${size} · ${emptyCells} mots`;
+    if (code === "MOTSACASER") return `${size}×${size} · ${emptyCells === 0 ? "aucun mot placé" : `${emptyCells} mots placés`}`;
     return `${size}×${size} · ${emptyCells} cases`;
 }

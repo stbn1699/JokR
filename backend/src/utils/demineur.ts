@@ -17,6 +17,8 @@ export type DemineurPuzzle = {
     revealed: Map<number, number>;
     // défi du jour : mines déjà sautées (la partie continue, avec du temps en plus)
     blown: Set<number>;
+    // grille connue d'avance (défi du jour, défi passé ou d'un·e ami·e) : une mine ne fait pas perdre, elle coûte du temps
+    forgiving?: boolean;
 };
 type Random = (max: number) => number;
 
@@ -26,7 +28,7 @@ export type RevealOutcome =
     | { kind: "revealed"; cells: RevealedCell[] }
     | { kind: "exploded"; cell: number; mines: number[] };
 
-// Défi du jour : une mine ne termine pas la partie, elle ajoute ce temps au chrono
+// Grille connue d'avance (défis) : une mine ne termine pas la partie, elle ajoute ce temps au chrono
 export const DEMINEUR_DAILY_PENALTY_MS = 30_000;
 
 export const DEMINEUR_DEFAULT_SIZE = 10;

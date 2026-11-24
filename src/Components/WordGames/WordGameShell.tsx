@@ -7,6 +7,8 @@ import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
 import type {Clock, useGameFlow} from "../PuzzleUI/useGameFlow.ts";
+import type {useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
+import Loader from "../Loader/Loader.tsx";
 
 type History = { canUndo: boolean; canRedo: boolean; canReset?: boolean; onUndo: () => void; onRedo: () => void; onReset?: () => void };
 
@@ -22,6 +24,8 @@ type WordGameShellProps = {
     info: ReactNode;
     history?: History;
     settings: ReactNode;
+    // défis (du jour, passé ou d'un·e ami·e) : voir useGridChallenge
+    challenge: ReturnType<typeof useGridChallenge>;
     children: ReactNode;
 };
 
@@ -36,10 +40,10 @@ const wordCredit = (
 );
 
 // Mise en page commune aux jeux de mots : progression à gauche, jeu au centre, actions et règles à droite
-export default function WordGameShell({className, gameCode, gameName, flow, clock = flow.clock, rules, info, history, settings, children}: WordGameShellProps) {
+export default function WordGameShell({className, gameCode, gameName, flow, clock = flow.clock, rules, info, history, settings, challenge, children}: WordGameShellProps) {
     return (
         <div className={`puzzle-layout word-game ${className}`}>
-            <GameToolbar gameName={gameName} clock={clock}
+            <GameToolbar gameName={gameName} label={challenge.toolbarLabel} clock={clock}
                          canUndo={history?.canUndo ?? false} canRedo={history?.canRedo ?? false}
                          onUndo={history?.onUndo ?? noop} onRedo={history?.onRedo ?? noop} rules={<>{rules}{wordCredit}</>}/>
 
@@ -49,7 +53,9 @@ export default function WordGameShell({className, gameCode, gameName, flow, cloc
             </div>
 
             <div className="game">
+                {challenge.banner}
                 <h1 className="title">{gameName}</h1>
+                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
                 {children}
             </div>
 
@@ -57,7 +63,7 @@ export default function WordGameShell({className, gameCode, gameName, flow, cloc
                 <h2 className="title">Actions</h2>
                 <GameTimer clock={clock}/>
                 {history && <HistoryButtons {...history}/>}
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>
                 <div className="rules">
                     <h3>Règles</h3>
                     {rules}
@@ -67,12 +73,14 @@ export default function WordGameShell({className, gameCode, gameName, flow, cloc
 
             {settings}
 
+            {challenge.donePopup}
+
             {flow.victory && (
                 <SuccessPopup gameName={gameName} gameCode={gameCode} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}
                               personalBest={flow.victory.personalBest} daily={flow.victory.daily}
-                              onNewGame={flow.newGame} back="home"/>
+                              streak={flow.victory.streak} {...challenge.victory(flow.newGame)}/>
             )}
         </div>
     );

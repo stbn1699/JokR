@@ -1,5 +1,8 @@
 import type {PuzzleStore} from "./PuzzleStore.js";
-import {boucleStore, bouchonStore, coloriaStore, demineurStore, liensStore, paturagesStore, tuyauxStore} from "./stores.js";
+import {
+    boucleStore, bouchonStore, coloriaStore, demineurStore, devimotStore, echelleStore, liensStore, motsACaserStore, motsMelesStore,
+    paturagesStore, tuyauxStore,
+} from "./stores.js";
 import {boucleCredits, boucleXp, generateBoucle} from "../utils/boucle.js";
 import {BOUCHON_SIZES, bouchonCredits, bouchonXp, generateBouchon} from "../utils/bouchon.js";
 import {coloriaCredits, coloriaXp, generateColoria} from "../utils/coloria.js";
@@ -7,11 +10,16 @@ import {createDemineur, demineurCredits, type DemineurPuzzle, demineurXp, placeM
 import {generateLiens, liensCredits, liensXp} from "../utils/liens.js";
 import {generatePaturages, paturagesCredits, paturagesXp} from "../utils/paturages.js";
 import {generateTuyaux, tuyauxCredits, tuyauxXp} from "../utils/tuyaux.js";
+import {devimotCredits, type DevimotPuzzle, devimotXp, generateDevimot} from "../utils/devimot.js";
+import {echelleCredits, echelleXp, generateEchelle} from "../utils/echelle.js";
+import {generateMotsMeles, motsMelesCredits, motsMelesXp} from "../utils/motsMeles.js";
+import {generateMotsACaser, motsACaserCredits, motsACaserXp} from "../utils/motsACaser.js";
+import type {WordLength} from "../utils/words.js";
 
 type Random = (max: number) => number;
 
 /*
- * Jeux de grille ajoutés depuis 3.3 (partie libre réglée par une taille et un curseur) :
+ * Jeux ajoutés depuis 3.3, de grille ou de mots (partie libre réglée par une taille et un curseur) :
  * ce qu'il faut pour les lancer à partir d'une grille déjà connue (défi du jour, défi rejoué, défi entre amis)
  * et pour calculer leurs gains.
  * - daily : taille et curseur du défi du jour
@@ -47,6 +55,7 @@ function loadDemineur(stored: unknown): DemineurPuzzle {
     const {size, mineCount, mines, start} = stored as StoredDemineur;
     const puzzle = createDemineur(size, mineCount);
     puzzle.mines = new Set(mines);
+    puzzle.forgiving = true;
     reveal(puzzle, [start], () => 0);
     return puzzle;
 }
@@ -125,6 +134,48 @@ export const GRID_GAMES = {
         xp: (base, p) => demineurXp(base, p.size, p.mineCount),
         credits: p => demineurCredits(p.size, p.mineCount),
     } satisfies GridGame<DemineurPuzzle>,
+    DEVIMOT: {
+        store: devimotStore,
+        // taille = longueur du mot, curseur = essais
+        daily: {size: 5, amount: 6},
+        generate: (size, attempts, random) => generateDevimot(size as WordLength, attempts, random),
+        // partie neuve (aucun essai), et le mot ne se perd pas : les essais en trop coûtent du temps
+        load: (stored): DevimotPuzzle => ({...(stored as DevimotPuzzle), guesses: [], forgiving: true}),
+        save: (p): unknown => ({...p, guesses: [], forgiving: undefined}),
+        view: ({length, maxAttempts, guesses}) => ({length, maxAttempts, guesses}),
+        gridSize: p => p.length,
+        xp: (base, p) => devimotXp(base, p.length, p.maxAttempts),
+        credits: p => devimotCredits(p.length, p.maxAttempts),
+    } satisfies GridGame<DevimotPuzzle>,
+    ECHELLE: {
+        store: echelleStore,
+        // taille = longueur des mots, curseur = étapes
+        daily: {size: 5, amount: 4},
+        generate: (size, steps, random) => generateEchelle(size as WordLength, steps, random),
+        load: same, save: keep, view: keep,
+        gridSize: p => p.length,
+        xp: (base, p) => echelleXp(base, p.length, p.par),
+        credits: p => echelleCredits(p.length, p.par),
+    } satisfies GridGame<ReturnType<typeof generateEchelle>>,
+    MOTSMELES: {
+        store: motsMelesStore,
+        daily: {size: 10, amount: 8},
+        generate: generateMotsMeles,
+        load: same, save: keep, view: keep,
+        gridSize: p => p.size,
+        xp: (base, p) => motsMelesXp(base, p.size, p.words.length),
+        credits: p => motsMelesCredits(p.size, p.words.length),
+    } satisfies GridGame<ReturnType<typeof generateMotsMeles>>,
+    MOTSACASER: {
+        store: motsACaserStore,
+        // curseur = mots déjà placés
+        daily: {size: 15, amount: 0},
+        generate: generateMotsACaser,
+        load: same, save: keep, view: withoutSolution,
+        gridSize: p => p.size,
+        xp: (base, p, placed) => motsACaserXp(base, p.size, placed),
+        credits: (p, placed) => motsACaserCredits(p.size, placed),
+    } satisfies GridGame<ReturnType<typeof generateMotsACaser>>,
 } as const;
 
 export type GridGameCode = keyof typeof GRID_GAMES;

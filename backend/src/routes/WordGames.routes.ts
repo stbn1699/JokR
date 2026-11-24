@@ -5,10 +5,11 @@ import {createWordGamesController} from "../controllers/WordGames.controller.js"
 import {ProgressionService} from "../services/Progression.service.js";
 import {GamesService} from "../services/Games.service.js";
 import {GamesRepository} from "../repository/Games.repository.js";
+import {createDailyService} from "../services/daily.js";
 import {optionalAuth} from "../middleware/auth.js";
 
 const db = createDb(pool);
-const controller = createWordGamesController(new ProgressionService(db), new GamesService(new GamesRepository(db)));
+const controller = createWordGamesController(new ProgressionService(db), new GamesService(new GamesRepository(db)), createDailyService(db));
 
 // /devimot : settings, generate { size, amount }, games/:gameId, guess { gameId, word }
 export const devimotRoutes = Router();

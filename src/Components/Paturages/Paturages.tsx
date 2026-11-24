@@ -48,10 +48,10 @@ function Cow({row, col}: { row: number; col: number }) {
     );
 }
 
-export default function Paturages({daily = false, replayDate}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+export default function Paturages({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
     const challenge = useGridChallenge<Saved, PaturagesPuzzle>({
-        code: CODE, gameName: "Pâturages", daily, replayDate,
+        code: CODE, gameName: "Pâturages", daily, replayDate, challengeId,
         fetchStatus: paturagesService.getGame,
         emptySave: gameId => ({gameId, squares: []}),
         onLoad: (grid, saved, elapsedMs) => {

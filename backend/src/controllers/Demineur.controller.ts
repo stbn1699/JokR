@@ -76,8 +76,8 @@ export function createDemineurController(progression: ProgressionService, games:
                 res.status(400).json({status: "error", message: "Case inconnue"});
                 return;
             }
-            if (outcome.kind === "exploded" && game.daily) {
-                // Défi du jour : la grille est la même pour tous, une partie perdue ne doit pas pouvoir se rejouer
+            if (outcome.kind === "exploded" && game.puzzle.forgiving) {
+                // Défis : la grille est connue d'avance, une partie perdue ne doit pas pouvoir se rejouer
                 // en connaissant les mines. La mine reste visible et le chrono prend du temps en plus.
                 game.puzzle.blown.add(outcome.cell);
                 game.createdAt -= DEMINEUR_DAILY_PENALTY_MS;

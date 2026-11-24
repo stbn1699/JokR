@@ -1,3 +1,4 @@
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import {type CSSProperties, useEffect, useMemo, useRef, useState} from "react";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useAutoValidate} from "../PuzzleUI/useAutoValidate.ts";
@@ -47,9 +48,18 @@ const startLetters = (puzzle: MotsACaserPuzzle) => Array.from(puzzle.cells, cell
  * Un clic choisit une case, un second clic (ou Entrée) change le sens d'écriture.
  * Le serveur vérifie la grille dès qu'elle est remplie.
  */
-export default function MotsACaser() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, MotsACaserPuzzle>(CODE, motsACaserService.getGame);
+export default function MotsACaser({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+    const challenge = useGridChallenge<Saved, MotsACaserPuzzle>({
+        code: CODE, gameName: "Mots à caser", daily, replayDate, challengeId,
+        fetchStatus: motsACaserService.getGame,
+        emptySave: gameId => ({gameId, letters: ""}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, MotsACaserPuzzle>(challenge.saveKey, motsACaserService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<MotsACaserPuzzle | null>(null);
     const [letters, setLetters] = useState<string[]>([]);
     const [past, setPast] = useState<string[][]>([]);
@@ -93,9 +103,9 @@ export default function MotsACaser() {
 
     useEffect(() => {
         if (gameId.current && letters.length > 0) {
-            saveGame<Saved>(CODE, {gameId: gameId.current, letters: letters.map(l => l || ".").join("")});
+            saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, letters: letters.map(l => l || ".").join("")});
         }
-    }, [letters]);
+    }, [letters, challenge.saveKey]);
 
     const start = (next: MotsACaserPuzzle, id: string, initial: string[]) => {
         gameId.current = id;
@@ -122,13 +132,17 @@ export default function MotsACaser() {
         });
     };
 
-    const handleResume = () => {
-        if (!resumable) return;
-        const {grid, saved} = resumable;
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: MotsACaserPuzzle, saved: Saved) => {
         const restored = saved.letters?.length === grid.cells.length
             ? Array.from(saved.letters, letter => (letter === "." ? "" : letter))
             : startLetters(grid);
         start(grid, saved.gameId, restored);
+    };
+
+    const handleResume = () => {
+        if (!resumable) return;
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -272,7 +286,7 @@ export default function MotsACaser() {
             try {
                 const result = await motsACaserService.validate(gameId.current, letters.join(""));
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 return {ok: true, result};
             } catch (err) {
                 return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
@@ -293,6 +307,7 @@ export default function MotsACaser() {
 
     return (
         <WordGameShell
+            challenge={challenge}
             className="mots-a-caser" gameCode={CODE} gameName="Mots à caser" flow={flow} rules={rules}
             info={puzzle ? (
                 <>
@@ -319,7 +334,7 @@ export default function MotsACaser() {
                 canReset: playing && hasInput, onUndo: undo, onRedo: redo, onReset: reset,
             }}
             settings={
-                <WordSettingsPopup open={flow.showSettings} load={motsACaserService.getSettings} onGenerate={handleGenerate}
+                <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={motsACaserService.getSettings} onGenerate={handleGenerate}
                                    resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                    sizeLegend="Taille de la grille" sizeLabel={s => `${s}×${s}`}
                                    amountLabel="Mots déjà placés" easierWhenHigher/>

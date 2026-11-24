@@ -17,21 +17,19 @@ export type GridWinDeps = { progression: ProgressionService; games: GamesService
 export async function finishGridWin(
     res: Response<unknown, AuthLocals>, code: GridGameCode, gameId: string, game: StoredPuzzle<unknown>, deps: GridWinDeps,
 ) {
+    res.status(200).json({status: "ok", data: await gridWinResult(code, gameId, game, res.locals.userId, deps)});
+}
+
+// Même chose, sans répondre : le résultat de la victoire (gains, défi du jour)
+export async function gridWinResult(code: GridGameCode, gameId: string, game: StoredPuzzle<unknown>, userId: string | undefined, deps: GridWinDeps) {
     const def = gridGame(code);
     def.store.delete(gameId);
     const durationMs = Date.now() - game.createdAt;
-    const userId = res.locals.userId;
     tracker.finished(gameId, durationMs, userId);
-    if (!userId) {
-        res.status(200).json({status: "ok", data: {xp: undefined, durationMs}});
-        return;
-    }
+    if (!userId) return {xp: undefined, durationMs};
 
     const daily = game.daily ? await deps.daily.recordResult(code, game.daily, userId, durationMs) : undefined;
-    if (daily && !daily.counted) {
-        res.status(200).json({status: "ok", data: {xp: undefined, durationMs, daily}});
-        return;
-    }
+    if (daily && !daily.counted) return {xp: undefined, durationMs, daily};
 
     const multiplier = daily?.counted ? DAILY_REWARD_MULTIPLIER : 1;
     const baseXp = await deps.games.getBaseXp(code) ?? 0;
@@ -41,5 +39,5 @@ export async function finishGridWin(
     const {personalBest, xp: xpWon, credits: creditsWon, streak} = await deps.progression.recordWin(userId, code, xp, {
         gridSize, emptyCells: game.cluesCount, durationMs,
     }, credits);
-    res.status(200).json({status: "ok", data: {xp: xpWon, credits: creditsWon, rewardMultiplier: multiplier, durationMs, personalBest, streak, daily}});
+    return {xp: xpWon, credits: creditsWon, rewardMultiplier: multiplier, durationMs, personalBest, streak, daily};
 }

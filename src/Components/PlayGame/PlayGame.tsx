@@ -78,29 +78,29 @@ export default function PlayGame({daily = false, challengeGame, challengeId}: { 
                 return <Queens daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "TRACE":
                 return <Trace daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
-            // Coloria, Tuyaux, Liens, Bouchon, Pâturages, Boucle, Démineur : défi du jour et défis passés, pas de défi entre amis ni de niveaux
+            // Jeux ajoutés depuis 3.3 (grille et mots) : défis du jour, passés et entre ami·e·s, pas encore de niveaux
             case "DEMINEUR":
-                return <Demineur daily={daily && !date} replayDate={date}/>;
+                return <Demineur daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "BOUCLE":
-                return <Boucle daily={daily && !date} replayDate={date}/>;
+                return <Boucle daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "PATURAGES":
-                return <Paturages daily={daily && !date} replayDate={date}/>;
+                return <Paturages daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "BOUCHON":
-                return <Bouchon daily={daily && !date} replayDate={date}/>;
+                return <Bouchon daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "LIENS":
-                return <Liens daily={daily && !date} replayDate={date}/>;
+                return <Liens daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "COLORIA":
-                return <Coloria daily={daily && !date} replayDate={date}/>;
+                return <Coloria daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "TUYAUX":
-                return <Tuyaux daily={daily && !date} replayDate={date}/>;
+                return <Tuyaux daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "DEVIMOT":
-                return <Devimot/>;
+                return <Devimot daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "ECHELLE":
-                return <Echelle/>;
+                return <Echelle daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "MOTSMELES":
-                return <MotsMeles/>;
+                return <MotsMeles daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "MOTSACASER":
-                return <MotsACaser/>;
+                return <MotsACaser daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             default:
                 // Si le code ne correspond à aucun jeu, on n'affiche rien
                 return null;

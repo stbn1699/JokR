@@ -18,7 +18,8 @@ export interface WordGameSettings {
 export type LetterMark = "correct" | "present" | "absent";
 export type DevimotGuess = { word: string; marks: LetterMark[] };
 export type DevimotPuzzle = { length: number; maxAttempts: number; guesses: DevimotGuess[] };
-export type DevimotAnswer = { marks: LetterMark[]; state: "playing" | "won" | "lost"; answer?: string; result?: WinResult };
+// penaltyMs : défis, essai au-delà du nombre prévu (la partie continue, avec du temps en plus)
+export type DevimotAnswer = { marks: LetterMark[]; state: "playing" | "won" | "lost"; answer?: string; result?: WinResult; penaltyMs?: number };
 
 export type EchellePuzzle = { length: number; start: string; target: string; par: number };
 

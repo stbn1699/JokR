@@ -60,10 +60,10 @@ function VehicleShape({vehicle, taxi}: { vehicle: BouchonVehicle; taxi: boolean 
     );
 }
 
-export default function Bouchon({daily = false, replayDate}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+export default function Bouchon({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
     const challenge = useGridChallenge<Saved, BouchonPuzzle>({
-        code: CODE, gameName: "Bouchon", daily, replayDate,
+        code: CODE, gameName: "Bouchon", daily, replayDate, challengeId,
         fetchStatus: bouchonService.getGame,
         emptySave: gameId => ({gameId, moves: []}),
         onLoad: (grid, saved, elapsedMs) => {

@@ -31,10 +31,10 @@ const PALETTE = ["var(--board-region-1)", "var(--board-region-0)", "var(--board-
 
 type Saved = { gameId: string; colors: number[] };
 
-export default function Coloria({daily = false, replayDate}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+export default function Coloria({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
     const challenge = useGridChallenge<Saved, ColoriaPuzzle>({
-        code: CODE, gameName: "Coloria", daily, replayDate,
+        code: CODE, gameName: "Coloria", daily, replayDate, challengeId,
         fetchStatus: coloriaService.getGame,
         emptySave: gameId => ({gameId, colors: []}),
         onLoad: (grid, saved, elapsedMs) => {

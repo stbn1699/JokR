@@ -34,10 +34,10 @@ const sameLinks = (a: readonly number[], b: readonly number[]) => {
     return b.every(key => set.has(key));
 };
 
-export default function Boucle({daily = false, replayDate}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+export default function Boucle({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
     const challenge = useGridChallenge<Saved, BouclePuzzle>({
-        code: CODE, gameName: "Boucle", daily, replayDate,
+        code: CODE, gameName: "Boucle", daily, replayDate, challengeId,
         fetchStatus: boucleService.getGame,
         emptySave: gameId => ({gameId, links: []}),
         onLoad: (grid, saved, elapsedMs) => {

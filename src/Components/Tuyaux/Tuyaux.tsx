@@ -70,10 +70,10 @@ function Water({mask, inlet, fill}: { mask: number; inlet: number; fill: WaterFi
     );
 }
 
-export default function Tuyaux({daily = false, replayDate}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+export default function Tuyaux({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
     const challenge = useGridChallenge<Saved, TuyauxPuzzle>({
-        code: CODE, gameName: "Tuyaux", daily, replayDate,
+        code: CODE, gameName: "Tuyaux", daily, replayDate, challengeId,
         fetchStatus: tuyauxService.getGame,
         emptySave: gameId => ({gameId, turns: []}),
         onLoad: (grid, saved, elapsedMs) => {

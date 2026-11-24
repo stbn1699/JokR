@@ -31,10 +31,10 @@ const COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#eab308", "#f97316", "#a855f7"
 
 type Saved = { gameId: string; paths: number[][] };
 
-export default function Liens({daily = false, replayDate}: GridChallengeProps = {}) {
-    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+export default function Liens({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
     const challenge = useGridChallenge<Saved, LiensPuzzle>({
-        code: CODE, gameName: "Liens", daily, replayDate,
+        code: CODE, gameName: "Liens", daily, replayDate, challengeId,
         fetchStatus: liensService.getGame,
         emptySave: gameId => ({gameId, paths: []}),
         onLoad: (grid, saved, elapsedMs) => {

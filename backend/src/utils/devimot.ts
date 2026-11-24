@@ -9,7 +9,14 @@ import {solutionWords, type Random, type WordLength, type WordSizeLimits} from "
 
 export type LetterMark = "correct" | "present" | "absent";
 export type DevimotGuess = { word: string; marks: LetterMark[] };
-export type DevimotPuzzle = { length: WordLength; maxAttempts: number; secret: string; answer: string; guesses: DevimotGuess[] };
+export type DevimotPuzzle = {
+    length: WordLength; maxAttempts: number; secret: string; answer: string; guesses: DevimotGuess[];
+    // mot connu d'avance (défis) : après le dernier essai, chaque essai en plus coûte du temps au lieu de faire perdre
+    forgiving?: boolean;
+};
+
+// Défis : temps ajouté par un essai au-delà du nombre prévu
+export const DEVIMOT_EXTRA_GUESS_PENALTY_MS = 30_000;
 
 export const DEVIMOT_DEFAULT_SIZE = 5;
 export const DEVIMOT_SIZES: readonly WordSizeLimits[] = [

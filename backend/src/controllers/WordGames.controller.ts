@@ -6,9 +6,11 @@ import type {GamesService} from "../services/Games.service.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import {devimotStore, echelleStore, motsACaserStore, motsMelesStore} from "../services/stores.js";
 import {tracker} from "../services/tracker.js";
+import type {DailyService} from "../services/Daily.service.js";
+import {finishGridWin, gridWinResult} from "../services/gridWin.js";
 import {routeParam} from "../utils/validation.js";
 import {isAcceptedWord, isWordLength, normalizeWordInput, wordSettings, type WordSizeLimits} from "../utils/words.js";
-import {DEVIMOT_DEFAULT_SIZE, DEVIMOT_SIZES, devimotCredits, devimotXp, generateDevimot, scoreGuess, type DevimotPuzzle} from "../utils/devimot.js";
+import {DEVIMOT_DEFAULT_SIZE, DEVIMOT_EXTRA_GUESS_PENALTY_MS, DEVIMOT_SIZES, devimotCredits, devimotXp, generateDevimot, scoreGuess, type DevimotPuzzle} from "../utils/devimot.js";
 import {ECHELLE_DEFAULT_SIZE, ECHELLE_SIZES, echelleCredits, echelleXp, generateEchelle, isEchelleSolution, isOneLetterApart} from "../utils/echelle.js";
 import {generateMotsMeles, isMotsMelesSolution, MOTS_MELES_DEFAULT_SIZE, MOTS_MELES_SIZES, motsMelesCredits, motsMelesXp} from "../utils/motsMeles.js";
 import {generateMotsACaser, isMotsACaserSolution, MOTS_A_CASER_DEFAULT_SIZE, MOTS_A_CASER_SIZES, motsACaserCredits, motsACaserXp, type MotsACaserPuzzle} from "../utils/motsACaser.js";
@@ -38,18 +40,9 @@ const publicDevimot = ({length, maxAttempts, guesses}: DevimotPuzzle) => ({lengt
 // Mots à caser : la grille et la liste, sans la solution
 const publicMotsACaser = ({size, cells, words}: MotsACaserPuzzle) => ({size, cells, words});
 
-export function createWordGamesController(progression: ProgressionService, games: GamesService) {
-    // Victoire : XP et crédits si le joueur est connecté
-    const reward = async (code: string, userId: string | undefined, durationMs: number, size: number, amount: number,
-                          xpFor: (baseXp: number, size: number, amount: number) => number,
-                          creditsOf: (size: number, amount: number) => number) => {
-        if (!userId) return {xp: undefined, durationMs};
-        const baseXp = await games.getBaseXp(code) ?? 0;
-        const xp = xpFor(baseXp, size, amount);
-        const credits = creditsOf(size, amount);
-        const {personalBest} = await progression.recordWin(userId, code, xp, {gridSize: size, emptyCells: amount, durationMs}, credits);
-        return {xp, credits, rewardMultiplier: 1, durationMs, personalBest};
-    };
+export function createWordGamesController(progression: ProgressionService, games: GamesService, daily: DailyService) {
+    // Victoire : XP et crédits si le joueur est connecté, défi du jour compris (voir gridWin.ts)
+    const deps = {progression, games, daily};
 
     const settingsOf = (code: string, defaultSize: number, sizes: readonly WordSizeLimits[],
                         xpFor: (baseXp: number, size: number, amount: number) => number,
@@ -95,11 +88,14 @@ export function createWordGamesController(progression: ProgressionService, games
                 puzzle.guesses.push({word: guess, marks});
 
                 if (guess === puzzle.secret) {
-                    devimotStore.delete(gameId);
-                    const durationMs = Date.now() - game.createdAt;
-                    tracker.finished(gameId, durationMs, res.locals.userId);
-                    const result = await reward("DEVIMOT", res.locals.userId, durationMs, puzzle.length, puzzle.maxAttempts, devimotXp, devimotCredits);
+                    const result = await gridWinResult("DEVIMOT", gameId, game, res.locals.userId, deps);
                     return void res.status(200).json({status: "ok", data: {marks, state: "won", answer: puzzle.answer, result}});
+                }
+                if (puzzle.guesses.length >= puzzle.maxAttempts && puzzle.forgiving) {
+                    // Défis : le mot est connu d'avance, une partie perdue se rejouerait en le connaissant.
+                    // On continue, mais chaque essai en trop ajoute du temps.
+                    game.createdAt -= DEVIMOT_EXTRA_GUESS_PENALTY_MS;
+                    return void res.status(200).json({status: "ok", data: {marks, state: "playing", penaltyMs: DEVIMOT_EXTRA_GUESS_PENALTY_MS}});
                 }
                 if (puzzle.guesses.length >= puzzle.maxAttempts) {
                     devimotStore.delete(gameId);
@@ -148,11 +144,7 @@ export function createWordGamesController(progression: ProgressionService, games
                     tracker.failed(gameId);
                     return badRequest(res, "Ce chemin ne relie pas les deux mots");
                 }
-                echelleStore.delete(gameId);
-                const durationMs = Date.now() - game.createdAt;
-                tracker.finished(gameId, durationMs, res.locals.userId);
-                const result = await reward("ECHELLE", res.locals.userId, durationMs, game.puzzle.length, game.puzzle.par, echelleXp, echelleCredits);
-                res.status(200).json({status: "ok", data: result});
+                await finishGridWin(res, "ECHELLE", gameId, game, deps);
             }),
         },
 
@@ -184,11 +176,7 @@ export function createWordGamesController(progression: ProgressionService, games
                     tracker.failed(gameId);
                     return badRequest(res, "Tous les mots ne sont pas trouvés");
                 }
-                motsMelesStore.delete(gameId);
-                const durationMs = Date.now() - game.createdAt;
-                tracker.finished(gameId, durationMs, res.locals.userId);
-                const result = await reward("MOTSMELES", res.locals.userId, durationMs, game.puzzle.size, game.puzzle.words.length, motsMelesXp, motsMelesCredits);
-                res.status(200).json({status: "ok", data: result});
+                await finishGridWin(res, "MOTSMELES", gameId, game, deps);
             }),
         },
 
@@ -220,11 +208,7 @@ export function createWordGamesController(progression: ProgressionService, games
                     tracker.failed(gameId);
                     return badRequest(res, "Les mots de la grille ne correspondent pas à la liste");
                 }
-                motsACaserStore.delete(gameId);
-                const durationMs = Date.now() - game.createdAt;
-                tracker.finished(gameId, durationMs, res.locals.userId);
-                const result = await reward("MOTSACASER", res.locals.userId, durationMs, game.puzzle.size, game.cluesCount, motsACaserXp, motsACaserCredits);
-                res.status(200).json({status: "ok", data: result});
+                await finishGridWin(res, "MOTSACASER", gameId, game, deps);
             }),
         },
     };

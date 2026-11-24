@@ -1,3 +1,4 @@
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import {useMemo, useRef, useState} from "react";
 import {useGameFlow, type Clock} from "../PuzzleUI/useGameFlow.ts";
 import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
@@ -19,9 +20,18 @@ type Saved = { gameId: string };
  * Devimot : deviner un mot en un nombre d'essais limité.
  * Le serveur garde le mot et renvoie le résultat de chaque essai ; il ne le révèle qu'à la fin de la partie.
  */
-export default function Devimot() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, DevimotPuzzle>(CODE, devimotService.getGame);
+export default function Devimot({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+    const challenge = useGridChallenge<Saved, DevimotPuzzle>({
+        code: CODE, gameName: "Devimot", daily, replayDate, challengeId,
+        fetchStatus: devimotService.getGame,
+        emptySave: gameId => ({gameId}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, DevimotPuzzle>(challenge.saveKey, devimotService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<DevimotPuzzle | null>(null);
     const [current, setCurrent] = useState("");
     // Annuler / Rétablir : uniquement sur le mot en cours, un essai validé est définitif
@@ -66,7 +76,7 @@ export default function Devimot() {
             try {
                 const {gameId: id, puzzle: next} = await devimotService.generate(size, amount);
                 start(next, id);
-                saveGame<Saved>(CODE, {gameId: id});
+                saveGame<Saved>(challenge.saveKey, {gameId: id});
                 return null;
             } catch (err) {
                 return (err as Error).message || "Impossible de lancer la partie.";
@@ -74,9 +84,15 @@ export default function Devimot() {
         });
     };
 
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: DevimotPuzzle, saved: Saved) => {
+        start(grid, saved.gameId);
+        saveGame<Saved>(challenge.saveKey, {gameId: saved.gameId});
+    };
+
     const handleResume = () => {
         if (!resumable) return;
-        start(resumable.grid, resumable.saved.gameId);
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -101,11 +117,14 @@ export default function Devimot() {
             if (reply.state === "won" && reply.result) {
                 const result = reply.result;
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 await flow.submit(async () => ({ok: true, result}));
+            } else if (reply.penaltyMs) {
+                flow.penalty(reply.penaltyMs);
+                flow.setNotice(`Essai en plus : +${Math.round(reply.penaltyMs / 1000)} s au chrono.`);
             } else if (reply.state === "lost") {
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 setAnswer(reply.answer ?? "");
                 const startedAt = flow.clock.startedAt;
                 setLostClock({startedAt, finalMs: startedAt === null ? 0 : Date.now() - startedAt});
@@ -152,6 +171,8 @@ export default function Devimot() {
     useUndoShortcuts(undo, redo, playing);
 
     const used = puzzle?.guesses.length ?? 0;
+    // défis : des essais en plus (avec du temps de pénalité) une fois les essais prévus épuisés
+    const rows = puzzle ? Math.max(puzzle.maxAttempts, used + (playing ? 1 : 0)) : 0;
     const rules = (
         <ul>
             <li>Trouve le mot caché en un nombre d'essais limité</li>
@@ -159,11 +180,13 @@ export default function Devimot() {
             <li>Vert : la lettre est bien placée</li>
             <li>Rond jaune : la lettre est dans le mot, ailleurs</li>
             <li>Les accents ne comptent pas</li>
+            <li>Défis : une fois les essais épuisés, chaque essai en plus ajoute 30 s au chrono</li>
         </ul>
     );
 
     return (
         <WordGameShell
+            challenge={challenge}
             className="devimot" gameCode={CODE} gameName="Devimot" flow={flow} clock={lostClock ?? flow.clock} rules={rules}
             info={puzzle ? (
                 <>
@@ -174,7 +197,7 @@ export default function Devimot() {
             ) : <p>–</p>}
             history={{canUndo: playing && !busy && past.length > 0, canRedo: playing && !busy && future.length > 0, onUndo: undo, onRedo: redo}}
             settings={
-                <WordSettingsPopup open={flow.showSettings} load={devimotService.getSettings} onGenerate={handleGenerate}
+                <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={devimotService.getSettings} onGenerate={handleGenerate}
                                    resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                    sizeLegend="Longueur du mot" sizeLabel={s => `${s} lettres`}
                                    amountLabel="Essais" easierWhenHigher/>
@@ -182,8 +205,8 @@ export default function Devimot() {
         >
             {puzzle && (
                 <>
-                    <div className="word-rows" style={{"--letters": puzzle.length, "--rows": puzzle.maxAttempts} as React.CSSProperties}>
-                        {Array.from({length: puzzle.maxAttempts}, (_, row) => {
+                    <div className="word-rows" style={{"--letters": puzzle.length, "--rows": rows} as React.CSSProperties}>
+                        {Array.from({length: rows}, (_, row) => {
                             const guess = puzzle.guesses[row];
                             const isCurrent = row === used && playing;
                             const text = guess?.word ?? (isCurrent ? current : "");

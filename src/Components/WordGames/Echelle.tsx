@@ -1,3 +1,4 @@
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import {type CSSProperties, useEffect, useRef, useState} from "react";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
@@ -19,9 +20,18 @@ const lettersApart = (a: string, b: string) => Array.from(a).filter((letter, i) 
  * Échelle : relier deux mots en changeant une lettre à chaque étape.
  * Chaque mot est vérifié par le serveur, qui valide aussi le chemin complet à l'arrivée.
  */
-export default function Echelle() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, EchellePuzzle>(CODE, echelleService.getGame);
+export default function Echelle({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+    const challenge = useGridChallenge<Saved, EchellePuzzle>({
+        code: CODE, gameName: "Échelle", daily, replayDate, challengeId,
+        fetchStatus: echelleService.getGame,
+        emptySave: gameId => ({gameId, path: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, EchellePuzzle>(challenge.saveKey, echelleService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<EchellePuzzle | null>(null);
     const [path, setPath] = useState<string[]>([]);
     const [undone, setUndone] = useState<string[]>([]);
@@ -35,8 +45,8 @@ export default function Echelle() {
     const last = path[path.length - 1] ?? "";
 
     useEffect(() => {
-        if (gameId.current && path.length > 0) saveGame<Saved>(CODE, {gameId: gameId.current, path});
-    }, [path]);
+        if (gameId.current && path.length > 0) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, path});
+    }, [path, challenge.saveKey]);
 
     // Petit écran : la ligne à remplir et l'arrivée restent visibles quand l'échelle s'allonge
     useEffect(() => {
@@ -64,10 +74,14 @@ export default function Echelle() {
         });
     };
 
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: EchellePuzzle, saved: Saved) => {
+        start(grid, saved.gameId, Array.isArray(saved.path) && saved.path[0] === grid.start ? saved.path : [grid.start]);
+    };
+
     const handleResume = () => {
         if (!resumable) return;
-        const {grid, saved} = resumable;
-        start(grid, saved.gameId, Array.isArray(saved.path) && saved.path[0] === grid.start ? saved.path : [grid.start]);
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -98,7 +112,7 @@ export default function Echelle() {
                     try {
                         const result = await echelleService.validate(id, nextPath);
                         gameId.current = null;
-                        clearSavedGame(CODE);
+                        clearSavedGame(challenge.saveKey);
                         return {ok: true, result};
                     } catch (err) {
                         return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
@@ -154,6 +168,7 @@ export default function Echelle() {
 
     return (
         <WordGameShell
+            challenge={challenge}
             className="echelle" gameCode={CODE} gameName="Échelle" flow={flow} rules={rules}
             info={puzzle ? (
                 <>
@@ -167,7 +182,7 @@ export default function Echelle() {
                 canReset: playing && path.length > 1, onUndo: undo, onRedo: redo, onReset: reset,
             }}
             settings={
-                <WordSettingsPopup open={flow.showSettings} load={echelleService.getSettings} onGenerate={handleGenerate}
+                <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={echelleService.getSettings} onGenerate={handleGenerate}
                                    resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                    sizeLegend="Longueur des mots" sizeLabel={s => `${s} lettres`}
                                    amountLabel="Étapes du chemin le plus court"/>

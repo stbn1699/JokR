@@ -1,3 +1,4 @@
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import {type CSSProperties, type PointerEvent, useEffect, useRef, useState} from "react";
 import {useGameFlow} from "../PuzzleUI/useGameFlow.ts";
 import {useUndoShortcuts} from "../PuzzleUI/useMoveHistory.ts";
@@ -53,9 +54,18 @@ function snapToLine(size: number, from: number, hover: number): number {
  * Mots mêlés : glisser d'une lettre à l'autre pour entourer chaque mot de la liste.
  * Le serveur relit les lettres sélectionnées à la fin de la partie.
  */
-export default function MotsMeles() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, MotsMelesPuzzle>(CODE, motsMelesService.getGame);
+export default function MotsMeles({daily = false, replayDate, challengeId}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined);
+    const challenge = useGridChallenge<Saved, MotsMelesPuzzle>({
+        code: CODE, gameName: "Mots mêlés", daily, replayDate, challengeId,
+        fetchStatus: motsMelesService.getGame,
+        emptySave: gameId => ({gameId, found: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, MotsMelesPuzzle>(challenge.saveKey, motsMelesService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<MotsMelesPuzzle | null>(null);
     const [found, setFound] = useState<FoundWord[]>([]);
     const [undone, setUndone] = useState<FoundWord[]>([]);
@@ -66,8 +76,8 @@ export default function MotsMeles() {
     const playing = puzzle !== null && !flow.showSettings && !flow.victory;
 
     useEffect(() => {
-        if (gameId.current) saveGame<Saved>(CODE, {gameId: gameId.current, found});
-    }, [found]);
+        if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, found});
+    }, [found, challenge.saveKey]);
 
     const start = (next: MotsMelesPuzzle, id: string, words: FoundWord[]) => {
         gameId.current = id;
@@ -83,7 +93,7 @@ export default function MotsMeles() {
             try {
                 const {gameId: id, puzzle: next} = await motsMelesService.generate(size, amount);
                 start(next, id, []);
-                saveGame<Saved>(CODE, {gameId: id, found: []});
+                saveGame<Saved>(challenge.saveKey, {gameId: id, found: []});
                 return null;
             } catch (err) {
                 return (err as Error).message || "Impossible de lancer la partie.";
@@ -91,9 +101,14 @@ export default function MotsMeles() {
         });
     };
 
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: MotsMelesPuzzle, saved: Saved) => {
+        start(grid, saved.gameId, Array.isArray(saved.found) ? saved.found : []);
+    };
+
     const handleResume = () => {
         if (!resumable) return;
-        start(resumable.grid, resumable.saved.gameId, Array.isArray(resumable.saved.found) ? resumable.saved.found : []);
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -141,7 +156,7 @@ export default function MotsMeles() {
                 try {
                     const result = await motsMelesService.validate(id, next);
                     gameId.current = null;
-                    clearSavedGame(CODE);
+                    clearSavedGame(challenge.saveKey);
                     return {ok: true, result};
                 } catch (err) {
                     return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
@@ -182,6 +197,7 @@ export default function MotsMeles() {
 
     return (
         <WordGameShell
+            challenge={challenge}
             className="mots-meles" gameCode={CODE} gameName="Mots mêlés" flow={flow} rules={rules}
             info={puzzle ? (
                 <>
@@ -200,7 +216,7 @@ export default function MotsMeles() {
                 canReset: playing && found.length > 0, onUndo: undo, onRedo: redo, onReset: reset,
             }}
             settings={
-                <WordSettingsPopup open={flow.showSettings} load={motsMelesService.getSettings} onGenerate={handleGenerate}
+                <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={motsMelesService.getSettings} onGenerate={handleGenerate}
                                    resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                    sizeLegend="Taille de la grille" sizeLabel={s => `${s}×${s}`}
                                    amountLabel="Mots à trouver"/>
