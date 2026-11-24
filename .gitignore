@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.claude
 # Le projet utilise pnpm (pnpm-lock.yaml) : pas de lockfile npm
 package-lock.json
 
@@ -30,3 +31,4 @@ package-lock.json
 jokr-*.tar
 deploy/.env
 deploy/data
+deploy/nas.json

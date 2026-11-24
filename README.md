@@ -113,6 +113,7 @@ pnpm dev               # http://localhost:5173
 | racine     | `pnpm test:all`  | tests du front et de l'API              |
 | racine     | `pnpm migrate`   | migrations Flyway                       |
 | racine     | `pnpm docker:image` | image Docker exportée dans `jokr-<version>.tar` |
+| racine     | `pnpm deploy:nas` | construit l'image et met à jour le NAS par SSH |
 | `backend/` | `pnpm dev`       | API avec rechargement automatique       |
 | `backend/` | `pnpm typecheck` | vérification des types de l'API         |
 | `backend/` | `pnpm test`      | tests de l'API (Vitest)                 |
@@ -157,7 +158,55 @@ tourne, et `jokr:latest`, celui qu'utilise le `docker-compose.yml`. L'image est 
 
 Les données de la base sont dans le sous-dossier `data/postgres` du projet.
 
-### Mettre à jour
+### Mettre à jour depuis le PC (`pnpm deploy:nas`)
+
+Une seule commande, Docker Desktop lancé :
+
+```bash
+pnpm deploy:nas
+```
+
+Elle construit l'image, l'envoie compressée dans le Docker du NAS par SSH (sans fichier `.tar`), puis demande de
+confirmer que le site est fermé (étape 3 ci-dessous). Elle recrée alors seulement le conteneur du site : la base
+continue de tourner, les migrations s'appliquent au démarrage. Elle attend que le site réponde (`/api/ping`), affiche
+les logs s'il ne démarre pas, puis supprime les anciennes images en gardant la version précédente.
+
+- `--yes` : sans confirmation
+- `--skip-build` : renvoie l'image déjà construite
+- `--rollback 4.0.1` : remet une version encore présente sur le NAS
+
+Le conteneur reste dans le projet compose `jokr` : Container Manager et Portainer le voient comme avant.
+
+**À faire une fois :**
+
+1. **SSH** : DSM → Panneau de configuration → Terminal et SNMP → « Activer le service SSH ». Le service
+   « Accueil de l'utilisateur » doit aussi être activé (Panneau de configuration → Utilisateur → Avancé).
+2. **Clé SSH**, depuis PowerShell sur le PC (avec un utilisateur DSM administrateur, mot de passe demandé une
+   dernière fois) :
+
+   ```powershell
+   type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh utilisateur@ip-du-nas "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && chmod 755 ~"
+   ```
+
+   Le `chmod 755 ~` compte : SSH ignore la clé si le dossier personnel est accessible en écriture aux autres,
+   ce qui est le cas par défaut sur Synology. Vérifier ensuite que `ssh utilisateur@ip-du-nas` ne demande plus
+   de mot de passe.
+3. **Docker sans mot de passe** : sur Synology, Docker demande `sudo`. Le script n'utilise que `docker` et
+   `docker-compose`, à autoriser sans mot de passe :
+
+   ```bash
+   ssh -t utilisateur@ip-du-nas
+   which docker            # normalement /usr/local/bin/docker
+   echo "utilisateur ALL=(root) NOPASSWD: /usr/local/bin/docker, /usr/local/bin/docker-compose" | sudo tee /etc/sudoers.d/jokr-deploy
+   sudo chmod 440 /etc/sudoers.d/jokr-deploy
+   sudo -n docker ps       # doit lister les conteneurs sans demander de mot de passe
+   ```
+
+4. **Réglages** : copier `deploy/nas.example.json` en `deploy/nas.json` (ignoré par git) et remplir `host`
+   (`utilisateur@ip-du-nas`) et `dir`, le dossier du projet sur le NAS. Ce dossier est indiqué dans Portainer,
+   dans les *Labels* du conteneur du site : `com.docker.compose.project.working_dir`.
+
+### Mettre à jour à la main
 
 1. Sur le PC : `pnpm docker:image`.
 2. Container Manager → Image → Ajouter → Ajouter à partir d'un fichier → le nouveau `jokr-<version>.tar`

@@ -12,7 +12,8 @@
     "migrate": "cd database && flyway migrate",
     "test": "vitest run --dir src",
     "test:all": "pnpm test && pnpm --filter backend test",
-    "docker:image": "node scripts/docker-image.mjs"
+    "docker:image": "node scripts/docker-image.mjs",
+    "deploy:nas": "node scripts/deploy-nas.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",
