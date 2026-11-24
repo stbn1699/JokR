@@ -9,6 +9,8 @@ import "../PuzzleUI/PuzzleLayout.scss";
 import "./Paturages.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import Loader from "../Loader/Loader.tsx";
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
@@ -46,9 +48,18 @@ function Cow({row, col}: { row: number; col: number }) {
     );
 }
 
-export default function Paturages() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, PaturagesPuzzle>(CODE, paturagesService.getGame);
+export default function Paturages({daily = false, replayDate}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+    const challenge = useGridChallenge<Saved, PaturagesPuzzle>({
+        code: CODE, gameName: "Pâturages", daily, replayDate,
+        fetchStatus: paturagesService.getGame,
+        emptySave: gameId => ({gameId, squares: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, PaturagesPuzzle>(challenge.saveKey, paturagesService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<PaturagesPuzzle | null>(null);
     const [squares, setSquares] = useState<PlacedSquare[]>([]);
     const [past, setPast] = useState<PlacedSquare[][]>([]);
@@ -66,8 +77,8 @@ export default function Paturages() {
     );
 
     useEffect(() => {
-        if (gameId.current) saveGame<Saved>(CODE, {gameId: gameId.current, squares});
-    }, [squares]);
+        if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, squares});
+    }, [squares, challenge.saveKey]);
 
     const start = (next: PaturagesPuzzle, id: string, initial: PlacedSquare[]) => {
         gameId.current = id;
@@ -92,10 +103,14 @@ export default function Paturages() {
         });
     };
 
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: PaturagesPuzzle, saved: Saved) => {
+        start(grid, saved.gameId, saved.squares?.length ? saved.squares : initialSquares(grid));
+    };
+
     const handleResume = () => {
         if (!resumable) return;
-        const {grid, saved} = resumable;
-        start(grid, saved.gameId, Array.isArray(saved.squares) ? saved.squares : initialSquares(grid));
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -187,7 +202,7 @@ export default function Paturages() {
             try {
                 const result = await paturagesService.validate(gameId.current, squares.map(({row, col, side}) => ({row, col, side})));
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 return {ok: true, result};
             } catch (err) {
                 return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
@@ -214,7 +229,7 @@ export default function Paturages() {
 
     return (
         <div className="puzzle-layout paturages">
-            <GameToolbar gameName="Pâturages" clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
+            <GameToolbar gameName="Pâturages" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
 
             <div className="options">
                 <h2 className="title">Pâturages</h2>
@@ -226,7 +241,9 @@ export default function Paturages() {
             </div>
 
             <div className="game">
+                {challenge.banner}
                 <h1 className="title">Pâturages</h1>
+                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
                 {puzzle && (
                     <svg ref={board} className="paturages-board" viewBox={`0 0 ${puzzle.size} ${puzzle.size}`}
                          role="application" aria-label="Pré : glisse pour tracer un carré autour de chaque vache"
@@ -265,7 +282,7 @@ export default function Paturages() {
                 <GameTimer clock={flow.clock}/>
                 <HistoryButtons canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                                 onReset={reset} canReset={canReset}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>
                 <div className="rules">
                     <h3>Règles</h3>
                     {rules}
@@ -273,17 +290,19 @@ export default function Paturages() {
                 </div>
             </div>
 
-            <WordSettingsPopup open={flow.showSettings} load={paturagesService.getSettings} onGenerate={handleGenerate}
+            <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={paturagesService.getSettings} onGenerate={handleGenerate}
                                resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                sizeLegend="Taille du pré" sizeLabel={s => `${s}×${s}`}
                                amountLabel="Carrés donnés" easierWhenHigher/>
+
+            {challenge.donePopup}
 
             {flow.victory && (
                 <SuccessPopup gameName="Pâturages" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}
                               personalBest={flow.victory.personalBest} daily={flow.victory.daily}
-                              onNewGame={flow.newGame} back="home"/>
+                              streak={flow.victory.streak} {...challenge.victory(flow.newGame)}/>
             )}
         </div>
     );

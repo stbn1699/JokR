@@ -6,6 +6,8 @@ import type {GamesService} from "../services/Games.service.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import {coloriaStore} from "../services/stores.js";
 import {tracker} from "../services/tracker.js";
+import type {DailyService} from "../services/Daily.service.js";
+import {finishGridWin} from "../services/gridWin.js";
 import {routeParam} from "../utils/validation.js";
 import {wordSettings} from "../utils/words.js";
 import {COLORIA_DEFAULT_ZONES, COLORIA_SIZES, coloriaCredits, coloriaXp, generateColoria, isColoriaSolution, type ColoriaPuzzle} from "../utils/coloria.js";
@@ -21,7 +23,7 @@ const publicPuzzle = ({width, zones, colors, regions, given}: ColoriaPuzzle) => 
  * - generate { size: zones, amount: couleurs }, games/:gameId pour reprendre une partie
  * - validate { gameId, colors } : couleur de chaque zone ; XP si le joueur est connecté
  */
-export function createColoriaController(progression: ProgressionService, games: GamesService) {
+export function createColoriaController(progression: ProgressionService, games: GamesService, daily: DailyService) {
     return {
         settings: asyncHandler(async (_req: Request, res: Response) => {
             const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
@@ -68,21 +70,7 @@ export function createColoriaController(progression: ProgressionService, games: 
                 return;
             }
 
-            // Partie terminée : on la retire tout de suite pour empêcher une double validation
-            coloriaStore.delete(gameId);
-            const durationMs = Date.now() - game.createdAt;
-            const userId = res.locals.userId;
-            tracker.finished(gameId, durationMs, userId);
-            if (!userId) {
-                res.status(200).json({status: "ok", data: {xp: undefined, durationMs}});
-                return;
-            }
-            const {zones, colors: k} = game.puzzle;
-            const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
-            const xp = coloriaXp(baseXp, zones, k);
-            const credits = coloriaCredits(zones, k);
-            const {personalBest} = await progression.recordWin(userId, GAME_CODE, xp, {gridSize: zones, emptyCells: k, durationMs}, credits);
-            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: 1, durationMs, personalBest}});
+            await finishGridWin(res, GAME_CODE, gameId, game, {progression, games, daily});
         }),
     };
 }

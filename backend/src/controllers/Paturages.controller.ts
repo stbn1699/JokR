@@ -6,6 +6,8 @@ import type {GamesService} from "../services/Games.service.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import {paturagesStore} from "../services/stores.js";
 import {tracker} from "../services/tracker.js";
+import type {DailyService} from "../services/Daily.service.js";
+import {finishGridWin} from "../services/gridWin.js";
 import {routeParam} from "../utils/validation.js";
 import {wordSettings} from "../utils/words.js";
 import {generatePaturages, isPaturagesSolution, PATURAGES_DEFAULT_SIZE, PATURAGES_SIZES, paturagesCredits, paturagesXp, type PaturagesPuzzle} from "../utils/paturages.js";
@@ -21,7 +23,7 @@ const publicPuzzle = ({size, cows, given}: PaturagesPuzzle) => ({size, cows, giv
  * - generate { size, amount: carrés donnés }, games/:gameId pour reprendre une partie
  * - validate { gameId, squares } : le découpage du pré ; XP si le joueur est connecté
  */
-export function createPaturagesController(progression: ProgressionService, games: GamesService) {
+export function createPaturagesController(progression: ProgressionService, games: GamesService, daily: DailyService) {
     return {
         settings: asyncHandler(async (_req: Request, res: Response) => {
             const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
@@ -68,22 +70,7 @@ export function createPaturagesController(progression: ProgressionService, games
                 return;
             }
 
-            // Partie terminée : on la retire tout de suite pour empêcher une double validation
-            paturagesStore.delete(gameId);
-            const durationMs = Date.now() - game.createdAt;
-            const userId = res.locals.userId;
-            tracker.finished(gameId, durationMs, userId);
-            if (!userId) {
-                res.status(200).json({status: "ok", data: {xp: undefined, durationMs}});
-                return;
-            }
-            const {size} = game.puzzle;
-            const given = game.cluesCount;
-            const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
-            const xp = paturagesXp(baseXp, size, given);
-            const credits = paturagesCredits(size, given);
-            const {personalBest} = await progression.recordWin(userId, GAME_CODE, xp, {gridSize: size, emptyCells: given, durationMs}, credits);
-            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: 1, durationMs, personalBest}});
+            await finishGridWin(res, GAME_CODE, gameId, game, {progression, games, daily});
         }),
     };
 }

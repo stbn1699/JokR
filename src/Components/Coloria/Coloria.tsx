@@ -10,6 +10,8 @@ import "./Coloria.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import Loader from "../Loader/Loader.tsx";
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
@@ -29,9 +31,18 @@ const PALETTE = ["var(--board-region-1)", "var(--board-region-0)", "var(--board-
 
 type Saved = { gameId: string; colors: number[] };
 
-export default function Coloria() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, ColoriaPuzzle>(CODE, coloriaService.getGame);
+export default function Coloria({daily = false, replayDate}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+    const challenge = useGridChallenge<Saved, ColoriaPuzzle>({
+        code: CODE, gameName: "Coloria", daily, replayDate,
+        fetchStatus: coloriaService.getGame,
+        emptySave: gameId => ({gameId, colors: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, ColoriaPuzzle>(challenge.saveKey, coloriaService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<ColoriaPuzzle | null>(null);
     const [colors, setColors] = useState<number[]>([]);
     const [past, setPast] = useState<number[][]>([]);
@@ -85,8 +96,8 @@ export default function Coloria() {
     }, [links, colors]);
 
     useEffect(() => {
-        if (gameId.current && colors.length > 0) saveGame<Saved>(CODE, {gameId: gameId.current, colors});
-    }, [colors]);
+        if (gameId.current && colors.length > 0) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, colors});
+    }, [colors, challenge.saveKey]);
 
     const start = (next: ColoriaPuzzle, id: string, initial: number[]) => {
         gameId.current = id;
@@ -110,10 +121,14 @@ export default function Coloria() {
         });
     };
 
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: ColoriaPuzzle, saved: Saved) => {
+        start(grid, saved.gameId, saved.colors?.length === grid.zones ? saved.colors : [...grid.given]);
+    };
+
     const handleResume = () => {
         if (!resumable) return;
-        const {grid, saved} = resumable;
-        start(grid, saved.gameId, saved.colors?.length === grid.zones ? saved.colors : [...grid.given]);
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -173,7 +188,7 @@ export default function Coloria() {
             try {
                 const result = await coloriaService.validate(gameId.current, colors);
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 return {ok: true, result};
             } catch (err) {
                 return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
@@ -197,7 +212,7 @@ export default function Coloria() {
 
     return (
         <div className="puzzle-layout coloria">
-            <GameToolbar gameName="Coloria" clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
+            <GameToolbar gameName="Coloria" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                          showErrors={showErrors} onToggleErrors={setShowErrors} errorCount={conflicts.size} rules={rules}/>
 
             <div className="options">
@@ -223,7 +238,9 @@ export default function Coloria() {
             </div>
 
             <div className="game">
+                {challenge.banner}
                 <h1 className="title">Coloria</h1>
+                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
                 {puzzle && (
                     <div className="coloria-board" style={{"--size": puzzle.width} as CSSProperties} role="grid" aria-label="Zones à colorier"
                          onMouseLeave={() => setHovered(null)}>
@@ -261,7 +278,7 @@ export default function Coloria() {
                 <HistoryButtons canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                                 onReset={reset} canReset={playing && hasInput}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={conflicts.size}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>
                 <div className="rules">
                     <h3>Règles</h3>
                     {rules}
@@ -269,17 +286,19 @@ export default function Coloria() {
                 </div>
             </div>
 
-            <WordSettingsPopup open={flow.showSettings} load={coloriaService.getSettings} onGenerate={handleGenerate}
+            <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={coloriaService.getSettings} onGenerate={handleGenerate}
                                resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                sizeLegend="Nombre de zones" sizeLabel={zones => `${zones} zones`}
                                amountLabel="Couleurs" easierWhenHigher/>
+
+            {challenge.donePopup}
 
             {flow.victory && (
                 <SuccessPopup gameName="Coloria" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}
                               personalBest={flow.victory.personalBest} daily={flow.victory.daily}
-                              onNewGame={flow.newGame} back="home"/>
+                              streak={flow.victory.streak} {...challenge.victory(flow.newGame)}/>
             )}
         </div>
     );

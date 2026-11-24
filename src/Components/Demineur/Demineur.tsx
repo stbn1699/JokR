@@ -10,6 +10,8 @@ import "../PuzzleUI/PuzzleLayout.scss";
 import "./Demineur.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import Loader from "../Loader/Loader.tsx";
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import {SkeletonLabel} from "../PuzzleUI/GridSkeleton.tsx";
@@ -24,6 +26,8 @@ import LostPopup from "./LostPopup.tsx";
 import {coveredShape} from "./coveredShape.ts";
 
 const CODE = "DEMINEUR";
+// Défi du jour : temps ajouté par une mine (le serveur fait foi)
+const DAILY_PENALTY_S = 30;
 // Durée d'appui pour poser un drapeau au doigt, et distance au-delà de laquelle l'appui est annulé
 const LONG_PRESS_MS = 380;
 const MOVE_TOLERANCE_PX = 12;
@@ -39,13 +43,24 @@ type Press = { pointerId: number; cell: number; x: number; y: number; timer: num
 
 const noop = () => undefined;
 
-export default function Demineur() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, DemineurPuzzle>(CODE, demineurService.getGame);
+export default function Demineur({daily = false, replayDate}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+    const challenge = useGridChallenge<Saved, DemineurPuzzle>({
+        code: CODE, gameName: "Démineur", daily, replayDate,
+        fetchStatus: demineurService.getGame,
+        emptySave: gameId => ({gameId, flags: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, DemineurPuzzle>(challenge.saveKey, demineurService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<DemineurPuzzle | null>(null);
     const [revealed, setRevealed] = useState<Map<number, number>>(new Map());
     const [flags, setFlags] = useState<Set<number>>(new Set());
     const [lost, setLost] = useState<Lost | null>(null);
+    // défi du jour : mines sautées (visibles, la partie continue)
+    const [blown, setBlown] = useState<Set<number>>(new Set());
     const [highlight, setHighlight] = useState<Set<number>>(new Set());
     const [showLost, setShowLost] = useState(false);
     const board = useRef<SVGSVGElement>(null);
@@ -59,8 +74,8 @@ export default function Demineur() {
     const cleared = puzzle !== null && !lost && revealed.size === totalCells - puzzle.mines;
 
     useEffect(() => {
-        if (gameId.current) saveGame<Saved>(CODE, {gameId: gameId.current, flags: [...flags]});
-    }, [flags]);
+        if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, flags: [...flags]});
+    }, [flags, challenge.saveKey]);
 
     useEffect(() => () => window.clearTimeout(highlightTimer.current), []);
 
@@ -71,6 +86,7 @@ export default function Demineur() {
         setRevealed(open);
         setFlags(new Set(initialFlags.filter(cell => !open.has(cell))));
         setLost(null);
+        setBlown(new Set(next.blown ?? []));
         setShowLost(false);
         setHighlight(new Set());
     };
@@ -88,9 +104,14 @@ export default function Demineur() {
         });
     };
 
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: DemineurPuzzle, saved: Saved) => {
+        start(grid, saved.gameId, saved.flags ?? []);
+    };
+
     const handleResume = () => {
         if (!resumable) return;
-        start(resumable.grid, resumable.saved.gameId, resumable.saved.flags ?? []);
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -101,9 +122,22 @@ export default function Demineur() {
         try {
             const outcome = await demineurService.reveal(id, cells);
             if (gameId.current !== id) return;
+            if (outcome.kind === "penalty") {
+                setBlown(previous => new Set(previous).add(outcome.cell));
+                setFlags(previous => {
+                    if (!previous.has(outcome.cell)) return previous;
+                    const next = new Set(previous);
+                    next.delete(outcome.cell);
+                    return next;
+                });
+                flow.penalty(outcome.penaltyMs);
+                flow.setNotice(`Boum ! Une mine : +${Math.round(outcome.penaltyMs / 1000)} s au chrono.`);
+                navigator.vibrate?.(120);
+                return;
+            }
             if (outcome.kind === "exploded") {
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 flow.stop();
                 const {startedAt} = flow.clock;
                 setLost({cell: outcome.cell, mines: new Set(outcome.mines), durationMs: startedAt === null ? 0 : Date.now() - startedAt});
@@ -129,7 +163,7 @@ export default function Demineur() {
     };
 
     const toggleFlag = (cell: number) => {
-        if (revealed.has(cell)) return;
+        if (revealed.has(cell) || blown.has(cell)) return;
         setFlags(previous => {
             const next = new Set(previous);
             if (!next.delete(cell)) next.add(cell);
@@ -138,7 +172,8 @@ export default function Demineur() {
     };
 
     const clickCell = (cell: number) => {
-        const plan = planClick(cell, size, revealed, flags);
+        // une mine sautée compte comme un drapeau autour des chiffres
+        const plan = blown.has(cell) ? {kind: "none" as const} : planClick(cell, size, revealed, blown.size ? new Set([...flags, ...blown]) : flags);
         if (plan.kind === "reveal") void revealCells(plan.cells);
         else if (plan.kind === "highlight") {
             window.clearTimeout(highlightTimer.current);
@@ -213,15 +248,15 @@ export default function Demineur() {
         }),
     });
 
-    const minesLeft = puzzle ? puzzle.mines - flags.size : 0;
+    const minesLeft = puzzle ? puzzle.mines - flags.size - blown.size : 0;
 
     // Case encore couverte (la zone bleue) : ni libérée, ni mine montrée après l'explosion
     const covered = (cell: number) =>
-        !revealed.has(cell) && !(lost && lost.mines.has(cell) && !flags.has(cell));
+        !revealed.has(cell) && !blown.has(cell) && !(lost && lost.mines.has(cell) && !flags.has(cell));
 
     const shape = useMemo(() => coveredShape(size, covered, CORNER_RADIUS),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [revealed, lost, flags, size]);
+        [revealed, lost, flags, blown, size]);
 
     const renderContent = (cell: number) => {
         const x = cell % size, y = Math.floor(cell / size);
@@ -229,6 +264,7 @@ export default function Demineur() {
         if (count !== undefined) {
             return count > 0 ? <text key={cell} className={`dm-count dm-n${count}`} x={x + 0.5} y={y + 0.54}>{count}</text> : null;
         }
+        if (blown.has(cell)) return <Mine key={cell} x={x} y={y}/>;
         const mine = lost?.mines.has(cell) ?? false;
         if (flags.has(cell)) return <Flag key={cell} x={x} y={y} wrong={lost !== null && !mine}/>;
         return lost && mine ? <Mine key={cell} x={x} y={y}/> : null;
@@ -241,12 +277,13 @@ export default function Demineur() {
             <li>Clic droit, ou appui long au doigt : pose un drapeau</li>
             <li>Un chiffre entouré d'autant de drapeaux : clique dessus pour libérer ses autres voisines</li>
             <li>Le premier clic ne tombe jamais sur une mine</li>
+            <li>Défi du jour : une mine ne fait pas perdre, mais ajoute {DAILY_PENALTY_S} s au chrono</li>
         </ul>
     );
 
     return (
         <div className="puzzle-layout demineur">
-            <GameToolbar gameName="Démineur" clock={flow.clock} canUndo={false} canRedo={false} onUndo={noop} onRedo={noop} rules={rules}/>
+            <GameToolbar gameName="Démineur" label={challenge.toolbarLabel} clock={flow.clock} canUndo={false} canRedo={false} onUndo={noop} onRedo={noop} rules={rules}/>
 
             <div className="options">
                 <h2 className="title">Démineur</h2>
@@ -258,7 +295,9 @@ export default function Demineur() {
             </div>
 
             <div className="game">
+                {challenge.banner}
                 <h1 className="title">Démineur</h1>
+                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
                 {puzzle && (
                     <svg ref={board} className={`demineur-board ${lost ? "lost" : ""} ${size >= 16 ? "dense" : ""}`}
                          viewBox={`0 0 ${size} ${size}`} role="application"
@@ -266,7 +305,9 @@ export default function Demineur() {
                          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
                          onPointerCancel={cancelPress} onPointerLeave={cancelPress}
                          onContextMenu={e => e.preventDefault()}>
-                        {lost && <rect className="dm-exploded" x={lost.cell % size} y={Math.floor(lost.cell / size)} width={1} height={1}/>}
+                        {[...blown, ...(lost ? [lost.cell] : [])].map(cell => (
+                            <rect key={cell} className="dm-exploded" x={cell % size} y={Math.floor(cell / size)} width={1} height={1}/>
+                        ))}
                         {Array.from({length: size - 1}, (_, i) => (
                             <g key={i} className="demineur-grid">
                                 <line x1={i + 1} y1={0} x2={i + 1} y2={size}/>
@@ -286,14 +327,14 @@ export default function Demineur() {
             <div className="actions">
                 <h2 className="title">Actions</h2>
                 <GameTimer clock={flow.clock}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>
                 <div className="rules">
                     <h3>Règles</h3>
                     {rules}
                 </div>
             </div>
 
-            <WordSettingsPopup open={flow.showSettings} load={demineurService.getSettings} onGenerate={handleGenerate}
+            <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={demineurService.getSettings} onGenerate={handleGenerate}
                                resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                sizeLegend="Taille de la grille" sizeLabel={s => `${s}×${s}`}
                                amountLabel="Mines"/>
@@ -301,16 +342,18 @@ export default function Demineur() {
             {lost && showLost && !flow.showSettings && (
                 <LostPopup durationMs={lost.durationMs} onNewGame={() => {
                     setShowLost(false);
-                    flow.newGame();
+                    challenge.victory(flow.newGame).onNewGame();
                 }}/>
             )}
+
+            {challenge.donePopup}
 
             {flow.victory && (
                 <SuccessPopup gameName="Démineur" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}
                               personalBest={flow.victory.personalBest} daily={flow.victory.daily}
-                              onNewGame={flow.newGame} back="home"/>
+                              streak={flow.victory.streak} {...challenge.victory(flow.newGame)}/>
             )}
         </div>
     );

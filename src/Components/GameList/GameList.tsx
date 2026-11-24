@@ -8,13 +8,13 @@ import {gameService} from "../../Services/game.service.ts";
 import type {GameStats} from "../../Models/gameStats.model.ts";
 import {gameStatsService} from "../../Services/gameStats.service.ts";
 import {Link, useNavigate} from "react-router-dom";
-import {FaCalendarDay, FaLock, FaPlay, FaStar, FaTrophy} from "react-icons/fa";
+import {FaCalendarDay, FaCheck, FaLock, FaPlay, FaStar, FaTrophy} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {xpToNextLevel} from "../../Services/leveling.ts";
-import DailyBanner from "./DailyBanner.tsx";
 import {useDailyOverview} from "./useDailyOverview.ts";
 import {formatDuration} from "../../Services/format.ts";
 import {dailyGridLabel} from "../../Services/dailyGames.ts";
+import {formatDailyDate} from "../../Services/daily.service.ts";
 import {isNewSince} from "../../Services/version.ts";
 import {useWhatsNew} from "./useWhatsNew.ts";
 import WhatsNewPopup from "./WhatsNewPopup.tsx";
@@ -34,8 +34,8 @@ function GameIcon({code}: { code: string }) {
     return <img src={`/gameIcons/${code}.svg`} alt={code} onError={() => setMissing(true)}/>;
 }
 
-// Filtre de l'accueil, retenu d'une visite à l'autre
-type GameFilter = GameType | "tous";
+// Filtre de l'accueil, retenu d'une visite à l'autre (sauf « Défi du jour », qui ne dure que la visite)
+type GameFilter = GameType | "tous" | "defi";
 const GAME_FILTER_KEY = "gameListFilter";
 
 function lastGameFilter(): GameFilter {
@@ -49,6 +49,7 @@ function lastGameFilter(): GameFilter {
 }
 
 function rememberGameFilter(filter: GameFilter) {
+    if (filter === "defi") return;
     try {
         localStorage.setItem(GAME_FILTER_KEY, filter);
     } catch {
@@ -235,16 +236,22 @@ export default function GameList() {
         timeoutRef.current = window.setTimeout(() => {
             // hide overlay (allows a short fade-out if desired) then navigate
             setOverlayVisible(false);
-            // jeux avec un mode Niveaux : la carte des niveaux d'abord (la partie libre y est accessible)
-            navigate(LEVEL_GAMES.has(gameCode) ? `/niveaux/${gameCode}` : `/playgame/${gameCode}/`);
+            // défi du jour : la grille du jour ; jeux avec un mode Niveaux : la carte des niveaux d'abord
+            // (la partie libre y est accessible)
+            navigate(activeFilter === "defi" ? `/defi/${gameCode}` : LEVEL_GAMES.has(gameCode) ? `/niveaux/${gameCode}` : `/playgame/${gameCode}/`);
         }, 500);
     }
 
     const sections = groupGamesByType(games);
-    // filtre retenu sur un type sans jeu : on revient à tous les jeux
-    const activeFilter: GameFilter = sections.some(s => s.type === filter) ? filter : "tous";
+    // filtre retenu sur un type sans jeu (ou défis pas encore chargés) : on revient à tous les jeux
+    const activeFilter: GameFilter = filter === "defi" ? (daily ? "defi" : "tous")
+        : sections.some(s => s.type === filter) ? filter : "tous";
+    const dailyMode = activeFilter === "defi";
     // les jeux restent dans l'ordre du serveur : les plus populaires d'abord
-    const visibleGames = activeFilter === "tous" ? games : games.filter(game => gameType(game.code) === activeFilter);
+    const visibleGames = activeFilter === "tous" ? games
+        : dailyMode ? games.filter(game => daily?.games.some(g => g.code === game.code))
+            : games.filter(game => gameType(game.code) === activeFilter);
+    const dailyDone = daily?.games.filter(g => g.result).length ?? 0;
 
     const chooseFilter = (next: GameFilter) => {
         setFilter(next);
@@ -253,40 +260,41 @@ export default function GameList() {
 
     const renderGameCard = (game: Game, index: number) => {
         const stat = userStats?.find(s => s.game_code === game.code);
-        const challenge = daily?.games.find(g => g.code === game.code);
+        const challenge = dailyMode ? daily?.games.find(g => g.code === game.code) : undefined;
+        // défi déjà réussi aujourd'hui : la carte ne mène nulle part
+        const done = challenge?.result ?? null;
 
         return (
             // --i : les cartes apparaissent l'une après l'autre
-            <div className={`game-card appear ${gameType(game.code)}`} key={game.code} style={{"--i": index} as CSSProperties}>
+            <div className={`game-card appear ${dailyMode ? "daily" : gameType(game.code)} ${done ? "done" : ""}`}
+                 key={`${activeFilter}-${game.code}`} style={{"--i": index} as CSSProperties}>
                 {/* Carte du jeu, et par-dessus (au survol) les stats du joueur sur ce jeu */}
                 <div className="game-tile">
-                    <GameTypeBadge code={game.code}/>
-                    {isNewSince(game.added_in, whatsNew.since) && <span className="game-new">Nouveau</span>}
+                    {challenge
+                        ? <span className="game-type daily">
+                            {done ? <><FaCheck aria-hidden/> Réussi</> : isLoggedIn ? <>×{daily?.rewardMultiplier}</> : <><FaLock aria-hidden/> Compte</>}
+                        </span>
+                        : <GameTypeBadge code={game.code}/>}
+                    {!challenge && isNewSince(game.added_in, whatsNew.since) && <span className="game-new">Nouveau</span>}
                     <div
                         className="game"
-                        onClick={handleGameSelection(game.code)}
+                        onClick={done ? undefined : handleGameSelection(game.code)}
+                        title={challenge ? `Défi du jour : ${dailyGridLabel(challenge.code, challenge.size, challenge.emptyCells)}` : undefined}
+                        aria-disabled={done ? true : undefined}
                     >
                         <GameIcon code={game.code}/>
                         <h1>{game.designation}</h1>
+                        {done && (
+                            <span className="game-daily-result">
+                                {formatDuration(done.durationMs)} · {done.rank}<sup>{done.rank === 1 ? "er" : "e"}</sup> / {done.total}
+                            </span>
+                        )}
                     </div>
 
-                    {/* stats chargées : celles du jeu, ou « pas encore joué » */}
-                    {userId && userStats && <GameStatsPanel stat={stat} levels={levelsSummary?.[game.code]}/>}
+                    {/* stats chargées : celles du jeu, ou « pas encore joué » (pas en mode défi) */}
+                    {!dailyMode && userId && userStats && <GameStatsPanel stat={stat} levels={levelsSummary?.[game.code]}/>}
                 </div>
 
-                {/* Défi du jour de ce jeu (invité : ouvre l'invitation à créer un compte) */}
-                {challenge && daily && (
-                    <Link to={`/defi/${game.code}`}
-                          className={`daily-button ${challenge.result ? "done" : ""} ${isLoggedIn ? "" : "locked"}`}
-                          title={`Défi du jour : ${dailyGridLabel(challenge.code, challenge.size, challenge.emptyCells)} · XP et crédits ×${daily.rewardMultiplier}`}>
-                        {challenge.result
-                            ? <>✓ {formatDuration(challenge.result.durationMs)} · {challenge.result.rank}<sup>{challenge.result.rank === 1 ? "er" : "e"}</sup> / {challenge.result.total}</>
-                            : <>
-                                {isLoggedIn ? <FaCalendarDay aria-hidden/> : <FaLock aria-hidden/>} Défi du jour
-                                {daily.rewardMultiplier > 1 && <span className="daily-x2" title="XP et crédits doublés">×{daily.rewardMultiplier}</span>}
-                            </>}
-                    </Link>
-                )}
             </div>
         );
     };
@@ -298,14 +306,19 @@ export default function GameList() {
             {/* overlay covering the whole viewport when a game is selected */}
             <div className={`click-overlay ${overlayVisible ? 'visible' : ''}`}/>
 
-            {daily && <DailyBanner overview={daily}/>}
-
             {/* Filtres par type */}
             <div className="game-filters" role="group" aria-label="Filtrer les jeux par type">
                 <button type="button" className={`game-filter tous ${activeFilter === "tous" ? "active" : ""}`}
                         aria-pressed={activeFilter === "tous"} onClick={() => chooseFilter("tous")}>
                     Tous <span className="game-filter-count">{games.length}</span>
                 </button>
+                {daily && (
+                    <button type="button" className={`game-filter daily ${dailyMode ? "active" : ""}`}
+                            aria-pressed={dailyMode} onClick={() => chooseFilter("defi")}>
+                        <FaCalendarDay aria-hidden/> Défi du jour
+                        <span className="game-filter-count">{isLoggedIn ? `${dailyDone}/${daily.games.length}` : daily.games.length}</span>
+                    </button>
+                )}
                 {sections.map(({type, games: sectionGames}) => {
                     const {label, icon: Icon} = GAME_TYPES[type];
                     return (
@@ -317,7 +330,17 @@ export default function GameList() {
                 })}
             </div>
 
-            <div className="game-list">
+            {/* Mode défi : le jour, les gains doublés et les défis passés */}
+            {dailyMode && daily && (
+                <p className="daily-strip">
+                    <strong>{formatDailyDate(daily.date)}</strong>
+                    {daily.rewardMultiplier > 1 && <span className="daily-strip-x2">XP et crédits ×{daily.rewardMultiplier}</span>}
+                    {!isLoggedIn && <span><Link to="/register">Crée un compte</Link> pour jouer les défis</span>}
+                    <Link to="/defi">Défis précédents →</Link>
+                </p>
+            )}
+
+            <div className={`game-list ${dailyMode ? "daily-mode" : ""}`}>
                 {visibleGames.map(renderGameCard)}
             </div>
         </>

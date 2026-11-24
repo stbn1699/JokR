@@ -15,6 +15,8 @@ export type DemineurPuzzle = {
     mines: Set<number> | null;
     // cases libérées, avec leur nombre de mines voisines
     revealed: Map<number, number>;
+    // défi du jour : mines déjà sautées (la partie continue, avec du temps en plus)
+    blown: Set<number>;
 };
 type Random = (max: number) => number;
 
@@ -23,6 +25,9 @@ export type RevealedCell = [number, number];
 export type RevealOutcome =
     | { kind: "revealed"; cells: RevealedCell[] }
     | { kind: "exploded"; cell: number; mines: number[] };
+
+// Défi du jour : une mine ne termine pas la partie, elle ajoute ce temps au chrono
+export const DEMINEUR_DAILY_PENALTY_MS = 30_000;
 
 export const DEMINEUR_DEFAULT_SIZE = 10;
 export const DEMINEUR_SIZES = [
@@ -46,7 +51,7 @@ export function neighbours(cell: number, size: number): number[] {
 }
 
 export function createDemineur(size: number, mineCount: number): DemineurPuzzle {
-    return {size, mineCount, mines: null, revealed: new Map()};
+    return {size, mineCount, mines: null, revealed: new Map(), blown: new Set()};
 }
 
 // Mines tirées au hasard hors de la case cliquée et de ses voisines
@@ -77,11 +82,11 @@ export function reveal(puzzle: DemineurPuzzle, cells: unknown, random: Random): 
     if (!puzzle.mines) puzzle.mines = placeMines(size, puzzle.mineCount, wanted[0]!, random);
     const mines = puzzle.mines;
 
-    const hit = wanted.find(cell => mines.has(cell));
+    const hit = wanted.find(cell => mines.has(cell) && !puzzle.blown.has(cell));
     if (hit !== undefined) return {kind: "exploded", cell: hit, mines: [...mines]};
 
     const opened: RevealedCell[] = [];
-    const queue = wanted.filter(cell => !puzzle.revealed.has(cell));
+    const queue = wanted.filter(cell => !puzzle.revealed.has(cell) && !mines.has(cell));
     while (queue.length) {
         const cell = queue.pop()!;
         if (puzzle.revealed.has(cell)) continue;

@@ -9,6 +9,8 @@ import "../PuzzleUI/PuzzleLayout.scss";
 import "./Boucle.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import Loader from "../Loader/Loader.tsx";
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
@@ -32,9 +34,18 @@ const sameLinks = (a: readonly number[], b: readonly number[]) => {
     return b.every(key => set.has(key));
 };
 
-export default function Boucle() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, BouclePuzzle>(CODE, boucleService.getGame);
+export default function Boucle({daily = false, replayDate}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+    const challenge = useGridChallenge<Saved, BouclePuzzle>({
+        code: CODE, gameName: "Boucle", daily, replayDate,
+        fetchStatus: boucleService.getGame,
+        emptySave: gameId => ({gameId, links: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, BouclePuzzle>(challenge.saveKey, boucleService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<BouclePuzzle | null>(null);
     const [links, setLinks] = useState<number[]>([]);
     const [past, setPast] = useState<number[][]>([]);
@@ -53,8 +64,8 @@ export default function Boucle() {
     const loop = useMemo(() => (puzzle && !stroke ? solvedLoop(puzzle, links) : null), [puzzle, links, stroke]);
 
     useEffect(() => {
-        if (gameId.current) saveGame<Saved>(CODE, {gameId: gameId.current, links});
-    }, [links]);
+        if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, links});
+    }, [links, challenge.saveKey]);
 
     const start = (next: BouclePuzzle, id: string, initial: number[]) => {
         gameId.current = id;
@@ -79,10 +90,14 @@ export default function Boucle() {
         });
     };
 
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: BouclePuzzle, saved: Saved) => {
+        start(grid, saved.gameId, cleanLinks(grid, saved.links));
+    };
+
     const handleResume = () => {
         if (!resumable) return;
-        const {grid, saved} = resumable;
-        start(grid, saved.gameId, cleanLinks(grid, saved.links));
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -160,7 +175,7 @@ export default function Boucle() {
             try {
                 const result = await boucleService.validate(gameId.current, loop);
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 return {ok: true, result};
             } catch (err) {
                 return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
@@ -184,7 +199,7 @@ export default function Boucle() {
 
     return (
         <div className="puzzle-layout boucle">
-            <GameToolbar gameName="Boucle" clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
+            <GameToolbar gameName="Boucle" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
 
             <div className="options">
                 <h2 className="title">Boucle</h2>
@@ -197,7 +212,9 @@ export default function Boucle() {
             </div>
 
             <div className="game">
+                {challenge.banner}
                 <h1 className="title">Boucle</h1>
+                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
                 {puzzle && (
                     <svg ref={board} className={`boucle-board ${stroke ? "drawing" : ""} ${loop ? "closed" : ""}`}
                          viewBox={`0 0 ${size} ${size}`} role="application" aria-label="Plateau : glisse de case en case pour tracer la boucle"
@@ -235,7 +252,7 @@ export default function Boucle() {
                 <GameTimer clock={flow.clock}/>
                 <HistoryButtons canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                                 onReset={reset} canReset={playing && links.length > 0}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>
                 <div className="rules">
                     <h3>Règles</h3>
                     {rules}
@@ -243,17 +260,19 @@ export default function Boucle() {
                 </div>
             </div>
 
-            <WordSettingsPopup open={flow.showSettings} load={boucleService.getSettings} onGenerate={handleGenerate}
+            <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={boucleService.getSettings} onGenerate={handleGenerate}
                                resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                sizeLegend="Taille de la grille" sizeLabel={s => `${s}×${s}`}
                                amountLabel="Murs" easierWhenHigher/>
+
+            {challenge.donePopup}
 
             {flow.victory && (
                 <SuccessPopup gameName="Boucle" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}
                               personalBest={flow.victory.personalBest} daily={flow.victory.daily}
-                              onNewGame={flow.newGame} back="home"/>
+                              streak={flow.victory.streak} {...challenge.victory(flow.newGame)}/>
             )}
         </div>
     );

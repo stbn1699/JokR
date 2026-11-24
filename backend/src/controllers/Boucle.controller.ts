@@ -6,6 +6,8 @@ import type {GamesService} from "../services/Games.service.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import {boucleStore} from "../services/stores.js";
 import {tracker} from "../services/tracker.js";
+import type {DailyService} from "../services/Daily.service.js";
+import {finishGridWin} from "../services/gridWin.js";
 import {routeParam} from "../utils/validation.js";
 import {wordSettings} from "../utils/words.js";
 import {BOUCLE_DEFAULT_SIZE, BOUCLE_SIZES, boucleCredits, boucleXp, type BouclePuzzle, generateBoucle, isBoucleSolution} from "../utils/boucle.js";
@@ -21,7 +23,7 @@ const publicPuzzle = ({size, walls}: BouclePuzzle) => ({size, walls});
  * - generate { size, amount: murs }, games/:gameId pour reprendre une partie
  * - validate { gameId, loop } : les cases de la boucle dans l'ordre ; XP si le joueur est connecté
  */
-export function createBoucleController(progression: ProgressionService, games: GamesService) {
+export function createBoucleController(progression: ProgressionService, games: GamesService, daily: DailyService) {
     return {
         settings: asyncHandler(async (_req: Request, res: Response) => {
             const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
@@ -68,22 +70,7 @@ export function createBoucleController(progression: ProgressionService, games: G
                 return;
             }
 
-            // Partie terminée : on la retire tout de suite pour empêcher une double validation
-            boucleStore.delete(gameId);
-            const durationMs = Date.now() - game.createdAt;
-            const userId = res.locals.userId;
-            tracker.finished(gameId, durationMs, userId);
-            if (!userId) {
-                res.status(200).json({status: "ok", data: {xp: undefined, durationMs}});
-                return;
-            }
-            const {size} = game.puzzle;
-            const walls = game.cluesCount;
-            const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
-            const xp = boucleXp(baseXp, size, walls);
-            const credits = boucleCredits(size, walls);
-            const {personalBest} = await progression.recordWin(userId, GAME_CODE, xp, {gridSize: size, emptyCells: walls, durationMs}, credits);
-            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: 1, durationMs, personalBest}});
+            await finishGridWin(res, GAME_CODE, gameId, game, {progression, games, daily});
         }),
     };
 }

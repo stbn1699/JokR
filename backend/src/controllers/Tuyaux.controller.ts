@@ -6,6 +6,8 @@ import type {GamesService} from "../services/Games.service.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import {tuyauxStore} from "../services/stores.js";
 import {tracker} from "../services/tracker.js";
+import type {DailyService} from "../services/Daily.service.js";
+import {finishGridWin} from "../services/gridWin.js";
 import {routeParam} from "../utils/validation.js";
 import {wordSettings} from "../utils/words.js";
 import {generateTuyaux, isTuyauxSolution, TUYAUX_DEFAULT_SIZE, TUYAUX_SIZES, tuyauxCredits, tuyauxXp, type TuyauxPuzzle} from "../utils/tuyaux.js";
@@ -21,7 +23,7 @@ const publicPuzzle = ({size, tiles, locked}: TuyauxPuzzle) => ({size, tiles, loc
  * - generate { size, amount: cases données }, games/:gameId pour reprendre une partie
  * - validate { gameId, turns } : quarts de tour (0 à 3) de chaque pièce ; XP si le joueur est connecté
  */
-export function createTuyauxController(progression: ProgressionService, games: GamesService) {
+export function createTuyauxController(progression: ProgressionService, games: GamesService, daily: DailyService) {
     return {
         settings: asyncHandler(async (_req: Request, res: Response) => {
             const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
@@ -68,22 +70,7 @@ export function createTuyauxController(progression: ProgressionService, games: G
                 return;
             }
 
-            // Partie terminée : on la retire tout de suite pour empêcher une double validation
-            tuyauxStore.delete(gameId);
-            const durationMs = Date.now() - game.createdAt;
-            const userId = res.locals.userId;
-            tracker.finished(gameId, durationMs, userId);
-            if (!userId) {
-                res.status(200).json({status: "ok", data: {xp: undefined, durationMs}});
-                return;
-            }
-            const {size} = game.puzzle;
-            const hints = game.cluesCount;
-            const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
-            const xp = tuyauxXp(baseXp, size, hints);
-            const credits = tuyauxCredits(size, hints);
-            const {personalBest} = await progression.recordWin(userId, GAME_CODE, xp, {gridSize: size, emptyCells: hints, durationMs}, credits);
-            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: 1, durationMs, personalBest}});
+            await finishGridWin(res, GAME_CODE, gameId, game, {progression, games, daily});
         }),
     };
 }

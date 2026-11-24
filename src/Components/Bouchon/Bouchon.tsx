@@ -9,6 +9,8 @@ import "../PuzzleUI/PuzzleLayout.scss";
 import "./Bouchon.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import Loader from "../Loader/Loader.tsx";
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
@@ -58,9 +60,18 @@ function VehicleShape({vehicle, taxi}: { vehicle: BouchonVehicle; taxi: boolean 
     );
 }
 
-export default function Bouchon() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, BouchonPuzzle>(CODE, bouchonService.getGame);
+export default function Bouchon({daily = false, replayDate}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+    const challenge = useGridChallenge<Saved, BouchonPuzzle>({
+        code: CODE, gameName: "Bouchon", daily, replayDate,
+        fetchStatus: bouchonService.getGame,
+        emptySave: gameId => ({gameId, moves: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, BouchonPuzzle>(challenge.saveKey, bouchonService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<BouchonPuzzle | null>(null);
     const [moves, setMoves] = useState<BouchonMove[]>([]);
     const [future, setFuture] = useState<BouchonMove[]>([]);
@@ -75,8 +86,8 @@ export default function Bouchon() {
     const solved = puzzle !== null && drag === null && isOut(puzzle, positions);
 
     useEffect(() => {
-        if (gameId.current) saveGame<Saved>(CODE, {gameId: gameId.current, moves});
-    }, [moves]);
+        if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, moves});
+    }, [moves, challenge.saveKey]);
 
     const start = (next: BouchonPuzzle, id: string, initial: BouchonMove[]) => {
         gameId.current = id;
@@ -101,10 +112,14 @@ export default function Bouchon() {
         });
     };
 
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: BouchonPuzzle, saved: Saved) => {
+        start(grid, saved.gameId, Array.isArray(saved.moves) ? saved.moves : []);
+    };
+
     const handleResume = () => {
         if (!resumable) return;
-        const {grid, saved} = resumable;
-        start(grid, saved.gameId, Array.isArray(saved.moves) ? saved.moves : []);
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -193,7 +208,7 @@ export default function Bouchon() {
             try {
                 const result = await bouchonService.validate(gameId.current, moves);
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 return {ok: true, result};
             } catch (err) {
                 return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
@@ -215,7 +230,7 @@ export default function Bouchon() {
 
     return (
         <div className="puzzle-layout bouchon">
-            <GameToolbar gameName="Bouchon" clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
+            <GameToolbar gameName="Bouchon" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
 
             <div className="options">
                 <h2 className="title">Bouchon</h2>
@@ -227,7 +242,9 @@ export default function Bouchon() {
             </div>
 
             <div className="game">
+                {challenge.banner}
                 <h1 className="title">Bouchon</h1>
+                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
                 {puzzle && (
                     <svg ref={board} className={`bouchon-board ${drag ? "dragging" : ""}`}
                          viewBox={`0 0 ${puzzle.size + EXIT_WIDTH} ${puzzle.size}`}
@@ -270,7 +287,7 @@ export default function Bouchon() {
                 <GameTimer clock={flow.clock}/>
                 <HistoryButtons canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                                 onReset={reset} canReset={playing && moves.length > 0}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>
                 <div className="rules">
                     <h3>Règles</h3>
                     {rules}
@@ -278,17 +295,19 @@ export default function Bouchon() {
                 </div>
             </div>
 
-            <WordSettingsPopup open={flow.showSettings} load={bouchonService.getSettings} onGenerate={handleGenerate}
+            <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={bouchonService.getSettings} onGenerate={handleGenerate}
                                resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                sizeLegend="Taille du parking" sizeLabel={s => `${s}×${s}`}
                                amountLabel="Coups minimum"/>
+
+            {challenge.donePopup}
 
             {flow.victory && (
                 <SuccessPopup gameName="Bouchon" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}
                               personalBest={flow.victory.personalBest} daily={flow.victory.daily}
-                              onNewGame={flow.newGame} back="home"/>
+                              streak={flow.victory.streak} {...challenge.victory(flow.newGame)}/>
             )}
         </div>
     );

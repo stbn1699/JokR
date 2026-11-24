@@ -5,11 +5,12 @@ import {createBouchonController} from "../controllers/Bouchon.controller.js";
 import {ProgressionService} from "../services/Progression.service.js";
 import {GamesService} from "../services/Games.service.js";
 import {GamesRepository} from "../repository/Games.repository.js";
+import {createDailyService} from "../services/daily.js";
 import {optionalAuth} from "../middleware/auth.js";
 
 const router = Router();
 const db = createDb(pool);
-const controller = createBouchonController(new ProgressionService(db), new GamesService(new GamesRepository(db)));
+const controller = createBouchonController(new ProgressionService(db), new GamesService(new GamesRepository(db)), createDailyService(db));
 
 // GET /bouchon/settings (tailles, nombres de coups et XP associée)
 router.get("/settings", controller.settings);

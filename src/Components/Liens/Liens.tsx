@@ -9,6 +9,8 @@ import "../PuzzleUI/PuzzleLayout.scss";
 import "./Liens.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import Loader from "../Loader/Loader.tsx";
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
@@ -29,9 +31,18 @@ const COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#eab308", "#f97316", "#a855f7"
 
 type Saved = { gameId: string; paths: number[][] };
 
-export default function Liens() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, LiensPuzzle>(CODE, liensService.getGame);
+export default function Liens({daily = false, replayDate}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+    const challenge = useGridChallenge<Saved, LiensPuzzle>({
+        code: CODE, gameName: "Liens", daily, replayDate,
+        fetchStatus: liensService.getGame,
+        emptySave: gameId => ({gameId, paths: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, LiensPuzzle>(challenge.saveKey, liensService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<LiensPuzzle | null>(null);
     const [paths, setPaths] = useState<number[][]>([]);
     const [past, setPast] = useState<number[][][]>([]);
@@ -49,8 +60,8 @@ export default function Liens() {
     const solved = puzzle !== null && drawing === null && isSolved(puzzle, paths);
 
     useEffect(() => {
-        if (gameId.current && paths.length > 0) saveGame<Saved>(CODE, {gameId: gameId.current, paths});
-    }, [paths]);
+        if (gameId.current && paths.length > 0) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, paths});
+    }, [paths, challenge.saveKey]);
 
     const start = (next: LiensPuzzle, id: string, initial: number[][]) => {
         gameId.current = id;
@@ -75,10 +86,14 @@ export default function Liens() {
         });
     };
 
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: LiensPuzzle, saved: Saved) => {
+        start(grid, saved.gameId, saved.paths?.length === grid.pairs.length ? saved.paths : grid.pairs.map(() => []));
+    };
+
     const handleResume = () => {
         if (!resumable) return;
-        const {grid, saved} = resumable;
-        start(grid, saved.gameId, saved.paths?.length === grid.pairs.length ? saved.paths : grid.pairs.map(() => []));
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -160,7 +175,7 @@ export default function Liens() {
             try {
                 const result = await liensService.validate(gameId.current, paths);
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 return {ok: true, result};
             } catch (err) {
                 return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
@@ -184,7 +199,7 @@ export default function Liens() {
 
     return (
         <div className="puzzle-layout liens">
-            <GameToolbar gameName="Liens" clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
+            <GameToolbar gameName="Liens" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
 
             <div className="options">
                 <h2 className="title">Liens</h2>
@@ -203,7 +218,9 @@ export default function Liens() {
             </div>
 
             <div className="game">
+                {challenge.banner}
                 <h1 className="title">Liens</h1>
+                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
                 {puzzle && (
                     <svg ref={board} className={`liens-board ${drawing ? "drawing" : ""}`} viewBox={`0 0 ${puzzle.size} ${puzzle.size}`}
                          role="application" aria-label="Plateau : glisse d'une lettre à sa jumelle"
@@ -242,7 +259,7 @@ export default function Liens() {
                 <GameTimer clock={flow.clock}/>
                 <HistoryButtons canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                                 onReset={reset} canReset={playing && hasInput}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>
                 <div className="rules">
                     <h3>Règles</h3>
                     {rules}
@@ -250,17 +267,19 @@ export default function Liens() {
                 </div>
             </div>
 
-            <WordSettingsPopup open={flow.showSettings} load={liensService.getSettings} onGenerate={handleGenerate}
+            <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={liensService.getSettings} onGenerate={handleGenerate}
                                resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                sizeLegend="Taille de la grille" sizeLabel={s => `${s}×${s}`}
                                amountLabel="Paires à relier"/>
+
+            {challenge.donePopup}
 
             {flow.victory && (
                 <SuccessPopup gameName="Liens" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}
                               personalBest={flow.victory.personalBest} daily={flow.victory.daily}
-                              onNewGame={flow.newGame} back="home"/>
+                              streak={flow.victory.streak} {...challenge.victory(flow.newGame)}/>
             )}
         </div>
     );

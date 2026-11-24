@@ -78,21 +78,21 @@ export default function PlayGame({daily = false, challengeGame, challengeId}: { 
                 return <Queens daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
             case "TRACE":
                 return <Trace daily={daily && !date} replayDate={date} challengeId={challengeId}/>;
-            // Coloria, Tuyaux, Liens, Bouchon, Pâturages, Boucle, Démineur et jeux de mots : partie libre uniquement pour l'instant
+            // Coloria, Tuyaux, Liens, Bouchon, Pâturages, Boucle, Démineur : défi du jour et défis passés, pas de défi entre amis ni de niveaux
             case "DEMINEUR":
-                return <Demineur/>;
+                return <Demineur daily={daily && !date} replayDate={date}/>;
             case "BOUCLE":
-                return <Boucle/>;
+                return <Boucle daily={daily && !date} replayDate={date}/>;
             case "PATURAGES":
-                return <Paturages/>;
+                return <Paturages daily={daily && !date} replayDate={date}/>;
             case "BOUCHON":
-                return <Bouchon/>;
+                return <Bouchon daily={daily && !date} replayDate={date}/>;
             case "LIENS":
-                return <Liens/>;
+                return <Liens daily={daily && !date} replayDate={date}/>;
             case "COLORIA":
-                return <Coloria/>;
+                return <Coloria daily={daily && !date} replayDate={date}/>;
             case "TUYAUX":
-                return <Tuyaux/>;
+                return <Tuyaux daily={daily && !date} replayDate={date}/>;
             case "DEVIMOT":
                 return <Devimot/>;
             case "ECHELLE":

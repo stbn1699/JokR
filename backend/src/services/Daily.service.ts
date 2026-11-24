@@ -10,6 +10,8 @@ import type {GalaxiesService} from "./Galaxies.service.js";
 import type {ShikakuService} from "./Shikaku.service.js";
 import type {QueensService} from "./Queens.service.js";
 import type {TraceService} from "./Trace.service.js";
+import {randomInt} from "node:crypto";
+import {GRID_GAMES, gridGame, isGridGame} from "./gridGames.js";
 
 /*
  * Défi du jour : une grille par jeu et par jour, la même pour tout le monde.
@@ -34,6 +36,9 @@ export const DAILY_GAMES = {
     QUEENS: {size: 8, emptyCells: 0},
     // Tracé : size = côté, emptyCells = numéros donnés en plus
     TRACE: {size: 7, emptyCells: 1},
+    // Jeux de grille ajoutés depuis 3.3 : emptyCells = valeur du curseur de la partie libre (voir gridGames.ts)
+    ...Object.fromEntries(Object.entries(GRID_GAMES).map(([code, game]) => [code, {size: game.daily.size, emptyCells: game.daily.amount}])) as
+        { [K in keyof typeof GRID_GAMES]: { size: number; emptyCells: number } },
 } as const;
 
 export type DailyGameCode = keyof typeof DAILY_GAMES;
@@ -71,6 +76,7 @@ export class DailyService {
     }
 
     private async generate(gameCode: DailyGameCode, size: number, emptyCells: number): Promise<unknown> {
+        if (isGridGame(gameCode)) return gridGame(gameCode).generate(size, emptyCells, max => randomInt(max));
         switch (gameCode) {
             case "SUDOKU":
                 return this.sudoku.generate(81 - emptyCells);

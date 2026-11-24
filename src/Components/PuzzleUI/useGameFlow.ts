@@ -121,6 +121,9 @@ export function useGameFlow(gameCode: string, challenge = false) {
         });
     };
 
+    // Temps de pénalité (ex. mine du Démineur au défi du jour) : le chrono avance d'un coup
+    const penalty = (ms: number) => setClock(c => (c.startedAt !== null && c.finalMs === null ? {...c, startedAt: c.startedAt - ms} : c));
+
     // Partie perdue (ex. mine du Démineur) : le chrono s'arrête, pas de victoire
     const stop = () => setClock(c => (c.startedAt !== null && c.finalMs === null ? {...c, finalMs: Math.max(0, Date.now() - c.startedAt)} : c));
 
@@ -142,6 +145,7 @@ export function useGameFlow(gameCode: string, challenge = false) {
         resume,
         submit,
         stop,
+        penalty,
         newGame,
     };
 }

@@ -11,5 +11,12 @@ export function dailyGridLabel(code: string, size: number, emptyCells: number): 
     if (code === "SHIKAKU") return `${size}×${size} · ${emptyCells === 0 ? "sans aide" : `${emptyCells} rectangles donnés`}`;
     if (code === "QUEENS") return `${size}×${size} · ${emptyCells === 0 ? "sans aide" : `${emptyCells} dames données`}`;
     if (code === "TRACE") return `${size}×${size} · ${emptyCells === 0 ? "sans aide" : `${emptyCells} numéro${emptyCells > 1 ? "s" : ""} en plus`}`;
+    if (code === "COLORIA") return `${size} zones · ${emptyCells} couleurs`;
+    if (code === "TUYAUX") return `${size}×${size} · ${emptyCells === 0 ? "sans aide" : `${emptyCells} cases données`}`;
+    if (code === "LIENS") return `${size}×${size} · ${emptyCells} paires`;
+    if (code === "BOUCHON") return `${size}×${size} · ${emptyCells} coups`;
+    if (code === "PATURAGES") return `${size}×${size} · ${emptyCells === 0 ? "sans aide" : `${emptyCells} carrés donnés`}`;
+    if (code === "BOUCLE") return `${size}×${size} · ${emptyCells} murs`;
+    if (code === "DEMINEUR") return `${size}×${size} · ${emptyCells} mines`;
     return `${size}×${size} · ${emptyCells} cases`;
 }

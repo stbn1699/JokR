@@ -6,10 +6,13 @@ import type {GamesService} from "../services/Games.service.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import {demineurStore} from "../services/stores.js";
 import {tracker} from "../services/tracker.js";
+import type {DailyService} from "../services/Daily.service.js";
+import {finishGridWin} from "../services/gridWin.js";
 import {routeParam} from "../utils/validation.js";
 import {wordSettings} from "../utils/words.js";
 import {
     createDemineur,
+    DEMINEUR_DAILY_PENALTY_MS,
     DEMINEUR_DEFAULT_SIZE,
     DEMINEUR_SIZES,
     demineurCredits,
@@ -22,7 +25,7 @@ import {
 const GAME_CODE = "DEMINEUR";
 
 // Ce que le joueur voit : la taille, le nombre de mines et les cases déjà libérées, jamais les mines
-const publicPuzzle = ({size, mineCount, revealed}: DemineurPuzzle) => ({size, mines: mineCount, revealed: [...revealed]});
+const publicPuzzle = ({size, mineCount, revealed, blown}: DemineurPuzzle) => ({size, mines: mineCount, revealed: [...revealed], blown: [...blown]});
 
 /*
  * Contrôleur Démineur (partie libre)
@@ -31,7 +34,7 @@ const publicPuzzle = ({size, mineCount, revealed}: DemineurPuzzle) => ({size, mi
  * - reveal { gameId, cells } : libère des cases ; une mine termine la partie (perdue)
  * - validate { gameId } : toutes les cases sans mine sont libérées ; XP si le joueur est connecté
  */
-export function createDemineurController(progression: ProgressionService, games: GamesService) {
+export function createDemineurController(progression: ProgressionService, games: GamesService, daily: DailyService) {
     return {
         settings: asyncHandler(async (_req: Request, res: Response) => {
             const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
@@ -73,6 +76,15 @@ export function createDemineurController(progression: ProgressionService, games:
                 res.status(400).json({status: "error", message: "Case inconnue"});
                 return;
             }
+            if (outcome.kind === "exploded" && game.daily) {
+                // Défi du jour : la grille est la même pour tous, une partie perdue ne doit pas pouvoir se rejouer
+                // en connaissant les mines. La mine reste visible et le chrono prend du temps en plus.
+                game.puzzle.blown.add(outcome.cell);
+                game.createdAt -= DEMINEUR_DAILY_PENALTY_MS;
+                tracker.failed(gameId);
+                res.status(200).json({status: "ok", data: {kind: "penalty", cell: outcome.cell, penaltyMs: DEMINEUR_DAILY_PENALTY_MS}});
+                return;
+            }
             if (outcome.kind === "exploded") {
                 // Partie perdue : elle ne peut plus être validée
                 tracker.failed(gameId);
@@ -97,21 +109,7 @@ export function createDemineurController(progression: ProgressionService, games:
                 return;
             }
 
-            // Partie terminée : on la retire tout de suite pour empêcher une double validation
-            demineurStore.delete(gameId);
-            const durationMs = Date.now() - game.createdAt;
-            const userId = res.locals.userId;
-            tracker.finished(gameId, durationMs, userId);
-            if (!userId) {
-                res.status(200).json({status: "ok", data: {xp: undefined, durationMs}});
-                return;
-            }
-            const {size, mineCount} = game.puzzle;
-            const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
-            const xp = demineurXp(baseXp, size, mineCount);
-            const credits = demineurCredits(size, mineCount);
-            const {personalBest} = await progression.recordWin(userId, GAME_CODE, xp, {gridSize: size, emptyCells: mineCount, durationMs}, credits);
-            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: 1, durationMs, personalBest}});
+            await finishGridWin(res, GAME_CODE, gameId, game, {progression, games, daily});
         }),
     };
 }

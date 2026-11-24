@@ -10,6 +10,8 @@ import "./Tuyaux.scss";
 import {SuccessPopup} from "../SuccessPopup/SuccessPopup.tsx";
 import ErrorsToggle from "../PuzzleUI/ErrorsToggle.tsx";
 import GameNotice from "../PuzzleUI/GameNotice.tsx";
+import Loader from "../Loader/Loader.tsx";
+import {type GridChallengeProps, useGridChallenge} from "../PuzzleUI/useGridChallenge.tsx";
 import GameTimer from "../PuzzleUI/GameTimer.tsx";
 import GameToolbar from "../PuzzleUI/GameToolbar.tsx";
 import HistoryButtons from "../PuzzleUI/HistoryButtons.tsx";
@@ -68,9 +70,18 @@ function Water({mask, inlet, fill}: { mask: number; inlet: number; fill: WaterFi
     );
 }
 
-export default function Tuyaux() {
-    const flow = useGameFlow(CODE);
-    const {resumable, dismissResumable} = useResumableGame<Saved, TuyauxPuzzle>(CODE, tuyauxService.getGame);
+export default function Tuyaux({daily = false, replayDate}: GridChallengeProps = {}) {
+    const flow = useGameFlow(CODE, daily || replayDate !== undefined);
+    const challenge = useGridChallenge<Saved, TuyauxPuzzle>({
+        code: CODE, gameName: "Tuyaux", daily, replayDate,
+        fetchStatus: tuyauxService.getGame,
+        emptySave: gameId => ({gameId, turns: []}),
+        onLoad: (grid, saved, elapsedMs) => {
+            restore(grid, saved);
+            flow.resume(elapsedMs);
+        },
+    });
+    const {resumable, dismissResumable} = useResumableGame<Saved, TuyauxPuzzle>(challenge.saveKey, tuyauxService.getGame, !challenge.challenge);
     const [puzzle, setPuzzle] = useState<TuyauxPuzzle | null>(null);
     // Quarts de tour cumulés : la pièce tourne toujours dans le bon sens à l'écran
     const [turns, setTurns] = useState<number[]>([]);
@@ -101,8 +112,8 @@ export default function Tuyaux() {
     const solved = puzzle !== null && isSolved(masks, puzzle.size);
 
     useEffect(() => {
-        if (gameId.current && turns.length > 0) saveGame<Saved>(CODE, {gameId: gameId.current, turns, pins: [...pins]});
-    }, [turns, pins]);
+        if (gameId.current && turns.length > 0) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, turns, pins: [...pins]});
+    }, [turns, pins, challenge.saveKey]);
 
     const start = (next: TuyauxPuzzle, id: string, initial: number[], pinned: number[] = []) => {
         gameId.current = id;
@@ -128,11 +139,15 @@ export default function Tuyaux() {
         });
     };
 
-    const handleResume = () => {
-        if (!resumable) return;
-        const {grid, saved} = resumable;
+    // Partie sauvegardée (reprise ou défi) : grille de départ et saisies du joueur
+    const restore = (grid: TuyauxPuzzle, saved: Saved) => {
         const restored = saved.turns?.length === grid.tiles.length ? saved.turns : grid.tiles.map(() => 0);
         start(grid, saved.gameId, restored, saved.pins ?? []);
+    };
+
+    const handleResume = () => {
+        if (!resumable) return;
+        restore(resumable.grid, resumable.saved);
         flow.resume(resumable.elapsedMs + Date.now() - resumable.checkedAt);
         dismissResumable();
     };
@@ -222,7 +237,7 @@ export default function Tuyaux() {
             try {
                 const result = await tuyauxService.validate(gameId.current, turns.map(normalize));
                 gameId.current = null;
-                clearSavedGame(CODE);
+                clearSavedGame(challenge.saveKey);
                 return {ok: true, result};
             } catch (err) {
                 return {ok: false, message: (err as Error).message || "La validation a échoué, réessaie."};
@@ -253,7 +268,7 @@ export default function Tuyaux() {
 
     return (
         <div className="puzzle-layout tuyaux">
-            <GameToolbar gameName="Tuyaux" clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
+            <GameToolbar gameName="Tuyaux" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                          showErrors={showErrors} onToggleErrors={setShowErrors} errorCount={open.size} rules={rules}/>
 
             <div className="options">
@@ -268,7 +283,9 @@ export default function Tuyaux() {
             </div>
 
             <div className="game">
+                {challenge.banner}
                 <h1 className="title">Tuyaux</h1>
+                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
                 {puzzle && (
                     <svg className={`tuyaux-board ${solved ? "solved" : ""}`} viewBox={`0 0 ${puzzle.size} ${puzzle.size}`}
                          role="grid" aria-label="Plateau de tuyaux" style={{"--size": puzzle.size} as CSSProperties}>
@@ -312,7 +329,7 @@ export default function Tuyaux() {
                 <HistoryButtons canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                                 onReset={reset} canReset={playing && hasInput}/>
                 <ErrorsToggle checked={showErrors} onChange={setShowErrors} count={open.size}/>
-                <GameNotice message={flow.notice} onClose={flow.clearNotice}/>
+                <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>
                 <div className="rules">
                     <h3>Règles</h3>
                     {rules}
@@ -320,17 +337,19 @@ export default function Tuyaux() {
                 </div>
             </div>
 
-            <WordSettingsPopup open={flow.showSettings} load={tuyauxService.getSettings} onGenerate={handleGenerate}
+            <WordSettingsPopup open={flow.showSettings && !challenge.challenge} load={tuyauxService.getSettings} onGenerate={handleGenerate}
                                resume={resumable ? {elapsedMs: resumable.elapsedMs, onResume: handleResume} : undefined}
                                sizeLegend="Taille de la grille" sizeLabel={s => `${s}×${s}`}
                                amountLabel="Cases données" easierWhenHigher/>
+
+            {challenge.donePopup}
 
             {flow.victory && (
                 <SuccessPopup gameName="Tuyaux" gameCode={CODE} xpAwarded={flow.victory.xpAwarded}
                               creditsAwarded={flow.victory.creditsAwarded} rewardMultiplier={flow.victory.rewardMultiplier}
                               before={flow.victory.before} durationMs={flow.victory.durationMs}
                               personalBest={flow.victory.personalBest} daily={flow.victory.daily}
-                              onNewGame={flow.newGame} back="home"/>
+                              streak={flow.victory.streak} {...challenge.victory(flow.newGame)}/>
             )}
         </div>
     );

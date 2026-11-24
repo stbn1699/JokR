@@ -6,6 +6,8 @@ import type {GamesService} from "../services/Games.service.js";
 import type {ProgressionService} from "../services/Progression.service.js";
 import {bouchonStore} from "../services/stores.js";
 import {tracker} from "../services/tracker.js";
+import type {DailyService} from "../services/Daily.service.js";
+import {finishGridWin} from "../services/gridWin.js";
 import {routeParam} from "../utils/validation.js";
 import {wordSettings} from "../utils/words.js";
 import {BOUCHON_DEFAULT_SIZE, BOUCHON_SIZES, bouchonCredits, bouchonXp, generateBouchon, isBouchonSolution} from "../utils/bouchon.js";
@@ -18,7 +20,7 @@ const GAME_CODE = "BOUCHON";
  * - generate { size, amount: coups minimum }, games/:gameId pour reprendre une partie
  * - validate { gameId, moves } : les coups sont rejoués ; XP si le joueur est connecté
  */
-export function createBouchonController(progression: ProgressionService, games: GamesService) {
+export function createBouchonController(progression: ProgressionService, games: GamesService, daily: DailyService) {
     return {
         settings: asyncHandler(async (_req: Request, res: Response) => {
             const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
@@ -65,22 +67,7 @@ export function createBouchonController(progression: ProgressionService, games: 
                 return;
             }
 
-            // Partie terminée : on la retire tout de suite pour empêcher une double validation
-            bouchonStore.delete(gameId);
-            const durationMs = Date.now() - game.createdAt;
-            const userId = res.locals.userId;
-            tracker.finished(gameId, durationMs, userId);
-            if (!userId) {
-                res.status(200).json({status: "ok", data: {xp: undefined, durationMs}});
-                return;
-            }
-            const {size} = game.puzzle;
-            const count = game.cluesCount;
-            const baseXp = await games.getBaseXp(GAME_CODE) ?? 0;
-            const xp = bouchonXp(baseXp, size, count);
-            const credits = bouchonCredits(size, count);
-            const {personalBest} = await progression.recordWin(userId, GAME_CODE, xp, {gridSize: size, emptyCells: count, durationMs}, credits);
-            res.status(200).json({status: "ok", data: {xp, credits, rewardMultiplier: 1, durationMs, personalBest}});
+            await finishGridWin(res, GAME_CODE, gameId, game, {progression, games, daily});
         }),
     };
 }

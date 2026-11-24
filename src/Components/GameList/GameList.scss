@@ -318,61 +318,6 @@
 		}
 	}
 
-	// Bouton "Défi du jour" sous chaque jeu
-	.daily-button {
-		display         : flex;
-		align-items     : center;
-		justify-content : center;
-		gap             : 0.5rem;
-		width           : 13rem;
-		margin-top      : 0.75rem;
-		padding         : 0.55rem 0;
-		box-sizing      : border-box;
-		border          : 2px solid rgba(245, 158, 11, 0.75);
-		border-radius   : 999px;
-		background      : rgba(245, 158, 11, 0.15);
-		color           : #fbbf24;
-		font-size       : 1.15rem;
-		font-weight     : 700;
-		text-decoration : none;
-		transition      : all 0.15s ease;
-
-		&:hover {
-			background : rgba(245, 158, 11, 0.3);
-		}
-
-		// Badge « ×2 » : XP et crédits doublés
-		.daily-x2 {
-			padding       : 0 0.45rem;
-			border-radius : 999px;
-			background    : #f59e0b;
-			color         : #1f1300;
-			font-size     : 0.9em;
-			font-weight   : 800;
-		}
-
-		// Déjà réussi aujourd'hui : temps et place
-		&.done {
-			border-color : rgba(59, 246, 68, 0.6);
-			background   : rgba(59, 246, 68, 0.1);
-			color        : #3bf644;
-			font-weight  : 400;
-		}
-
-		// Invité : le clic ouvre l'invitation à créer un compte
-		&.locked {
-			border-color : rgba(249, 250, 251, 0.3);
-			background   : transparent;
-			color        : rgba(249, 250, 251, 0.75);
-			font-weight  : 400;
-
-			&:hover {
-				border-color : rgba(245, 158, 11, 0.75);
-				color        : #fbbf24;
-			}
-		}
-	}
-
 }
 
 // Couleur de chaque type de jeu (pastille, filtre, titre de section)
@@ -395,6 +340,78 @@
 
 	&.tous {
 		--type : #f9fafb;
+	}
+
+	// Défi du jour : tout passe en doré
+	&.daily {
+		--type : #fbbf24;
+	}
+}
+
+// Mode « Défi du jour » : cartes dorées, la carte mène à la grille du jour
+.game-list.daily-mode {
+	.game-card.daily .game {
+		background : linear-gradient(160deg, color-mix(in srgb, var(--type) 58%, #18181b), color-mix(in srgb, #b45309 40%, #18181b));
+		box-shadow : 0 0.5rem 1.4rem color-mix(in srgb, var(--type) 25%, transparent);
+	}
+
+	// déjà réussi aujourd'hui : carte éteinte, plus cliquable, avec le temps et la place
+	.game-card.done {
+		&:hover { transform : none; }
+
+		.game {
+			cursor     : default;
+			filter     : saturate(0.35) brightness(0.8);
+			box-shadow : none;
+
+			&:hover {
+				outline : none;
+
+				img { transform : none; }
+			}
+		}
+	}
+
+	.game-daily-result {
+		margin-top  : 0.35rem;
+		font-size   : 1.05rem;
+		font-weight : 700;
+		white-space : nowrap;
+	}
+}
+
+// Pastille du mode défi (×2, réussi, compte nécessaire)
+.game-type.daily {
+	background  : var(--type);
+	color       : #1f1300;
+	font-weight : 800;
+}
+
+// Ligne sous les filtres en mode défi : date, gains doublés, défis passés
+.daily-strip {
+	display         : flex;
+	flex-wrap       : wrap;
+	justify-content : center;
+	align-items     : center;
+	gap             : 0.4rem 1.25rem;
+	margin          : 0.9rem 1rem 0;
+	font-size       : 1.15rem;
+	color           : rgba(249, 250, 251, 0.85);
+
+	strong { color : #fbbf24; }
+
+	a {
+		color : #fbbf24;
+
+		&:hover { text-decoration : underline; }
+	}
+
+	.daily-strip-x2 {
+		padding       : 0.1rem 0.6rem;
+		border-radius : 999px;
+		background    : #f59e0b;
+		color         : #1f1300;
+		font-weight   : 800;
 	}
 }
 
@@ -742,12 +759,6 @@
 			font-size : 1.5rem;
 		}
 
-		.daily-button {
-			width     : 100%;
-			margin-top : 0.5rem;
-			padding   : 0.45rem 0;
-			font-size : 1.05rem;
-		}
 
 		.game-tile {
 			width : 100%;
