@@ -1,0 +1,130 @@
+// Plateau du Démineur (la mise en page commune est dans PuzzleUI/PuzzleLayout.scss)
+.demineur {
+	.demineur-board {
+		display       : block;
+		box-sizing    : border-box;
+		width         : min(44rem, calc(100vh - 11rem), calc(100vw - 2rem));
+		height        : auto;
+		overflow      : hidden;
+		border        : 3px solid var(--board-frame);
+		border-radius : 10px;
+		background    : var(--board-paper);
+		cursor        : pointer;
+		// appui long = drapeau : pas de défilement, de sélection ni de menu du téléphone
+		touch-action          : none;
+		user-select           : none;
+		-webkit-user-select   : none;
+		-webkit-touch-callout : none;
+
+		&.lost { cursor : default; }
+	}
+
+	.demineur-grid line {
+		stroke           : var(--board-dash);
+		stroke-width     : 0.025;
+		stroke-dasharray : 0.12 0.1;
+	}
+
+	.dm-open {
+		fill : var(--board-paper);
+
+		&.dm-exploded { fill : #f87171; }
+	}
+
+	.dm-hidden {
+		fill         : var(--board-region-1);
+		stroke       : var(--board-wall);
+		stroke-width : 0.04;
+		transition   : fill 0.15s;
+
+		&.dm-highlight { fill : #fde68a; }
+	}
+
+	.demineur-board:not(.lost) .dm-hidden:hover { filter : brightness(1.08); }
+
+	.dm-count {
+		font-size         : 0.64px;
+		font-weight       : 800;
+		text-anchor       : middle;
+		dominant-baseline : central;
+		pointer-events    : none;
+
+		&.dm-n1 { fill : #2563eb; }
+		&.dm-n2 { fill : #15803d; }
+		&.dm-n3 { fill : #dc2626; }
+		&.dm-n4 { fill : #1e3a8a; }
+		&.dm-n5 { fill : #9f1239; }
+		&.dm-n6 { fill : #0f766e; }
+		&.dm-n7 { fill : #0f172a; }
+		&.dm-n8 { fill : #64748b; }
+	}
+
+	.dm-flag {
+		pointer-events : none;
+
+		.dm-flag-pole {
+			stroke         : var(--board-wall);
+			stroke-width   : 0.07;
+			stroke-linecap : round;
+		}
+
+		.dm-flag-cloth { fill : #ef4444; }
+
+		.dm-flag-wrong {
+			stroke         : var(--board-wall);
+			stroke-width   : 0.08;
+			stroke-linecap : round;
+		}
+	}
+
+	.dm-mine {
+		pointer-events : none;
+		fill           : var(--board-wall);
+
+		.dm-mine-spikes {
+			stroke         : var(--board-wall);
+			stroke-width   : 0.07;
+			stroke-linecap : round;
+		}
+	}
+
+	.demineur-progress {
+		margin     : 1.5rem 1rem 0.5rem;
+		font-size  : 1.4rem;
+		text-align : center;
+
+		strong {
+			font-size : 2.2rem;
+			color     : #f87171;
+		}
+	}
+
+	.demineur-retry {
+		margin        : 1rem auto 0;
+		padding       : 0.6rem 1.4rem;
+		border        : none;
+		border-radius : 8px;
+		background    : #3b82f6;
+		color         : white;
+		font          : inherit;
+		font-weight   : 700;
+		cursor        : pointer;
+
+		&:hover { background : #2563eb; }
+	}
+}
+
+@media (max-width: 999px) {
+	.puzzle-layout.demineur {
+		.game { align-items : center; }
+
+		.demineur-board { width : min(100cqw, 100cqh); }
+
+		.demineur-progress {
+			margin    : 0;
+			font-size : 1.1rem;
+
+			strong { font-size : 1.5rem; }
+		}
+	}
+}

@@ -36,6 +36,7 @@ export type Clock = { startedAt: number | null; finalMs: number | null };
  * - resume(elapsedMs) : ferme la popup et reprend le chrono d'une partie déjà commencée
  * - submit(fn) : valide la grille ; en cas d'échec, le message s'affiche dans `notice`
  *   (`validating` est vrai pendant que le serveur vérifie)
+ * - stop() : arrête le chrono d'une partie perdue
  * - newGame() : rouvre la popup de paramètres, sans recharger la page
  *
  * La partie en cours est déclarée pour les mises à jour (useActivity) : l'administrateur voit qui joue, et le
@@ -120,6 +121,9 @@ export function useGameFlow(gameCode: string, challenge = false) {
         });
     };
 
+    // Partie perdue (ex. mine du Démineur) : le chrono s'arrête, pas de victoire
+    const stop = () => setClock(c => (c.startedAt !== null && c.finalMs === null ? {...c, finalMs: Math.max(0, Date.now() - c.startedAt)} : c));
+
     const newGame = () => {
         setVictory(null);
         setNotice(null);
@@ -137,6 +141,7 @@ export function useGameFlow(gameCode: string, challenge = false) {
         generate,
         resume,
         submit,
+        stop,
         newGame,
     };
 }

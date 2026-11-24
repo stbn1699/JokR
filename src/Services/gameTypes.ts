@@ -30,6 +30,7 @@ const TYPE_BY_GAME: Record<string, GameType> = {
     BOUCHON: "grille",
     PATURAGES: "grille",
     BOUCLE: "grille",
+    DEMINEUR: "grille",
     DEVIMOT: "mots",
     ECHELLE: "mots",
     MOTSMELES: "mots",

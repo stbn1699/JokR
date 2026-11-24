@@ -16,6 +16,7 @@ import type {LiensPuzzle} from "../utils/liens.js";
 import type {BouchonPuzzle} from "../utils/bouchon.js";
 import type {PaturagesPuzzle} from "../utils/paturages.js";
 import type {BouclePuzzle} from "../utils/boucle.js";
+import type {DemineurPuzzle} from "../utils/demineur.js";
 
 /*
  * Parties en cours, une mémoire par jeu, partagées entre les routes du jeu
@@ -51,3 +52,5 @@ export const bouchonStore = new PuzzleStore<BouchonPuzzle>();
 export const paturagesStore = new PuzzleStore<PaturagesPuzzle>();
 // Boucle : cluesCount = nombre de murs
 export const boucleStore = new PuzzleStore<BouclePuzzle>();
+// Démineur : cluesCount = nombre de mines
+export const demineurStore = new PuzzleStore<DemineurPuzzle>();
