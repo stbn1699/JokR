@@ -173,12 +173,13 @@ export default function GameList() {
     const [overlayVisible, setOverlayVisible] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
     // « Retour aux défis » (?filtre=defi) : l'accueil s'ouvre sur les défis du jour
-    const [filter, setFilter] = useState<GameFilter>(() => (searchParams.get("filtre") === "defi" ? "defi" : lastGameFilter()));
+    const wantsDaily = searchParams.get("filtre") === "defi";
+    const [filter, setFilter] = useState<GameFilter>(() => (wantsDaily ? "defi" : lastGameFilter()));
+    // déjà sur l'accueil : le lien choisit aussi les défis (puis l'adresse redevient « / »)
+    if (wantsDaily && filter !== "defi") setFilter("defi");
     useEffect(() => {
-        if (searchParams.get("filtre") !== "defi") return;
-        setFilter("defi");
-        setSearchParams({}, {replace: true});
-    }, [searchParams, setSearchParams]);
+        if (wantsDaily) setSearchParams({}, {replace: true});
+    }, [wantsDaily, setSearchParams]);
     const timeoutRef = useRef<number | null>(null);
     const {userId, isLoggedIn} = useAuth();
     const navigate = useNavigate();
