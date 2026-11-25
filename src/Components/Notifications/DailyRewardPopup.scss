@@ -2,6 +2,18 @@
 .modal.success-modal.daily-reward {
 	width     : min(30rem, calc(100vw - 2rem));
 	animation : daily-reward-in 0.4s cubic-bezier(.2, .9, .3, 1.25);
+	// .success-modal coupe le débordement : ici la liste des jeux peut être longue (plusieurs jours,
+	// tous les défis), elle défile seule et le bouton « Récupérer » reste toujours à l'écran
+	display        : flex;
+	flex-direction : column;
+	overflow-y     : auto;
+
+	.daily-reward-days {
+		flex                : 0 1 auto;
+		min-height          : 4rem;
+		overflow-y          : auto;
+		overscroll-behavior : contain;
+	}
 
 	.daily-reward-sub {
 		margin    : 0 0 1rem;

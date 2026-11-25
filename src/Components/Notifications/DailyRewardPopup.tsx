@@ -59,6 +59,7 @@ export default function DailyRewardPopup({rewards, onClose}: DailyRewardPopupPro
                 <h2 id="daily-reward-title">Classements des défis</h2>
                 <p className="daily-reward-sub">Ta place finale te rapporte de l'XP !</p>
 
+                <div className="daily-reward-days">
                 {rewards.map(r => (
                     <section key={r.id} className="daily-reward-day">
                         <h3>{dayLabel(r.data.date)}</h3>
@@ -75,6 +76,7 @@ export default function DailyRewardPopup({rewards, onClose}: DailyRewardPopupPro
                         </ul>
                     </section>
                 ))}
+                </div>
 
                 <p className="daily-reward-total">
                     <span ref={totalRef}>+<CountUp value={total} delay={350} duration={1100}/> XP</span>
