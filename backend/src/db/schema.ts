@@ -177,8 +177,22 @@ export type FriendChallengesTable = {
     puzzle: ColumnType<unknown, string, string>;
     grid_size: number;
     empty_cells: number;
-    sender_ms: number;
+    // temps de celui qui a envoyé sa grille ; null pour un duel (son temps est dans friend_challenge_players)
+    sender_ms: number | null;
+    // duel lancé depuis l'onglet Social (Facile, Moyen, Difficile, Expert ou Standard) ; null = grille envoyée
+    difficulty: string | null;
     created_at: Generated<Date>;
+};
+
+// Discussion entre ami·e·s (onglet Social) : un texte ou un défi
+export type SocialMessagesTable = {
+    id: Generated<string>;
+    sender_id: string;
+    recipient_id: string;
+    body: string | null;
+    challenge_id: string | null;
+    created_at: Generated<Date>;
+    read_at: Date | null;
 };
 
 export type FriendChallengePlayersTable = {
@@ -342,6 +356,7 @@ export type DB = {
     friendships: FriendshipsTable;
     friend_challenges: FriendChallengesTable;
     friend_challenge_players: FriendChallengePlayersTable;
+    social_messages: SocialMessagesTable;
     user_items: UserItemsTable;
     feedback: FeedbackTable;
     casino_plays: CasinoPlaysTable;

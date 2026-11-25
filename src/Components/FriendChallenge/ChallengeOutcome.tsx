@@ -30,6 +30,18 @@ export default function ChallengeOutcome({challengeId}: { challengeId: string })
 
     const mine = result.latestMs;
     const theirs = result.senderMs;
+    // duel : l'autre n'a pas encore joué, il est prévenu de ton temps
+    if (theirs === null) {
+        return (
+            <div className="challenge-outcome tie">
+                <p className="challenge-outcome-title">À {result.from.username} de jouer !</p>
+                <p className="challenge-outcome-times">
+                    <span><strong>{shareTime(mine)}</strong> toi</span>
+                </p>
+                <p className="challenge-outcome-note">{result.from.username} est prévenu·e de ton temps.</p>
+            </div>
+        );
+    }
     const verdict = mine < theirs ? "win" : mine > theirs ? "lose" : "tie";
     return (
         <div className={`challenge-outcome ${verdict}`}>

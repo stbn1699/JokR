@@ -17,7 +17,8 @@ import {tracker} from "../services/tracker.js";
  * - POST /challenges { gameCode, friends } : envoie à des amis la grille de sa dernière partie gagnée sur ce jeu
  *   (dans les 24 h) ; ils la jouent quand ils veulent
  * - POST /challenges/daily { gameCode, friends } : défie des amis au défi du jour (après l'avoir réussi)
- * - GET /challenges/:id : le défi reçu (qui, quel jeu, son temps, le tien si tu l'as déjà fait)
+ * - GET /challenges/:id : le défi reçu (qui, quel jeu, son temps, le tien si tu l'as déjà fait). Un duel de l'onglet
+ *   Social se joue ici aussi, par les deux : chacun y voit l'autre (`from`) et son temps (null s'il n'a pas encore joué)
  * - POST /challenges/:id/start : lance une partie avec la grille du défi (partie normale : XP habituelle),
  *   une seule fois : un défi déjà relevé ne se rejoue pas (la solution est connue, pas d'XP en boucle)
  * - POST /challenges/:id/result : temps de cette partie, à comparer (enregistré et annoncé la première fois)
@@ -96,22 +97,37 @@ async function received(req: Request, res: Response<unknown, AuthLocals>) {
     return challenge;
 }
 
-const summary = (c: NonNullable<Awaited<ReturnType<typeof challenges.forPlayer>>>) => ({
-    challengeId: c.id,
-    gameCode: c.game_code,
-    gameName: c.game_name,
-    gridSize: c.grid_size,
-    emptyCells: c.empty_cells,
-    from: {username: c.sender_username, avatar: c.sender_avatar, level: c.sender_level},
-    senderMs: c.sender_ms,
-    // ton temps, si tu l'as déjà fait
-    playerMs: c.duration_ms,
-    createdAt: c.created_at,
-});
+type Received = NonNullable<Awaited<ReturnType<typeof challenges.forPlayer>>>;
+
+// Ce que voit le joueur : `from` = son adversaire (l'envoyeur, ou l'ami·e défié·e en duel), `senderMs` = son temps
+async function summary(c: Received, me: string) {
+    const opponent = await challenges.opponent(c, me);
+    return {
+        challengeId: c.id,
+        gameCode: c.game_code,
+        gameName: c.game_name,
+        gridSize: c.grid_size,
+        emptyCells: c.empty_cells,
+        difficulty: c.difficulty,
+        from: {username: opponent.username, avatar: opponent.avatar, level: opponent.level},
+        senderMs: opponent.ms,
+        // ton temps, si tu l'as déjà fait
+        playerMs: c.duration_ms,
+        createdAt: c.created_at,
+        opponentId: opponent.id,
+    };
+}
+
+// sans l'identifiant interne de l'adversaire
+function publicSummary(seen: Awaited<ReturnType<typeof summary>>) {
+    const rest: Partial<typeof seen> = {...seen};
+    delete rest.opponentId;
+    return rest;
+}
 
 router.get("/:id", asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
     const challenge = await received(req, res);
-    if (challenge) res.status(200).json({status: "ok", data: summary(challenge)});
+    if (challenge) res.status(200).json({status: "ok", data: publicSummary(await summary(challenge, res.locals.userId!))});
 }));
 
 router.post("/:id/start", asyncHandler(async (req: Request, res: Response<unknown, AuthLocals>) => {
@@ -141,11 +157,12 @@ router.post("/:id/result", asyncHandler(async (req: Request, res: Response<unkno
         if (time === null) await new Promise(r => setTimeout(r, 200));
     }
     if (time === null) return void res.status(409).json({status: "error", message: "Termine d'abord la grille du défi"});
-    const first = await challenges.recordResult(challenge.id, me, time);
-    if (first) for (const id of [me, challenge.sender_id]) void achievements.track(id, ctx => ctx.live("challenges"));
+    const seen = await summary(challenge, me);
+    const first = await challenges.recordResult(challenge.id, me, time, {id: seen.opponentId, ms: seen.senderMs});
+    if (first) for (const id of [me, seen.opponentId]) void achievements.track(id, ctx => ctx.live("challenges"));
     res.status(200).json({
         status: "ok",
-        data: {...summary(challenge), playerMs: first ? time : challenge.duration_ms ?? time, latestMs: time, first},
+        data: {...publicSummary(seen), playerMs: first ? time : challenge.duration_ms ?? time, latestMs: time, first},
     });
 }));
 

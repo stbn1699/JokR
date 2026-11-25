@@ -76,6 +76,15 @@ describe("pushMessage", () => {
         expect(result(1000)).toBe("Binero : égalité");
     });
 
+    it("duel : annonce le duel, puis le temps à battre tant que tu n'as pas joué", () => {
+        const sent = pushMessage({id: "5", kind: "friend_challenge",
+            data: {challengeId: "d", from: {username: "Sam"}, gameName: "Queens", difficulty: "Expert", senderMs: null}});
+        expect(sent?.body).toBe("Un duel de Queens (Expert) t'attend. À toi !");
+        const played = pushMessage({id: "6", kind: "challenge_result",
+            data: {challengeId: "d", by: {username: "Sam"}, gameName: "Queens", playerMs: 65_400, senderMs: null}});
+        expect(played).toMatchObject({title: "Sam a joué votre duel", body: "Queens en 1:05 : à toi de jouer !", url: "/defi-ami/d"});
+    });
+
     it("annonce un lot de loterie", () => {
         const m = pushMessage({id: "4", kind: "lottery_win", data: {kind: "week", prize: 50, tickets: 1, totalTickets: 3}});
         expect(m?.title).toBe("Tu as gagné la loterie de la semaine !");

@@ -45,16 +45,16 @@ export default function FriendChallengePage() {
         const mine = challenge.playerMs, theirs = challenge.senderMs;
         return (
             <main className="challenge-done">
-                <section className={`challenge-outcome ${mine < theirs ? "win" : mine > theirs ? "lose" : "tie"}`}>
-                    <p className="challenge-outcome-title">Défi déjà relevé</p>
+                <section className={`challenge-outcome ${theirs === null ? "tie" : mine < theirs ? "win" : mine > theirs ? "lose" : "tie"}`}>
+                    <p className="challenge-outcome-title">{theirs === null ? `Duel joué, au tour de ${challenge.from.username}` : "Défi déjà relevé"}</p>
                     <p>{challenge.gameName} de <Link to={playerPath(challenge.from.username)}>{challenge.from.username}</Link></p>
                     <p className="challenge-outcome-times">
                         <span><strong>{shareTime(mine)}</strong> toi</span>
                         <span className="vs">contre</span>
-                        <span><strong>{shareTime(theirs)}</strong> {challenge.from.username}</span>
+                        <span><strong>{theirs === null ? "…" : shareTime(theirs)}</strong> {challenge.from.username}</span>
                     </p>
                     <p className="challenge-done-links">
-                        <Link to={`/playgame/${challenge.gameCode}`}>Partie libre</Link> · <Link to="/">Accueil</Link>
+                        <Link to="/social">Social</Link> · <Link to={`/playgame/${challenge.gameCode}`}>Partie libre</Link> · <Link to="/">Accueil</Link>
                     </p>
                 </section>
             </main>

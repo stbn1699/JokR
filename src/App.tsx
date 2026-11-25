@@ -10,6 +10,7 @@
  * - /profile : Profil du joueur connecté
  * - /hasard : Onglet des jeux de hasard (à venir)
  * - /nouveautes : Nouveautés (CHANGELOG.md) ; le numéro de version est en bas à droite
+ * - /social : Social (amis, chat, défis) — maquette pour l'instant
  * - /succes : Succès (popups de déblocage : AchievementToasts, sur toutes les pages)
  * - * : Page 404 pour les routes inexistantes
  */
@@ -44,6 +45,7 @@ import Hasard from "./Components/Hasard/Hasard.tsx";
 import AppFooter from "./Components/AppFooter/AppFooter.tsx";
 import Stats from "./Components/Stats/Stats.tsx";
 import PlayerProfile from "./Components/PlayerProfile/PlayerProfile.tsx";
+import SocialPage from "./Components/Social/SocialPage.tsx";
 import FriendChallengePage from "./Components/FriendChallenge/FriendChallengePage.tsx";
 import ShopPage from "./Components/Shop/ShopPage.tsx";
 import CustomizePage from "./Components/Customize/CustomizePage.tsx";
@@ -129,6 +131,7 @@ function App() {
                 <Route path="/hasard/blackjack" element={<BlackjackPage/>}/>
                 <Route path="/hasard/keno" element={<KenoPage/>}/>
                 <Route path="/hasard/poker" element={<PokerPage/>}/>
+                <Route path="/social" element={<SocialPage/>}/>
                 <Route path="/retour" element={<FeedbackPage/>}/>
                 {/* Boutique : une seule page, la catégorie (et l'objet pour les jetons) vient de l'adresse */}
                 <Route path="/boutique/:section?/:set?" element={<ShopPage/>}/>

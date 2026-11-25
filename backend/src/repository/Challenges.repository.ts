@@ -8,7 +8,9 @@ type Player = { username: string; avatar: string; level: number };
  * Défis entre amis (tables friend_challenges, friend_challenge_players) et leurs notifications :
  * - friend_challenge : un ami t'envoie une grille (ref = id du défi)
  * - daily_challenge : un ami te défie au défi du jour (ref = jeu:date:ami)
- * - challenge_result : un ami a fait la grille que tu lui as envoyée (ref = défi:ami)
+ * - challenge_result : un ami a fait la grille que tu lui as envoyée, ou son côté d'un duel (ref = défi:ami)
+ * Duel (onglet Social) : `difficulty` remplie, pas de `sender_ms` ; l'envoyeur a sa ligne de joueur comme l'ami·e.
+ * Chaque défi envoyé à un·e ami·e apparaît aussi dans votre discussion (social_messages).
  */
 export class ChallengesRepository {
     constructor(private db: Kysely<DB>) {
@@ -70,8 +72,50 @@ export class ChallengesRepository {
                 gridSize: game.gridSize, emptyCells: game.emptyCells, senderMs: game.senderMs,
             };
             for (const friend of friends) await this.notify(trx, friend, "friend_challenge", id, data);
+            await trx.insertInto("social_messages")
+                .values(friends.map(recipient_id => ({sender_id: sender, recipient_id, challenge_id: id})))
+                .execute();
             return id;
         });
+    }
+
+    // Duel : une grille pour deux, que l'envoyeur joue aussi (prévenu·e : son ami·e, dans la cloche et la discussion)
+    async createDuel(sender: string, friend: string, game: { code: string; puzzle: unknown; gridSize: number; emptyCells: number; difficulty: string }) {
+        return this.db.transaction().execute(async trx => {
+            const {id} = await trx.insertInto("friend_challenges").values({
+                sender_id: sender, game_code: game.code, puzzle: JSON.stringify(game.puzzle),
+                grid_size: game.gridSize, empty_cells: game.emptyCells, sender_ms: null, difficulty: game.difficulty,
+            }).returning("id").executeTakeFirstOrThrow();
+            await trx.insertInto("friend_challenge_players")
+                .values([sender, friend].map(user_id => ({challenge_id: id, user_id})))
+                .execute();
+            await trx.insertInto("social_messages").values({sender_id: sender, recipient_id: friend, challenge_id: id}).execute();
+            await this.notify(trx, friend, "friend_challenge", id, {
+                challengeId: id, from: await this.player(trx, sender), gameCode: game.code, gameName: await this.gameName(trx, game.code),
+                gridSize: game.gridSize, emptyCells: game.emptyCells, senderMs: null, difficulty: game.difficulty,
+            });
+            return id;
+        });
+    }
+
+    /*
+     * Adversaire de `userId` sur ce défi et son temps (null s'il n'a pas encore joué) :
+     * l'envoyeur pour un·e ami·e défié·e, l'autre joueur pour l'envoyeur d'un duel.
+     */
+    async opponent(challenge: { id: string; sender_id: string; sender_ms: number | null }, userId: string) {
+        const player = (db: Kysely<DB>) => db.selectFrom("friend_challenge_players as p")
+            .innerJoin("users as u", "u.id", "p.user_id")
+            .select(["u.id", "u.username", "u.avatar", "u.user_level as level", "p.duration_ms"])
+            .where("p.challenge_id", "=", challenge.id);
+        if (userId !== challenge.sender_id) {
+            const sender = await player(this.db).where("p.user_id", "=", challenge.sender_id).executeTakeFirst();
+            if (sender) return {...sender, ms: challenge.sender_ms ?? sender.duration_ms};
+            const u = await this.db.selectFrom("users").select(["id", "username", "avatar", "user_level as level"])
+                .where("id", "=", challenge.sender_id).executeTakeFirstOrThrow();
+            return {...u, ms: challenge.sender_ms};
+        }
+        const other = await player(this.db).where("p.user_id", "<>", userId).executeTakeFirstOrThrow();
+        return {...other, ms: other.duration_ms};
     }
 
     // Défi du jour : prévient les amis (une seule notification par ami, jeu et jour : remise à neuf si renvoyée)
@@ -89,7 +133,7 @@ export class ChallengesRepository {
             .innerJoin("users as s", "s.id", "c.sender_id")
             .innerJoin("games as g", "g.code", "c.game_code")
             .select([
-                "c.id", "c.sender_id", "c.game_code", "c.puzzle", "c.grid_size", "c.empty_cells", "c.sender_ms", "c.created_at",
+                "c.id", "c.sender_id", "c.game_code", "c.puzzle", "c.grid_size", "c.empty_cells", "c.sender_ms", "c.difficulty", "c.created_at",
                 "g.designation as game_name", "s.username as sender_username", "s.avatar as sender_avatar", "s.user_level as sender_level",
                 "p.game_id", "p.duration_ms",
             ])
@@ -112,8 +156,9 @@ export class ChallengesRepository {
         return row?.duration_ms ?? null;
     }
 
-    // Première réussite du défi par un joueur : enregistrée et annoncée à celui qui l'a lancé ; false si déjà fait
-    async recordResult(challengeId: string, userId: string, durationMs: number): Promise<boolean> {
+    // Première réussite du défi par un joueur : enregistrée et annoncée à son adversaire (`opponent`, avec son temps,
+    // null s'il n'a pas encore joué son côté du duel) ; false si déjà fait
+    async recordResult(challengeId: string, userId: string, durationMs: number, opponent: { id: string; ms: number | null }): Promise<boolean> {
         return this.db.transaction().execute(async trx => {
             const updated = await trx.updateTable("friend_challenge_players")
                 .set({duration_ms: durationMs, finished_at: new Date()})
@@ -121,11 +166,12 @@ export class ChallengesRepository {
                 .returning("challenge_id")
                 .executeTakeFirst();
             if (!updated) return false;
-            const challenge = await trx.selectFrom("friend_challenges").select(["sender_id", "game_code", "sender_ms"])
+            const challenge = await trx.selectFrom("friend_challenges").select(["game_code", "difficulty"])
                 .where("id", "=", challengeId).executeTakeFirstOrThrow();
-            await this.notify(trx, challenge.sender_id, "challenge_result", `${challengeId}:${userId}`, {
+            await this.notify(trx, opponent.id, "challenge_result", `${challengeId}:${userId}`, {
                 challengeId, by: await this.player(trx, userId), gameCode: challenge.game_code,
-                gameName: await this.gameName(trx, challenge.game_code), senderMs: challenge.sender_ms, playerMs: durationMs,
+                gameName: await this.gameName(trx, challenge.game_code), senderMs: opponent.ms, playerMs: durationMs,
+                difficulty: challenge.difficulty,
             });
             return true;
         });

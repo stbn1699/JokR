@@ -1,4 +1,5 @@
 import {sql, type Kysely} from "kysely";
+import {challengeMatches} from "../../utils/social.js";
 import type {DB} from "../../db/schema.js";
 import {
     type Achievement,
@@ -368,19 +369,23 @@ export class AchievementsService {
         })());
 
         if (want.has("challenges")) jobs.push((async () => {
+            // tous les joueurs des défis où il est (envoyeur ou défié), pour retrouver le temps de l'envoyeur d'un duel
             const rows = await db.selectFrom("friend_challenge_players as p").innerJoin("friend_challenges as c", "c.id", "p.challenge_id")
-                .select(["c.sender_id", "c.sender_ms", "p.user_id", "p.duration_ms", "p.finished_at"])
-                .where("p.duration_ms", "is not", null)
-                .where(eb => eb.or([eb("c.sender_id", "=", userId), eb("p.user_id", "=", userId)]))
-                .orderBy("p.finished_at").execute();
+                .select(["c.id as challengeId", "c.sender_id as senderId", "c.sender_ms as senderMs", "p.user_id as userId",
+                    "p.duration_ms as durationMs", "p.finished_at as finishedAt"])
+                .where(eb => eb.or([
+                    eb("c.sender_id", "=", userId),
+                    eb("c.id", "in", eb.selectFrom("friend_challenge_players").select("challenge_id").where("user_id", "=", userId)),
+                ]))
+                .execute();
             let won = 0, tie = 0, revenge = 0;
             const lost = new Map<string, number>();
-            for (const r of rows) {
-                if (r.sender_id === r.user_id || r.duration_ms === null) continue;
-                const mine = r.sender_id === userId;
-                const opponent = mine ? r.user_id : r.sender_id;
-                const myMs = mine ? r.sender_ms : r.duration_ms;
-                const theirMs = mine ? r.duration_ms : r.sender_ms;
+            for (const m of challengeMatches(rows)) {
+                const mine = m.senderId === userId;
+                if (!mine && m.opponentId !== userId) continue;
+                const opponent = mine ? m.opponentId : m.senderId;
+                const myMs = mine ? m.senderMs : m.opponentMs;
+                const theirMs = mine ? m.opponentMs : m.senderMs;
                 if (Math.floor(myMs / 1000) === Math.floor(theirMs / 1000)) tie = 1;
                 if (myMs < theirMs) {
                     won++;

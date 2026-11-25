@@ -367,19 +367,27 @@ function LotteryItem({notification: n, onNavigate}: { notification: LotteryWinNo
 
 // ---------- Défis entre amis
 const challengeTitle = (n: ChallengeNotification) =>
-    n.kind === "challenge_result" ? `${n.data.by.username} a relevé ton défi` : `${n.data.from.username} te défie`;
+    n.kind !== "challenge_result" ? `${n.data.from.username} te défie`
+        : n.data.senderMs === null ? `${n.data.by.username} a joué votre duel` : `${n.data.by.username} a relevé ton défi`;
 
 function challengeText(n: ChallengeNotification) {
-    if (n.kind === "friend_challenge") return <>Sa grille de {n.data.gameName}, faite en {shareTime(n.data.senderMs)}. À toi !</>;
+    if (n.kind === "friend_challenge") {
+        return n.data.senderMs === null
+            ? <>Un duel de {n.data.gameName} ({n.data.difficulty}) : la même grille pour vous deux. À toi !</>
+            : <>Sa grille de {n.data.gameName}, faite en {shareTime(n.data.senderMs)}. À toi !</>;
+    }
     if (n.kind === "daily_challenge") return <>Au {n.data.gameName} du jour : bats son temps ({shareTime(n.data.senderMs)}) !</>;
-    const won = n.data.playerMs < n.data.senderMs;
-    return <>{n.data.gameName} : {shareTime(n.data.playerMs)} contre ton {shareTime(n.data.senderMs)} · {won ? `${n.data.by.username} te bat` : n.data.playerMs > n.data.senderMs ? "tu restes devant" : "égalité"}</>;
+    const mine = n.data.senderMs;
+    if (mine === null) return <>{n.data.gameName} en {shareTime(n.data.playerMs)} : à toi de faire mieux !</>;
+    const won = n.data.playerMs < mine;
+    return <>{n.data.gameName} : {shareTime(n.data.playerMs)} contre ton {shareTime(mine)} · {won ? `${n.data.by.username} te bat` : n.data.playerMs > mine ? "tu restes devant" : "égalité"}</>;
 }
 
 // Lien d'une notification de défi : la grille à faire, le défi du jour, ou la page de l'ami·e
 function challengeLink(n: ChallengeNotification) {
     if (n.kind === "friend_challenge") return {to: challengePath(n.data.challengeId), label: "Relever le défi"};
     if (n.kind === "daily_challenge") return {to: `/defi/${n.data.gameCode}`, label: "Jouer le défi du jour"};
+    if (n.data.senderMs === null) return {to: challengePath(n.data.challengeId), label: "Jouer le duel"};
     return {to: playerPath(n.data.by.username), label: "Voir son profil"};
 }
 

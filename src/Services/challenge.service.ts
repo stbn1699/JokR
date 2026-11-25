@@ -9,8 +9,11 @@ export interface FriendChallenge {
     gridSize: number;
     emptyCells: number;
     from: { username: string; avatar: string; level: number };
-    // temps de l'ami·e
-    senderMs: number;
+    // duel lancé depuis l'onglet Social (Facile… Expert, Standard) ; null = grille d'une partie gagnée
+    difficulty: string | null;
+    // `from` est ton adversaire : celui qui t'a défié, ou l'ami·e que tu as défié·e en duel ; voici son temps
+    // (null : il n'a pas encore joué son côté du duel)
+    senderMs: number | null;
     // ton temps (première réussite), null si tu ne l'as pas encore fait
     playerMs: number | null;
     createdAt: string;

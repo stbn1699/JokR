@@ -30,7 +30,9 @@ type NotifPlayer = { username: string; avatar: string; level: number };
 // Un·e ami·e t'envoie la grille d'une de ses parties gagnées
 export interface FriendChallengeNotification extends BaseNotification {
     kind: "friend_challenge";
-    data: { challengeId: string; from: NotifPlayer; gameCode: string; gameName: string; gridSize: number; emptyCells: number; senderMs: number };
+    data: { challengeId: string; from: NotifPlayer; gameCode: string; gameName: string; gridSize: number; emptyCells: number;
+        // null pour un duel (onglet Social) : pas encore de temps à battre
+        senderMs: number | null; difficulty?: string };
 }
 
 // Un·e ami·e te défie au défi du jour
@@ -42,7 +44,11 @@ export interface DailyChallengeNotification extends BaseNotification {
 // Un·e ami·e a fait la grille que tu lui as envoyée
 export interface ChallengeResultNotification extends BaseNotification {
     kind: "challenge_result";
-    data: { challengeId: string; by: NotifPlayer; gameCode: string; gameName: string; senderMs: number; playerMs: number };
+    data: {
+        challengeId: string; by: NotifPlayer; gameCode: string; gameName: string;
+        // ton temps ; null : duel que tu n'as pas encore joué
+        senderMs: number | null; playerMs: number; difficulty?: string | null;
+    };
 }
 
 export type ChallengeNotification = FriendChallengeNotification | DailyChallengeNotification | ChallengeResultNotification;

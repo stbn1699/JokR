@@ -5,7 +5,7 @@
  * - Le logo JokR (cliquable pour retourner à l'accueil)
  * - Au centre, les catégories de jeux seulement : Puzzle (accueil, défis du jour compris) et Hasard.
  *   Un point orange sur Puzzle tant que le joueur n'a pas fini les défis du jour, et sur Hasard tant qu'il n'a pas
- *   lancé la roue du jour.
+ *   lancé la roue du jour. Sur Social, tant qu'un message d'ami·e n'est pas lu.
  * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits (vers la boutique), Classement et Boutique en
  *   icônes (et Stats pour les administrateurs), cloche des notifications, puis l'icône de profil (contour selon le niveau) qui ouvre le menu du
  *   compte (profil, personnaliser, nouveautés, retours, mode admin et stats ; voir ProfileMenu)
@@ -36,12 +36,14 @@ import {useEffect, useRef, useState} from "react";
 import {dailyService} from "../../Services/daily.service.ts";
 import {casinoService, WHEEL_SPUN_EVENT} from "../../Services/casino.service.ts";
 import {formatCredits, fullCredits} from "../../Services/credits.ts";
+import {SOCIAL_READ_EVENT, socialService} from "../../Services/social.service.ts";
 
 // Catégories de jeux (au centre du header) ; `match` dit si une adresse appartient à l'onglet
 // Les défis du jour (/defi) font partie des puzzles
 const TABS = [
     {label: "Puzzle", to: "/", match: (path: string) => path === "/" || path.startsWith("/playgame") || path.startsWith("/defi")},
     {label: "Hasard", to: "/hasard", match: (path: string) => path.startsWith("/hasard")},
+    {label: "Social", to: "/social", match: (path: string) => path.startsWith("/social")},
 ];
 
 // Défis du jour pas encore tous réussis (point orange sur l'onglet Puzzle) ; relu à chaque changement de page
@@ -77,6 +79,30 @@ function useWheelPending(enabled: boolean, pathname: string): boolean {
     return enabled && pending;
 }
 
+// Messages d'ami·e·s pas encore lus (point orange sur l'onglet Social) : relu à chaque changement de page,
+// toutes les 30 secondes, et dès qu'une discussion est lue
+function useSocialUnread(enabled: boolean, pathname: string): boolean {
+    const [unread, setUnread] = useState(0);
+    const [reads, setReads] = useState(0);
+    useEffect(() => {
+        const onRead = () => setReads(n => n + 1);
+        window.addEventListener(SOCIAL_READ_EVENT, onRead);
+        return () => window.removeEventListener(SOCIAL_READ_EVENT, onRead);
+    }, []);
+    useEffect(() => {
+        if (!enabled) return;
+        const controller = new AbortController();
+        const load = () => socialService.unread(controller.signal).then(setUnread).catch(() => undefined);
+        void load();
+        const timer = setInterval(load, 30_000);
+        return () => {
+            clearInterval(timer);
+            controller.abort();
+        };
+    }, [enabled, pathname, reads]);
+    return enabled && unread > 0;
+}
+
 export default function Header() {
     const navigate = useNavigate();
     const {pathname} = useLocation();
@@ -84,6 +110,7 @@ export default function Header() {
     const {isLoggedIn, adminMode} = auth;
     const dailyPending = useDailyPending(isLoggedIn, pathname);
     const wheelPending = useWheelPending(isLoggedIn, pathname);
+    const socialUnread = useSocialUnread(isLoggedIn, pathname);
     // Hors des deux pages d'accueil (Puzzle et Hasard) : caché quand on descend, de retour dès qu'on remonte
     const autoHide = pathname !== "/" && pathname !== "/hasard";
     const autoHidden = useHideOnScroll(autoHide, pathname);
@@ -136,7 +163,8 @@ export default function Header() {
                     {TABS.map(tab => {
                         const active = tab.match(pathname);
                         const dot = tab.to === "/" ? dailyPending && "Défis du jour à faire"
-                            : tab.to === "/hasard" && wheelPending && "Roue du jour à lancer";
+                            : tab.to === "/hasard" ? wheelPending && "Roue du jour à lancer"
+                            : socialUnread && "Messages non lus";
                         return (
                             <Link key={tab.to} to={tab.to} className={`header-tab ${active ? "active" : ""}`}
                                   aria-current={active ? "page" : undefined}>

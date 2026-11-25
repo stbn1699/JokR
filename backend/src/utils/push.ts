@@ -50,6 +50,12 @@ const fr = (n: number) => n.toLocaleString("fr-FR");
 const playerUrl = (username: string) => `/joueur/${encodeURIComponent(username)}`;
 const LOTTERY_NAMES: Record<string, string> = {day: "la loterie du jour", week: "la loterie de la semaine", month: "la loterie du mois"};
 
+// Temps lisible (1:05, 12:30)
+function duration(ms: number) {
+    const seconds = Math.floor(ms / 1000);
+    return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
 function challengeOutcome(by: string, playerMs: number, senderMs: number) {
     if (playerMs < senderMs) return `${by} te bat`;
     return playerMs > senderMs ? "tu restes devant" : "égalité";
@@ -70,7 +76,9 @@ export function pushMessage(n: { id: string; kind: string; data: unknown }): Pus
         }
         case "friend_challenge": {
             const from = data.from as Player;
-            return {title: `${from.username} te défie`, body: `Sa grille de ${data.gameName as string} t'attend. À toi !`,
+            const duel = typeof data.difficulty === "string";
+            return {title: `${from.username} te défie`,
+                body: duel ? `Un duel de ${data.gameName as string} (${data.difficulty as string}) t'attend. À toi !` : `Sa grille de ${data.gameName as string} t'attend. À toi !`,
                 url: `/defi-ami/${encodeURIComponent(data.challengeId as string)}`, tag};
         }
         case "daily_challenge": {
@@ -80,6 +88,12 @@ export function pushMessage(n: { id: string; kind: string; data: unknown }): Pus
         }
         case "challenge_result": {
             const by = data.by as Player;
+            // duel pas encore joué de ton côté : son temps, à battre
+            if (data.senderMs === null) {
+                return {title: `${by.username} a joué votre duel`,
+                    body: `${data.gameName as string} en ${duration(data.playerMs as number)} : à toi de jouer !`,
+                    url: `/defi-ami/${encodeURIComponent(data.challengeId as string)}`, tag};
+            }
             return {title: `${by.username} a relevé ton défi`,
                 body: `${data.gameName as string} : ${challengeOutcome(by.username, data.playerMs as number, data.senderMs as number)}`,
                 url: playerUrl(by.username), tag};

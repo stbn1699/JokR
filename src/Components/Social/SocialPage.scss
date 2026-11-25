@@ -1,0 +1,805 @@
+// Onglet Social (maquette) : trois colonnes dans une carte, comme les autres pages (fond sombre translucide, bord crème)
+$cream  : #F4E5CB;
+$white  : #f9fafb;
+$line   : rgba(249, 250, 251, 0.14);
+$panel  : rgba(2, 6, 23, 0.45);
+$amber  : #f59e0b;
+$green  : #22c55e;
+$blue   : #38bdf8;
+
+.social {
+	display         : flex;
+	justify-content : center;
+	padding         : 2rem 1rem;
+
+	.social-shell {
+		display               : grid;
+		grid-template-columns : 21rem minmax(0, 1fr) 20rem;
+		width                 : min(90rem, 100%);
+		height                : min(46rem, calc(100vh - 11rem));
+		min-height            : 32rem;
+		border                : 3px solid $white;
+		border-radius         : 12px;
+		background            : #02061735;
+		overflow              : hidden;
+	}
+
+	h1, h2, h3 {
+		margin : 0;
+	}
+
+	button {
+		font-family : inherit;
+		cursor      : pointer;
+	}
+
+	input {
+		font-family : inherit;
+	}
+
+	// ---------- Pastille de présence
+	.presence-dot {
+		display       : inline-block;
+		width         : 0.7rem;
+		height        : 0.7rem;
+		border-radius : 50%;
+		background    : #6b7280;
+
+		&.online {
+			background : $green;
+		}
+
+		&.playing {
+			background : $amber;
+		}
+	}
+
+	.social-friend-avatar {
+		position    : relative;
+		display     : inline-flex;
+		flex-shrink : 0;
+
+		.presence-dot {
+			position   : absolute;
+			right      : -0.15rem;
+			bottom     : -0.15rem;
+			box-shadow : 0 0 0 3px #0b1222;
+		}
+	}
+
+	.social-friend-status {
+		font-size : 1rem;
+		color     : rgba(249, 250, 251, 0.55);
+
+		&.online {
+			color : $green;
+		}
+
+		&.playing {
+			color : $amber;
+		}
+	}
+
+	// ---------- Colonne des amis
+	.social-friends {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.9rem;
+		padding        : 1.4rem 1rem;
+		border-right   : 1px solid $line;
+		background     : rgba(2, 6, 23, 0.3);
+		min-height     : 0;
+	}
+
+	.social-friends-head {
+		display         : flex;
+		align-items     : baseline;
+		justify-content : space-between;
+		padding         : 0 0.4rem;
+
+		h1 {
+			font-size : 2.4rem;
+		}
+	}
+
+	.social-online-count {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.35rem;
+		font-size   : 1rem;
+		color       : rgba(249, 250, 251, 0.7);
+	}
+
+	.social-search {
+		display       : flex;
+		align-items   : center;
+		gap           : 0.6rem;
+		padding       : 0.55rem 0.9rem;
+		border        : 1px solid $line;
+		border-radius : 999px;
+		background    : $panel;
+		color         : rgba(249, 250, 251, 0.5);
+
+		input {
+			flex       : 1;
+			min-width  : 0;
+			border     : none;
+			outline    : none;
+			background : transparent;
+			color      : $white;
+			font-size  : 1.1rem;
+		}
+	}
+
+	.social-requests {
+		padding       : 0.7rem;
+		border        : 1px dashed rgba(245, 158, 11, 0.5);
+		border-radius : 10px;
+		background    : rgba(245, 158, 11, 0.07);
+
+		h2 {
+			margin-bottom : 0.5rem;
+			font-size     : 1rem;
+			color         : #fbbf24;
+			text-transform : uppercase;
+			letter-spacing : 0.05em;
+		}
+	}
+
+	.social-request {
+		display     : flex;
+		align-items : center;
+		gap         : 0.6rem;
+
+		.social-request-name {
+			flex      : 1;
+			font-size : 1.1rem;
+		}
+	}
+
+	.icon-btn {
+		display         : grid;
+		place-items     : center;
+		width           : 1.9rem;
+		height          : 1.9rem;
+		border          : 1px solid $line;
+		border-radius   : 50%;
+		background      : transparent;
+		color           : $white;
+
+		&:hover {
+			background : rgba(249, 250, 251, 0.1);
+		}
+
+		&.accept {
+			border-color : $green;
+			color        : $green;
+		}
+	}
+
+	.social-friend-list {
+		flex       : 1;
+		margin     : 0;
+		padding    : 0;
+		list-style : none;
+		overflow-y : auto;
+		min-height : 0;
+	}
+
+	.social-friend {
+		display       : flex;
+		align-items   : center;
+		gap           : 0.8rem;
+		width         : 100%;
+		padding       : 0.6rem 0.7rem;
+		border        : none;
+		border-radius : 10px;
+		background    : transparent;
+		color         : $white;
+		text-align    : left;
+		transition    : background 0.15s ease;
+
+		&:hover {
+			background : rgba(249, 250, 251, 0.07);
+		}
+
+		&.selected {
+			background : rgba(244, 229, 203, 0.14);
+			box-shadow : inset 3px 0 0 $cream;
+		}
+	}
+
+	.social-friend-text {
+		display        : flex;
+		flex-direction : column;
+		flex           : 1;
+		min-width      : 0;
+
+		> span {
+			overflow      : hidden;
+			white-space   : nowrap;
+			text-overflow : ellipsis;
+		}
+	}
+
+	.social-friend-name {
+		font-size   : 1.2rem;
+		font-weight : 600;
+	}
+
+	.social-unread {
+		min-width     : 1.4rem;
+		padding       : 0.1rem 0.4rem;
+		border-radius : 999px;
+		background    : $amber;
+		color         : #1f1300;
+		font-size     : 0.9rem;
+		font-weight   : 700;
+		text-align    : center;
+	}
+
+	.social-empty {
+		padding    : 1rem;
+		color      : rgba(249, 250, 251, 0.5);
+		text-align : center;
+	}
+
+	.social-add {
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.5rem;
+		padding         : 0.7rem;
+		border          : 1px solid $line;
+		border-radius   : 999px;
+		background      : transparent;
+		color           : $white;
+		font-size       : 1.1rem;
+
+		&:hover {
+			background : rgba(249, 250, 251, 0.1);
+		}
+	}
+
+	.social-add-form {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.4rem;
+	}
+
+	.social-add-row {
+		display     : flex;
+		align-items : center;
+		gap         : 0.4rem;
+
+		input {
+			flex          : 1;
+			min-width     : 0;
+			padding       : 0.55rem 0.9rem;
+			border        : 1px solid $line;
+			border-radius : 999px;
+			outline       : none;
+			background    : $panel;
+			color         : $white;
+			font-size     : 1.1rem;
+		}
+
+		button[type="submit"] {
+			display       : grid;
+			place-items   : center;
+			width         : 2.3rem;
+			height        : 2.3rem;
+			border        : none;
+			border-radius : 50%;
+			background    : $cream;
+			color         : #1f2937;
+
+			&:disabled {
+				opacity : 0.4;
+				cursor  : default;
+			}
+		}
+	}
+
+	.social-ok, .social-error {
+		margin    : 0;
+		font-size : 1rem;
+	}
+
+	.social-ok {
+		color : $green;
+	}
+
+	.social-error {
+		color : #fca5a5;
+	}
+
+	.social-compose-error {
+		padding : 0 1.4rem;
+	}
+
+	a {
+		color           : inherit;
+		text-decoration : none;
+	}
+
+	// ---------- Conversation
+	.social-chat {
+		display        : flex;
+		flex-direction : column;
+		min-height     : 0;
+	}
+
+	.social-chat-head {
+		display      : flex;
+		align-items  : center;
+		gap          : 0.9rem;
+		padding      : 1rem 1.4rem;
+		border-bottom : 1px solid $line;
+
+		> div {
+			display        : flex;
+			flex-direction : column;
+		}
+
+		strong {
+			font-size : 1.4rem;
+		}
+	}
+
+	.social-messages {
+		flex           : 1;
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.9rem;
+		padding        : 1.4rem;
+		overflow-y     : auto;
+		min-height     : 0;
+	}
+
+	.social-no-friend {
+		grid-column     : span 2;
+		justify-content : center;
+	}
+
+	.social-chat-empty {
+		margin     : auto;
+		color      : rgba(249, 250, 251, 0.5);
+		text-align : center;
+
+		svg {
+			font-size : 2.6rem;
+			opacity   : 0.5;
+		}
+	}
+
+	.social-msg {
+		display        : flex;
+		flex-direction : column;
+		align-items    : flex-start;
+		max-width      : 75%;
+		gap            : 0.2rem;
+
+		time {
+			padding   : 0 0.4rem;
+			font-size : 0.95rem;
+			color     : rgba(249, 250, 251, 0.4);
+		}
+
+		&.me {
+			align-self  : flex-end;
+			align-items : flex-end;
+
+			.social-bubble {
+				border-bottom-right-radius : 4px;
+				background                 : $cream;
+				color                      : #1f2937;
+			}
+		}
+	}
+
+	.social-bubble {
+		margin                    : 0;
+		padding                   : 0.65rem 1rem;
+		border-radius             : 16px;
+		border-bottom-left-radius : 4px;
+		background                : rgba(249, 250, 251, 0.14);
+		font-size                 : 1.4rem;
+		font-weight               : 700;
+		line-height               : 1.35;
+		overflow-wrap             : anywhere;
+	}
+
+	// Carte de défi dans le fil
+	.social-challenge {
+		width         : 19rem;
+		padding       : 0.9rem 1rem;
+		border        : 2px solid rgba(249, 250, 251, 0.25);
+		border-radius : 14px;
+		background    : linear-gradient(160deg, rgba(30, 41, 59, 0.9), rgba(2, 6, 23, 0.9));
+
+		&.toPlay {
+			border-color : $amber;
+			box-shadow   : 0 0 18px rgba(245, 158, 11, 0.25);
+		}
+
+		&.won {
+			border-color : $green;
+		}
+
+		&.lost {
+			border-color : #ef4444;
+		}
+	}
+
+	.social-challenge-top {
+		display     : flex;
+		align-items : center;
+		gap         : 0.8rem;
+
+		img {
+			width  : 2.8rem;
+			height : 2.8rem;
+		}
+
+		> div {
+			display        : flex;
+			flex-direction : column;
+		}
+
+		strong {
+			font-size : 1.2rem;
+		}
+	}
+
+	.social-challenge-who {
+		font-size      : 0.9rem;
+		color          : rgba(249, 250, 251, 0.6);
+		text-transform : uppercase;
+		letter-spacing : 0.04em;
+	}
+
+	.social-challenge-times {
+		display         : flex;
+		align-items     : center;
+		justify-content : space-between;
+		margin          : 0.8rem 0 0.2rem;
+		padding         : 0.5rem 0.8rem;
+		border-radius   : 10px;
+		background      : rgba(249, 250, 251, 0.06);
+		font-size       : 1.3rem;
+		font-weight     : 700;
+		font-variant-numeric : tabular-nums;
+
+		> span:not(.vs) {
+			display        : flex;
+			flex-direction : column;
+			align-items    : center;
+		}
+
+		small {
+			font-size   : 0.8rem;
+			font-weight : 400;
+			color       : rgba(249, 250, 251, 0.55);
+		}
+
+		.vs {
+			font-size : 0.9rem;
+			color     : $amber;
+		}
+	}
+
+	.social-challenge-state {
+		display     : flex;
+		align-items : center;
+		gap         : 0.4rem;
+		margin      : 0.5rem 0 0;
+		font-size   : 1rem;
+		color       : rgba(249, 250, 251, 0.7);
+	}
+
+	.won .social-challenge-state {
+		color : $green;
+	}
+
+	.lost .social-challenge-state {
+		color : #fca5a5;
+	}
+
+	.social-challenge-play {
+		box-sizing      : border-box;
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.4rem;
+		width           : 100%;
+		margin-top      : 0.6rem;
+		padding         : 0.55rem;
+		border          : none;
+		border-radius   : 999px;
+		background      : $amber;
+		color           : #1f1300;
+		font-size       : 1.1rem;
+		font-weight     : 700;
+
+		&:hover {
+			filter : brightness(1.1);
+		}
+	}
+
+	.social-compose {
+		display    : flex;
+		gap        : 0.6rem;
+		padding    : 1rem 1.4rem;
+		border-top : 1px solid $line;
+
+		input {
+			flex          : 1;
+			min-width     : 0;
+			padding       : 0.7rem 1.1rem;
+			border        : 1px solid $line;
+			border-radius : 999px;
+			outline       : none;
+			background    : $panel;
+			color         : $white;
+			font-size     : 1.35rem;
+			font-weight   : 600;
+
+			&:focus {
+				border-color : rgba(244, 229, 203, 0.6);
+			}
+		}
+
+		button {
+			display       : grid;
+			place-items   : center;
+			width         : 2.9rem;
+			height        : 2.9rem;
+			border        : none;
+			border-radius : 50%;
+			background    : $cream;
+			color         : #1f2937;
+			font-size     : 1.1rem;
+
+			&:disabled {
+				opacity : 0.35;
+				cursor  : default;
+			}
+		}
+	}
+
+	// ---------- Fiche de l'ami·e et défi
+	.social-panel {
+		display        : flex;
+		flex-direction : column;
+		gap            : 1.2rem;
+		padding        : 1.4rem 1.2rem;
+		border-left    : 1px solid $line;
+		background     : rgba(2, 6, 23, 0.3);
+		overflow-y     : auto;
+
+		h3 {
+			margin-bottom  : 0.6rem;
+			font-size      : 1rem;
+			color          : rgba(249, 250, 251, 0.6);
+			text-transform : uppercase;
+			letter-spacing : 0.05em;
+		}
+	}
+
+	.social-panel-id {
+		align-self     : center;
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 0.3rem;
+
+		h2 {
+			margin-top : 0.4rem;
+			font-size  : 1.7rem;
+		}
+	}
+
+	.social-record {
+		padding       : 0.9rem 1rem;
+		border-radius : 12px;
+		background    : $panel;
+		text-align    : center;
+	}
+
+	.social-record-score {
+		display         : flex;
+		justify-content : center;
+		align-items     : baseline;
+		gap             : 0.7rem;
+		font-size       : 2.4rem;
+		font-weight     : 700;
+
+		.me {
+			color : $cream;
+		}
+
+		.them {
+			color : $blue;
+		}
+
+		.sep {
+			font-size : 1.4rem;
+			opacity   : 0.5;
+		}
+	}
+
+	.social-record-bar {
+		height        : 0.5rem;
+		margin-top    : 0.4rem;
+		border-radius : 999px;
+		background    : $blue;
+		overflow      : hidden;
+
+		span {
+			display    : block;
+			height     : 100%;
+			background : $cream;
+		}
+	}
+
+	.social-record-legend {
+		display         : flex;
+		justify-content : space-between;
+		margin-top      : 0.3rem;
+		font-size       : 0.9rem;
+		color           : rgba(249, 250, 251, 0.55);
+	}
+
+	.social-record-ongoing {
+		margin    : 0.6rem 0 0;
+		font-size : 1rem;
+		color     : $amber;
+	}
+
+	.social-game-picker {
+		display        : flex;
+		flex-direction : column;
+		gap            : 0.6rem;
+	}
+
+	.social-game-group h4 {
+		display     : flex;
+		align-items : center;
+		gap         : 0.4rem;
+		margin      : 0 0 0.35rem;
+		font-size   : 0.95rem;
+		font-weight : 600;
+		color       : $cream;
+
+		svg {
+			font-size : 0.8rem;
+			opacity   : 0.7;
+		}
+	}
+
+	.social-game-grid {
+		display               : grid;
+		grid-template-columns : repeat(5, 1fr);
+		gap                   : 0.4rem;
+
+		button {
+			aspect-ratio  : 1;
+			padding       : 0.3rem;
+			border        : 2px solid transparent;
+			border-radius : 10px;
+			background    : rgba(249, 250, 251, 0.06);
+			transition    : transform 0.12s ease, border-color 0.12s ease;
+
+			&:hover {
+				transform : translateY(-2px);
+			}
+
+			&.selected {
+				border-color : $cream;
+				background   : rgba(244, 229, 203, 0.15);
+			}
+		}
+
+		img {
+			width  : 100%;
+			height : 100%;
+		}
+	}
+
+	.social-defy-game {
+		margin      : 0.6rem 0;
+		font-size   : 1.2rem;
+		font-weight : 600;
+		text-align  : center;
+	}
+
+	.social-difficulty {
+		display       : flex;
+		padding       : 0.2rem;
+		border        : 1px solid $line;
+		border-radius : 999px;
+		background    : $panel;
+
+		button {
+			flex          : 1;
+			padding       : 0.35rem 0;
+			border        : none;
+			border-radius : 999px;
+			background    : transparent;
+			color         : $white;
+			font-size     : 0.95rem;
+
+			&.selected {
+				background  : $white;
+				color       : #020617;
+				font-weight : 700;
+			}
+		}
+	}
+
+	.social-defy-send {
+		box-sizing      : border-box;
+		display         : flex;
+		align-items     : center;
+		justify-content : center;
+		gap             : 0.5rem;
+		width           : 100%;
+		margin-top      : 0.9rem;
+		padding         : 0.75rem;
+		border          : none;
+		border-radius   : 999px;
+		background      : $amber;
+		color           : #1f1300;
+		font-size       : 1.25rem;
+		font-weight     : 700;
+		box-shadow      : 0 4px 18px rgba(245, 158, 11, 0.3);
+
+		&:hover {
+			filter : brightness(1.08);
+		}
+
+		&:disabled {
+			opacity : 0.6;
+			cursor  : default;
+		}
+	}
+
+	.social-hint {
+		margin     : 0.5rem 0 0;
+		font-size  : 0.9rem;
+		color      : rgba(249, 250, 251, 0.5);
+		text-align : center;
+	}
+}
+
+// Téléphone (app installée) : une seule colonne
+@media (max-width: 999px) {
+	.social {
+		padding : 0.75rem;
+
+		.social-shell {
+			grid-template-columns : 1fr;
+			height                : auto;
+		}
+
+		.social-chat {
+			height : 32rem;
+		}
+
+		.social-panel {
+			border-left : none;
+			border-top  : 1px solid $line;
+		}
+
+		.social-friends {
+			border-right  : none;
+			border-bottom : 1px solid $line;
+			max-height    : 18rem;
+		}
+
+		.social-msg {
+			max-width : 90%;
+		}
+	}
+}
