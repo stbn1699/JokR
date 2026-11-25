@@ -21,10 +21,15 @@ type DoneProps = {
     xp: number | null;
     // dernière leçon réussie pour la première fois
     tutorialDone: boolean;
+    // ce qu'apprend la leçon suivante (« La suite t'attend : une nouvelle technique »)
+    novelty?: string;
 };
 
-/** Popup de fin de leçon : leçon suivante, ou la fin du tutoriel (grille aléatoire, carte). */
-export function LessonDonePopup({gameCode, playName, level, tutorial, xp, tutorialDone}: DoneProps) {
+/**
+ * Popup de fin de leçon : leçon suivante, ou la fin du tutoriel (premier niveau, grille aléatoire, carte).
+ * Tous les jeux du mode Niveaux ont des niveaux après leurs leçons.
+ */
+export function LessonDonePopup({gameCode, playName, level, tutorial, xp, tutorialDone, novelty = "technique"}: DoneProps) {
     const navigate = useNavigate();
     const map = `/niveaux/${gameCode}`;
     const last = tutorial !== null && level >= tutorial;
@@ -35,20 +40,22 @@ export function LessonDonePopup({gameCode, playName, level, tutorial, xp, tutori
                     <>
                         <FaGraduationCap className="lesson-done-icon" aria-hidden/>
                         <h2 id="lesson-done">Bravo !</h2>
-                        <p>Le tutoriel est terminé : tu sais maintenant jouer {playName} ! Génère des grilles aléatoires en attendant les niveaux.</p>
+                        <p>Le tutoriel est terminé : tu sais maintenant jouer {playName} ! Place aux niveaux, de plus en plus corsés.</p>
                     </>
                 ) : (
                     <>
                         <FaStar className="lesson-done-icon" aria-hidden/>
                         <h2 id="lesson-done">Leçon réussie !</h2>
-                        <p>{last ? "Tu as fini les leçons." : "La suite t'attend : une nouvelle technique."}</p>
+                        <p>{last ? "Tu as fini les leçons : place aux niveaux." : `La suite t'attend : une nouvelle ${novelty}.`}</p>
                     </>
                 )}
                 {xp !== null && <p className="lesson-done-xp">+{xp} XP</p>}
                 <div className="modal-buttons">
-                    {!last && <button type="button" className="modal-button" onClick={() => navigate(`${map}/${level + 1}`)}>Leçon suivante</button>}
+                    <button type="button" className="modal-button" onClick={() => navigate(`${map}/${level + 1}`)}>
+                        {last ? "Premier niveau" : "Leçon suivante"}
+                    </button>
                     {last && (
-                        <button type="button" className="modal-button" onClick={() => navigate(`/playgame/${gameCode}`)}>
+                        <button type="button" className="modal-button secondary" onClick={() => navigate(`/playgame/${gameCode}`)}>
                             <FaDice aria-hidden/> Grille aléatoire
                         </button>
                     )}

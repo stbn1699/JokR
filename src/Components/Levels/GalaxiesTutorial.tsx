@@ -12,8 +12,8 @@ import "../Galaxies/Galaxies.scss";
 import "./QueensTutorial.scss";
 import "./GalaxiesTutorial.scss";
 import {useEffect, useMemo, useRef, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
-import {FaChevronLeft, FaDice, FaGraduationCap, FaMapMarkedAlt, FaStar} from "react-icons/fa";
+import {Link} from "react-router-dom";
+import {FaChevronLeft, FaGraduationCap} from "react-icons/fa";
 import type {GalaxiesPuzzle} from "../../Models/galaxies.model.ts";
 import {useAuth} from "../../Context/authContext.ts";
 import {guestDone, levelsService, rememberGuestLevel} from "../../Services/levels.service.ts";
@@ -21,6 +21,7 @@ import {galaxiesService} from "../../Services/galaxies.service.ts";
 import {analyzeBoard, coreCells} from "../Galaxies/galaxiesRules.ts";
 import GalaxiesBoard from "../Galaxies/GalaxiesBoard.tsx";
 import Loader from "../Loader/Loader.tsx";
+import {LessonDonePopup} from "./LessonFrame.tsx";
 import {confetti} from "../Confetti/Confetti.tsx";
 import {type GalaxiesStep, planGalaxies} from "./galaxiesGuide.ts";
 
@@ -54,7 +55,6 @@ function explainLearn(step: Extract<GalaxiesStep, { kind: "learn" }>, first: boo
 }
 
 export default function GalaxiesTutorial({level, tutorial}: Props) {
-    const navigate = useNavigate();
     const auth = useAuth();
     const [puzzle, setPuzzle] = useState<GalaxiesPuzzle | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -161,9 +161,6 @@ export default function GalaxiesTutorial({level, tutorial}: Props) {
         setPlaced(p => new Set(p).add(w));
     };
 
-    const tutorialDone = done !== null && done.first && tutorial !== null && level === tutorial;
-    const last = tutorial !== null && level >= tutorial;
-    const next = () => navigate(`/niveaux/GALAXIES/${level + 1}`);
     const onButton = () => {
         if (intro < intros.length) setIntro(n => n + 1);
         else if (index >= 0) setRead(r => new Set(r).add(index));
@@ -190,35 +187,8 @@ export default function GalaxiesTutorial({level, tutorial}: Props) {
             {solved && !done && <div className="tutorial-bubble" role="status"><p>Bravo ! Vérification…</p></div>}
 
             {done && (
-                <div className="modal-overlay success-overlay" role="dialog" aria-modal="true" aria-labelledby="lesson-done">
-                    <div className="modal success-modal lesson-done">
-                        {tutorialDone ? (
-                            <>
-                                <FaGraduationCap className="lesson-done-icon" aria-hidden/>
-                                <h2 id="lesson-done">Bravo !</h2>
-                                <p>Le tutoriel est terminé : tu sais maintenant jouer aux Galaxies ! Génère des grilles aléatoires en attendant les niveaux.</p>
-                            </>
-                        ) : (
-                            <>
-                                <FaStar className="lesson-done-icon" aria-hidden/>
-                                <h2 id="lesson-done">Leçon réussie !</h2>
-                                <p>{last ? "Tu as fini les leçons des Galaxies." : "La suite t'attend : une nouvelle technique."}</p>
-                            </>
-                        )}
-                        {done.xp !== null && <p className="lesson-done-xp">+{done.xp} XP</p>}
-                        <div className="modal-buttons">
-                            {!last && <button type="button" className="modal-button" onClick={next}>Leçon suivante</button>}
-                            {last && (
-                                <button type="button" className="modal-button" onClick={() => navigate("/playgame/GALAXIES")}>
-                                    <FaDice aria-hidden/> Grille aléatoire
-                                </button>
-                            )}
-                            <button type="button" className="modal-button secondary" onClick={() => navigate("/niveaux/GALAXIES")}>
-                                <FaMapMarkedAlt aria-hidden/> Carte
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <LessonDonePopup gameCode="GALAXIES" playName="aux Galaxies" level={level} tutorial={tutorial} xp={done.xp}
+                                 tutorialDone={done.first && tutorial !== null && level === tutorial}/>
             )}
         </main>
     );

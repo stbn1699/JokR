@@ -11,14 +11,15 @@ import "../Binero/Binero.scss";
 import "./QueensTutorial.scss";
 import "./BineroTutorial.scss";
 import {type CSSProperties, useEffect, useMemo, useRef, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
-import {FaChevronLeft, FaDice, FaGraduationCap, FaMapMarkedAlt, FaStar} from "react-icons/fa";
+import {Link} from "react-router-dom";
+import {FaChevronLeft, FaGraduationCap} from "react-icons/fa";
 import type {BineroCell} from "../../Models/bineroSettings.model.ts";
 import {useAuth} from "../../Context/authContext.ts";
 import {guestDone, levelsService, rememberGuestLevel} from "../../Services/levels.service.ts";
 import {bineroService} from "../../Services/binero.service.ts";
 import BineroGrid from "../Binero/BineroGrid.tsx";
 import Loader from "../Loader/Loader.tsx";
+import {LessonDonePopup} from "./LessonFrame.tsx";
 import {confetti} from "../Confetti/Confetti.tsx";
 import {type BineroStep, nextBineroStep} from "./bineroGuide.ts";
 
@@ -58,7 +59,6 @@ function explain(step: BineroStep, first: boolean, size: number): string {
 }
 
 export default function BineroTutorial({level, tutorial}: Props) {
-    const navigate = useNavigate();
     const auth = useAuth();
     const [size, setSize] = useState(0);
     const [values, setValues] = useState<BineroCell[]>([]);
@@ -184,9 +184,6 @@ export default function BineroTutorial({level, tutorial}: Props) {
         setValues(old => old.map((x, k) => (k === i ? v : x)));
     };
 
-    const tutorialDone = done !== null && done.first && tutorial !== null && level === tutorial;
-    const last = tutorial !== null && level >= tutorial;
-    const next = () => navigate(`/niveaux/BINERO/${level + 1}`);
     const onButton = () => {
         if (intro < intros.length) setIntro(n => n + 1);
         else if (step) setExplained(`${step.rule}:${step.targets.map(t => t.cell).join(",")}`);
@@ -221,35 +218,8 @@ export default function BineroTutorial({level, tutorial}: Props) {
             {solved && !done && <div className="tutorial-bubble" role="status"><p>Bravo ! Vérification…</p></div>}
 
             {done && (
-                <div className="modal-overlay success-overlay" role="dialog" aria-modal="true" aria-labelledby="lesson-done">
-                    <div className="modal success-modal lesson-done">
-                        {tutorialDone ? (
-                            <>
-                                <FaGraduationCap className="lesson-done-icon" aria-hidden/>
-                                <h2 id="lesson-done">Bravo !</h2>
-                                <p>Le tutoriel est terminé : tu sais maintenant jouer au Binero ! Génère des grilles aléatoires en attendant les niveaux.</p>
-                            </>
-                        ) : (
-                            <>
-                                <FaStar className="lesson-done-icon" aria-hidden/>
-                                <h2 id="lesson-done">Leçon réussie !</h2>
-                                <p>{last ? "Tu as fini les leçons du Binero." : "La suite t'attend : une nouvelle règle."}</p>
-                            </>
-                        )}
-                        {done.xp !== null && <p className="lesson-done-xp">+{done.xp} XP</p>}
-                        <div className="modal-buttons">
-                            {!last && <button type="button" className="modal-button" onClick={next}>Leçon suivante</button>}
-                            {last && (
-                                <button type="button" className="modal-button" onClick={() => navigate("/playgame/BINERO")}>
-                                    <FaDice aria-hidden/> Grille aléatoire
-                                </button>
-                            )}
-                            <button type="button" className="modal-button secondary" onClick={() => navigate("/niveaux/BINERO")}>
-                                <FaMapMarkedAlt aria-hidden/> Carte
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <LessonDonePopup gameCode="BINERO" playName="au Binero" level={level} tutorial={tutorial} xp={done.xp}
+                                 tutorialDone={done.first && tutorial !== null && level === tutorial} novelty="règle"/>
             )}
         </main>
     );
