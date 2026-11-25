@@ -22,6 +22,7 @@ import {FaBolt, FaCheck, FaChevronLeft, FaChevronRight, FaCoins, FaExchangeAlt, 
 import {discountedPrice, upgrade as findUpgrade} from "../../../backend/src/utils/upgrades.ts";
 import {addOwnedUpgrade, setOwnedItems, UPGRADE_SECTIONS, useUpgradeLevels} from "../../Services/upgrades.ts";
 import UpgradesView from "./UpgradesView.tsx";
+import AdRewardButton from "../Ads/AdRewardButton.tsx";
 import BuyButton from "./BuyButton.tsx";
 import {useAuth} from "../../Context/authContext.ts";
 import {ApiError} from "../../api/api.ts";
@@ -285,7 +286,7 @@ function Featured({bestSellers, categories, loading, isOwned}: {
     loading: boolean;
     isOwned: (item: Item) => boolean;
 }) {
-    const {isLoggedIn} = useAuth();
+    const {isLoggedIn, adminMode} = useAuth();
     // chaque vente retrouvée dans le catalogue (un objet retiré n'est plus montré), les 6 premières
     const top = (bestSellers ?? []).flatMap(sale => {
         const category = categories.find(c => c.items.some(i => i.id === sale.itemId));
@@ -301,6 +302,8 @@ function Featured({bestSellers, categories, loading, isOwned}: {
                     <h1>À la une</h1>
                     <p>{thisWeek ? "Les objets les plus achetés cette semaine" : "Les objets les plus achetés"}</p>
                 </div>
+                {/* une pub contre des crédits (aussi au survol des crédits du header, mais pas de survol au doigt) */}
+                {isLoggedIn && !adminMode && <AdRewardButton/>}
             </header>
 
             {!isLoggedIn ? (

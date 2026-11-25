@@ -61,6 +61,18 @@ function pushConfig(): { publicKey: string; privateKey: string; subject: string 
     return {publicKey, privateKey, subject};
 }
 
+// Pubs récompensées (Google H5 Games Ads) : identifiant AdSense ca-pub-… ; ADSENSE_TEST=1 pour des pubs de test.
+// Sans identifiant : le bouton « Obtenir plus de crédits » n'apparaît pas en production, et montre une fausse pub en dev.
+function adsConfig(): { client: string | null; test: boolean; enabled: boolean } {
+    const client = process.env.ADSENSE_CLIENT || null;
+    if (client && !/^ca-pub-\d{10,20}$/.test(client)) throw new Error("ADSENSE_CLIENT doit ressembler à ca-pub-1234567890123456");
+    return {client, test: process.env.ADSENSE_TEST === "1", enabled: client !== null || process.env.NODE_ENV !== "production"};
+}
+
+// Autres domaines pointés sur ce serveur (ex: ebasson.fr,www.ebasson.fr), renvoyés vers APP_URL sauf /ads.txt
+const redirectHosts = new Set((process.env.REDIRECT_HOSTS ?? "").split(",").map(h => h.trim().toLowerCase()).filter(Boolean));
+if (redirectHosts.size > 0 && !appUrl) throw new Error("REDIRECT_HOSTS a besoin de APP_URL (ex: https://jokr.example.com)");
+
 export const config = {
     port: Number(process.env.PORT ?? 3000),
     // Front servi par le même serveur : pas besoin d'autoriser d'autres origines
@@ -76,4 +88,6 @@ export const config = {
     oauth,
     appUrl,
     push: pushConfig(),
+    ads: adsConfig(),
+    redirectHosts,
 } as const;

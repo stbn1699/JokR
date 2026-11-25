@@ -1,0 +1,45 @@
+// Fausse pub récompensée (dev, sans identifiant AdSense), voir ads.service.ts
+.fake-ad {
+	position        : fixed;
+	inset           : 0;
+	z-index         : 10000;
+	display         : flex;
+	align-items     : center;
+	justify-content : center;
+	background      : rgba(0, 0, 0, 0.85);
+
+	.fake-ad-box {
+		display        : flex;
+		flex-direction : column;
+		align-items    : center;
+		gap            : 0.8rem;
+		width          : min(22rem, calc(100vw - 2rem));
+		padding        : 2rem 1.5rem;
+		border-radius  : 14px;
+		background     : linear-gradient(135deg, #312e81, #7c3aed);
+		color          : #fff;
+		text-align     : center;
+
+		small {
+			opacity        : 0.7;
+			text-transform : uppercase;
+			letter-spacing : 0.08em;
+		}
+
+		strong {
+			font-size : 1.8rem;
+		}
+
+		button {
+			margin-top    : 0.5rem;
+			padding       : 0.5rem 1.1rem;
+			border        : none;
+			border-radius : 999px;
+			background    : #fff;
+			color         : #312e81;
+			font          : inherit;
+			font-weight   : 700;
+			cursor        : pointer;
+		}
+	}
+}

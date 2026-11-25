@@ -230,31 +230,36 @@
 		}
 
 		// Crédits du joueur, à côté du niveau (un clic mène à la boutique)
-		.credits {
-			position        : relative;
-			display         : flex;
-			align-items     : center;
-			gap             : 0.35rem;
-			padding         : 0.2rem 0.5rem;
-			margin          : -0.2rem -0.5rem;
-			border-radius   : 10px;
-			color           : #b45309;
-			font-size       : 1.35rem;
-			font-weight     : 700;
-			text-decoration : none;
-			transition      : color 0.3s ease, text-shadow 0.3s ease, background 0.15s ease;
+		.credits-wrap {
+			position : relative;
+			display  : flex;
 
-			&:hover {
-				background : rgba(180, 83, 9, 0.1);
+			.credits {
+				position        : relative;
+				display         : flex;
+				align-items     : center;
+				gap             : 0.35rem;
+				padding         : 0.2rem 0.5rem;
+				margin          : -0.2rem -0.5rem;
+				border-radius   : 10px;
+				color           : #b45309;
+				font-size       : 1.35rem;
+				font-weight     : 700;
+				text-decoration : none;
+				transition      : color 0.3s ease, text-shadow 0.3s ease, background 0.15s ease;
+
+				&:hover {
+					background : rgba(180, 83, 9, 0.1);
+				}
+
+				// Crédits qui défilent après une victoire : ils s'illuminent
+				&.bump {
+					color       : #ea580c;
+					text-shadow : 0 0 10px rgba(249, 115, 22, 0.55);
+				}
 			}
 
-			// Crédits qui défilent après une victoire : ils s'illuminent
-			&.bump {
-				color       : #ea580c;
-				text-shadow : 0 0 10px rgba(249, 115, 22, 0.55);
-			}
-
-			// bulle du survol : le solde exact
+			// bulle du survol : le solde exact et le bouton « Obtenir plus de crédits »
 			.credits-tip {
 				position       : absolute;
 				top            : calc(100% + 0.6rem);
@@ -276,6 +281,18 @@
 				transform      : translate(-50%, -0.25rem);
 				transition     : opacity 0.15s ease, transform 0.15s ease;
 				pointer-events : none;
+				cursor         : default;
+
+				// pont invisible entre les crédits et la bulle : elle reste ouverte quand la souris descend dedans
+				&::after {
+					content  : "";
+					position : absolute;
+					inset    : -0.8rem 0 100% 0;
+				}
+
+				.ad-reward-button {
+					margin-top : 0.45rem;
+				}
 
 				b {
 					color     : #fbbf24;
@@ -300,9 +317,10 @@
 				}
 			}
 
-			&:hover .credits-tip, &:focus-visible .credits-tip {
-				opacity   : 1;
-				transform : translate(-50%, 0);
+			&:hover .credits-tip, &:focus-within .credits-tip {
+				opacity        : 1;
+				transform      : translate(-50%, 0);
+				pointer-events : auto;
 			}
 		}
 

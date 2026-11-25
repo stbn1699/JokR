@@ -32,6 +32,7 @@ import socialRoutes from "./routes/Social.routes.js";
 import shopRoutes from "./routes/Shop.routes.js";
 import feedbackRoutes from "./routes/Feedback.routes.js";
 import casinoRoutes from "./routes/Casino.routes.js";
+import adsRoutes from "./routes/Ads.routes.js";
 import {NotificationsRepository} from "./repository/Notifications.repository.js";
 import playersRoutes from "./routes/Players.routes.js";
 import achievementsRoutes from "./routes/Achievements.routes.js";
@@ -67,6 +68,26 @@ const app = express();
 
 app.set("trust proxy", config.trustProxy);
 app.disable("x-powered-by");
+
+// ads.txt (exigé par AdSense) : déclare le compte AdSense autorisé à vendre les pubs du site.
+// AdSense le cherche sur le domaine principal (ebasson.fr) : voir REDIRECT_HOSTS juste dessous.
+if (config.ads.client) {
+	const adsTxt = `google.com, ${config.ads.client.replace(/^ca-/, "")}, DIRECT, f08c47fec0942fa0\n`;
+	app.get("/ads.txt", (_req, res) => {
+		res.type("text/plain").setHeader("Cache-Control", "public, max-age=86400");
+		res.send(adsTxt);
+	});
+}
+
+// Autres domaines qui arrivent sur ce serveur (REDIRECT_HOSTS, ex. ebasson.fr) : tout est renvoyé vers APP_URL,
+// sauf ads.txt, servi juste au-dessus
+if (config.redirectHosts.size > 0 && config.appUrl) {
+	app.use((req, res, next) => {
+		if (!config.redirectHosts.has(req.hostname.toLowerCase())) return next();
+		res.redirect(301, `${config.appUrl}${req.originalUrl}`);
+	});
+}
+
 app.use(express.json()); // parse le JSON des requêtes
 
 // CORS configuré via la variable d'environnement CORS_ORIGIN (ex: http://localhost:5173)
@@ -126,6 +147,7 @@ api.use("/social", socialRoutes);
 api.use("/shop", shopRoutes);
 api.use("/feedback", feedbackRoutes);
 api.use("/casino", casinoRoutes);
+api.use("/ads", adsRoutes);
 api.use("/players", playersRoutes);
 api.use("/achievements", achievementsRoutes);
 

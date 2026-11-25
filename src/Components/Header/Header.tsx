@@ -6,7 +6,8 @@
  * - Au centre, les catégories de jeux seulement : Puzzle (accueil, défis du jour compris) et Hasard.
  *   Un point orange sur Puzzle tant que le joueur n'a pas fini les défis du jour, et sur Hasard tant qu'il n'a pas
  *   lancé la roue du jour. Sur Social, tant qu'un message d'ami·e n'est pas lu.
- * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits (vers la boutique), Classement et Boutique en
+ * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits (vers la boutique ; au survol, « Obtenir plus de
+ *   crédits » contre une pub), Classement et Boutique en
  *   icônes (et Stats pour les administrateurs), cloche des notifications, puis l'icône de profil (contour selon le niveau) qui ouvre le menu du
  *   compte (profil, personnaliser, nouveautés, retours, mode admin et stats ; voir ProfileMenu)
  * - Invité : icône pour aller à la page de connexion
@@ -31,6 +32,7 @@ import {useTierUp} from "../Avatar/useTierUp.ts";
 import TierUpPopup from "../Avatar/TierUpPopup.tsx";
 import LevelBubble from "../Avatar/LevelBubble.tsx";
 import ProfileMenu from "./ProfileMenu.tsx";
+import AdRewardButton from "../Ads/AdRewardButton.tsx";
 import StreakFlame from "../Streak/StreakFlame.tsx";
 import {useEffect, useRef, useState} from "react";
 import {dailyService} from "../../Services/daily.service.ts";
@@ -220,16 +222,20 @@ export default function Header() {
                         <span className="user-divider" aria-hidden/>
 
                         {/* crédits : un clic mène à la boutique */}
-                        {/* au survol : le solde exact (l'écriture est courte à partir de 10 000 : 12,3k) */}
-                        <Link to="/boutique" className={`credits ${shown.creditsBump ? "bump" : ""}`}
-                              aria-label={`${fullCredits(credits)} crédits, ouvrir la boutique`}>
-                            <FaCoins aria-hidden/>
-                            <span aria-hidden>{formatCredits(credits)}</span>
-                            <span className="credits-tip" aria-hidden>
-                                <span><b>{fullCredits(credits)}</b> crédits</span>
-                                <small>À miser au Hasard, à dépenser dans la boutique</small>
+                        {/* au survol : le solde exact (l'écriture est courte à partir de 10 000 : 12,3k) et le bouton
+                            « Obtenir plus de crédits » (une pub contre des crédits) */}
+                        <span className="credits-wrap">
+                            <Link to="/boutique" className={`credits ${shown.creditsBump ? "bump" : ""}`}
+                                  aria-label={`${fullCredits(credits)} crédits, ouvrir la boutique`}>
+                                <FaCoins aria-hidden/>
+                                <span aria-hidden>{formatCredits(credits)}</span>
+                            </Link>
+                            <span className="credits-tip">
+                                <span aria-hidden><b>{fullCredits(credits)}</b> crédits</span>
+                                <small aria-hidden>À miser au Hasard, à dépenser dans la boutique</small>
+                                {!adminMode && <AdRewardButton/>}
                             </span>
-                        </Link>
+                        </span>
 
                         <Link to="/classements" className={`header-icon ${pathname.startsWith("/classements") ? "active" : ""}`}
                               title="Classements" aria-label="Classements">

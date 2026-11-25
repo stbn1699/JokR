@@ -272,6 +272,17 @@ export type RouletteBetsTable = {
 };
 
 // Roue du jour du Hasard : un lancer par joueur et par jour (heure de Paris)
+// Pubs récompensées (voir utils/adRewards.ts) : une ligne par pub lancée, payée une fois regardée
+export type AdRewardsTable = {
+    id: Generated<string>;
+    user_id: string;
+    // jour (Paris) où la pub compte : celui où elle a été payée
+    reward_date: string;
+    started_at: Generated<Date>;
+    claimed_at: Date | null;
+    credits: Generated<number>;
+};
+
 export type DailyWheelSpinsTable = {
     user_id: string;
     spin_date: string;
@@ -364,6 +375,7 @@ export type DB = {
     roulette_bets: RouletteBetsTable;
     lottery_draws: LotteryDrawsTable;
     daily_wheel_spins: DailyWheelSpinsTable;
+    ad_rewards: AdRewardsTable;
     lottery_bonus_tickets: LotteryBonusTicketsTable;
     blackjack_hands: BlackjackHandsTable;
     poker_hands: PokerHandsTable;
