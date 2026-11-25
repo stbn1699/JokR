@@ -4,6 +4,22 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 4.2.1 — 25 novembre 2026
+
+Besoin de crédits ? Tu peux maintenant en gagner en regardant une pub, quelques fois par jour.
+
+### Crédits
+- Nouveau bouton « Obtenir plus de crédits », au survol de tes crédits en haut de l'écran et en haut de la boutique
+- Regarde une pub jusqu'au bout et gagne 50 crédits, jusqu'à 3 fois par jour
+- Si un bloqueur de pubs est activé, JokR te le signale : coupe-le pour JokR puis vérifie à nouveau
+
+### Confidentialité
+- Nouvelle page Confidentialité, accessible en bas de l'écran : ce que JokR enregistre, pourquoi, les cookies, la publicité et tes droits
+- JokR n'utilise aucun cookie à lui ; ceux de Google n'arrivent que si tu choisis de regarder une pub
+
+### Corrections
+- Le panneau de duel de l'onglet Social ne disparaît plus avec certains bloqueurs de pubs
+
 ## 4.2.0 — 25 novembre 2026
 
 JokR devient social ! Un nouvel onglet pour retrouver tes ami·e·s, discuter et te lancer des duels. Et les onze jeux arrivés en 4.1 ont maintenant leur mode Niveaux complet : un tutoriel guidé puis 1000 niveaux chacun.
