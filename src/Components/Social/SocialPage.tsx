@@ -402,8 +402,8 @@ function FriendPanel({friend, messages, duelGames, onDuel}: {
     };
 
     return (
-        <aside className="social-panel">
-            <Link to={playerPath(friend.username)} className="social-panel-id">
+        <aside className="friend-sidebar">
+            <Link to={playerPath(friend.username)} className="friend-sidebar-id">
                 <Avatar seed={friend.avatar} fallback={friend.username} size={5} level={friend.level} showLevel/>
                 <h2>{friend.username}</h2>
                 <span className={`social-friend-status ${friend.presence}`}>{presenceText(friend)}</span>
