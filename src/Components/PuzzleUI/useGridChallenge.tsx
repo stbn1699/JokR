@@ -7,6 +7,7 @@ import {challengeService} from "../../Services/challenge.service.ts";
 import {DAILY_REWARD_MULTIPLIER} from "../../Services/dailyGames.ts";
 import {levelsService} from "../../Services/levels.service.ts";
 import LevelVictory, {type LevelInfo} from "../Levels/LevelVictory.tsx";
+import {LessonTop} from "../Levels/LessonFrame.tsx";
 import {levelName} from "../Levels/worlds.ts";
 import type {Victory} from "./useGameFlow.ts";
 
@@ -23,6 +24,8 @@ type GridChallengeOptions<Saved extends { gameId: string }, Grid> = GridChalleng
     onLoad: (grid: Grid, saved: Saved, elapsedMs: number) => void;
     // titres des leçons du tutoriel guidé (mode Niveaux)
     lessonTitles?: readonly string[];
+    // « au Coloria », « aux Tuyaux » : fin du tutoriel (« tu sais maintenant jouer aux Tuyaux »)
+    playName?: string;
 };
 
 /**
@@ -33,6 +36,9 @@ type GridChallengeOptions<Saved extends { gameId: string }, Grid> = GridChalleng
  * Renvoie ce que le jeu affiche autour de sa grille : sous-titre de la barre d'outils, bandeau au-dessus
  * de la grille, popup « déjà réussi » et réglages de la popup de victoire (dont « Défier des ami·e·s ») ;
  * pour un niveau, sa propre popup de victoire (levelVictory).
+ * Leçon du tutoriel : comme les tutoriels des jeux d'origine (Levels/LessonFrame.tsx), le bandeau est le haut de la leçon
+ * (lien vers la carte, badge « Leçon n/3 · titre ») et `layoutClass` (in-lesson) cache la barre d'outils, les panneaux
+ * (chrono, annuler, règles…) et le titre : il ne reste que la grille, la bulle et les commandes que la leçon montre.
  */
 export function useGridChallenge<Saved extends { gameId: string }, Grid>(options: GridChallengeOptions<Saved, Grid>) {
     const {code, gameName, daily = false, replayDate, challengeId, level, levelInfo} = options;
@@ -44,8 +50,6 @@ export function useGridChallenge<Saved extends { gameId: string }, Grid>(options
     // leçon du tutoriel guidé : « Leçon 2/3 · titre »
     const tutorial = levelInfo?.tutorial ?? null;
     const lesson = level !== undefined && tutorial !== null && level <= tutorial;
-    const levelLabel = level === undefined ? "" : lesson
-        ? `Leçon ${level}/${tutorial}${options.lessonTitles?.[level - 1] ? ` · ${options.lessonTitles[level - 1]}` : ""}` : levelName(level);
 
     const dailyGame = useDailyGame<Saved, Grid>({
         enabled: challenge,
@@ -62,8 +66,10 @@ export function useGridChallenge<Saved extends { gameId: string }, Grid>(options
     const toolbarLabel: ReactNode = level !== undefined ? (lesson ? `Leçon ${level}/${tutorial}` : levelName(level)) : daily ? <>Défi du jour <span className="daily-x2">×{DAILY_REWARD_MULTIPLIER}</span></>
         : replayDate ? `Défi du ${formatDailyDate(replayDate)}` : challengeId ? "Défi d'un·e ami·e" : undefined;
 
-    const banner: ReactNode = level !== undefined ? (
-        <p className="daily-label level-label"><Link to={`/niveaux/${code}`}>Niveaux</Link> · {levelLabel}</p>
+    const banner: ReactNode = lesson ? (
+        <LessonTop gameCode={code} level={level} tutorial={tutorial} title={options.lessonTitles?.[level - 1] ?? ""}/>
+    ) : level !== undefined ? (
+        <p className="daily-label level-label"><Link to={`/niveaux/${code}`}>Niveaux</Link> · {levelName(level)}</p>
     ) : daily ? (
         <p className="daily-label">
             Défi du jour{dailyGame.date ? ` · ${formatDailyDate(dailyGame.date)}` : ""}
@@ -86,10 +92,11 @@ export function useGridChallenge<Saved extends { gameId: string }, Grid>(options
 
     // Niveau réussi : popup du mode Niveaux (« Leçon suivante », « Niveau suivant »…) à la place de la victoire habituelle
     const levelVictory = (won: Victory | null): ReactNode =>
-        level !== undefined ? <LevelVictory gameCode={code} gameName={gameName} level={level} info={levelInfo} victory={won}/> : null;
+        level !== undefined ? <LevelVictory gameCode={code} gameName={gameName} playName={options.playName} level={level} info={levelInfo} victory={won}/> : null;
 
     return {
         challenge, saveKey, loading: dailyGame.loading, error: dailyGame.error, toolbarLabel, banner, donePopup, victory,
-        level, levelInfo, lesson, levelVictory,
+        level, levelInfo, lesson, levelVictory, layoutClass: lesson ? "in-lesson" : "",
+        loadingLabel: lesson ? "Chargement de la leçon…" : "Chargement du défi…",
     };
 }

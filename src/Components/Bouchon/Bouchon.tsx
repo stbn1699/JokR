@@ -66,7 +66,7 @@ function VehicleShape({vehicle, taxi}: { vehicle: BouchonVehicle; taxi: boolean 
 export default function Bouchon({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, BouchonPuzzle>({
-        code: CODE, gameName: "Bouchon", daily, replayDate, challengeId, level, levelInfo, lessonTitles: BOUCHON_LESSONS.titles,
+        code: CODE, gameName: "Bouchon", playName: "au Bouchon", daily, replayDate, challengeId, level, levelInfo, lessonTitles: BOUCHON_LESSONS.titles,
         fetchStatus: bouchonService.getGame,
         emptySave: gameId => ({gameId, moves: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -141,8 +141,16 @@ export default function Bouchon({daily = false, replayDate, challengeId, level, 
             : (e.clientY - rect.top) / rect.height * puzzle!.size;
     };
 
+    // leçon : seul le véhicule qui brille répond
+    const movable = (index: number) => {
+        if (!puzzle) return false;
+        const v = puzzle.vehicles[index]!, at = positions[index]!;
+        return Array.from({length: v.length}, (_, offset) => (v.horizontal ? v.row * puzzle.size + at + offset : (at + offset) * puzzle.size + v.col))
+            .some(cell => coach.allows(cell));
+    };
+
     const onVehicleDown = (e: PointerEvent<SVGGElement>, index: number) => {
-        if (!playing || e.button !== 0) return;
+        if (!playing || e.button !== 0 || !movable(index)) return;
         setKeyboardVehicle(null);
         const [min, max] = slideRange(puzzle, positions, index);
         const from = positions[index]!;
@@ -171,7 +179,7 @@ export default function Bouchon({daily = false, replayDate, challengeId, level, 
     };
 
     const onVehicleKey = (e: KeyboardEvent<SVGGElement>, index: number) => {
-        if (!playing || !e.key.startsWith("Arrow")) return;
+        if (!playing || !e.key.startsWith("Arrow") || !movable(index)) return;
         e.preventDefault();
         setKeyboardVehicle(index);
         const vehicle = puzzle.vehicles[index]!;
@@ -233,7 +241,7 @@ export default function Bouchon({daily = false, replayDate, challengeId, level, 
     );
 
     return (
-        <div className="puzzle-layout bouchon">
+        <div className={`puzzle-layout bouchon ${challenge.layoutClass}`}>
             <GameToolbar gameName="Bouchon" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
 
             <div className="options">
@@ -248,9 +256,9 @@ export default function Bouchon({daily = false, replayDate, challengeId, level, 
             <div className="game">
                 {challenge.banner}
                 <h1 className="title">Bouchon</h1>
-                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
+                {challenge.loading && <Loader size="small" label={challenge.loadingLabel}/>}
                 {puzzle && (
-                    <svg ref={board} className={`bouchon-board ${drag ? "dragging" : ""}`}
+                    <svg ref={board} className={`bouchon-board ${drag ? "dragging" : ""} ${coach.locked ? "lesson-locked" : ""}`}
                          viewBox={`0 0 ${puzzle.size + EXIT_WIDTH} ${puzzle.size}`}
                          role="application" aria-label="Parking : glisse les véhicules pour libérer le taxi"
                          onPointerMove={onPointerMove} onPointerUp={endDrag} onPointerCancel={endDrag}>
@@ -285,6 +293,7 @@ export default function Bouchon({daily = false, replayDate, challengeId, level, 
                     </svg>
                 )}
                 {coach.bubble}
+                {challenge.lesson && <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 

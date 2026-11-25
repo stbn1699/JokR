@@ -36,7 +36,7 @@ type Saved = { gameId: string; colors: number[] };
 export default function Coloria({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, ColoriaPuzzle>({
-        code: CODE, gameName: "Coloria", daily, replayDate, challengeId, level, levelInfo, lessonTitles: COLORIA_LESSONS.titles,
+        code: CODE, gameName: "Coloria", playName: "au Coloria", daily, replayDate, challengeId, level, levelInfo, lessonTitles: COLORIA_LESSONS.titles,
         fetchStatus: coloriaService.getGame,
         emptySave: gameId => ({gameId, colors: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -144,7 +144,7 @@ export default function Coloria({daily = false, replayDate, challengeId, level, 
     };
 
     const paint = (zone: number) => {
-        if (!playing || puzzle.given[zone]! >= 0) return;
+        if (!playing || puzzle.given[zone]! >= 0 || !coach.allows(zone)) return;
         const next = [...colors];
         next[zone] = colors[zone] === active ? -1 : active;
         commit(next);
@@ -171,7 +171,7 @@ export default function Coloria({daily = false, replayDate, challengeId, level, 
 
     // Touches 1 à 5 : choisir une couleur
     useEffect(() => {
-        if (!playing) return;
+        if (!playing || coach.locked) return;
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.ctrlKey || e.metaKey || e.altKey) return;
             const digit = Number(e.key);
@@ -179,7 +179,7 @@ export default function Coloria({daily = false, replayDate, challengeId, level, 
         };
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
-    }, [playing, puzzle]);
+    }, [playing, puzzle, coach.locked]);
 
     const full = colors.length > 0 && colors.every(color => color >= 0);
     useAutoValidate({
@@ -205,6 +205,18 @@ export default function Coloria({daily = false, replayDate, challengeId, level, 
     const hasInput = puzzle !== null && colors.some((color, zone) => color !== puzzle.given[zone]);
     const colored = colors.filter(color => color >= 0).length;
 
+    const palette = puzzle && (
+        <div className="coloria-palette" role="group" aria-label="Choisir une couleur">
+            {Array.from({length: puzzle.colors}, (_, color) => (
+                <button key={color} type="button" disabled={!playing} aria-pressed={active === color}
+                        aria-label={`Couleur ${color + 1}`} className={active === color ? "selected" : ""}
+                        style={{"--zone": PALETTE[color]} as CSSProperties} onClick={() => setActive(color)}>
+                    {color + 1}
+                </button>
+            ))}
+        </div>
+    );
+
     const rules = (
         <ul>
             <li>Colorie toutes les zones</li>
@@ -215,7 +227,7 @@ export default function Coloria({daily = false, replayDate, challengeId, level, 
     );
 
     return (
-        <div className="puzzle-layout coloria">
+        <div className={`puzzle-layout coloria ${challenge.layoutClass}`}>
             <GameToolbar gameName="Coloria" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                          showErrors={showErrors} onToggleErrors={setShowErrors} errorCount={conflicts.size} rules={rules}/>
 
@@ -223,15 +235,7 @@ export default function Coloria({daily = false, replayDate, challengeId, level, 
                 <h2 className="title">Couleurs</h2>
                 {puzzle && (
                     <>
-                        <div className="coloria-palette" role="group" aria-label="Choisir une couleur">
-                            {Array.from({length: puzzle.colors}, (_, color) => (
-                                <button key={color} type="button" disabled={!playing} aria-pressed={active === color}
-                                        aria-label={`Couleur ${color + 1}`} className={active === color ? "selected" : ""}
-                                        style={{"--zone": PALETTE[color]} as CSSProperties} onClick={() => setActive(color)}>
-                                    {color + 1}
-                                </button>
-                            ))}
-                        </div>
+                        {palette}
                         <p className="coloria-progress"><strong>{colored}</strong> / {puzzle.zones} zones</p>
                         <p className="digit-hint">
                             Choisis une couleur (ou touches 1 à {puzzle.colors}), puis clique sur une zone. Reclique pour l'effacer.
@@ -244,9 +248,9 @@ export default function Coloria({daily = false, replayDate, challengeId, level, 
             <div className="game">
                 {challenge.banner}
                 <h1 className="title">Coloria</h1>
-                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
+                {challenge.loading && <Loader size="small" label={challenge.loadingLabel}/>}
                 {puzzle && (
-                    <div className="coloria-board" style={{"--size": puzzle.width} as CSSProperties} role="grid" aria-label="Zones à colorier"
+                    <div className={`coloria-board ${coach.locked ? "lesson-locked" : ""}`} style={{"--size": puzzle.width} as CSSProperties} role="grid" aria-label="Zones à colorier"
                          onMouseLeave={() => setHovered(null)}>
                         {puzzle.regions.map((zone, cell) => {
                             const w = puzzle.width;
@@ -275,6 +279,8 @@ export default function Coloria({daily = false, replayDate, challengeId, level, 
                     </div>
                 )}
                 {coach.bubble}
+                {challenge.lesson && coach.controls && <div className="lesson-controls">{palette}</div>}
+                {challenge.lesson && <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 

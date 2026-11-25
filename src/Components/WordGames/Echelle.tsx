@@ -25,7 +25,7 @@ const lettersApart = (a: string, b: string) => Array.from(a).filter((letter, i) 
 export default function Echelle({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, EchellePuzzle>({
-        code: CODE, gameName: "Échelle", daily, replayDate, challengeId, level, levelInfo, lessonTitles: ECHELLE_LESSONS.titles,
+        code: CODE, gameName: "Échelle", playName: "à Échelle", daily, replayDate, challengeId, level, levelInfo, lessonTitles: ECHELLE_LESSONS.titles,
         fetchStatus: echelleService.getGame,
         emptySave: gameId => ({gameId, path: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -138,7 +138,8 @@ export default function Echelle({daily = false, replayDate, challengeId, level, 
         },
         onEnter: () => void submit(),
     };
-    useLetterKeys(playing, handlers);
+    // leçon : pas de frappe pendant une explication
+    useLetterKeys(playing && !coach.locked, handlers);
 
     const undo = () => {
         if (path.length <= 1) return;
@@ -221,7 +222,7 @@ export default function Echelle({daily = false, replayDate, challengeId, level, 
                         )}
                     </div>
                     {coach.bubble}
-                    <LetterKeyboard disabled={!playing || busy} busy={playing && busy} {...handlers}/>
+                    {coach.controls && <LetterKeyboard disabled={!playing || busy || coach.locked} busy={playing && busy} {...handlers}/>}
                 </>
             )}
         </WordGameShell>

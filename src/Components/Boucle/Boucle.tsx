@@ -25,7 +25,8 @@ import type {BouclePuzzle} from "../../Models/boucle.model.ts";
 import {cleanLinks, countLoops, fullCells, linkCells, solvedLoop, startStroke, type Stroke, strokeTo} from "./boucleRules.ts";
 import {useLessonCoach} from "../Lessons/useLessonCoach.tsx";
 import LessonSpots from "../Lessons/LessonSpots.tsx";
-import {BOUCLE_LESSONS} from "../Lessons/boucleLessons.ts";
+import {BOUCLE_LESSONS, BOUCLE_SOLUTIONS} from "../Lessons/boucleLessons.ts";
+import {type BoucleRule, nextBoucleStep} from "../Lessons/boucleGuide.ts";
 
 const CODE = "BOUCLE";
 
@@ -40,7 +41,7 @@ const sameLinks = (a: readonly number[], b: readonly number[]) => {
 export default function Boucle({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, BouclePuzzle>({
-        code: CODE, gameName: "Boucle", daily, replayDate, challengeId, level, levelInfo, lessonTitles: BOUCLE_LESSONS.titles,
+        code: CODE, gameName: "Boucle", playName: "à Boucle", daily, replayDate, challengeId, level, levelInfo, lessonTitles: BOUCLE_LESSONS.titles,
         fetchStatus: boucleService.getGame,
         emptySave: gameId => ({gameId, links: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -65,7 +66,12 @@ export default function Boucle({daily = false, replayDate, challengeId, level, l
     const filled = size ? fullCells(shown, size) : 0;
     const loops = size ? countLoops(shown, size) : 0;
     const loop = useMemo(() => (puzzle && !stroke ? solvedLoop(puzzle, links) : null), [puzzle, links, stroke]);
-    const coach = useLessonCoach(BOUCLE_LESSONS, level, challenge.lesson, puzzle ? {puzzle, links, loops} : null, playing);
+    // leçon : déduction du guide (traits en pointillés) et techniques déjà faites (textes plus courts ensuite)
+    const [seen, setSeen] = useState<ReadonlySet<BoucleRule>>(new Set());
+    const guide = useMemo(() => (challenge.lesson && puzzle && level !== undefined ? nextBoucleStep(puzzle, links, BOUCLE_SOLUTIONS[level]) : null),
+        [challenge.lesson, puzzle, links, level]);
+    const coach = useLessonCoach(BOUCLE_LESSONS, level, challenge.lesson, puzzle ? {puzzle, step: guide, seen} : null, playing);
+    const showGuide = guide !== null && coach.bubble !== null && !coach.locked;
 
     useEffect(() => {
         if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, links});
@@ -118,7 +124,8 @@ export default function Boucle({daily = false, replayDate, challengeId, level, l
     const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
         if (!playing || e.button !== 0) return;
         const cell = cellAt(e);
-        if (cell === null) return;
+        // leçon : seules les cases qui brillent répondent
+        if (cell === null || !coach.allows(cell)) return;
         e.currentTarget.setPointerCapture(e.pointerId);
         const next = startStroke(links, cell);
         strokeRef.current = next;
@@ -129,7 +136,7 @@ export default function Boucle({daily = false, replayDate, challengeId, level, l
         const current = strokeRef.current;
         if (!current || !puzzle) return;
         const cell = cellAt(e);
-        if (cell === null || cell === current.head) return;
+        if (cell === null || cell === current.head || !coach.allows(cell)) return;
         const next = strokeTo(puzzle, current, cell);
         if (next !== current) {
             strokeRef.current = next;
@@ -143,6 +150,9 @@ export default function Boucle({daily = false, replayDate, challengeId, level, l
         strokeRef.current = null;
         setStroke(null);
         if (sameLinks(current.links, links)) return;
+        if (guide && (guide.rule === "wrong" ? !current.links.includes(guide.links[0]!) : guide.links.every(key => current.links.includes(key)))) {
+            setSeen(previous => new Set(previous).add(guide.rule));
+        }
         setPast(p => [...p, links]);
         setFuture([]);
         setLinks(current.links);
@@ -202,7 +212,7 @@ export default function Boucle({daily = false, replayDate, challengeId, level, l
     );
 
     return (
-        <div className="puzzle-layout boucle">
+        <div className={`puzzle-layout boucle ${challenge.layoutClass}`}>
             <GameToolbar gameName="Boucle" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
 
             <div className="options">
@@ -218,9 +228,9 @@ export default function Boucle({daily = false, replayDate, challengeId, level, l
             <div className="game">
                 {challenge.banner}
                 <h1 className="title">Boucle</h1>
-                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
+                {challenge.loading && <Loader size="small" label={challenge.loadingLabel}/>}
                 {puzzle && (
-                    <svg ref={board} className={`boucle-board ${stroke ? "drawing" : ""} ${loop ? "closed" : ""}`}
+                    <svg ref={board} className={`boucle-board ${stroke ? "drawing" : ""} ${loop ? "closed" : ""} ${coach.locked ? "lesson-locked" : ""}`}
                          viewBox={`0 0 ${size} ${size}`} role="application" aria-label="Plateau : glisse de case en case pour tracer la boucle"
                          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={endStroke} onPointerCancel={endStroke}>
                         {Array.from({length: size - 1}, (_, i) => (
@@ -247,9 +257,27 @@ export default function Boucle({daily = false, replayDate, challengeId, level, l
                                 : <line key={`${a}-${b}`} className="boucle-wall" x1={col} y1={row + 1} x2={col + 1} y2={row + 1}/>;
                         })}
                         <LessonSpots size={size} lit={coach.lit}/>
+                        {showGuide && (
+                            <g className="boucle-guide" aria-hidden>
+                                {guide.chain?.map(key => {
+                                    const [from, to] = linkCells(key, size).map(center) as [{ x: number; y: number }, { x: number; y: number }];
+                                    return <line key={`chain-${key}`} className="boucle-hint chain" x1={from.x} y1={from.y} x2={to.x} y2={to.y}/>;
+                                })}
+                                {guide.links.map(key => {
+                                    const [from, to] = linkCells(key, size).map(center) as [{ x: number; y: number }, { x: number; y: number }];
+                                    return <line key={key} className={`boucle-hint ${guide.rule === "wrong" ? "wrong" : ""}`} x1={from.x} y1={from.y} x2={to.x} y2={to.y}/>;
+                                })}
+                                {guide.stuck !== undefined && <circle className="boucle-stuck" cx={center(guide.stuck).x} cy={center(guide.stuck).y} r={0.36}/>}
+                                {guide.blocked !== null && (
+                                    <path className="boucle-blocked" transform={`translate(${center(guide.blocked).x} ${center(guide.blocked).y})`}
+                                          d="M-0.17 -0.17 L0.17 0.17 M0.17 -0.17 L-0.17 0.17"/>
+                                )}
+                            </g>
+                        )}
                     </svg>
                 )}
                 {coach.bubble}
+                {challenge.lesson && <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 

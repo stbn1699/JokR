@@ -49,7 +49,7 @@ const noop = () => undefined;
 export default function Demineur({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, DemineurPuzzle>({
-        code: CODE, gameName: "Démineur", daily, replayDate, challengeId, level, levelInfo, lessonTitles: DEMINEUR_LESSONS.titles,
+        code: CODE, gameName: "Démineur", playName: "au Démineur", daily, replayDate, challengeId, level, levelInfo, lessonTitles: DEMINEUR_LESSONS.titles,
         fetchStatus: demineurService.getGame,
         emptySave: gameId => ({gameId, flags: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -203,7 +203,8 @@ export default function Demineur({daily = false, replayDate, challengeId, level,
     const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
         if (!playing) return;
         const cell = cellAt(e);
-        if (cell === null) return;
+        // leçon : seules les cases qui brillent répondent
+        if (cell === null || !coach.allows(cell)) return;
         // clic droit : drapeau tout de suite
         if (e.button === 2) {
             toggleFlag(cell);
@@ -286,7 +287,7 @@ export default function Demineur({daily = false, replayDate, challengeId, level,
     );
 
     return (
-        <div className="puzzle-layout demineur">
+        <div className={`puzzle-layout demineur ${challenge.layoutClass}`}>
             <GameToolbar gameName="Démineur" label={challenge.toolbarLabel} clock={flow.clock} canUndo={false} canRedo={false} onUndo={noop} onRedo={noop} rules={rules}/>
 
             <div className="options">
@@ -301,9 +302,9 @@ export default function Demineur({daily = false, replayDate, challengeId, level,
             <div className="game">
                 {challenge.banner}
                 <h1 className="title">Démineur</h1>
-                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
+                {challenge.loading && <Loader size="small" label={challenge.loadingLabel}/>}
                 {puzzle && (
-                    <svg ref={board} className={`demineur-board ${lost ? "lost" : ""} ${size >= 16 ? "dense" : ""}`}
+                    <svg ref={board} className={`demineur-board ${lost ? "lost" : ""} ${size >= 16 ? "dense" : ""} ${coach.locked ? "lesson-locked" : ""}`}
                          viewBox={`0 0 ${size} ${size}`} role="application"
                          aria-label="Plateau : clic pour libérer une case, clic droit ou appui long pour un drapeau"
                          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
@@ -327,6 +328,7 @@ export default function Demineur({daily = false, replayDate, challengeId, level,
                     </svg>
                 )}
                 {coach.bubble}
+                {challenge.lesson && <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 

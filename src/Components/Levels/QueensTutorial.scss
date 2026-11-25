@@ -9,42 +9,6 @@
 	padding        : 1rem 1rem 2rem;
 	color          : #f9fafb;
 
-	.tutorial-top {
-		display         : flex;
-		align-items     : center;
-		justify-content : space-between;
-		gap             : 1rem;
-		width           : min(30rem, 100%);
-	}
-
-	.tutorial-back {
-		display         : inline-flex;
-		align-items     : center;
-		gap             : 0.35rem;
-		color           : inherit;
-		font-size       : 1.1rem;
-		text-decoration : none;
-		opacity         : 0.8;
-
-		&:hover { opacity : 1; }
-
-		svg { width : 1em; height : 1em; position : static; }
-	}
-
-	.tutorial-badge {
-		display       : inline-flex;
-		align-items   : center;
-		gap           : 0.4rem;
-		padding       : 0.25rem 0.8rem;
-		border-radius : 999px;
-		background    : #fbbf24;
-		color         : #1f1300;
-		font-size     : 1rem;
-		font-weight   : 700;
-
-		svg { width : 1em; height : 1em; position : static; }
-	}
-
 	// la grille et son voile, posé exactement par-dessus
 	.tutorial-stage {
 		position : relative;
@@ -140,6 +104,45 @@
 	}
 
 	.tutorial-error { color : #fca5a5; }
+}
+
+// haut de la leçon : lien vers la carte et badge (aussi dans les jeux dont la leçon se joue dans le jeu, classe in-lesson)
+.level-tutorial, .puzzle-layout.in-lesson {
+	.tutorial-top {
+		display         : flex;
+		align-items     : center;
+		justify-content : space-between;
+		gap             : 1rem;
+		width           : min(30rem, 100%);
+	}
+
+	.tutorial-back {
+		display         : inline-flex;
+		align-items     : center;
+		gap             : 0.35rem;
+		color           : inherit;
+		font-size       : 1.1rem;
+		text-decoration : none;
+		opacity         : 0.8;
+
+		&:hover { opacity : 1; }
+
+		svg { width : 1em; height : 1em; position : static; }
+	}
+
+	.tutorial-badge {
+		display       : inline-flex;
+		align-items   : center;
+		gap           : 0.4rem;
+		padding       : 0.25rem 0.8rem;
+		border-radius : 999px;
+		background    : #fbbf24;
+		color         : #1f1300;
+		font-size     : 1rem;
+		font-weight   : 700;
+
+		svg { width : 1em; height : 1em; position : static; }
+	}
 }
 
 // popup de fin de leçon

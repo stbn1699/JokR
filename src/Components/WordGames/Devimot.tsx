@@ -25,7 +25,7 @@ type Saved = { gameId: string };
 export default function Devimot({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, DevimotPuzzle>({
-        code: CODE, gameName: "Devimot", daily, replayDate, challengeId, level, levelInfo, lessonTitles: DEVIMOT_LESSONS.titles,
+        code: CODE, gameName: "Devimot", playName: "à Devimot", daily, replayDate, challengeId, level, levelInfo, lessonTitles: DEVIMOT_LESSONS.titles,
         fetchStatus: devimotService.getGame,
         emptySave: gameId => ({gameId}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -155,7 +155,8 @@ export default function Devimot({daily = false, replayDate, challengeId, level, 
         },
         onEnter: () => void submit(),
     };
-    useLetterKeys(playing, handlers);
+    // leçon : pas de frappe pendant une explication
+    useLetterKeys(playing && !coach.locked, handlers);
 
     const undo = () => {
         const previous = past[past.length - 1];
@@ -241,7 +242,7 @@ export default function Devimot({daily = false, replayDate, challengeId, level, 
 
                     {coach.bubble}
 
-                    {answer === null && <LetterKeyboard disabled={!playing || busy} busy={playing && busy} marks={keyMarks} {...handlers}/>}
+                    {answer === null && coach.controls && <LetterKeyboard disabled={!playing || busy || coach.locked} busy={playing && busy} marks={keyMarks} {...handlers}/>}
                 </>
             )}
         </WordGameShell>

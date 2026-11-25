@@ -76,7 +76,7 @@ function Water({mask, inlet, fill}: { mask: number; inlet: number; fill: WaterFi
 export default function Tuyaux({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, TuyauxPuzzle>({
-        code: CODE, gameName: "Tuyaux", daily, replayDate, challengeId, level, levelInfo, lessonTitles: TUYAUX_LESSONS.titles,
+        code: CODE, gameName: "Tuyaux", playName: "aux Tuyaux", daily, replayDate, challengeId, level, levelInfo, lessonTitles: TUYAUX_LESSONS.titles,
         fetchStatus: tuyauxService.getGame,
         emptySave: gameId => ({gameId, turns: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -163,14 +163,14 @@ export default function Tuyaux({daily = false, replayDate, challengeId, level, l
     };
 
     const rotate = (cell: number, direction: 1 | -1) => {
-        if (!playing || lockedCells.has(cell) || pins.has(cell)) return;
+        if (!playing || lockedCells.has(cell) || pins.has(cell) || !coach.allows(cell)) return;
         const next = [...turns];
         next[cell] = next[cell]! + direction;
         commit(next);
     };
 
     const togglePin = (cell: number) => {
-        if (!playing || lockedCells.has(cell)) return;
+        if (!playing || lockedCells.has(cell) || !coach.allows(cell)) return;
         setPins(current => {
             const next = new Set(current);
             if (!next.delete(cell)) next.add(cell);
@@ -271,7 +271,7 @@ export default function Tuyaux({daily = false, replayDate, challengeId, level, l
     );
 
     return (
-        <div className="puzzle-layout tuyaux">
+        <div className={`puzzle-layout tuyaux ${challenge.layoutClass}`}>
             <GameToolbar gameName="Tuyaux" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo}
                          showErrors={showErrors} onToggleErrors={setShowErrors} errorCount={open.size} rules={rules}/>
 
@@ -289,9 +289,9 @@ export default function Tuyaux({daily = false, replayDate, challengeId, level, l
             <div className="game">
                 {challenge.banner}
                 <h1 className="title">Tuyaux</h1>
-                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
+                {challenge.loading && <Loader size="small" label={challenge.loadingLabel}/>}
                 {puzzle && (
-                    <svg className={`tuyaux-board ${solved ? "solved" : ""}`} viewBox={`0 0 ${puzzle.size} ${puzzle.size}`}
+                    <svg className={`tuyaux-board ${solved ? "solved" : ""} ${coach.locked ? "lesson-locked" : ""}`} viewBox={`0 0 ${puzzle.size} ${puzzle.size}`}
                          role="grid" aria-label="Plateau de tuyaux" style={{"--size": puzzle.size} as CSSProperties}>
                         {puzzle.tiles.map((tile, cell) => {
                             const classes = [
@@ -326,6 +326,7 @@ export default function Tuyaux({daily = false, replayDate, challengeId, level, l
                     </svg>
                 )}
                 {coach.bubble}
+                {challenge.lesson && <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 

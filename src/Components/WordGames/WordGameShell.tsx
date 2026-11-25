@@ -40,9 +40,10 @@ const wordCredit = (
 );
 
 // Mise en page commune aux jeux de mots : progression à gauche, jeu au centre, actions et règles à droite
+// (leçon du tutoriel : le jeu seul, voir useGridChallenge)
 export default function WordGameShell({className, gameCode, gameName, flow, clock = flow.clock, rules, info, history, settings, challenge, children}: WordGameShellProps) {
     return (
-        <div className={`puzzle-layout word-game ${className}`}>
+        <div className={`puzzle-layout word-game ${className} ${challenge.layoutClass}`}>
             <GameToolbar gameName={gameName} label={challenge.toolbarLabel} clock={clock}
                          canUndo={history?.canUndo ?? false} canRedo={history?.canRedo ?? false}
                          onUndo={history?.onUndo ?? noop} onRedo={history?.onRedo ?? noop} rules={<>{rules}{wordCredit}</>}/>
@@ -55,8 +56,9 @@ export default function WordGameShell({className, gameCode, gameName, flow, cloc
             <div className="game">
                 {challenge.banner}
                 <h1 className="title">{gameName}</h1>
-                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
+                {challenge.loading && <Loader size="small" label={challenge.loadingLabel}/>}
                 {children}
+                {challenge.lesson && <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>}
             </div>
 
             <div className="actions">

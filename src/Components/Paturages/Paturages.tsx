@@ -54,7 +54,7 @@ function Cow({row, col}: { row: number; col: number }) {
 export default function Paturages({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, PaturagesPuzzle>({
-        code: CODE, gameName: "Pâturages", daily, replayDate, challengeId, level, levelInfo, lessonTitles: PATURAGES_LESSONS.titles,
+        code: CODE, gameName: "Pâturages", playName: "aux Pâturages", daily, replayDate, challengeId, level, levelInfo, lessonTitles: PATURAGES_LESSONS.titles,
         fetchStatus: paturagesService.getGame,
         emptySave: gameId => ({gameId, squares: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -136,10 +136,15 @@ export default function Paturages({daily = false, replayDate, challengeId, level
         };
     };
 
+    // cases qu'un tracé commencé pendant la leçon peut atteindre (le coach se tait pendant le tracé)
+    const lessonCells = useRef<(cell: number) => boolean>(() => true);
+
     const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
         if (!playing || e.button !== 0) return;
         const cell = cellAt(e);
-        if (!cell) return;
+        // leçon : seules les cases qui brillent répondent
+        if (!cell || !coach.allows(cell.row * puzzle.size + cell.col)) return;
+        lessonCells.current = coach.allows;
         e.currentTarget.setPointerCapture(e.pointerId);
         const next = {...cell, square: {...cell, side: 1}, moved: false};
         dragRef.current = next;
@@ -150,7 +155,7 @@ export default function Paturages({daily = false, replayDate, challengeId, level
         const current = dragRef.current;
         if (!current || !puzzle) return;
         const cell = cellAt(e);
-        if (!cell) return;
+        if (!cell || !lessonCells.current(cell.row * puzzle.size + cell.col)) return;
         const square = squareFromDrag(puzzle.size, current.row, current.col, cell.row, cell.col);
         const moved = current.moved || cell.row !== current.row || cell.col !== current.col;
         if (moved === current.moved && square.row === current.square.row && square.col === current.square.col && square.side === current.square.side) return;
@@ -232,7 +237,7 @@ export default function Paturages({daily = false, replayDate, challengeId, level
     );
 
     return (
-        <div className="puzzle-layout paturages">
+        <div className={`puzzle-layout paturages ${challenge.layoutClass}`}>
             <GameToolbar gameName="Pâturages" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
 
             <div className="options">
@@ -247,9 +252,9 @@ export default function Paturages({daily = false, replayDate, challengeId, level
             <div className="game">
                 {challenge.banner}
                 <h1 className="title">Pâturages</h1>
-                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
+                {challenge.loading && <Loader size="small" label={challenge.loadingLabel}/>}
                 {puzzle && (
-                    <svg ref={board} className="paturages-board" viewBox={`0 0 ${puzzle.size} ${puzzle.size}`}
+                    <svg ref={board} className={`paturages-board ${coach.locked ? "lesson-locked" : ""}`} viewBox={`0 0 ${puzzle.size} ${puzzle.size}`}
                          role="application" aria-label="Pré : glisse pour tracer un carré autour de chaque vache"
                          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={endDrag} onPointerCancel={endDrag}>
                         {Array.from({length: puzzle.size + 1}, (_, i) => (
@@ -280,6 +285,7 @@ export default function Paturages({daily = false, replayDate, challengeId, level
                     </svg>
                 )}
                 {coach.bubble}
+                {challenge.lesson && <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 

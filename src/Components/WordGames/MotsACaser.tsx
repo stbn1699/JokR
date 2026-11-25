@@ -53,7 +53,7 @@ const startLetters = (puzzle: MotsACaserPuzzle) => Array.from(puzzle.cells, cell
 export default function MotsACaser({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, MotsACaserPuzzle>({
-        code: CODE, gameName: "Mots à caser", daily, replayDate, challengeId, level, levelInfo, lessonTitles: MOTS_A_CASER_LESSONS.titles,
+        code: CODE, gameName: "Mots à caser", playName: "aux Mots à caser", daily, replayDate, challengeId, level, levelInfo, lessonTitles: MOTS_A_CASER_LESSONS.titles,
         fetchStatus: motsACaserService.getGame,
         emptySave: gameId => ({gameId, letters: ""}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -157,7 +157,7 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
     };
 
     const writeLetter = (letter: string) => {
-        if (!playing || selected === null || !activeSlot) return;
+        if (!playing || coach.locked || selected === null || !activeSlot) return;
         let index = activeSlot.indexOf(selected);
         // une lettre donnée ne s'écrase pas : on écrit dans la case libre suivante du mot
         while (isGiven(activeSlot[index]!) && index < activeSlot.length - 1) index++;
@@ -175,7 +175,7 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
     // Clic sur un mot de la liste : il remplit la zone active depuis son début. Trop long, il est coupé ;
     // trop court, la fin de la zone reste vide. Les lettres données ne bougent pas. Un seul « Annuler » suffit.
     const insertWord = (word: string) => {
-        if (!playing) return;
+        if (!playing || coach.locked) return;
         if (!activeSlot) {
             flow.setNotice("Choisis d'abord une case de la grille.");
             return;
@@ -190,7 +190,7 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
     };
 
     const erase = () => {
-        if (!playing || selected === null) return;
+        if (!playing || coach.locked || selected === null) return;
         if (!isGiven(selected) && letters[selected]) {
             const next = [...letters];
             next[selected] = "";
@@ -217,7 +217,8 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
     };
 
     const chooseCell = (cell: number) => {
-        if (!playing) return;
+        // leçon : seules les cases qui brillent répondent
+        if (!playing || !coach.allows(cell)) return;
         if (cell === selected) return toggleDirection();
         setSelected(cell);
         if (!slotAt(cell, direction)) setDirection(direction === "across" ? "down" : "across");
@@ -235,7 +236,7 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
             let col = selected % puzzle.size + dc;
             while (row >= 0 && col >= 0 && row < puzzle.size && col < puzzle.size) {
                 const cell = row * puzzle.size + col;
-                if (!isBlack(cell)) {
+                if (!isBlack(cell) && coach.allows(cell)) {
                     const wanted: Direction = dc !== 0 ? "across" : "down";
                     setSelected(cell);
                     if (slotAt(cell, wanted)) setDirection(wanted);
@@ -308,6 +309,22 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
         </ul>
     );
 
+    const wordGroupList = wordGroups.map(([length, words]) => (
+        <section className="caser-group" key={length}>
+            <h3>{length} lettres</h3>
+            <ul>
+                {words.map(word => (
+                    <li key={word} className={placedWords.has(word) ? "found" : ""}>
+                        <button type="button" disabled={!playing} title="Insérer dans la zone sélectionnée"
+                                onMouseDown={e => e.preventDefault()} onClick={() => insertWord(word)}>
+                            {word}
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    ));
+
     return (
         <WordGameShell
             challenge={challenge}
@@ -315,21 +332,7 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
             info={puzzle ? (
                 <>
                     <p><strong>{placedWords.size}</strong> / {puzzle.words.length} mots</p>
-                    {wordGroups.map(([length, words]) => (
-                        <section className="caser-group" key={length}>
-                            <h3>{length} lettres</h3>
-                            <ul>
-                                {words.map(word => (
-                                    <li key={word} className={placedWords.has(word) ? "found" : ""}>
-                                        <button type="button" disabled={!playing} title="Insérer dans la zone sélectionnée"
-                                                onMouseDown={e => e.preventDefault()} onClick={() => insertWord(word)}>
-                                            {word}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    ))}
+                    {wordGroupList}
                 </>
             ) : <p>–</p>}
             history={{
@@ -343,11 +346,11 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
                                    amountLabel="Mots déjà placés" easierWhenHigher/>
             }
         >
-            {puzzle && isTouchOnly() && (
+            {puzzle && isTouchOnly() && coach.controls && (
                 <PhoneKeyboard disabled={!playing} onLetter={writeLetter} onBackspace={erase} onEnter={toggleDirection}/>
             )}
             {puzzle && (
-                <div className="caser-board" style={{"--size": puzzle.size} as CSSProperties} role="grid" aria-label="Grille de mots à caser">
+                <div className={`caser-board ${coach.locked ? "lesson-locked" : ""}`} style={{"--size": puzzle.size} as CSSProperties} role="grid" aria-label="Grille de mots à caser">
                     {Array.from(puzzle.cells, (cell, i) => {
                         if (cell === "#") return <span key={i} className="caser-cell black" aria-hidden/>;
                         const classes = ["caser-cell", isGiven(i) ? "given" : "", activeSlot?.includes(i) ? "active" : "",
@@ -364,6 +367,7 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
                 </div>
             )}
             {coach.bubble}
+            {challenge.lesson && coach.controls && <div className="lesson-controls caser-lesson-words">{wordGroupList}</div>}
         </WordGameShell>
     );
 }

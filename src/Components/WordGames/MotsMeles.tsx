@@ -59,7 +59,7 @@ function snapToLine(size: number, from: number, hover: number): number {
 export default function MotsMeles({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, MotsMelesPuzzle>({
-        code: CODE, gameName: "Mots mêlés", daily, replayDate, challengeId, level, levelInfo, lessonTitles: MOTS_MELES_LESSONS.titles,
+        code: CODE, gameName: "Mots mêlés", playName: "aux Mots mêlés", daily, replayDate, challengeId, level, levelInfo, lessonTitles: MOTS_MELES_LESSONS.titles,
         fetchStatus: motsMelesService.getGame,
         emptySave: gameId => ({gameId, found: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -131,7 +131,8 @@ export default function MotsMeles({daily = false, replayDate, challengeId, level
     const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
         if (!playing) return;
         const cell = cellAt(e);
-        if (cell === null) return;
+        // leçon : on part d'une lettre qui brille
+        if (cell === null || !coach.allows(cell)) return;
         e.currentTarget.setPointerCapture(e.pointerId);
         setSelection({from: cell, to: cell});
     };
@@ -198,6 +199,15 @@ export default function MotsMeles({daily = false, replayDate, challengeId, level
         </ul>
     );
 
+    const wordList = puzzle && (
+        <ul className="word-list">
+            {puzzle.words.map(word => (
+                <li key={word} className={found.some(f => f.word === word) ? "found" : ""}
+                    style={{"--word-color": wordColor(word)} as CSSProperties}>{word}</li>
+            ))}
+        </ul>
+    );
+
     return (
         <WordGameShell
             challenge={challenge}
@@ -205,12 +215,7 @@ export default function MotsMeles({daily = false, replayDate, challengeId, level
             info={puzzle ? (
                 <>
                     <p><strong>{found.length}</strong> / {puzzle.words.length} mots</p>
-                    <ul className="word-list">
-                        {puzzle.words.map(word => (
-                            <li key={word} className={found.some(f => f.word === word) ? "found" : ""}
-                                style={{"--word-color": wordColor(word)} as CSSProperties}>{word}</li>
-                        ))}
-                    </ul>
+                    {wordList}
                     <p className="word-hint">{directions}</p>
                 </>
             ) : <p>–</p>}
@@ -226,7 +231,7 @@ export default function MotsMeles({daily = false, replayDate, challengeId, level
             }
         >
             {puzzle && (
-                <div ref={board} className="search-board" style={{"--size": puzzle.size} as CSSProperties}
+                <div ref={board} className={`search-board ${coach.locked ? "lesson-locked" : ""}`} style={{"--size": puzzle.size} as CSSProperties}
                      onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
                      onPointerCancel={() => setSelection(null)} role="grid" aria-label="Grille de lettres">
                     {/* Traits sous les lettres : mots trouvés, puis sélection en cours */}
@@ -243,6 +248,7 @@ export default function MotsMeles({daily = false, replayDate, challengeId, level
                 </div>
             )}
             {coach.bubble}
+            {challenge.lesson && coach.controls && <div className="lesson-controls">{wordList}</div>}
         </WordGameShell>
     );
 }

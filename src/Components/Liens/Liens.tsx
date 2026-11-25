@@ -37,7 +37,7 @@ type Saved = { gameId: string; paths: number[][] };
 export default function Liens({daily = false, replayDate, challengeId, level, levelInfo}: GridChallengeProps = {}) {
     const flow = useGameFlow(CODE, daily || replayDate !== undefined || challengeId !== undefined || level !== undefined);
     const challenge = useGridChallenge<Saved, LiensPuzzle>({
-        code: CODE, gameName: "Liens", daily, replayDate, challengeId, level, levelInfo, lessonTitles: LIENS_LESSONS.titles,
+        code: CODE, gameName: "Liens", playName: "aux Liens", daily, replayDate, challengeId, level, levelInfo, lessonTitles: LIENS_LESSONS.titles,
         fetchStatus: liensService.getGame,
         emptySave: gameId => ({gameId, paths: []}),
         onLoad: (grid, saved, elapsedMs) => {
@@ -114,7 +114,8 @@ export default function Liens({daily = false, replayDate, challengeId, level, le
     const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
         if (!playing || e.button !== 0) return;
         const cell = cellAt(e);
-        if (cell === null) return;
+        // leçon : seules les cases qui brillent répondent
+        if (cell === null || !coach.allows(cell)) return;
         const next = startDrawing(puzzle, paths, cell);
         if (!next) return;
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -126,7 +127,7 @@ export default function Liens({daily = false, replayDate, challengeId, level, le
         const current = drawingRef.current;
         if (!current || !puzzle) return;
         const cell = cellAt(e);
-        if (cell === null) return;
+        if (cell === null || !coach.allows(cell)) return;
         const next = drawTo(puzzle, current, cell);
         if (next !== current) {
             drawingRef.current = next;
@@ -202,7 +203,7 @@ export default function Liens({daily = false, replayDate, challengeId, level, le
     );
 
     return (
-        <div className="puzzle-layout liens">
+        <div className={`puzzle-layout liens ${challenge.layoutClass}`}>
             <GameToolbar gameName="Liens" label={challenge.toolbarLabel} clock={flow.clock} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} rules={rules}/>
 
             <div className="options">
@@ -224,9 +225,9 @@ export default function Liens({daily = false, replayDate, challengeId, level, le
             <div className="game">
                 {challenge.banner}
                 <h1 className="title">Liens</h1>
-                {challenge.loading && <Loader size="small" label="Chargement du défi…"/>}
+                {challenge.loading && <Loader size="small" label={challenge.loadingLabel}/>}
                 {puzzle && (
-                    <svg ref={board} className={`liens-board ${drawing ? "drawing" : ""}`} viewBox={`0 0 ${puzzle.size} ${puzzle.size}`}
+                    <svg ref={board} className={`liens-board ${drawing ? "drawing" : ""} ${coach.locked ? "lesson-locked" : ""}`} viewBox={`0 0 ${puzzle.size} ${puzzle.size}`}
                          role="application" aria-label="Plateau : glisse d'une lettre à sa jumelle"
                          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={endDrawing} onPointerCancel={endDrawing}>
                         {Array.from({length: puzzle.size + 1}, (_, i) => (
@@ -257,6 +258,7 @@ export default function Liens({daily = false, replayDate, challengeId, level, le
                     </svg>
                 )}
                 {coach.bubble}
+                {challenge.lesson && <GameNotice message={challenge.error ?? flow.notice} onClose={flow.clearNotice}/>}
                 {flow.validating && <SkeletonLabel label="Vérification…"/>}
             </div>
 
