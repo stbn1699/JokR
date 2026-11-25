@@ -5,13 +5,15 @@ import {startPuzzle} from "./puzzleGames.js";
 describe("duels", () => {
     it("propose les quatre difficultés aux jeux qui ont des niveaux, Standard aux autres", () => {
         expect(duelDifficulties("SUDOKU")).toEqual(["Facile", "Moyen", "Difficile", "Expert"]);
-        expect(duelDifficulties("COLORIA")).toEqual(["Standard"]);
+        // les jeux ajoutés depuis 3.3 ont aussi leurs niveaux
+        expect(duelDifficulties("COLORIA")).toEqual(["Facile", "Moyen", "Difficile", "Expert"]);
+        expect(duelDifficulties("INCONNU" as never)).toEqual(["Standard"]);
     });
 
     it("refuse un jeu ou une difficulté inconnus", () => {
         expect(duelPuzzle("POKER", "Facile")).toBeNull();
         expect(duelPuzzle("SUDOKU", "Standard")).toBeNull();
-        expect(duelPuzzle("COLORIA", "Expert")).toBeNull();
+        expect(duelPuzzle("COLORIA", "Standard")).toBeNull();
     });
 
     it("pioche plus loin dans les niveaux quand la difficulté monte", () => {

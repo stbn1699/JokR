@@ -22,10 +22,10 @@ const side = (size: number) => (cell: number) => {
 };
 
 describe("leçons des jeux ajoutés depuis 3.3", () => {
-    it("3 leçons par jeu, qui forment tout le tutoriel, et chaque jeu sait les charger", () => {
+    it("3 leçons par jeu, qui forment le tutoriel (niveaux 1 à 3), et chaque jeu sait les charger", () => {
         for (const code of Object.keys(GRID_GAMES)) {
             const game = LEVEL_GAMES[code]!;
-            expect(game.levels).toHaveLength(3);
+            expect(game.levels.length).toBeGreaterThan(3);
             expect(game.tutorial).toBe(3);
             for (let level = 1; level <= 3; level++) {
                 const puzzle = levelPuzzle(code, level);

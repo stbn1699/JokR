@@ -14,9 +14,10 @@ import type {GalaxiesPuzzle} from "./galaxies.js";
 import {BINERO_LEVELS, BINERO_TUTORIAL} from "./bineroLevels.js";
 import {type BineroGrid, countBineroClues} from "./binero.js";
 import {
-    BOUCHON_LESSONS, BOUCLE_LESSONS, COLORIA_LESSONS, DEMINEUR_LESSONS, DEVIMOT_LESSONS, ECHELLE_LESSONS, LIENS_LESSONS,
-    MOTS_A_CASER_LESSONS, MOTS_MELES_LESSONS, PATURAGES_LESSONS, TUYAUX_LESSONS,
-} from "./gridLessons.js";
+    BOUCHON_LEVELS, BOUCLE_LEVELS, COLORIA_LEVELS, DEMINEUR_LEVELS, DEVIMOT_LEVELS, ECHELLE_LEVELS, GRID_TUTORIAL, LIENS_LEVELS,
+    MOTS_A_CASER_LEVELS, MOTS_MELES_LEVELS, PATURAGES_LEVELS, TUYAUX_LEVELS,
+} from "./gridLevels.js";
+import {wordSlots} from "./motsACaser.js";
 
 /*
  * Mode Niveaux des puzzles : pour chaque jeu, une suite de grilles fixes (les mêmes pour tout le monde), du tutoriel
@@ -76,23 +77,26 @@ export const LEVEL_GAMES: Record<string, LevelGame> = {
     },
 };
 
-// Jeux ajoutés depuis 3.3 : pour l'instant, seulement les 3 leçons du tutoriel guidé (voir gridLessons.ts).
+// Jeux ajoutés depuis 3.3 : 3 leçons de tutoriel guidé puis 997 niveaux (voir gridLevels.ts).
 // `hints` est aussi le curseur de la partie (voir puzzleGames.ts) : il compte dans l'XP de certains jeux.
-const lessonsOnly = <P>(levels: P[], describe: (puzzle: P) => { size: number; hints: number }): LevelGame =>
-    ({levels, tutorial: levels.length, describe: p => describe(p as P)});
+const gridLevels = <P>(levels: P[], describe: (puzzle: P) => { size: number; hints: number }): LevelGame =>
+    ({levels, tutorial: GRID_TUTORIAL, describe: p => describe(p as P)});
+
+// Mots à caser : mots déjà écrits dans la grille de départ
+const placedWords = (p: { size: number; cells: string }) => wordSlots(p.cells, p.size).filter(slot => slot.every(c => p.cells[c] !== ".")).length;
 
 Object.assign(LEVEL_GAMES, {
-    COLORIA: lessonsOnly(COLORIA_LESSONS, p => ({size: p.zones, hints: p.given.filter(c => c >= 0).length})),
-    TUYAUX: lessonsOnly(TUYAUX_LESSONS, p => ({size: p.size, hints: p.locked.length})),
-    LIENS: lessonsOnly(LIENS_LESSONS, p => ({size: p.size, hints: p.pairs.length})),
-    BOUCHON: lessonsOnly(BOUCHON_LESSONS, p => ({size: p.size, hints: p.minMoves})),
-    PATURAGES: lessonsOnly(PATURAGES_LESSONS, p => ({size: p.size, hints: p.given.length})),
-    BOUCLE: lessonsOnly(BOUCLE_LESSONS, p => ({size: p.size, hints: p.walls.length})),
-    DEMINEUR: lessonsOnly(DEMINEUR_LESSONS, p => ({size: p.size, hints: p.mineCount})),
-    DEVIMOT: lessonsOnly(DEVIMOT_LESSONS, p => ({size: p.length, hints: p.maxAttempts})),
-    ECHELLE: lessonsOnly(ECHELLE_LESSONS, p => ({size: p.length, hints: p.par})),
-    MOTSMELES: lessonsOnly(MOTS_MELES_LESSONS, p => ({size: p.size, hints: p.words.length})),
-    MOTSACASER: lessonsOnly(MOTS_A_CASER_LESSONS, p => ({size: p.size, hints: 0})),
+    COLORIA: gridLevels(COLORIA_LEVELS, p => ({size: p.zones, hints: p.given.filter(c => c >= 0).length})),
+    TUYAUX: gridLevels(TUYAUX_LEVELS, p => ({size: p.size, hints: p.locked.length})),
+    LIENS: gridLevels(LIENS_LEVELS, p => ({size: p.size, hints: p.pairs.length})),
+    BOUCHON: gridLevels(BOUCHON_LEVELS, p => ({size: p.size, hints: p.minMoves})),
+    PATURAGES: gridLevels(PATURAGES_LEVELS, p => ({size: p.size, hints: p.given.length})),
+    BOUCLE: gridLevels(BOUCLE_LEVELS, p => ({size: p.size, hints: p.walls.length})),
+    DEMINEUR: gridLevels(DEMINEUR_LEVELS, p => ({size: p.size, hints: p.mineCount})),
+    DEVIMOT: gridLevels(DEVIMOT_LEVELS, p => ({size: p.length, hints: p.maxAttempts})),
+    ECHELLE: gridLevels(ECHELLE_LEVELS, p => ({size: p.length, hints: p.par})),
+    MOTSMELES: gridLevels(MOTS_MELES_LEVELS, p => ({size: p.size, hints: p.words.length})),
+    MOTSACASER: gridLevels(MOTS_A_CASER_LEVELS, p => ({size: p.size, hints: placedWords(p)})),
 });
 
 export const levelGame = (code: string): LevelGame | undefined => LEVEL_GAMES[code];
