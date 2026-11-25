@@ -4,6 +4,32 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 4.2.0 — 25 novembre 2026
+
+JokR devient social ! Un nouvel onglet pour retrouver tes ami·e·s, discuter et te lancer des duels. Et les onze jeux arrivés en 4.1 ont maintenant leur mode Niveaux complet : un tutoriel guidé puis 1000 niveaux chacun.
+
+### Social
+- Nouvel onglet Social dans le header, avec un point orange tant qu'un message n'est pas lu
+- Retrouve tes ami·e·s et vois qui est en ligne ou en pleine partie
+- Accepte les demandes reçues et ajoute quelqu'un par son pseudo
+- Le bilan de vos défis s'affiche pour chaque ami·e
+- Discute avec tes ami·e·s : les défis apparaissent dans la conversation sous forme de cartes, avec vos deux temps
+- Duels : choisis un jeu et une difficulté, et vous jouez tous les deux exactement la même grille
+- Les défis envoyés depuis une victoire arrivent aussi dans la discussion
+- Succès, cloche et notifications te préviennent d'un duel qui t'attend
+
+### Mode Niveaux pour les 11 nouveaux jeux
+- Coloria, Tuyaux, Liens, Bouchon, Pâturages, Boucle, Démineur, Devimot, Échelle, Mots mêlés et Mots à caser ont chacun 1000 niveaux, du plus doux au plus corsé
+- On commence par un tutoriel de 3 leçons, joué directement dans le jeu : une bulle explique chaque étape et les cases concernées brillent
+- Pendant une leçon, il ne reste que la grille : les commandes (palette, clavier, liste de mots…) apparaissent au moment de s'en servir
+- Boucle : à chaque coup, la leçon montre en pointillés le trait que l'on peut déduire, et pourquoi
+- Les premiers niveaux n'utilisent que les techniques du tutoriel
+- À la fin du tutoriel, un bouton t'emmène directement au premier niveau, pour tous les jeux
+- En duel, ces jeux proposent maintenant les quatre difficultés, de Facile à Expert
+
+### Profil
+- Indique tes pronoms sur ton profil : ils s'affichent sur ta page publique
+
 ## 4.1.0 — 24 novembre 2026
 
 Onze nouveaux jeux d'un coup ! Quatre jeux de mots et sept casse-têtes de grille, tous avec leur défi du jour et leurs défis entre ami·e·s. Et l'accueil se range désormais par types de jeux.
