@@ -1,12 +1,13 @@
 import type {CoachStep, GameLessons} from "./useLessonCoach.tsx";
 
-// Leçons du Démineur (mines dans backend/src/utils/gridLessons.ts) : cases libérées et drapeaux du joueur
-type State = { revealed: Map<number, number>; flags: Set<number> };
+// Leçons du Démineur (mines dans backend/src/utils/gridLessons.ts) : cases libérées, drapeaux du joueur
+// et mines sautées (en leçon, une mine ne fait pas perdre : elle reste visible et compte comme un drapeau)
+type State = { revealed: Map<number, number>; flags: Set<number>; blown: Set<number> };
 
 const open = (s: State, cells: number[]) => cells.every(cell => s.revealed.has(cell));
 // drapeau sur la mine que montre ce chiffre (ou la suite déjà faite : les drapeaux ne sont pas obligatoires pour gagner)
 const flag = (number: number, mine: number, next: number[], text: string): CoachStep<State> =>
-    ({text, lit: [number, mine], done: s => s.flags.has(mine) || open(s, next)});
+    ({text, lit: [number, mine], done: s => s.flags.has(mine) || s.blown.has(mine) || open(s, next)});
 const safe = (numbers: number[], cells: number[], text: string): CoachStep<State> =>
     ({text, lit: [...numbers, ...cells], done: s => open(s, cells)});
 const finish = (text: string): CoachStep<State> => ({text, done: () => false});

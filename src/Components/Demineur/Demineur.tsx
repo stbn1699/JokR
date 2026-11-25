@@ -75,7 +75,7 @@ export default function Demineur({daily = false, replayDate, challengeId, level,
     const size = puzzle?.size ?? 0;
     const totalCells = size * size;
     const cleared = puzzle !== null && !lost && revealed.size === totalCells - puzzle.mines;
-    const coach = useLessonCoach(DEMINEUR_LESSONS, level, challenge.lesson, puzzle ? {revealed, flags} : null, playing);
+    const coach = useLessonCoach(DEMINEUR_LESSONS, level, challenge.lesson, puzzle ? {revealed, flags, blown} : null, playing);
 
     useEffect(() => {
         if (gameId.current) saveGame<Saved>(challenge.saveKey, {gameId: gameId.current, flags: [...flags]});
@@ -135,7 +135,9 @@ export default function Demineur({daily = false, replayDate, challengeId, level,
                     return next;
                 });
                 flow.penalty(outcome.penaltyMs);
-                flow.setNotice(`Boum ! Une mine : +${Math.round(outcome.penaltyMs / 1000)} s au chrono.`);
+                flow.setNotice(challenge.lesson
+                    ? "Boum ! C'était une mine : elle reste marquée, continue."
+                    : `Boum ! Une mine : +${Math.round(outcome.penaltyMs / 1000)} s au chrono.`);
                 navigator.vibrate?.(120);
                 return;
             }
