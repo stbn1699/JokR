@@ -4,6 +4,14 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 4.2.2 — 25 novembre 2026
+
+Deux corrections, merci à @Eau_rayée de les avoir signalées !
+
+### Corrections
+- Démineur : tomber sur une mine pendant le tutoriel ne bloque plus la leçon, même en la reprenant plus tard — merci à @Eau_rayée
+- La popup des classements des défis défile sur petit écran : le bouton « Récupérer mes XP » reste toujours accessible — merci à @Eau_rayée
+
 ## 4.2.1 — 25 novembre 2026
 
 Besoin de crédits ? Tu peux maintenant en gagner en regardant une pub, quelques fois par jour.
