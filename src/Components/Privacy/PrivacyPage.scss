@@ -1,0 +1,31 @@
+// Page Confidentialité : mise en page de la page Nouveautés (Changelog.scss), textes plus longs
+.changelog.privacy {
+	.changelog-version {
+		p, li {
+			font-size   : 1.2rem;
+			line-height : 1.45;
+		}
+
+		p {
+			margin : 0 0 0.6rem;
+		}
+
+		ul {
+			margin       : 0 0 0.6rem;
+			padding-left : 1.4rem;
+		}
+
+		li {
+			margin-bottom : 0.3rem;
+		}
+
+		h3 {
+			margin    : 0.75rem 0 0.25rem;
+			font-size : 1.5rem;
+		}
+
+		a {
+			color : #fbbf24;
+		}
+	}
+}

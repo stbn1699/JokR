@@ -4,6 +4,8 @@
 	right    : 1rem;
 	bottom   : 0.75rem;
 	z-index  : 50;
+	display  : flex;
+	gap      : 0.4rem;
 
 	a {
 		padding         : 0.35rem 0.9rem;
@@ -23,9 +25,9 @@
 // Téléphone : en bas de la page plutôt que par-dessus le contenu
 @media (max-width: 700px) {
 	.app-footer {
-		position   : static;
-		margin     : 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
-		text-align : center;
+		position        : static;
+		justify-content : center;
+		margin          : 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
 	}
 }
 

@@ -41,6 +41,7 @@ import NotFound from "./Components/NotFound/NotFound.tsx";
 import Leaderboard from "./Components/Leaderboard/Leaderboard.tsx";
 import DailyHistory from "./Components/DailyHistory/DailyHistory.tsx";
 import Changelog from "./Components/Changelog/Changelog.tsx";
+import PrivacyPage from "./Components/Privacy/PrivacyPage.tsx";
 import Hasard from "./Components/Hasard/Hasard.tsx";
 import AppFooter from "./Components/AppFooter/AppFooter.tsx";
 import Stats from "./Components/Stats/Stats.tsx";
@@ -122,6 +123,7 @@ function App() {
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/classements" element={<Leaderboard/>}/>
                 <Route path="/nouveautes" element={<Changelog/>}/>
+                <Route path="/confidentialite" element={<PrivacyPage/>}/>
                 <Route path="/hasard" element={<Hasard/>}/>
                 <Route path="/hasard/plinko" element={<PlinkoPage/>}/>
                 <Route path="/hasard/roulette" element={<RoulettePage/>}/>

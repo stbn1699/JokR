@@ -114,6 +114,9 @@ export default function Register() {
                 <button type="submit" className="auth-submit" disabled={loading}>
                     {loading ? "Création…" : "Créer mon compte"}
                 </button>
+                <p className="auth-hint">
+                    En créant un compte, tu acceptes notre <Link to="/confidentialite">politique de confidentialité</Link>.
+                </p>
             </form>
         </AuthCard>
     );
