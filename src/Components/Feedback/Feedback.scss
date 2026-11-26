@@ -236,64 +236,42 @@
 	}
 }
 
-// ---------- Liste des retours (page Statistiques, administrateur)
-.feedback-admin {
-	.feedback-admin-head {
-		display     : flex;
-		flex-wrap   : wrap;
-		align-items : center;
-		gap         : 0.75rem;
-		margin-bottom : 0.75rem;
-
-		h2 {
-			margin : 0;
-		}
-	}
-
-	.feedback-filter {
-		display : flex;
-		gap     : 0.35rem;
-
-		button {
-			padding       : 0.2rem 0.8rem;
-			border        : 1px solid rgba(249, 250, 251, 0.3);
-			border-radius : 999px;
-			background    : transparent;
-			color         : #f9fafb;
-			font-family   : inherit;
-			cursor        : pointer;
-
-			&.active {
-				border-color : #fbbf24;
-				color        : #fbbf24;
-			}
-		}
-	}
-
-	.feedback-list {
-		display        : flex;
-		flex-direction : column;
-		gap            : 0.6rem;
-		margin         : 0;
-		padding        : 0;
-		list-style     : none;
-	}
+// ---------- Liste des retours (console d'administration)
+.feedback-list.feedback-admin {
+	display               : grid;
+	grid-template-columns : repeat(2, minmax(0, 1fr));
+	gap                   : 0.9rem;
+	margin                : 0;
+	padding               : 0;
+	list-style            : none;
 
 	.feedback-item {
-		padding       : 0.75rem 0.9rem;
-		border        : 1px solid rgba(249, 250, 251, 0.15);
-		border-left   : 4px solid #f87171;
-		border-radius : 8px;
-		background    : rgba(2, 6, 23, 0.45);
+		display        : flex;
+		flex-direction : column;
+		padding        : 1rem 1.15rem;
+		border         : 1px solid rgba(249, 250, 251, 0.12);
+		border-left    : 4px solid #f87171;
+		border-radius  : 12px;
+		background     : rgba(2, 6, 23, 0.55);
 
 		&.idea {
 			border-left-color : #fbbf24;
 		}
 
 		&.done {
-			opacity : 0.55;
+			opacity : 0.5;
 		}
 	}
+
+	.feedback-kind {
+		display     : inline-flex;
+		align-items : center;
+		gap         : 0.35rem;
+		font-weight : 700;
+	}
+
+	.bug .feedback-kind { color : #fca5a5; }
+	.idea .feedback-kind { color : #fcd34d; }
 
 	.feedback-item-head {
 		display     : flex;
@@ -302,32 +280,52 @@
 		gap         : 0.4rem 0.75rem;
 		font-size   : 0.95rem;
 
+		a {
+			color       : #f9fafb;
+			font-weight : 600;
+		}
+
 		small {
 			opacity : 0.65;
 		}
 
+		.feedback-item-page {
+			padding       : 0.05rem 0.5rem;
+			border-radius : 6px;
+			background    : rgba(249, 250, 251, 0.08);
+			font-family   : ui-monospace, monospace;
+		}
+
 		button {
+			display       : inline-flex;
+			align-items   : center;
+			gap           : 0.35rem;
 			margin-left   : auto;
-			padding       : 0.15rem 0.7rem;
+			padding       : 0.25rem 0.8rem;
 			border        : 1px solid rgba(52, 211, 153, 0.6);
 			border-radius : 999px;
 			background    : transparent;
 			color         : #34d399;
 			font-family   : inherit;
 			cursor        : pointer;
+
+			&:hover { background : rgba(52, 211, 153, 0.12); }
 		}
 	}
 
 	.feedback-item-message {
-		margin      : 0.4rem 0 0;
+		flex        : 1;
+		margin      : 0.6rem 0 0;
+		font-size   : 1.05rem;
+		line-height : 1.45;
 		white-space : pre-wrap;
 		word-break  : break-word;
 	}
 
 	.feedback-item-ua {
 		display    : block;
-		margin-top : 0.3rem;
+		margin-top : 0.5rem;
 		font-size  : 0.8rem;
-		opacity    : 0.5;
+		opacity    : 0.45;
 	}
 }

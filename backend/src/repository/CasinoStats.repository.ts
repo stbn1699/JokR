@@ -47,13 +47,14 @@ export class CasinoStatsRepository {
 
     async all(days: number, f: StatsFilter = NO_FILTER) {
         const [overview, games, timeline, hours, plinkoSlots, plinkoBets, rouletteNumbers, rouletteRounds,
-            betKinds, favoriteNumbers, players, biggestWins] = await Promise.all([
+            betKinds, favoriteNumbers, players, biggestWins, outcomes, betSizes, slotMachines, blackjackHands] = await Promise.all([
             this.overview(f), this.perGame(f), this.timeline(days, f), this.hours(f), this.plinkoSlots(f), this.plinkoBets(f),
             this.rouletteNumbers(f), this.rouletteRounds(f), this.betKinds(f), this.favoriteNumbers(f), this.players(f), this.biggestWins(f),
+            this.outcomes(f), this.betSizes(f), this.slotMachines(f), this.blackjackHands(f),
         ]);
         return {
             generatedAt: new Date().toISOString(), overview, games, timeline, hours, plinkoSlots, plinkoBets,
-            rouletteNumbers, rouletteRounds, betKinds, favoriteNumbers, players, biggestWins,
+            rouletteNumbers, rouletteRounds, betKinds, favoriteNumbers, players, biggestWins, outcomes, betSizes, slotMachines, blackjackHands,
         };
     }
 
@@ -242,5 +243,77 @@ export class CasinoStatsRepository {
             order by c.payout - c.bet desc, c.created_at desc
             limit 10`.execute(this.db);
         return rows.map(r => ({...r, at: r.at.toISOString()}));
+    }
+
+    /*
+     * Résultat de chaque partie, par jeu (colonne outcome de casino_plays) : machines à sous, lignes gagnantes ;
+     * keno, numéros trouvés ; blackjack, nombre de mains ; poker, rang de la combinaison (voir POKER_PAYTABLE)
+     */
+    private async outcomes(f: StatsFilter) {
+        const {rows} = await sql<{ game: string; outcome: number; plays: number; wagered: number; paid: number }>`
+            select game, outcome::int as outcome, count(*)::int as plays, sum(bet)::float8 as wagered, sum(payout)::float8 as paid
+            from ${this.plays(f)} as casino_plays
+            where game in ('slots', 'keno', 'blackjack', 'poker')
+            group by game, outcome
+            order by game, outcome`.execute(this.db);
+        return rows;
+    }
+
+    // Mises choisies, par jeu (hors Plinko et roulette, qui ont les leurs)
+    private async betSizes(f: StatsFilter) {
+        const {rows} = await sql<{ game: string; bet: number; plays: number; players: number }>`
+            select game, bet::int as bet, count(*)::int as plays, count(distinct user_id)::int as players
+            from ${this.plays(f)} as casino_plays
+            where game in ('slots', 'keno', 'blackjack', 'poker')
+            group by game, bet
+            order by game, bet`.execute(this.db);
+        return rows;
+    }
+
+    /*
+     * Machines à sous, par machine et nombre de lignes jouées. seed encode la machine, les lignes et les arrêts
+     * (encodeSlotSpin, backend/src/utils/slots.ts) : on retrouve d'abord le nombre de colonnes, comme decodeSlotSpin
+     */
+    private async slotMachines(f: StatsFilter) {
+        const {rows} = await sql<{ machine: number; lines: number; plays: number; players: number; wagered: number; paid: number; won: number }>`
+            with s as (select *,
+                              case
+                                  when floor(seed / power(32::numeric, 5) / 16)::bigint % 8 = 5 then 5
+                                  when floor(seed / power(32::numeric, 4) / 16)::bigint % 8 = 4 then 4
+                                  else 3 end as reels
+                       from ${this.plays(f)} as casino_plays
+                       where game = 'slots')
+            select floor(seed / power(32::numeric, reels) / 128)::int as machine,
+                   (floor(seed / power(32::numeric, reels))::bigint % 16)::int as lines,
+                   count(*)::int                                   as plays,
+                   count(distinct user_id)::int                    as players,
+                   sum(bet)::float8                                as wagered,
+                   sum(payout)::float8                             as paid,
+                   count(*) filter (where payout > bet)::int       as won
+            from s
+            group by 1, 2
+            order by 1, 2`.execute(this.db);
+        return rows;
+    }
+
+    // Blackjack, main par main (une partie peut en avoir plusieurs après une séparation) : résultat, doublées, séparées
+    private async blackjackHands(f: StatsFilter) {
+        const blackjack = f.game === null || f.game === "blackjack";
+        const {rows} = await sql<{ outcome: string; hands: number; doubled: number; split: number; wagered: number; paid: number }>`
+            select h ->> 'outcome'                                                   as outcome,
+                   count(*)::int                                                     as hands,
+                   count(*) filter (where (h ->> 'doubled')::boolean)::int            as doubled,
+                   count(*) filter (where (h ->> 'split')::boolean)::int              as split,
+                   coalesce(sum((h ->> 'bet')::numeric), 0)::float8                  as wagered,
+                   coalesce(sum((h ->> 'payout')::numeric), 0)::float8               as paid
+            from blackjack_hands b
+                     cross join lateral jsonb_array_elements(b.state -> 'hands') h
+            where b.finished
+              and not b.ghost
+              and ${within("b.updated_at", f)}
+              and ${blackjack ? sql`true` : sql`false`}
+              and h ->> 'outcome' is not null
+            group by 1`.execute(this.db);
+        return rows;
     }
 }

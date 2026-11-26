@@ -1,12 +1,12 @@
 /**
- * Onglet « En direct » des Statistiques (administrateur) : préparer une mise à jour.
+ * Page « Site › En direct & mise à jour » de la console d'administration : préparer une mise à jour.
  * - qui est où : joueurs sur les puzzles, la roulette, le Plinko et le reste du site (chaque onglet le dit au
  *   serveur), puzzles en cours, tour de roulette, billes de Plinko en l'air
  * - un bouton ferme le site pour la mise à jour, ou le rouvre. Chaque joueur passe sur l'écran « Mise à jour en
  *   cours » une fois sa partie finie ; une notification prévient à chaque départ (avec le nombre de joueurs) et
  *   un journal les garde
  * - un voyant passe au vert quand plus personne ne joue : la mise à jour peut se faire
- * Pendant la mise à jour, cette page reste ouverte aux administrateurs (adresse /stats tapée à la main).
+ * Pendant la mise à jour, cette page reste ouverte aux administrateurs (adresse /admin/direct tapée à la main).
  * Rafraîchi toutes les 2 secondes. Le redémarrage du serveur (la mise à jour) rouvre tout seul le site.
  */
 
@@ -18,6 +18,7 @@ import {DAILY_GAME_NAMES} from "../../Services/dailyGames.ts";
 import {Tile} from "./StatsWidgets.tsx";
 import {duration, fmt} from "./statsFormat.ts";
 import Loader from "../Loader/Loader.tsx";
+import AdminPage from "../Admin/AdminPage.tsx";
 
 const POLL_MS = 2000;
 // durée d'affichage d'une notification de départ
@@ -33,6 +34,15 @@ const players = (n: number) => `${fmt(n)} joueur${n > 1 ? "s" : ""}`;
 type Toast = { id: number; at: number; page: PresencePage; count: number };
 
 export default function StatsLive() {
+    return (
+        <AdminPage group="Site" title="En direct & mise à jour"
+                   description="Qui joue en ce moment, et fermer le site proprement avant une mise à jour (rafraîchi toutes les 2 secondes).">
+            <LiveContent/>
+        </AdminPage>
+    );
+}
+
+function LiveContent() {
     const [live, setLive] = useState<MaintenanceLive | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);

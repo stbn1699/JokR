@@ -6,6 +6,7 @@ import {requireAdmin} from "../middleware/admin.js";
 import {StatsRepository} from "../repository/Stats.repository.js";
 import {createStatsController} from "../controllers/Stats.controller.js";
 import {CasinoStatsRepository} from "../repository/CasinoStats.repository.js";
+import {QuizzStatsRepository} from "../repository/QuizzStats.repository.js";
 import {ShopStatsRepository} from "../repository/ShopStats.repository.js";
 import {asyncHandler} from "../AsyncRouteHandlerMiddleware.js";
 import {parseStatsFilter} from "../utils/statsFilter.js";
@@ -14,6 +15,7 @@ const router = Router();
 const db = createDb(pool);
 const controller = createStatsController(new StatsRepository(db));
 const casinoStats = new CasinoStatsRepository(db);
+const quizzStats = new QuizzStatsRepository(db);
 const shopStats = new ShopStatsRepository(db);
 
 // Administrateur uniquement
@@ -23,7 +25,7 @@ router.use(requireAuth, requireAdmin(db));
 router.get("/", controller.all);
 // GET /stats/export : données brutes pour une analyse ailleurs
 router.get("/export", controller.export);
-// GET /stats/casino : onglet « Hasard » (Plinko, roulette), 30 derniers jours pour la frise (sinon la période)
+// GET /stats/casino : rubrique « Hasard » (tous les jeux), 30 derniers jours pour la frise (sinon la période)
 router.get("/casino", asyncHandler(async (req, res) => {
     const f = parseStatsFilter(req.query);
     if (typeof f === "string") return void res.status(400).json({status: "error", message: f});
@@ -34,6 +36,12 @@ router.get("/shop", asyncHandler(async (req, res) => {
     const f = parseStatsFilter(req.query);
     if (typeof f === "string") return void res.status(400).json({status: "error", message: f});
     res.status(200).json({status: "ok", data: await shopStats.all(30, f)});
+}));
+// GET /stats/quizz : Quizz (parties, réponses par thème et par question, banque des questions des joueurs)
+router.get("/quizz", asyncHandler(async (req, res) => {
+    const f = parseStatsFilter(req.query);
+    if (typeof f === "string") return void res.status(400).json({status: "error", message: f});
+    res.status(200).json({status: "ok", data: await quizzStats.all(30, f)});
 }));
 
 export default router;

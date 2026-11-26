@@ -56,4 +56,12 @@ export type CasinoStatsData = {
     favoriteNumbers: { number: number; chips: number; wagered: number; players: number }[];
     players: CasinoPlayerStats[];
     biggestWins: { username: string; game: string; bet: number; payout: number; outcome: number; at: string }[];
+    // machines à sous, keno, blackjack, poker : résultat de chaque partie (lignes gagnantes, numéros trouvés, mains,
+    // rang de la combinaison) et mises choisies
+    outcomes: { game: string; outcome: number; plays: number; wagered: number; paid: number }[];
+    betSizes: { game: string; bet: number; plays: number; players: number }[];
+    // machines à sous : par machine (rang dans SLOT_MACHINES) et nombre de lignes jouées
+    slotMachines: { machine: number; lines: number; plays: number; players: number; wagered: number; paid: number; won: number }[];
+    // blackjack, main par main
+    blackjackHands: { outcome: string; hands: number; doubled: number; split: number; wagered: number; paid: number }[];
 };

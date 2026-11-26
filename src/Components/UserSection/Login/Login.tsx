@@ -47,7 +47,7 @@ export default function Login() {
             // Le mot de passe ne part jamais en clair : SHA-256 ici, bcrypt sur le serveur
             const loggedUser = await authService.login(identifier.trim(), await clientHash(password));
             login(loggedUser);
-            navigate(updating ? "/stats?onglet=direct" : from ?? "/");
+            navigate(updating ? "/admin/direct" : from ?? "/");
         } catch (err: unknown) {
             setError(err instanceof Error && err.message ? err.message : "Erreur lors de la connexion");
         } finally {

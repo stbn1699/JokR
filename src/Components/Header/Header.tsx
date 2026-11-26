@@ -8,7 +8,7 @@
  *   lancé la roue du jour. Sur Social, tant qu'un message d'ami·e n'est pas lu.
  * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits (vers la boutique ; au survol, « Obtenir plus de
  *   crédits » contre une pub), Classement et Boutique en
- *   icônes (et Stats pour les administrateurs), cloche des notifications, puis l'icône de profil (contour selon le niveau) qui ouvre le menu du
+ *   icônes (et Administration pour les administrateurs), cloche des notifications, puis l'icône de profil (contour selon le niveau) qui ouvre le menu du
  *   compte (profil, personnaliser, nouveautés, retours, mode admin et stats ; voir ProfileMenu)
  * - Invité : icône pour aller à la page de connexion
  *
@@ -115,7 +115,8 @@ export default function Header() {
     const wheelPending = useWheelPending(isLoggedIn, pathname);
     const socialUnread = useSocialUnread(isLoggedIn, pathname);
     // Hors des deux pages d'accueil (Puzzle et Hasard) : caché quand on descend, de retour dès qu'on remonte
-    const autoHide = pathname !== "/" && pathname !== "/hasard";
+    // la console d'administration garde le header en place (sa barre latérale et ses en-têtes se calent dessous)
+    const autoHide = pathname !== "/" && pathname !== "/hasard" && !pathname.startsWith("/admin");
     const autoHidden = useHideOnScroll(autoHide, pathname);
     // Place occupée en haut de l'écran par le header collé (0 quand il est caché), en variable CSS --header-space :
     // ce qui se fixe en haut de la page (ex. l'encart compact des niveaux) se cale dessous
@@ -246,10 +247,10 @@ export default function Header() {
                               title="Boutique" aria-label="Boutique">
                             <FaShoppingBag aria-hidden/>
                         </Link>
-                        {/* administrateurs : statistiques du site, avec ou sans le mode admin */}
+                        {/* administrateurs : console d'administration, avec ou sans le mode admin */}
                         {auth.isAdmin && (
-                            <Link to="/stats" className={`header-icon ${pathname.startsWith("/stats") ? "active" : ""}`}
-                                  title="Stats" aria-label="Stats">
+                            <Link to="/admin" className={`header-icon ${pathname.startsWith("/admin") ? "active" : ""}`}
+                                  title="Administration" aria-label="Administration">
                                 <FaChartBar aria-hidden/>
                             </Link>
                         )}

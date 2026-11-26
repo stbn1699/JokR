@@ -1,13 +1,11 @@
 /**
- * Onglet « Boutique » de la page Statistiques (administrateur) :
+ * Page « Boutique › Ventes » de la console d'administration :
  * - chiffres clés : achats, crédits dépensés, acheteurs, joueurs qui portent un fond
  * - achats et crédits dépensés par jour
  * - chaque fond : ventes, crédits, combien le portent (y compris ceux jamais vendus et les couleurs de niveau)
  * - fonds portés en ce moment, plus gros acheteurs, derniers achats
  */
 
-import {useCallback, useEffect, useState} from "react";
-import {FaSyncAlt} from "react-icons/fa";
 import {statsService} from "../../Services/stats.service.ts";
 import type {ShopStatsData} from "../../Models/shopStats.model.ts";
 import {
@@ -26,8 +24,10 @@ import {
 import BarChart from "./BarChart.tsx";
 import {Tile} from "./StatsWidgets.tsx";
 import {dateTime, fmt, longDay, pct, shortDay} from "./statsFormat.ts";
-import Loader from "../Loader/Loader.tsx";
-import {type StatsFilter, timelineTitle} from "./statsFilter.ts";
+import AdminPage, {StatsBody} from "../Admin/AdminPage.tsx";
+import {filterKey, useAdminFilter} from "../Admin/useAdminFilter.ts";
+import {useStatsData} from "../Admin/useStatsData.ts";
+import {timelineTitle} from "./statsFilter.ts";
 import {plinkoBallFile, usePlinkoBalls} from "../../Services/plinkoBalls.ts";
 import {chipFile, useChipSets} from "../../Services/chipSets.ts";
 import {findImageBackground, imageCss, useImageBackgrounds} from "../../Services/imageBackgrounds.ts";
@@ -92,46 +92,19 @@ function ItemName({id}: { id: string | null }) {
     );
 }
 
-export default function ShopStats({filter}: { filter: StatsFilter }) {
-    const [data, setData] = useState<ShopStatsData | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-
-    const load = useCallback(async (signal?: AbortSignal) => {
-        setLoading(true);
-        setError(null);
-        try {
-            setData(await statsService.shop(filter, signal));
-        } catch (err) {
-            if ((err as Error).name === "AbortError") return;
-            setError((err as Error).message || "Impossible de charger les statistiques de la boutique");
-        } finally {
-            setLoading(false);
-        }
-    }, [filter]);
-
-    useEffect(() => {
-        const controller = new AbortController();
-        const timer = window.setTimeout(() => void load(controller.signal), 0);
-        return () => {
-            window.clearTimeout(timer);
-            controller.abort();
-        };
-    }, [load]);
-
+export default function ShopStats() {
+    const [urlFilter] = useAdminFilter();
+    const filter = {...urlFilter, game: null};
+    const {data, error, loading, reload} = useStatsData(`shop?${filterKey(filter)}`, signal => statsService.shop(filter, signal));
     return (
-        <>
-            <div className="stats-tab-head">
-                {data && <p className="stats-sub">Mises à jour le {dateTime(data.generatedAt)}
-                    {data.overview.first && <> · premier achat le {dateTime(data.overview.first)}</>}</p>}
-                <div className="stats-actions">
-                    <button type="button" onClick={() => void load()} disabled={loading}><FaSyncAlt aria-hidden/> Actualiser</button>
-                </div>
-            </div>
-            {error && <p className="stats-status stats-error" role="alert">{error}</p>}
-            {!data && !error && <Loader label="Chargement des statistiques de la boutique…"/>}
-            {data && <div className="fade-in"><ShopContent data={data} period={timelineTitle(filter)}/></div>}
-        </>
+        <AdminPage group="Boutique" title="Ventes" description="Achats, crédits dépensés, fonds et cosmétiques portés, plus gros acheteurs."
+                   filters={null} onRefresh={reload} refreshing={loading}
+                   meta={data && <>Mis à jour le {dateTime(data.generatedAt)}
+                       {data.overview.first && <> · premier achat le {dateTime(data.overview.first)}</>}</>}>
+            <StatsBody data={data} error={error} label="Chargement des statistiques de la boutique…">
+                {d => <ShopContent data={d} period={timelineTitle(filter)}/>}
+            </StatsBody>
+        </AdminPage>
     );
 }
 

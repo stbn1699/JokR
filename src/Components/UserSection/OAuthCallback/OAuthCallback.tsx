@@ -63,7 +63,7 @@ export default function OAuthCallback() {
                 const {token, userId, userLevel, userXp} = result;
                 login({token, userId, userLevel, userXp});
                 // mise à jour en cours : seul un administrateur se connecte utilement, direction l'onglet « En direct »
-                navigate(isUpdating() ? "/stats?onglet=direct" : pending.from ?? "/", {replace: true});
+                navigate(isUpdating() ? "/admin/direct" : pending.from ?? "/", {replace: true});
                 return null;
             }
             if (result.result === "linked") {

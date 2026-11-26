@@ -130,7 +130,7 @@ export function markSent(): void {
 
 /*
  * L'onglet doit-il afficher l'écran de mise à jour ?
- * adminOnStats : page gardée pendant une mise à jour — /stats pour un administrateur (rouvrir le site sans
+ * adminOnStats : page gardée pendant une mise à jour — /admin pour un administrateur (rouvrir le site sans
  * redémarrer) et la page de connexion (pour s'y reconnecter).
  */
 export function showsUpdateScreen(s: SiteMaintenance, adminOnStats: boolean): boolean {

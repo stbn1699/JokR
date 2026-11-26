@@ -10,9 +10,12 @@
  * - /profile : Profil du joueur connecté
  * - /hasard : Onglet des jeux de hasard (à venir)
  * - /nouveautes : Nouveautés (CHANGELOG.md) ; le numéro de version est en bas à droite
- * - /quizz : Quizz (thèmes façon QuizUp) ; /quizz/:topicId : page du thème ; /quizz/:topicId/solo|duel : une partie
+ * - /quizz : Quizz (thèmes façon QuizUp) ; /quizz/:topicId : page du thème ; /quizz/:topicId/solo|duel : une partie ;
+ *   /quizz/creer : créer un thème (brouillons) ; /quizz/duel/:duelId : un duel (salon en direct, partie, résultat) ;
+ *   /quizz/categorie, /quizz/custom : réglage des mélanges de thèmes (choix de la catégorie, des thèmes)
  * - /social : Social (amis, chat, défis) — maquette pour l'instant
  * - /succes : Succès (popups de déblocage : AchievementToasts, sur toutes les pages)
+ * - /admin : console d'administration (statistiques, modération, mise à jour ; voir Components/Admin)
  * - * : Page 404 pour les routes inexistantes
  */
 
@@ -45,11 +48,14 @@ import Changelog from "./Components/Changelog/Changelog.tsx";
 import PrivacyPage from "./Components/Privacy/PrivacyPage.tsx";
 import Hasard from "./Components/Hasard/Hasard.tsx";
 import AppFooter from "./Components/AppFooter/AppFooter.tsx";
-import Stats from "./Components/Stats/Stats.tsx";
+import AdminRoutes, {LegacyStatsRedirect} from "./Components/Admin/AdminRoutes.tsx";
 import PlayerProfile from "./Components/PlayerProfile/PlayerProfile.tsx";
 import QuizzPage from "./Components/Quizz/QuizzPage.tsx";
 import QuizzMatch from "./Components/Quizz/QuizzMatch.tsx";
 import QuizzTopicPage from "./Components/Quizz/QuizzTopicPage.tsx";
+import QuizzCreatePage from "./Components/Quizz/QuizzCreatePage.tsx";
+import QuizzDuelPage from "./Components/Quizz/QuizzDuelPage.tsx";
+import {QuizzCategoryPick, QuizzCustomPick} from "./Components/Quizz/QuizzMixSetup.tsx";
 import SocialPage from "./Components/Social/SocialPage.tsx";
 import FriendChallengePage from "./Components/FriendChallenge/FriendChallengePage.tsx";
 import ShopPage from "./Components/Shop/ShopPage.tsx";
@@ -77,15 +83,15 @@ function App() {
     // Pages de jeu : sur téléphone, l'app occupe exactement l'écran (pas de défilement pendant une partie)
     const {pathname} = useLocation();
     // Mise à jour activée (ou serveur qui redémarre) : le site entier est remplacé par l'écran de mise à jour,
-    // une fois la partie en cours finie (voir Services/maintenance.ts). Exception : un administrateur sur /stats
+    // une fois la partie en cours finie (voir Services/maintenance.ts). Exception : un administrateur sur /admin
     // (adresse tapée à la main), pour pouvoir rouvrir.
     const site = useMaintenance();
     const {isAdmin, isLoggedIn, username} = useAuth();
-    // sur /stats, on attend le profil (sinon on ne sait pas encore si le joueur est administrateur)
+    // sur /admin, on attend le profil (sinon on ne sait pas encore si le joueur est administrateur)
     const profileLoading = isLoggedIn && username === null;
-    // la connexion reste ouverte (un administrateur déconnecté doit pouvoir revenir sur /stats)
+    // la connexion reste ouverte (un administrateur déconnecté doit pouvoir revenir sur /admin)
     const loginPage = pathname === "/login" || pathname.startsWith("/auth/callback");
-    const updateScreen = showsUpdateScreen(site, loginPage || (pathname.startsWith("/stats") && (isAdmin || profileLoading)));
+    const updateScreen = showsUpdateScreen(site, loginPage || ((pathname.startsWith("/admin") || pathname.startsWith("/stats")) && (isAdmin || profileLoading)));
     useEffect(() => {
         if (updateScreen && site.on) markSent();
     }, [updateScreen, site.on]);
@@ -138,6 +144,12 @@ function App() {
                 <Route path="/hasard/keno" element={<KenoPage/>}/>
                 <Route path="/hasard/poker" element={<PokerPage/>}/>
                 <Route path="/quizz" element={<QuizzPage/>}/>
+                {/* Créer un thème : mes thèmes, puis l'éditeur (nouveau ou brouillon à reprendre) */}
+                <Route path="/quizz/creer" element={<QuizzCreatePage/>}/>
+                <Route path="/quizz/creer/:themeId" element={<QuizzCreatePage/>}/>
+                <Route path="/quizz/duel/:duelId" element={<QuizzDuelPage/>}/>
+                <Route path="/quizz/categorie" element={<QuizzCategoryPick/>}/>
+                <Route path="/quizz/custom" element={<QuizzCustomPick/>}/>
                 <Route path="/quizz/:topicId" element={<QuizzTopicPage/>}/>
                 <Route path="/quizz/:topicId/:mode" element={<QuizzMatch/>}/>
                 <Route path="/social" element={<SocialPage/>}/>
@@ -146,7 +158,9 @@ function App() {
                 <Route path="/boutique/:section?/:set?" element={<ShopPage/>}/>
                 <Route path="/personnaliser" element={<CustomizePage/>}/>
                 <Route path="/succes" element={<AchievementsPage/>}/>
-                <Route path="/stats" element={<Stats/>}/>
+                {/* Console d'administration (ancienne adresse /stats redirigée) */}
+                <Route path="/admin/*" element={<AdminRoutes/>}/>
+                <Route path="/stats" element={<LegacyStatsRedirect/>}/>
                 {/* Profil public d'un joueur (depuis les classements) */}
                 <Route path="/joueur/:username" element={<PlayerProfile/>}/>
                 {/* Défi d'un·e ami·e : sa grille, à faire à son tour */}

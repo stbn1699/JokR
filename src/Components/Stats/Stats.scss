@@ -1,67 +1,5 @@
+// Contenu des pages de statistiques de la console d'administration (voir Admin/Admin.scss pour la mise en page)
 .stats {
-	display         : flex;
-	justify-content : center;
-	padding         : 2rem 1rem;
-
-	.stats-card {
-		width         : min(90rem, 100%);
-		padding       : 2rem 2.5rem;
-		box-sizing    : border-box;
-		border        : 3px solid #f9fafb;
-		border-radius : 12px;
-		background    : #02061735;
-	}
-
-	// ---------- En-tête : titre et boutons
-	.stats-head {
-		display         : flex;
-		flex-wrap       : wrap;
-		justify-content : space-between;
-		align-items     : flex-start;
-		gap             : 1rem;
-		margin-bottom   : 1.5rem;
-
-		h1 {
-			margin    : 0;
-			font-size : 3.2rem;
-		}
-	}
-
-	.stats-sub {
-		margin    : 0.25rem 0 0;
-		font-size : 1.05rem;
-		opacity   : 0.7;
-	}
-
-	.stats-actions {
-		display   : flex;
-		flex-wrap : wrap;
-		gap       : 0.5rem;
-
-		button {
-			display       : inline-flex;
-			align-items   : center;
-			gap           : 0.45rem;
-			padding       : 0.5rem 1rem;
-			border        : 2px solid rgba(249, 250, 251, 0.3);
-			border-radius : 999px;
-			background    : transparent;
-			color         : #f9fafb;
-			font-family   : inherit;
-			font-size     : 1.1rem;
-			cursor        : pointer;
-
-			&:hover:not(:disabled) {
-				border-color : #10b981;
-			}
-
-			&:disabled {
-				opacity : 0.5;
-				cursor  : wait;
-			}
-		}
-	}
-
 	// ---------- En direct : couper les nouvelles parties avant une mise à jour
 	.stats-live-switch {
 		display         : flex;
@@ -177,19 +115,19 @@
 	// ---------- Chiffres clés
 	.stats-tiles {
 		display               : grid;
-		grid-template-columns : repeat(auto-fill, minmax(15rem, 1fr));
-		gap                   : 0.75rem;
-		margin-bottom         : 2rem;
+		grid-template-columns : repeat(auto-fill, minmax(14rem, 1fr));
+		gap                   : 0.9rem;
+		margin-bottom         : 1.25rem;
 	}
 
 	.stats-tile {
 		display        : flex;
 		flex-direction : column;
 		gap            : 0.2rem;
-		padding        : 0.9rem 1rem;
-		border         : 2px solid rgba(249, 250, 251, 0.15);
-		border-radius  : 10px;
-		background     : rgba(2, 6, 23, 0.45);
+		padding        : 1rem 1.15rem;
+		border         : 1px solid rgba(249, 250, 251, 0.1);
+		border-radius  : 14px;
+		background     : rgba(2, 6, 23, 0.55);
 	}
 
 	.stats-tile-label {
@@ -207,24 +145,50 @@
 		opacity   : 0.6;
 	}
 
-	// ---------- Sections
+	// ---------- Sections : des cartes, seules ou côte à côte
 	.stats-section {
-		margin-bottom : 2rem;
+		min-width     : 0;
+		margin-bottom : 1.25rem;
+		padding       : 1.1rem 1.3rem 1.2rem;
+		border        : 1px solid rgba(249, 250, 251, 0.1);
+		border-radius : 14px;
+		background    : rgba(2, 6, 23, 0.55);
 
 		h2 {
-			margin    : 0 0 0.75rem;
-			font-size : 1.7rem;
+			margin    : 0 0 0.8rem;
+			font-size : 1.35rem;
 		}
 	}
 
-	.stats-two {
+	.stats-two, .stats-three {
 		display               : grid;
-		grid-template-columns : repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
-		gap                   : 1.5rem 2rem;
+		grid-template-columns : repeat(2, minmax(0, 1fr));
+		gap                   : 1.25rem;
+		margin-bottom         : 1.25rem;
+
+		> .stats-section { margin-bottom : 0; }
+	}
+
+	.stats-three { grid-template-columns : repeat(3, minmax(0, 1fr)); }
+	.stats-two-wide { grid-template-columns : minmax(0, 1fr) minmax(0, 2fr); }
+
+	// ancien découpage (section en deux colonnes) : chaque colonne devient une carte
+	.stats-section.stats-two {
+		padding    : 0;
+		border     : none;
+		background : none;
+
+		> div {
+			min-width     : 0;
+			padding       : 1.1rem 1.3rem 1.2rem;
+			border        : 1px solid rgba(249, 250, 251, 0.1);
+			border-radius : 14px;
+			background    : rgba(2, 6, 23, 0.55);
+		}
 	}
 
 	.stats-note {
-		margin    : -0.4rem 0 0.75rem;
+		margin    : -0.3rem 0 0.75rem;
 		font-size : 1rem;
 		opacity   : 0.65;
 	}
@@ -248,7 +212,7 @@
 		vertical-align : baseline;
 	}
 
-	// ---------- Tableaux (défilent horizontalement sur téléphone)
+	// ---------- Tableaux (défilent horizontalement si besoin)
 	.stats-table-wrap {
 		overflow-x : auto;
 	}
@@ -302,6 +266,20 @@
 			font-weight : 700;
 		}
 	}
+
+	// tableau long : hauteur limitée, défile verticalement (en-tête fixe)
+	.stats-table-tall {
+		max-height : 34rem;
+		overflow-y : auto;
+
+		thead th {
+			position   : sticky;
+			top        : 0;
+			background : #0b1120;
+		}
+	}
+
+	.stats-note-after { margin : 0.75rem 0 0; }
 
 	.stats-table-toggle {
 		margin-top : 0.75rem;
@@ -423,80 +401,14 @@
 	color : #fca5a5;
 }
 
-@media (max-width: 700px) {
-	.stats {
-		padding : 0.5rem;
-
-		.stats-card {
-			padding      : 0.9rem 0.7rem;
-			border-width : 2px;
-		}
-
-		.stats-head h1 {
-			font-size : 2.2rem;
-		}
-
-		.stats-tiles {
-			grid-template-columns : repeat(2, minmax(0, 1fr));
-			gap                   : 0.5rem;
-		}
-
-		.stats-tile {
-			padding : 0.6rem 0.7rem;
-		}
-
-		.stats-tile-value {
-			font-size : 1.7rem;
-		}
-
-		.stats-section h2 {
-			font-size : 1.4rem;
-		}
-
-		.bar-chart-plot {
-			height : 8rem;
-		}
-	}
-}
-
-// ---------- Onglets Puzzles / Hasard
-.stats .stats-tabs {
-	display       : flex;
-	gap           : 0.4rem;
-	margin        : 1.25rem 0 1.5rem;
-	border-bottom : 2px solid rgba(249, 250, 251, 0.15);
-
-	button {
-		margin-bottom : -2px;
-		padding       : 0.5rem 1.4rem;
-		border        : none;
-		border-bottom : 3px solid transparent;
-		background    : none;
-		color         : rgba(249, 250, 251, 0.65);
-		font-family   : inherit;
-		font-size     : 1.35rem;
-		font-weight   : 600;
-		cursor        : pointer;
-
-		&:hover {
-			color : #f9fafb;
-		}
-
-		&.active {
-			border-bottom-color : #fbbf24;
-			color               : #f9fafb;
-		}
-	}
-}
-
-// Filtres sous les onglets : période (raccourcis, début et fin) et jeu
+// Filtres (en-tête des pages) : période (raccourcis, début et fin) et jeu
 .stats .stats-filters {
 	display       : flex;
 	flex-wrap     : wrap;
 	align-items   : center;
 	gap           : 0.6rem 1.1rem;
-	margin        : -0.5rem 0 1.4rem;
-	padding       : 0.75rem 1rem;
+	margin        : 0;
+	padding       : 0.6rem 0.9rem;
 	border-radius : 0.9rem;
 	background    : rgba(249, 250, 251, 0.06);
 	font-size     : 1.1rem;
@@ -560,16 +472,6 @@
 .stats .stats-filters .stats-filter-reset {
 	margin-left : auto;
 	opacity     : 0.8;
-}
-
-// En-tête d'un onglet : date de mise à jour et bouton Actualiser
-.stats .stats-tab-head {
-	display         : flex;
-	flex-wrap       : wrap;
-	align-items     : center;
-	justify-content : space-between;
-	gap             : 0.5rem 1rem;
-	margin-bottom   : 1rem;
 }
 
 // Bilan d'un joueur : en vert s'il gagne, en rouge s'il perd
