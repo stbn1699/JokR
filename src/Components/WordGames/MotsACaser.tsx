@@ -309,8 +309,10 @@ export default function MotsACaser({daily = false, replayDate, challengeId, leve
         </ul>
     );
 
+    // Zone sélectionnée : sa longueur ressort dans la liste, les autres s'estompent (plus besoin de compter les cases)
+    const fitClass = (length: number) => (!playing || !activeSlot ? "" : activeSlot.length === length ? "fits" : "dimmed");
     const wordGroupList = wordGroups.map(([length, words]) => (
-        <section className="caser-group" key={length}>
+        <section className={`caser-group ${fitClass(length)}`} key={length}>
             <h3>{length} lettres</h3>
             <ul>
                 {words.map(word => (

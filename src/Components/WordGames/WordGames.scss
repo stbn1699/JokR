@@ -289,6 +289,15 @@
 	}
 
 	.caser-group {
+		transition : opacity 0.15s;
+
+		&.dimmed { opacity : 0.4; }
+
+		&.fits h3 {
+			color       : white;
+			text-shadow : 0 0 0.4rem #fbbf24;
+		}
+
 		h3 {
 			margin         : 0.2rem 0;
 			color          : #fbbf24;
