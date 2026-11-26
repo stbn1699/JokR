@@ -159,7 +159,6 @@ function QuizzGame({topic, mode, onReplay}: { topic: QuizzTopic; mode: QuizzMode
                             return (
                                 <li key={i} className={ok ? "ok" : "ko"}>
                                     {ok ? <FaCheck aria-label="Bonne réponse"/> : <FaTimes aria-label="Mauvaise réponse"/>}
-                                    {q.image && <img src={q.image} alt="" className="quizz-recap-image"/>}
                                     <span>{q.question}<b>{q.answers[q.correct]}</b></span>
                                     <span className="quizz-recap-points">{pointsFor(mine[i]!, q, i)} pts</span>
                                 </li>
@@ -201,7 +200,6 @@ function QuizzGame({topic, mode, onReplay}: { topic: QuizzTopic; mode: QuizzMode
                     <div className="quizz-prompt">
                         {isLastRound(round) && <span className="quizz-double">Dernière question : points doublés !</span>}
                         <h2>{question.question}</h2>
-                        {question.image && <img className="quizz-image" src={question.image} alt="" draggable={false}/>}
                     </div>
                     {/* pendant la lecture, les réponses gardent leur place (invisibles) : rien ne bouge à leur arrivée */}
                     <div className="quizz-answers" aria-hidden={reading}>

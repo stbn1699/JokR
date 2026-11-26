@@ -34,12 +34,5 @@ export const starWars: QuizzTopic = {
         {question: "Comment s'appelle la princesse d'Alderaan, sœur jumelle de Luke ?", answers: ["Leia Organa", "Padmé Amidala", "Mon Mothma", "Jyn Erso"]},
         {question: "Quel chasseur de primes livre Han Solo, figé dans la carbonite, à Jabba ?", answers: ["Boba Fett", "Bossk", "IG-88", "Greedo"]},
         {question: "Quel ordre pousse les clones à se retourner contre les Jedi ?", answers: ["L'ordre 66", "L'ordre 99", "L'ordre 77", "L'ordre 33"]},
-        // questions en image (dessins dans public/quizz/star-wars)
-        {question: "Quelle est cette planète ?", image: "/quizz/star-wars/tatooine.svg", answers: ["Tatooine", "Jakku", "Géonosis", "Mustafar"]},
-        {question: "Quelle est cette planète ?", image: "/quizz/star-wars/hoth.svg", answers: ["Hoth", "Crait", "Ilum", "Kamino"]},
-        {question: "Quelle est cette planète ?", image: "/quizz/star-wars/mustafar.svg", answers: ["Mustafar", "Tatooine", "Korriban", "Jakku"]},
-        {question: "Quelle est cette lune ?", image: "/quizz/star-wars/endor.svg", answers: ["La lune forestière d'Endor", "Dagobah", "Kashyyyk", "Yavin 4"]},
-        {question: "Quelle est cette planète ?", image: "/quizz/star-wars/coruscant.svg", answers: ["Coruscant", "Naboo", "Bespin", "Alderaan"]},
-        {question: "Comment s'appelle cette station spatiale ?", image: "/quizz/star-wars/etoile-de-la-mort.svg", answers: ["L'Étoile de la Mort", "La base Starkiller", "Le Supremacy", "La station Jedha"]},
     ],
 };

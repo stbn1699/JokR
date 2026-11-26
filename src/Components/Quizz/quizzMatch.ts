@@ -25,7 +25,6 @@ export type MatchQuestion = {
     question: string;
     answers: string[];
     correct: number;
-    image?: string;
 };
 
 export type Answer = { index: number | null; ms: number };
@@ -45,7 +44,7 @@ export function shuffle<T>(items: readonly T[], rng: Rng = Math.random): T[] {
 export function buildMatch(topic: QuizzTopic, rng: Rng = Math.random): MatchQuestion[] {
     return shuffle(topic.questions, rng).slice(0, ROUNDS).map(q => {
         const order = shuffle([0, 1, 2, 3], rng);
-        return {question: q.question, image: q.image, answers: order.map(i => q.answers[i]!), correct: order.indexOf(0)};
+        return {question: q.question, answers: order.map(i => q.answers[i]!), correct: order.indexOf(0)};
     });
 }
 

@@ -34,10 +34,5 @@ export const harryPotter: QuizzTopic = {
         {question: "Quel sortilège fait sauter la baguette des mains de l'adversaire ?", answers: ["Expelliarmus", "Stupéfix", "Wingardium Leviosa", "Lumos"]},
         {question: "Comment s'appelle l'elfe de maison que Harry libère avec une chaussette ?", answers: ["Dobby", "Kreattur", "Winky", "Hokey"]},
         {question: "Quelle balle faut-il attraper pour finir un match de Quidditch ?", answers: ["Le Vif d'or", "Le Souafle", "Le Cognard", "La Bombabouse"]},
-        // questions en image (dessins dans public/quizz/harry-potter)
-        {question: "À quelle maison appartient ce blason ?", image: "/quizz/harry-potter/serpentard.svg", answers: ["Serpentard", "Gryffondor", "Serdaigle", "Poufsouffle"]},
-        {question: "À quelle maison appartient ce blason ?", image: "/quizz/harry-potter/poufsouffle.svg", answers: ["Poufsouffle", "Gryffondor", "Serdaigle", "Serpentard"]},
-        {question: "Quel est cet objet ?", image: "/quizz/harry-potter/choixpeau.svg", answers: ["Le Choixpeau magique", "Le chapeau de Merlin", "Le diadème de Serdaigle", "La Coupe de Feu"]},
-        {question: "Que représente ce symbole ?", image: "/quizz/harry-potter/reliques.svg", answers: ["Les Reliques de la Mort", "La Marque des Ténèbres", "L'Ordre du Phénix", "Les Horcruxes"]},
     ],
 };

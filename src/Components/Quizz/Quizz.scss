@@ -474,14 +474,6 @@
 	> li > span:first-of-type { flex : 1; }
 }
 
-.quizz-recap-image {
-	flex          : none;
-	width         : 3rem;
-	height        : 3rem;
-	border-radius : 6px;
-	object-fit    : cover;
-}
-
 .quizz-recap-points {
 	flex        : none;
 	opacity     : 0.8;
@@ -622,18 +614,6 @@
 
 @keyframes quizz-pop {
 	from { transform : scale(0.94); }
-}
-
-// Question en image : plus de place pour l'image
-.quizz-question:has(.quizz-image) .quizz-prompt { flex-grow : 1.7; }
-
-// Question en image : prend la place qui reste au-dessus des réponses
-.quizz-image {
-	flex          : 1 1 0;
-	min-height    : 0;
-	max-width     : 100%;
-	object-fit    : contain;
-	border-radius : 12px;
 }
 
 .quizz-double {

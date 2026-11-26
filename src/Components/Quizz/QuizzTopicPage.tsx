@@ -19,7 +19,6 @@ export default function QuizzTopicPage() {
 
     const Icon = topic.icon;
     const category = QUIZZ_CATEGORIES.find(c => c.id === topic.category)!.label;
-    const pictures = topic.questions.filter(q => q.image).length;
     const duels = record.wins + record.draws + record.losses;
 
     return (
@@ -49,7 +48,7 @@ export default function QuizzTopicPage() {
 
                     <div className="quizz-play">
                         <h2>Jouer</h2>
-                        <p>{topic.questions.length} questions{pictures > 0 && `, dont ${pictures} en image`} · {ROUNDS} par partie</p>
+                        <p>{topic.questions.length} questions · {ROUNDS} par partie</p>
                         <Link to={`/quizz/${topic.id}/solo`} className="quizz-mode">
                             <FaUser aria-hidden/>
                             <span><strong>Solo</strong><small>Toi contre le chrono · record {record.soloBest} / {MAX_SCORE}</small></span>

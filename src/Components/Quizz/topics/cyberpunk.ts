@@ -25,7 +25,7 @@ export const cyberpunk: QuizzTopic = {
     },
     questions: [
         {question: "Dans quelle ville se déroule Cyberpunk 2077 ?", answers: ["Night City", "Neo-Tokyo", "Detroit", "Los Santos"]},
-        {question: "Quel acteur joue Johnny Silverhand ?", answers: ["Keanu Reeves", "Ryan Gosling", "Tom Hardy", "Rutger Hauer"]},
+        {question: "De quel instrument joue Johnny Silverhand ?", answers: ["De la guitare", "De la batterie", "Du saxophone", "Du clavier"]},
         {question: "Quel studio a développé Cyberpunk 2077 ?", answers: ["CD Projekt Red", "Ubisoft", "Rockstar Games", "Bethesda"]},
         {question: "Comment s'appelle le groupe de rock de Johnny Silverhand ?", answers: ["Samurai", "Ronin", "Shogun", "Katana"]},
         {question: "Quelle mégacorporation japonaise règne sur Night City ?", answers: ["Arasaka", "Militech", "Kang Tao", "Biotechnica"]},

@@ -26,11 +26,11 @@ export const cars: QuizzTopic = {
     questions: [
         {question: "Quel numéro porte Flash McQueen ?", answers: ["95", "43", "86", "51"]},
         {question: "Dans quelle petite ville Flash se retrouve-t-il coincé ?", answers: ["Radiator Springs", "Copper Canyon", "Sand Valley", "Petrol City"]},
-        {question: "Sur quelle route se trouve cette ville ?", answers: ["La route 66", "La route 1", "La route 99", "La route 101"]},
+        {question: "Sur quelle route se trouve Radiator Springs ?", answers: ["La route 66", "La route 1", "La route 99", "La route 101"]},
         {question: "Sous quel nom Doc Hudson était-il champion ?", answers: ["Le Fabuleux Hudson Hornet", "Le King", "L'Éclair de Detroit", "Le Bolide bleu"]},
         {question: "Quel genre de véhicule est Martin ?", answers: ["Une dépanneuse", "Un tracteur", "Un camion de pompiers", "Une camionnette"]},
         {question: "Quel rival de Flash porte le numéro 86 ?", answers: ["Chick Hicks", "Le King", "Francesco Bernoulli", "Jackson Storm"]},
-        {question: "Quel modèle de voiture est Sally ?", answers: ["Une Porsche 911", "Une Ferrari", "Une Ford Mustang", "Une Chevrolet Corvette"]},
+        {question: "Que tient Sally à Radiator Springs ?", answers: ["Un motel", "Un garage", "Une boutique de pneus", "Un café"]},
         {question: "Quelle marque sponsorise Flash au début du film ?", answers: ["Rust-eze", "Dinoco", "Leak Less", "Octane Gain"]},
         {question: "Quelle course décide du champion à la fin du film ?", answers: ["La Piston Cup", "Le Grand Prix mondial", "La Coupe Dinoco", "La Florida 500"]},
         {question: "Que fait Flash juste avant la ligne d'arrivée de la dernière course ?", answers: ["Il s'arrête pour aider le King", "Il tombe en panne d'essence", "Il crève un pneu", "Il double Chick Hicks"]},

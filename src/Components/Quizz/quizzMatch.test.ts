@@ -2,9 +2,6 @@ import {describe, expect, it} from "vitest";
 import {QUIZZ_CATEGORIES, QUIZZ_TOPICS} from "./topics/index.ts";
 import {botAnswer, buildMatch, MAX_SCORE, pointsFor, ROUNDS} from "./quizzMatch.ts";
 
-// fichiers de public/quizz (seulement leurs noms : rien n'est chargé)
-const PUBLIC_FILES = import.meta.glob("/public/quizz/**/*");
-
 const question = {question: "?", answers: ["a", "b", "c", "d"], correct: 2};
 
 describe("thèmes du Quizz", () => {
@@ -17,14 +14,8 @@ describe("thèmes du Quizz", () => {
     it.each(QUIZZ_TOPICS.map(t => [t.name, t] as const))("%s : assez de questions, 4 réponses différentes", (_, topic) => {
         expect(topic.questions.length).toBeGreaterThanOrEqual(ROUNDS);
         for (const q of topic.questions) expect(new Set(q.answers).size).toBe(4);
-        const texts = topic.questions.map(q => `${q.question} ${q.image ?? ""}`);
+        const texts = topic.questions.map(q => q.question);
         expect(new Set(texts).size).toBe(texts.length);
-    });
-
-    it("ont leurs images dans public/", () => {
-        for (const q of QUIZZ_TOPICS.flatMap(t => t.questions)) {
-            if (q.image) expect(Object.keys(PUBLIC_FILES), q.image).toContain(`/public${q.image}`);
-        }
     });
 });
 
@@ -33,9 +24,9 @@ describe("partie de Quizz", () => {
         const topic = QUIZZ_TOPICS[0]!;
         const match = buildMatch(topic);
         expect(match).toHaveLength(ROUNDS);
-        expect(new Set(match.map(q => q.question + q.image)).size).toBe(ROUNDS);
+        expect(new Set(match.map(q => q.question)).size).toBe(ROUNDS);
         for (const q of match) {
-            const source = topic.questions.find(s => s.question === q.question && s.image === q.image)!;
+            const source = topic.questions.find(s => s.question === q.question)!;
             expect(q.answers[q.correct]).toBe(source.answers[0]);
         }
     });

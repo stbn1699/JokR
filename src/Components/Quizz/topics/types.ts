@@ -3,14 +3,12 @@ import type {IconType} from "react-icons";
 /**
  * Une question de quiz : la bonne réponse est toujours écrite en premier dans `answers`,
  * les réponses sont mélangées au moment de la partie (voir quizzMatch.ts).
- * Question en image (« Quelle est cette planète ? ») : `image` est l'adresse d'un fichier de public/
- * (ex. /quizz/star-wars/tatooine.svg), affiché sous la question.
+ * Chaque question doit se comprendre seule : elles arrivent dans le désordre.
  */
 export type QuizzQuestion = {
     question: string;
     // 4 réponses, la bonne en premier
     answers: [string, string, string, string];
-    image?: string;
 };
 
 // Grandes familles de thèmes, dans l'ordre d'affichage de la page Quizz
