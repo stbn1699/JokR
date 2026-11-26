@@ -210,12 +210,12 @@ export default function Header() {
                                          top={bubbleTop} onClose={() => setBubbleTop(null)}/>
                         )}
 
-                        {/* Flamme : grisée tant que la grille du jour n'est pas faite ; un clic mène à son classement */}
+                        {/* Flamme : grisée tant que le joueur n'a pas joué aujourd'hui ; un clic mène à son classement */}
                         {!adminMode && auth.streak && auth.streak.days > 0 && (
                             <>
                                 <span className="user-divider" aria-hidden/>
                                 <Link to="/classements?onglet=flamme" className="header-streak"
-                                      title={`${auth.streak.playedToday ? "Flamme du jour gardée" : "Fais une grille aujourd'hui pour garder ta flamme"} · prochain bonus +${auth.streak.percent.toLocaleString("fr-FR")} %`}>
+                                      title={`${auth.streak.playedToday ? "Flamme du jour gardée" : "Joue aujourd'hui (grille, quizz, mise…) pour garder ta flamme"} · prochain bonus +${auth.streak.percent.toLocaleString("fr-FR")} %`}>
                                     <StreakFlame days={auth.streak.days} dim={!auth.streak.playedToday}/>
                                 </Link>
                             </>

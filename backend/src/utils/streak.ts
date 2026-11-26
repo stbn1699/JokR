@@ -1,7 +1,9 @@
 import {dailyDate, previousDailyDate} from "./dailyDate.js";
 
 /*
- * Flamme : jours de suite avec au moins une grille réussie (le jour change à minuit, heure de Paris).
+ * Flamme : jours de suite où le joueur a joué : grille réussie, partie de quizz finie, mise
+ * au casino, roue du jour (le jour change à minuit, heure de Paris ; voir lightStreak).
+ * Le bonus ne s'applique qu'aux grilles.
  * Chaque jour de série après le premier ajoute +0,5 % d'XP et de crédits, jusqu'à +25 % (51e jour).
  * Les gains étant petits, la part qui ne fait pas encore une unité entière est gardée pour la victoire suivante.
  */

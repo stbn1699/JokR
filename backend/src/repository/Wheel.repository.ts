@@ -1,5 +1,6 @@
 import type {Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
+import {lightStreak} from "./Streak.repository.js";
 import {addXp} from "../utils/leveling.js";
 import {WHEEL_ITEM_FALLBACK, WHEEL_SEGMENTS, wheelTickets} from "../utils/wheel.js";
 import {LotteryRepository} from "./Lottery.repository.js";
@@ -57,6 +58,7 @@ export class WheelRepository {
             await trx.insertInto("daily_wheel_spins")
                 .values({user_id: userId, spin_date: date, attempt: done.length + 1, segment, credits, xp, item_id: item?.id ?? null})
                 .execute();
+            await lightStreak(trx, userId);
 
             const next = addXp(user.user_level, user.user_xp, xp);
             const updated = await trx.updateTable("users")

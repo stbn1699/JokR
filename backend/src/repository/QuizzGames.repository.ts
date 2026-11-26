@@ -1,5 +1,6 @@
 import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
+import {lightStreak} from "./Streak.repository.js";
 import {type Answer, type DuelQuestion, pointsFor, ROUNDS} from "../utils/quizzDuel.js";
 import {type GameStart, MIN_REWARDED_GAME_MS, type QuizzReward, quizzReward} from "../utils/quizzGames.js";
 import {addXp} from "../utils/leveling.js";
@@ -61,6 +62,7 @@ export class QuizzGamesRepository {
                 ...round === ROUNDS - 1 ? {finished_at: new Date()} : {},
             })).where("id", "=", gameId).execute();
             if (round !== ROUNDS - 1) return {reward: null};
+            await lightStreak(trx, userId);
 
             const reward = quizzReward(game.score + points);
             const lasted = Date.now() - new Date(game.created_at).getTime();

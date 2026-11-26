@@ -96,7 +96,7 @@ export interface QuizzReportNotification extends BaseNotification {
     data: { topicId: string; topicName: string; question: string; status: "fixed" | "dismissed" };
 }
 
-// Rappel de 17 h 30 : pas encore de grille aujourd'hui (days : série à sauver, 0 s'il n'y en a pas)
+// Rappel de 17 h 30 : pas encore joué aujourd'hui (days : série à sauver, 0 s'il n'y en a pas)
 export interface StreakReminderNotification extends BaseNotification {
     kind: "streak_reminder";
     data: { date: string; days: number };
@@ -108,8 +108,8 @@ export const isStreakReminder = (n: AppNotification): n is StreakReminderNotific
 
 // Texte du rappel de la flamme
 export const streakReminderText = (days: number) => days > 0
-    ? {title: `Ta flamme de ${days.toLocaleString("fr-FR")} jour${days > 1 ? "s" : ""} va s'éteindre`, body: "Fais une grille avant minuit pour la garder !"}
-    : {title: "Allume ta flamme", body: "Fais une grille aujourd'hui et gagne un peu plus d'XP et de crédits chaque jour."};
+    ? {title: `Ta flamme de ${days.toLocaleString("fr-FR")} jour${days > 1 ? "s" : ""} va s'éteindre`, body: "Joue avant minuit (grille, quizz, mise…) pour la garder !"}
+    : {title: "Allume ta flamme", body: "Joue aujourd'hui et gagne un peu plus d'XP et de crédits chaque jour."};
 
 export const isFriendNotification = (n: AppNotification): n is FriendNotification =>
     n.kind === "friend_request" || n.kind === "friend_accepted";

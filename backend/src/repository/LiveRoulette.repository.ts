@@ -1,6 +1,7 @@
 import {sql, type Kysely} from "kysely";
 import {randomInt} from "node:crypto";
 import type {DB} from "../db/schema.js";
+import {lightStreak} from "./Streak.repository.js";
 import {
     ROULETTE_LIMITS,
     type RouletteBet,
@@ -57,6 +58,7 @@ export class LiveRouletteRepository {
             if (!ghost) await trx.updateTable("users").set({credits}).where("id", "=", userId).execute();
             await trx.insertInto("roulette_bets")
                 .values(bets.map(b => ({round_id: round, user_id: userId, key: b.key, amount: b.amount, ghost, bet_group: group}))).execute();
+            if (!ghost) await lightStreak(trx, userId);
             return {ok: true, credits} as const;
         });
     }

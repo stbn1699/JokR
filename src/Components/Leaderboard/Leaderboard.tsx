@@ -307,7 +307,7 @@ export default function Leaderboard() {
                         {friendsOnly
                             ? daily ? "Ni toi ni tes ami·e·s n'avez réussi ce défi." : "Ni toi ni tes ami·e·s n'êtes encore classé·e·s ici."
                             : tab === "flamme"
-                            ? "Aucune flamme allumée. Fais une grille pour lancer la tienne !"
+                            ? "Aucune flamme allumée. Joue (grille, quizz, mise…) pour lancer la tienne !"
                             : !daily
                             ? "Personne n'est encore classé."
                             : selectedDate === month?.today

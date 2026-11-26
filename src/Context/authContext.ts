@@ -37,6 +37,8 @@ export type AuthContextValue = AuthState & {
     // Fond choisi dans la boutique (appliqué tout de suite au site), et crédits après un achat
     setBackground: (background: string | null) => void;
     setCredits: (credits: number) => void;
+    // Relit la flamme si elle n'est pas encore allumée aujourd'hui (après une mise, une partie de quizz…)
+    touchStreak: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

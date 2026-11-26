@@ -81,9 +81,11 @@ type QuizzGameProps = {
 };
 
 // Envoi d'une réponse en direct (une seconde tentative si le réseau flanche ; refusée si déjà reçue)
-async function sendLive(duelId: string, round: number, answer: Answer) {
+async function sendLive(duelId: string, round: number, answer: Answer, touchStreak: () => Promise<void>) {
     try {
         await quizzService.answerDuel(duelId, round, answer);
+        // dernière réponse : la flamme du jour est allumée
+        if (round === ROUNDS - 1) void touchStreak();
     } catch {
         window.setTimeout(() => void quizzService.answerDuel(duelId, round, answer).catch(() => undefined), 1000);
     }
@@ -120,6 +122,8 @@ export default function QuizzGame({topic, match, rival, onDone, onReplay, replay
             setReward(result.reward);
             void auth.refresh();
         });
+        // partie finie, récompense ou non : la flamme du jour est allumée
+        if (round === ROUNDS - 1) chainRef.current = chainRef.current.then(() => auth.touchStreak());
     };
 
     const [phase, setPhase] = useState<Phase>(duel ? "intro" : "read");
@@ -188,7 +192,7 @@ export default function QuizzGame({topic, match, rival, onDone, onReplay, replay
             setElapsed(Math.min(QUESTION_MS, e));
             if (e >= QUESTION_MS && !pickRef.current) {
                 pickRef.current = TIMEOUT;
-                if (rival.kind === "live") void sendLive(rival.duelId, round, TIMEOUT);
+                if (rival.kind === "live") void sendLive(rival.duelId, round, TIMEOUT, auth.touchStreak);
             }
             const answer = pickRef.current;
             const theirAnswer = rival.kind === "replay" ? (e >= rival.answers[round]!.ms ? rival.answers[round]! : null)
@@ -229,7 +233,10 @@ export default function QuizzGame({topic, match, rival, onDone, onReplay, replay
     const send = () => {
         if (!onDone) return;
         setSendError(null);
-        void gameRef.current.then(gameId => onDone(mine, gameId)).then(setDoneText).catch((err: Error) => {
+        void gameRef.current.then(gameId => onDone(mine, gameId)).then(text => {
+            setDoneText(text);
+            void auth.touchStreak();
+        }).catch((err: Error) => {
             sentRef.current = false;
             setSendError(err.message);
         });
@@ -246,7 +253,7 @@ export default function QuizzGame({topic, match, rival, onDone, onReplay, replay
         const answer = {index, ms: Math.max(0, Math.min(QUESTION_MS - 1, at - startRef.current))};
         pickRef.current = answer;
         setPick(index);
-        if (rival.kind === "live") void sendLive(rival.duelId, round, answer);
+        if (rival.kind === "live") void sendLive(rival.duelId, round, answer, auth.touchStreak);
     };
 
     const question = match[round]!;

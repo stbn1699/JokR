@@ -1,4 +1,4 @@
-import {type ReactNode, useCallback, useEffect, useMemo, useState} from "react";
+import {type ReactNode, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {AuthContext, type AuthContextValue, type AuthState} from "./authContext.ts";
 import {UNLIMITED_CREDITS} from "../Services/credits.ts";
@@ -85,7 +85,30 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
     const setAvatar = useCallback((avatar: string) => setState(s => ({...s, avatar})), []);
     const setBackground = useCallback((background: string | null) => setState(s => ({...s, background})), []);
-    const setCredits = useCallback((credits: number) => setState(s => ({...s, credits})), []);
+    /*
+     * Flamme pas encore allumée aujourd'hui : relit seulement la flamme sur le serveur (une mise, une partie de
+     * quizz l'allument aussi, voir lightStreak côté serveur). Le reste de l'état n'est pas touché (les jeux
+     * gardent l'affichage de leurs crédits pendant les animations).
+     */
+    const streakLit = useRef(false);
+    useEffect(() => {
+        streakLit.current = state.streak?.playedToday === true;
+    }, [state.streak]);
+    const touchStreak = useCallback(async () => {
+        if (streakLit.current || !authService.getSession()) return;
+        try {
+            const user = await userService.getMe();
+            setState(s => ({...s, streak: user.streak ?? null}));
+        } catch {
+            // sans importance : la flamme sera relue au prochain chargement du profil
+        }
+    }, []);
+
+    // Solde changé par une mise : la flamme vient peut-être de s'allumer
+    const setCredits = useCallback((credits: number) => {
+        setState(s => ({...s, credits}));
+        void touchStreak();
+    }, [touchStreak]);
 
     const value = useMemo<AuthContextValue>(() => ({
         ...state,
@@ -99,7 +122,8 @@ export function AuthProvider({children}: { children: ReactNode }) {
         setAvatar,
         setBackground,
         setCredits,
-    }), [state, login, logout, refresh, setAvatar, setBackground, setCredits]);
+        touchStreak,
+    }), [state, login, logout, refresh, setAvatar, setBackground, setCredits, touchStreak]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

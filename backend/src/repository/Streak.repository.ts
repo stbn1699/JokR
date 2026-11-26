@@ -1,6 +1,7 @@
 import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
 import {streakBonusPercent} from "../utils/streak.js";
+import {dailyDate} from "../utils/dailyDate.js";
 
 // Série encore en vie : dernière grille aujourd'hui ou hier (jours de Paris), sinon 0
 export const ACTIVE_STREAK = sql<number>`(case
@@ -8,6 +9,27 @@ export const ACTIVE_STREAK = sql<number>`(case
     else 0 end)`;
 
 export type StreakInfo = { days: number; best: number; percent: number; playedToday: boolean };
+
+/*
+ * Allume la flamme du jour sans victoire de grille : partie de quizz finie, mise au casino, roue du jour…
+ * (les grilles passent par ProgressionService.recordWin, qui applique aussi le bonus). Ne rapporte rien ;
+ * déjà allumée aujourd'hui : rien ne change. Le rappel du jour disparaît de la cloche.
+ */
+export async function lightStreak(db: Kysely<DB>, userId: string, today: string = dailyDate()): Promise<void> {
+    const days = sql<number>`(case when streak_last_date = ${today}::date - 1 then streak_days + 1 else 1 end)`;
+    const lit = await db.updateTable("users")
+        .set({streak_days: days, streak_best: sql<number>`greatest(streak_best, ${days})`, streak_last_date: today})
+        .where("id", "=", userId)
+        .where(sql<boolean>`streak_last_date is distinct from ${today}::date`)
+        .executeTakeFirst();
+    if (Number(lit.numUpdatedRows) === 0) return;
+    await db.updateTable("notifications")
+        .set({read_at: sql`now()`})
+        .where("user_id", "=", userId)
+        .where("kind", "=", "streak_reminder")
+        .where("read_at", "is", null)
+        .execute();
+}
 
 export class StreakRepository {
     constructor(private db: Kysely<DB>) {

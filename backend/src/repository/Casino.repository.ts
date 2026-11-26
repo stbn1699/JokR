@@ -1,5 +1,6 @@
 import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
+import {lightStreak} from "./Streak.repository.js";
 
 export type PlayResult =
     | { ok: true; credits: number }
@@ -28,6 +29,7 @@ export class CasinoRepository {
             await trx.insertInto("casino_plays").values({
                 user_id: userId, game, bet, payout: result.payout, seed: result.seed, outcome: result.outcome,
             }).execute();
+            await lightStreak(trx, userId);
             return {ok: true, credits, draw: result} as const;
         });
     }
@@ -54,6 +56,7 @@ export class CasinoRepository {
             await trx.insertInto("casino_plays").values(draws.map(d => ({
                 user_id: userId, game, bet, payout: d.payout, seed: d.seed, outcome: d.outcome,
             }))).execute();
+            await lightStreak(trx, userId);
             return {ok: true, credits, draws} as const;
         });
     }

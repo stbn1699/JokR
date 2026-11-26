@@ -1,6 +1,7 @@
 import {randomInt} from "node:crypto";
 import type {Kysely, Transaction} from "kysely";
 import type {DB} from "../db/schema.js";
+import {lightStreak} from "./Streak.repository.js";
 import {
     actionCost,
     type BlackjackAction,
@@ -56,6 +57,7 @@ export class BlackjackRepository {
             const {id} = await trx.insertInto("blackjack_hands")
                 .values({user_id: userId, state: JSON.stringify(state), ghost, finished: false})
                 .returning("id").executeTakeFirstOrThrow();
+            if (!ghost) await lightStreak(trx, userId);
             return {ok: true, state, credits: await this.save(trx, userId, id, state, credits, ghost)} as const;
         });
     }

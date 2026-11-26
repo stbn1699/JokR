@@ -145,8 +145,8 @@ export function pushMessage(n: { id: string; kind: string; data: unknown }): Pus
         case "streak_reminder": {
             const days = data.days as number;
             return days > 0
-                ? {title: `Ta flamme de ${fr(days)} jour${days > 1 ? "s" : ""} va s'éteindre`, body: "Fais une grille avant minuit pour la garder !", url: "/", tag}
-                : {title: "Allume ta flamme", body: "Fais une grille aujourd'hui et gagne un peu plus d'XP et de crédits chaque jour.", url: "/", tag};
+                ? {title: `Ta flamme de ${fr(days)} jour${days > 1 ? "s" : ""} va s'éteindre`, body: "Joue avant minuit (grille, quizz, mise…) pour la garder !", url: "/", tag}
+                : {title: "Allume ta flamme", body: "Joue aujourd'hui et gagne un peu plus d'XP et de crédits chaque jour.", url: "/", tag};
         }
         default:
             return null;

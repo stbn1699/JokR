@@ -1,5 +1,6 @@
 import {sql, type Kysely, type Selectable, type Transaction} from "kysely";
 import type {DB, QuizzDuelsTable} from "../db/schema.js";
+import {lightStreak} from "./Streak.repository.js";
 import {
     type Answer, DUEL_CLAIM_MINUTES, type DuelQuestion, LIVE_MAX_MS, LIVE_START_DELAY_MS, LOBBY_TIMEOUT_MS, outcome,
     padAnswers, ROUNDS, scoreOf,
@@ -55,6 +56,7 @@ export class QuizzDuelsRepository {
                 challenger_id: challengerId, challenger_answers: JSON.stringify(duel.answers ?? []), challenger_score: score,
                 challenger_seen_at: live ? new Date() : null, opponent_id: duel.friendId,
             }).returningAll().executeTakeFirstOrThrow();
+            if (!live) await lightStreak(trx, challengerId);
             await this.invite(trx, row);
             return row.id;
         });
@@ -189,6 +191,7 @@ export class QuizzDuelsRepository {
             if (answers.length !== round || round >= ROUNDS) return false;
             const next = {...d, [column]: [...answers, answer]};
             await trx.updateTable("quizz_duels").set({[column]: JSON.stringify(next[column])}).where("id", "=", id).execute();
+            if (round === ROUNDS - 1) await lightStreak(trx, userId);
             if ((next.challenger_answers as Answer[]).length === ROUNDS && (next.opponent_answers as Answer[]).length === ROUNDS) {
                 await this.finalize(trx, next);
             }
@@ -205,6 +208,10 @@ export class QuizzDuelsRepository {
         return this.db.transaction().execute(async trx => {
             const d = await this.row(trx, id, userId, true);
             if (!d || d.live || d.finished_at) return false;
+            const played = async () => {
+                await lightStreak(trx, userId);
+                return true;
+            };
             const challengerAnswers = d.challenger_answers as Answer[];
             if (d.challenger_id === userId) {
                 if (challengerAnswers.length > 0) return false;
@@ -212,11 +219,11 @@ export class QuizzDuelsRepository {
                 await trx.updateTable("quizz_duels").set({challenger_answers: JSON.stringify(answers), challenger_score: score})
                     .where("id", "=", id).execute();
                 await this.invite(trx, {...d, challenger_score: score});
-                return true;
+                return played();
             }
             if (challengerAnswers.length !== ROUNDS || (d.opponent_answers as Answer[]).length > 0) return false;
             await this.finalize(trx, {...d, opponent_answers: answers});
-            return true;
+            return played();
         });
     }
 

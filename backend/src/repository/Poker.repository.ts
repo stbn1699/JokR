@@ -1,6 +1,7 @@
 import {randomInt} from "node:crypto";
 import type {Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
+import {lightStreak} from "./Streak.repository.js";
 import {dealPoker, drawPoker, POKER_PAYTABLE, type PokerState} from "../utils/poker.js";
 
 export type PokerResult =
@@ -46,6 +47,7 @@ export class PokerRepository {
             const credits = ghost ? user.credits : user.credits - bet;
             if (!ghost) await trx.updateTable("users").set({credits}).where("id", "=", userId).execute();
             await trx.insertInto("poker_hands").values({user_id: userId, state: JSON.stringify(state), ghost}).execute();
+            if (!ghost) await lightStreak(trx, userId);
             return {ok: true, state, credits} as const;
         });
     }
