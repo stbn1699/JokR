@@ -11,6 +11,8 @@ import {
     type QuizzMode, READ_MS, ROUNDS,
 } from "./quizzMatch.ts";
 import {readRecord, saveResult} from "./quizzRecords.ts";
+import {useTopicQuestions} from "./useTopicQuestions.ts";
+import Loader from "../Loader/Loader.tsx";
 
 /**
  * Partie de Quizz (/quizz/<thème>/solo ou /duel), à la manière de QuizUp.
@@ -20,6 +22,7 @@ import {readRecord, saveResult} from "./quizzRecords.ts";
  * À la révélation : la bonne réponse, ce qu'ont choisi les joueurs et les points gagnés.
  * La question et les réponses occupent toute la hauteur de l'écran sous le header (texte plus grand sur grand écran).
  * L'adversaire est simulé (quizzMatch.ts) en attendant les parties contre de vrais joueurs.
+ * Questions : celles du site plus celles proposées par les joueurs et validées (useTopicQuestions).
  */
 
 type Phase = "intro" | "read" | "question" | "reveal" | "end";
@@ -231,7 +234,10 @@ function QuizzGame({topic, mode, onReplay}: { topic: QuizzTopic; mode: QuizzMode
 export default function QuizzMatch() {
     const {topicId, mode} = useParams();
     const topic = findTopic(topicId);
+    const questions = useTopicQuestions(topic);
     const [game, setGame] = useState(0);
     if (!topic || !isQuizzMode(mode)) return <NotFound/>;
-    return <QuizzGame key={`${topic.id}-${mode}-${game}`} topic={topic} mode={mode} onReplay={() => setGame(n => n + 1)}/>;
+    if (!questions) return <Loader/>;
+    return <QuizzGame key={`${topic.id}-${mode}-${game}`} topic={{...topic, questions}} mode={mode}
+                      onReplay={() => setGame(n => n + 1)}/>;
 }

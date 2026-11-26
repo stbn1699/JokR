@@ -283,6 +283,21 @@ export type AdRewardsTable = {
     credits: Generated<number>;
 };
 
+// Quizz : questions proposées par les joueurs (voir utils/quizz.ts), jouables une fois validées
+export type QuizzQuestionsTable = {
+    id: Generated<string>;
+    topic_id: string;
+    question: string;
+    // les 4 réponses, la bonne en premier
+    answers: string[];
+    author_id: string | null;
+    // pending, approved ou rejected
+    status: Generated<string>;
+    created_at: Generated<Date>;
+    reviewed_by: string | null;
+    reviewed_at: Date | null;
+};
+
 export type DailyWheelSpinsTable = {
     user_id: string;
     spin_date: string;
@@ -376,6 +391,7 @@ export type DB = {
     lottery_draws: LotteryDrawsTable;
     daily_wheel_spins: DailyWheelSpinsTable;
     ad_rewards: AdRewardsTable;
+    quizz_questions: QuizzQuestionsTable;
     lottery_bonus_tickets: LotteryBonusTicketsTable;
     blackjack_hands: BlackjackHandsTable;
     poker_hands: PokerHandsTable;

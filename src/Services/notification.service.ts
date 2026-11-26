@@ -65,13 +65,19 @@ export interface WelcomeNotification extends BaseNotification {
     data: { credits: number };
 }
 
+// Question du Quizz proposée par le joueur et validée : les crédits sont déjà ajoutés
+export interface QuizzApprovedNotification extends BaseNotification {
+    kind: "quizz_approved";
+    data: { topicId: string; topicName: string; question: string; credits: number };
+}
+
 // Rappel de 17 h 30 : pas encore de grille aujourd'hui (days : série à sauver, 0 s'il n'y en a pas)
 export interface StreakReminderNotification extends BaseNotification {
     kind: "streak_reminder";
     data: { date: string; days: number };
 }
 
-export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification | LotteryWinNotification | WelcomeNotification | StreakReminderNotification;
+export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification | LotteryWinNotification | WelcomeNotification | StreakReminderNotification | QuizzApprovedNotification;
 
 export const isStreakReminder = (n: AppNotification): n is StreakReminderNotification => n.kind === "streak_reminder";
 
@@ -88,6 +94,8 @@ export const isDailyResults = (n: AppNotification): n is DailyResultsNotificatio
 export const isLotteryWin = (n: AppNotification): n is LotteryWinNotification => n.kind === "lottery_win";
 
 export const isWelcome = (n: AppNotification): n is WelcomeNotification => n.kind === "welcome";
+
+export const isQuizzApproved = (n: AppNotification): n is QuizzApprovedNotification => n.kind === "quizz_approved";
 
 // « la loterie du jour », « de la semaine », « du mois »
 export const lotteryName = (kind: LotteryWinNotification["data"]["kind"]) =>

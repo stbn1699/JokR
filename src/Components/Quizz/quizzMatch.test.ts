@@ -1,5 +1,6 @@
 import {describe, expect, it} from "vitest";
 import {QUIZZ_CATEGORIES, QUIZZ_TOPICS} from "./topics/index.ts";
+import {QUIZZ_TOPIC_NAMES, questionProblem} from "../../../backend/src/utils/quizz.ts";
 import {botAnswer, buildMatch, MAX_SCORE, pointsFor, ROUNDS} from "./quizzMatch.ts";
 
 const question = {question: "?", answers: ["a", "b", "c", "d"], correct: 2};
@@ -9,6 +10,14 @@ describe("thèmes du Quizz", () => {
         const ids = QUIZZ_TOPICS.map(t => t.id);
         expect(new Set(ids).size).toBe(ids.length);
         for (const t of QUIZZ_TOPICS) expect(QUIZZ_CATEGORIES.map(c => c.id)).toContain(t.category);
+    });
+
+    it("sont tous connus du serveur (questions proposées par les joueurs)", () => {
+        expect(QUIZZ_TOPIC_NAMES).toEqual(Object.fromEntries(QUIZZ_TOPICS.map(t => [t.id, t.name])));
+    });
+
+    it("respectent les mêmes règles que les questions proposées", () => {
+        for (const q of QUIZZ_TOPICS.flatMap(t => t.questions)) expect(questionProblem(q), q.question).toBeNull();
     });
 
     it.each(QUIZZ_TOPICS.map(t => [t.name, t] as const))("%s : assez de questions, 4 réponses différentes", (_, topic) => {

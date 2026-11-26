@@ -92,6 +92,12 @@ describe("pushMessage", () => {
         expect(m?.url).toBe("/hasard/loterie");
     });
 
+    it("annonce une question du Quizz validée", () => {
+        const m = pushMessage({id: "7", kind: "quizz_approved", data: {topicId: "star-wars", topicName: "Star Wars", question: "?", credits: 10}});
+        expect(m).toMatchObject({title: "Ta question est validée !", body: "+10 crédits : elle arrive dans les parties de Star Wars.",
+            url: "/quizz/star-wars"});
+    });
+
     it("résume les défis du jour", () => {
         const m = pushMessage({id: "5", kind: "daily_results", data: {games: [{name: "Queens", rank: 1, total: 8}, {name: "Tracé", rank: 2, total: 5}]}});
         expect(m?.body).toBe("Tu termines 1er sur 8 au Queens (et 1 autre défi)");

@@ -5,6 +5,7 @@ import {FaDownload, FaSyncAlt} from "react-icons/fa";
 import {useAuth} from "../../Context/authContext.ts";
 import {statsService} from "../../Services/stats.service.ts";
 import FeedbackAdmin from "../Feedback/FeedbackAdmin.tsx";
+import QuizzAdmin from "../Quizz/QuizzAdmin.tsx";
 import type {StatsData} from "../../Models/stats.model.ts";
 import {ApiError} from "../../api/api.ts";
 import BarChart from "./BarChart.tsx";
@@ -123,6 +124,7 @@ export default function Stats() {
                 </div>
 
                 <FeedbackAdmin/>
+                <QuizzAdmin/>
 
                 <div className="stats-tabs" role="tablist">
                     <button type="button" role="tab" aria-selected={tab === "puzzles"} className={tab === "puzzles" ? "active" : ""}

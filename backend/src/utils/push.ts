@@ -104,6 +104,10 @@ export function pushMessage(n: { id: string; kind: string; data: unknown }): Pus
                 body: `+${fr(data.prize as number)} crédits avec ${fr(tickets)} ticket${tickets > 1 ? "s" : ""} sur ${fr(data.totalTickets as number)}`,
                 url: "/hasard/loterie", tag};
         }
+        case "quizz_approved":
+            return {title: "Ta question est validée !",
+                body: `+${fr(data.credits as number)} crédits : elle arrive dans les parties de ${data.topicName as string}.`,
+                url: `/quizz/${encodeURIComponent(data.topicId as string)}`, tag};
         case "daily_results": {
             const games = data.games as { name: string; rank: number; total: number }[];
             const best = games[0];

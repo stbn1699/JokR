@@ -15,8 +15,8 @@
 import "./Notifications.scss";
 import {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
-import {FaBell, FaFire, FaFlagCheckered, FaGift, FaMedal, FaTicketAlt, FaTimes, FaUserFriends} from "react-icons/fa";
-import {type AppNotification, type ChallengeNotification, type DailyResultsNotification, type FriendNotification, isDailyResults, isFriendNotification, isLotteryWin, type LotteryWinNotification, lotteryName, isWelcome, isStreakReminder, streakReminderText} from "../../Services/notification.service.ts";
+import {FaBell, FaCheckCircle, FaFire, FaFlagCheckered, FaGift, FaMedal, FaTicketAlt, FaTimes, FaUserFriends} from "react-icons/fa";
+import {type AppNotification, type ChallengeNotification, type DailyResultsNotification, type FriendNotification, isDailyResults, isFriendNotification, isLotteryWin, type LotteryWinNotification, lotteryName, isWelcome, isStreakReminder, streakReminderText, isQuizzApproved} from "../../Services/notification.service.ts";
 import {challengePath} from "../../Services/challenge.service.ts";
 import {shareTime} from "../../Services/share.ts";
 import {friendsStore, useFriends} from "../../Services/friends.service.ts";
@@ -169,6 +169,7 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
             {toast && !open && (
                 <div className="notif-toast" role="status">
                     {isLotteryWin(toast) ? <FaTicketAlt aria-hidden className="notif-toast-icon lottery"/>
+                        : isQuizzApproved(toast) ? <FaCheckCircle aria-hidden className="notif-toast-icon lottery"/>
                         : isStreakReminder(toast) ? <FaFire aria-hidden className="notif-toast-icon lottery"/>
                         : isDailyResults(toast) ? <FaBell aria-hidden className="notif-toast-icon"/>
                         : !isFriendNotification(toast) ? <FaFlagCheckered aria-hidden className="notif-toast-icon friend"/>
@@ -178,6 +179,11 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
                             <>
                                 <strong>Tu as gagné {lotteryName(toast.data.kind)} !</strong>
                                 <span>+{fr(toast.data.prize)} crédits avec {fr(toast.data.tickets)} ticket{toast.data.tickets > 1 ? "s" : ""} sur {fr(toast.data.totalTickets)}</span>
+                            </>
+                        ) : isQuizzApproved(toast) ? (
+                            <>
+                                <strong>Ta question est validée !</strong>
+                                <span>+{fr(toast.data.credits)} crédits · {toast.data.topicName}</span>
                             </>
                         ) : isStreakReminder(toast) ? (
                             <>
@@ -252,6 +258,21 @@ function NotificationItem({notification, onNavigate}: { notification: AppNotific
                     <small>{ago(notification.createdAt)}</small>
                 </div>
                 <p className="notif-daily-xp">+{fr(notification.data.credits)} crédits offerts</p>
+            </div>
+        );
+    }
+    if (isQuizzApproved(notification)) {
+        return (
+            <div className="notif-daily notif-lottery">
+                <div className="notif-daily-head">
+                    <span><FaCheckCircle aria-hidden/> Ta question est validée !</span>
+                    <small>{ago(notification.createdAt)}</small>
+                </div>
+                <p className="notif-daily-xp">+{fr(notification.data.credits)} crédits</p>
+                <p className="notif-lottery-detail">
+                    « {notification.data.question} » arrive dans les parties de{" "}
+                    <Link to={`/quizz/${notification.data.topicId}`} onClick={onNavigate}>{notification.data.topicName}</Link>
+                </p>
             </div>
         );
     }
