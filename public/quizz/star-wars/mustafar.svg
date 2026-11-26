@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="50%" r="70%"><stop offset="0" stop-color="#1c0a0a"/><stop offset="1" stop-color="#050202"/></radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0.75" stop-color="#ff5a1f" stop-opacity="0.45"/><stop offset="1" stop-color="#ff5a1f" stop-opacity="0"/></radialGradient>
+    <radialGradient id="planet" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#4a3a36"/><stop offset="0.6" stop-color="#261a18"/><stop offset="1" stop-color="#0d0807"/></radialGradient>
+    <clipPath id="disc"><circle cx="200" cy="150" r="108"/></clipPath>
+  </defs>
+  <rect width="400" height="300" fill="url(#sky)"/>
+  <circle cx="200" cy="150" r="140" fill="url(#glow)"/>
+  <circle cx="200" cy="150" r="108" fill="url(#planet)"/>
+  <g clip-path="url(#disc)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#ff7a1a" stroke-width="5">
+      <path d="M95 120 L135 135 L150 110 L190 128 L215 100 L260 118 L300 105"/>
+      <path d="M110 185 L150 170 L175 195 L220 175 L250 200 L300 180"/>
+      <path d="M150 110 L160 70 M190 128 L185 160 L220 175 M260 118 L255 150 L290 160"/>
+      <path d="M130 230 L170 220 L200 245 L245 230"/>
+    </g>
+    <g stroke="#ffd166" stroke-width="2">
+      <path d="M95 120 L135 135 L150 110 L190 128 L215 100 L260 118 L300 105"/>
+      <path d="M110 185 L150 170 L175 195 L220 175 L250 200 L300 180"/>
+    </g>
+    <circle cx="240" cy="70" r="14" fill="#ff5a1f" opacity="0.8" stroke="none"/>
+  </g>
+</svg>

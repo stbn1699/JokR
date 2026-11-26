@@ -3,7 +3,7 @@
  *
  * Affiche en haut de chaque page :
  * - Le logo JokR (cliquable pour retourner à l'accueil)
- * - Au centre, les catégories de jeux seulement : Puzzle (accueil, défis du jour compris) et Hasard.
+ * - Au centre, les catégories de jeux seulement : Puzzle (accueil, défis du jour compris), Hasard, Quizz et Social.
  *   Un point orange sur Puzzle tant que le joueur n'a pas fini les défis du jour, et sur Hasard tant qu'il n'a pas
  *   lancé la roue du jour. Sur Social, tant qu'un message d'ami·e n'est pas lu.
  * - Connecté : niveau (étoile bleue + petite barre d'XP), crédits (vers la boutique ; au survol, « Obtenir plus de
@@ -45,6 +45,7 @@ import {SOCIAL_READ_EVENT, socialService} from "../../Services/social.service.ts
 const TABS = [
     {label: "Puzzle", to: "/", match: (path: string) => path === "/" || path.startsWith("/playgame") || path.startsWith("/defi")},
     {label: "Hasard", to: "/hasard", match: (path: string) => path.startsWith("/hasard")},
+    {label: "Quizz", to: "/quizz", match: (path: string) => path.startsWith("/quizz")},
     {label: "Social", to: "/social", match: (path: string) => path.startsWith("/social")},
 ];
 
@@ -166,7 +167,7 @@ export default function Header() {
                         const active = tab.match(pathname);
                         const dot = tab.to === "/" ? dailyPending && "Défis du jour à faire"
                             : tab.to === "/hasard" ? wheelPending && "Roue du jour à lancer"
-                            : socialUnread && "Messages non lus";
+                            : tab.to === "/social" ? socialUnread && "Messages non lus" : false;
                         return (
                             <Link key={tab.to} to={tab.to} className={`header-tab ${active ? "active" : ""}`}
                                   aria-current={active ? "page" : undefined}>
