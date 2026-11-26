@@ -4,6 +4,22 @@ Ce fichier est affiché sur le site (page « Nouveautés »). Pour une nouvelle 
 en haut et mettre le même numéro dans le champ `version` de `package.json`.
 Pour remercier un joueur (idée ou bug remonté), écrire son pseudo précédé de @ : il devient un lien vers son profil.
 
+## 5.0.0 — 26 novembre 2026
+
+Nouvel onglet : le Quizz ! Près de 100 thèmes et plus de 5 000 questions, à jouer seul ou en duel.
+
+### Quizz
+- 96 thèmes : cinéma, séries, animés, jeux vidéo, musique, sport, histoire, géographie, sciences, langue française…
+- Partie solo : réponds vite pour marquer plus de points, gagne de l'XP et des crédits
+- Mélanges : « Tout », une catégorie entière, ou les thèmes de ton choix
+- Duels : contre un joueur au hasard, ou contre un·e ami·e en direct ou chacun son tour ; une notification te prévient quand c'est à toi
+- Propose tes questions depuis la page d'un thème : 10 crédits par question validée
+- Crée ton propre thème (30 questions minimum) : une fois validé, tout le monde peut y jouer
+- Une réponse te semble fausse ? Conteste-la en fin de partie, elle sera vérifiée
+
+### Mots à caser
+- La zone choisie met en avant les mots de sa longueur : plus besoin de compter les cases
+
 ## 4.2.2 — 25 novembre 2026
 
 Deux corrections, merci à @Eau_rayée de les avoir signalées !
