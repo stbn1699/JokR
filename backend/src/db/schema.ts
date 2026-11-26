@@ -283,10 +283,13 @@ export type AdRewardsTable = {
     credits: Generated<number>;
 };
 
-// Quizz : questions proposées par les joueurs (voir utils/quizz.ts), jouables une fois validées
+// Quizz : toutes les questions, celles du site (number, sans auteur) et celles proposées par les joueurs (voir
+// utils/quizz.ts), jouables une fois validées
 export type QuizzQuestionsTable = {
     id: Generated<string>;
     topic_id: string;
+    // numéro fixe d'une question du site dans son thème ; vide pour une question d'un joueur
+    number: number | null;
     question: string;
     // les 4 réponses, la bonne en premier
     answers: string[];
@@ -294,6 +297,101 @@ export type QuizzQuestionsTable = {
     // pending, approved ou rejected
     status: Generated<string>;
     created_at: Generated<Date>;
+    reviewed_by: string | null;
+    reviewed_at: Date | null;
+};
+
+// Quizz : questions contestées par les joueurs en fin de partie (voir utils/quizz.ts, parseReport)
+export type QuizzReportsTable = {
+    id: Generated<string>;
+    topic_id: string;
+    question: string;
+    // les 4 réponses, la bonne en premier
+    answers: string[];
+    picked: string | null;
+    reason: Generated<string>;
+    reporter_id: string | null;
+    // pending, fixed ou dismissed
+    status: Generated<string>;
+    created_at: Generated<Date>;
+    reviewed_by: string | null;
+    reviewed_at: Date | null;
+};
+
+// Quizz : parties (solo et duels) et chaque réponse donnée, pour les statistiques (voir utils/quizzGames.ts)
+export type QuizzGamesTable = {
+    id: Generated<string>;
+    user_id: string;
+    // solo, random, friend ou live
+    mode: string;
+    duel_id: string | null;
+    topic_id: string;
+    // [{ key, question, answers, correct, topic, category }] (JSON)
+    questions: ColumnType<unknown, string, string>;
+    answered: Generated<number>;
+    score: Generated<number>;
+    created_at: Generated<Date>;
+    finished_at: Date | null;
+};
+
+export type QuizzAnswersTable = {
+    game_id: string;
+    round: number;
+    user_id: string;
+    mode: string;
+    question_key: string;
+    question: string;
+    topic_id: string;
+    category: string;
+    mix_id: string | null;
+    picked: number | null;
+    correct: boolean;
+    ms: number;
+    points: number;
+    created_at: Generated<Date>;
+};
+
+// Quizz : duels (voir utils/quizzDuel.ts) : contre un·e ami·e (en direct ou chacun son tour) ou un adversaire au hasard
+export type QuizzDuelsTable = {
+    id: Generated<string>;
+    topic_id: string;
+    random: boolean;
+    live: Generated<boolean>;
+    // [{ question, answers, correct }] (JSON)
+    questions: ColumnType<unknown, string, string>;
+    challenger_id: string;
+    // [{ index, ms }] (JSON)
+    challenger_answers: ColumnType<unknown, string | undefined, string>;
+    challenger_score: number | null;
+    challenger_seen_at: Date | null;
+    opponent_id: string | null;
+    claimed_at: Date | null;
+    opponent_answers: ColumnType<unknown, string | undefined, string>;
+    opponent_score: number | null;
+    created_at: Generated<Date>;
+    started_at: Date | null;
+    finished_at: Date | null;
+};
+
+// Quizz : thèmes créés par les joueurs (voir utils/quizzThemes.ts) : brouillon, soumis, validé ou refusé
+export type QuizzThemesTable = {
+    id: Generated<string>;
+    author_id: string | null;
+    status: Generated<string>;
+    // identifiant d'adresse, donné à la validation
+    slug: string | null;
+    name: Generated<string>;
+    description: Generated<string>;
+    category: Generated<string>;
+    color: Generated<string>;
+    wiki_url: Generated<string>;
+    wiki_title: string | null;
+    summary: string[] | null;
+    // [{ question, answers }] (JSON) tant que le thème n'est pas validé
+    questions: ColumnType<unknown, string | undefined, string>;
+    created_at: Generated<Date>;
+    updated_at: Generated<Date>;
+    submitted_at: Date | null;
     reviewed_by: string | null;
     reviewed_at: Date | null;
 };
@@ -392,6 +490,11 @@ export type DB = {
     daily_wheel_spins: DailyWheelSpinsTable;
     ad_rewards: AdRewardsTable;
     quizz_questions: QuizzQuestionsTable;
+    quizz_themes: QuizzThemesTable;
+    quizz_duels: QuizzDuelsTable;
+    quizz_reports: QuizzReportsTable;
+    quizz_games: QuizzGamesTable;
+    quizz_answers: QuizzAnswersTable;
     lottery_bonus_tickets: LotteryBonusTicketsTable;
     blackjack_hands: BlackjackHandsTable;
     poker_hands: PokerHandsTable;

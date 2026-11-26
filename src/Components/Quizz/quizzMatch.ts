@@ -1,33 +1,27 @@
-import type {QuizzTopic} from "./topics/index.ts";
+import type {PlayableTopic, QuizzQuestion} from "./topics/index.ts";
+import {
+    type Answer, type DuelQuestion, INTRO_MS, isLastRound, LIVE_GRACE_MS, MAX_POINTS, MAX_SCORE, pointsFor, QUESTION_MS,
+    READ_MS, REVEAL_MS, ROUNDS, scoreOf,
+} from "../../../backend/src/utils/quizzDuel.ts";
 
 /**
- * Règles d'une partie de Quizz (inspirées de QuizUp) :
+ * Règles d'une partie de Quizz (inspirées de QuizUp), partagées avec le serveur (backend/src/utils/quizzDuel.ts) :
  * - 7 questions tirées au hasard dans le thème ; chacune s'affiche seule pendant READ_MS (le temps de la lire),
  *   puis les réponses apparaissent et le chrono de 10 secondes démarre ;
  * - bonne réponse : 20 points si on répond tout de suite, 2 de moins par seconde écoulée (2 au minimum) ;
  *   mauvaise réponse ou temps écoulé : 0 ;
  * - la dernière question compte double.
- * Deux modes : solo (seul contre le chrono) et duel (contre un adversaire). En attendant les parties contre de
- * vrais joueurs, l'adversaire du duel est simulé (botAnswer).
+ * Deux modes : solo (seul contre le chrono) et duel : contre un adversaire au hasard ou un·e ami·e, en direct ou
+ * chacun son tour (le second joue face aux réponses du premier, rejouées).
  */
+
+export {type Answer, INTRO_MS, isLastRound, LIVE_GRACE_MS, MAX_POINTS, MAX_SCORE, pointsFor, QUESTION_MS, READ_MS, REVEAL_MS, ROUNDS, scoreOf};
 
 export type QuizzMode = "solo" | "duel";
 
 export const isQuizzMode = (mode: string | undefined): mode is QuizzMode => mode === "solo" || mode === "duel";
 
-export const ROUNDS = 7;
-export const QUESTION_MS = 10_000;
-// temps de lecture de la question, avant l'arrivée des réponses
-export const READ_MS = 2_500;
-export const MAX_POINTS = 20;
-
-export type MatchQuestion = {
-    question: string;
-    answers: string[];
-    correct: number;
-};
-
-export type Answer = { index: number | null; ms: number };
+export type MatchQuestion = DuelQuestion;
 
 export type Rng = () => number;
 
@@ -40,34 +34,27 @@ export function shuffle<T>(items: readonly T[], rng: Rng = Math.random): T[] {
     return out;
 }
 
+// Question lue sur le serveur (quizz_questions) : son identifiant en base devient « q:<id> », l'identifiant fixe de la
+// question dans les statistiques, qu'elle vienne du site ou d'un joueur
+export const fromServer = (q: { id?: string; question: string; answers: QuizzQuestion["answers"] }): QuizzQuestion =>
+    ({...q, ...q.id ? {id: `q:${q.id}`} : {}});
+
 // Questions de la partie, réponses mélangées (la bonne est en premier dans les données)
-export function buildMatch(topic: QuizzTopic, rng: Rng = Math.random): MatchQuestion[] {
+export function buildMatch(topic: PlayableTopic, rng: Rng = Math.random): MatchQuestion[] {
     return shuffle(topic.questions, rng).slice(0, ROUNDS).map(q => {
         const order = shuffle([0, 1, 2, 3], rng);
-        return {question: q.question, answers: order.map(i => q.answers[i]!), correct: order.indexOf(0)};
+        const key = q.id;
+        return {question: q.question, answers: order.map(i => q.answers[i]!), correct: order.indexOf(0),
+            ...q.topic ? {topic: q.topic} : {}, ...key ? {key} : {}};
     });
 }
 
-export const isLastRound = (round: number) => round === ROUNDS - 1;
-
-export function pointsFor(answer: Answer, question: MatchQuestion, round: number): number {
-    if (answer.index !== question.correct || answer.ms >= QUESTION_MS) return 0;
-    const points = Math.max(2, MAX_POINTS - 2 * Math.floor(answer.ms / 1000));
-    return isLastRound(round) ? points * 2 : points;
+/*
+ * Questions d'un duel reçu, vérifiées contre celles du thème lues sur le serveur : seules des questions existantes
+ * (même texte, mêmes réponses, même bonne réponse) s'affichent. false si l'une d'elles n'existe pas (ou plus).
+ */
+export function knownQuestions(match: MatchQuestion[], questions: QuizzQuestion[]): boolean {
+    return match.length === ROUNDS && match.every(m => questions.some(q => q.question === m.question
+        && q.answers[0] === m.answers[m.correct]
+        && [...q.answers].sort().join("\n") === [...m.answers].sort().join("\n")));
 }
-
-// Score maximal d'une partie (barre de score)
-export const MAX_SCORE = MAX_POINTS * (ROUNDS + 1);
-
-// Adversaire simulé : bonne réponse 7 fois sur 10, répond entre 1,5 et 7,5 secondes
-export function botAnswer(question: MatchQuestion, rng: Rng = Math.random): Answer {
-    const ms = 1500 + Math.floor(rng() * 6000);
-    if (rng() < 0.7) return {index: question.correct, ms};
-    const wrong = [0, 1, 2, 3].filter(i => i !== question.correct);
-    return {index: wrong[Math.floor(rng() * wrong.length)]!, ms};
-}
-
-// Noms des adversaires simulés
-const BOT_NAMES = ["Zéphyr", "Pixel", "Nova", "Gribouille", "Comète", "Biscotte", "Orion", "Mistral", "Praline", "Kiwi"];
-
-export const botName = (rng: Rng = Math.random) => BOT_NAMES[Math.floor(rng() * BOT_NAMES.length)]!;

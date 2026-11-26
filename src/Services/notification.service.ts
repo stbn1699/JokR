@@ -51,7 +51,20 @@ export interface ChallengeResultNotification extends BaseNotification {
     };
 }
 
-export type ChallengeNotification = FriendChallengeNotification | DailyChallengeNotification | ChallengeResultNotification;
+// Quizz : un·e ami·e te défie en duel, en direct (il t'attend dans le salon) ou chacun son tour (score : ses points)
+export interface QuizzDuelNotification extends BaseNotification {
+    kind: "quizz_duel";
+    data: { duelId: string; from: NotifPlayer; topicId: string; topicName: string; live: boolean; score: number | null };
+}
+
+// Quizz : ton adversaire a joué votre duel chacun son tour
+export interface QuizzDuelResultNotification extends BaseNotification {
+    kind: "quizz_duel_result";
+    data: { duelId: string; by: NotifPlayer; topicId: string; topicName: string; myScore: number; theirScore: number };
+}
+
+export type ChallengeNotification = FriendChallengeNotification | DailyChallengeNotification | ChallengeResultNotification
+    | QuizzDuelNotification | QuizzDuelResultNotification;
 
 // Loterie du Hasard gagnée (jour, semaine ou mois) : la cagnotte est déjà ajoutée aux crédits
 export interface LotteryWinNotification extends BaseNotification {
@@ -71,13 +84,25 @@ export interface QuizzApprovedNotification extends BaseNotification {
     data: { topicId: string; topicName: string; question: string; credits: number };
 }
 
+// Thème du Quizz créé par le joueur : validé (jouable) ou refusé (à reprendre)
+export interface QuizzThemeNotification extends BaseNotification {
+    kind: "quizz_theme_approved" | "quizz_theme_rejected";
+    data: { name: string; slug?: string; themeId?: string };
+}
+
+// Question contestée par le joueur : décision de l'administrateur (corrigée, ou la réponse était juste)
+export interface QuizzReportNotification extends BaseNotification {
+    kind: "quizz_report_reviewed";
+    data: { topicId: string; topicName: string; question: string; status: "fixed" | "dismissed" };
+}
+
 // Rappel de 17 h 30 : pas encore de grille aujourd'hui (days : série à sauver, 0 s'il n'y en a pas)
 export interface StreakReminderNotification extends BaseNotification {
     kind: "streak_reminder";
     data: { date: string; days: number };
 }
 
-export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification | LotteryWinNotification | WelcomeNotification | StreakReminderNotification | QuizzApprovedNotification;
+export type AppNotification = DailyResultsNotification | FriendNotification | ChallengeNotification | LotteryWinNotification | WelcomeNotification | StreakReminderNotification | QuizzApprovedNotification | QuizzThemeNotification | QuizzReportNotification;
 
 export const isStreakReminder = (n: AppNotification): n is StreakReminderNotification => n.kind === "streak_reminder";
 
@@ -96,6 +121,21 @@ export const isLotteryWin = (n: AppNotification): n is LotteryWinNotification =>
 export const isWelcome = (n: AppNotification): n is WelcomeNotification => n.kind === "welcome";
 
 export const isQuizzApproved = (n: AppNotification): n is QuizzApprovedNotification => n.kind === "quizz_approved";
+
+export const isQuizzTheme = (n: AppNotification): n is QuizzThemeNotification =>
+    n.kind === "quizz_theme_approved" || n.kind === "quizz_theme_rejected";
+
+export const isQuizzReport = (n: AppNotification): n is QuizzReportNotification => n.kind === "quizz_report_reviewed";
+
+export const quizzReportText = (n: QuizzReportNotification) => ({
+    title: n.data.status === "fixed" ? "Question corrigée, merci !" : "Question contestée : la réponse est juste",
+    body: `${n.data.topicName} : « ${n.data.question} »`,
+});
+
+// Texte d'une notification de thème (cloche et toast) et la page où elle mène
+export const quizzThemeText = (n: QuizzThemeNotification) => n.kind === "quizz_theme_approved"
+    ? {title: "Ton thème est validé !", body: `« ${n.data.name} » est maintenant dans le Quizz.`, to: `/quizz/${n.data.slug}`}
+    : {title: "Ton thème n'a pas été validé", body: `Reprends « ${n.data.name} » pour le corriger.`, to: `/quizz/creer/${n.data.themeId}`};
 
 // « la loterie du jour », « de la semaine », « du mois »
 export const lotteryName = (kind: LotteryWinNotification["data"]["kind"]) =>

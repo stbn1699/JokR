@@ -16,7 +16,7 @@ import "./Notifications.scss";
 import {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
 import {FaBell, FaCheckCircle, FaFire, FaFlagCheckered, FaGift, FaMedal, FaTicketAlt, FaTimes, FaUserFriends} from "react-icons/fa";
-import {type AppNotification, type ChallengeNotification, type DailyResultsNotification, type FriendNotification, isDailyResults, isFriendNotification, isLotteryWin, type LotteryWinNotification, lotteryName, isWelcome, isStreakReminder, streakReminderText, isQuizzApproved} from "../../Services/notification.service.ts";
+import {type AppNotification, type ChallengeNotification, type DailyResultsNotification, type FriendNotification, isDailyResults, isFriendNotification, isLotteryWin, type LotteryWinNotification, lotteryName, isWelcome, isStreakReminder, streakReminderText, isQuizzApproved, isQuizzTheme, quizzThemeText, isQuizzReport, quizzReportText} from "../../Services/notification.service.ts";
 import {challengePath} from "../../Services/challenge.service.ts";
 import {shareTime} from "../../Services/share.ts";
 import {friendsStore, useFriends} from "../../Services/friends.service.ts";
@@ -169,7 +169,7 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
             {toast && !open && (
                 <div className="notif-toast" role="status">
                     {isLotteryWin(toast) ? <FaTicketAlt aria-hidden className="notif-toast-icon lottery"/>
-                        : isQuizzApproved(toast) ? <FaCheckCircle aria-hidden className="notif-toast-icon lottery"/>
+                        : isQuizzApproved(toast) || isQuizzTheme(toast) || isQuizzReport(toast) ? <FaCheckCircle aria-hidden className="notif-toast-icon lottery"/>
                         : isStreakReminder(toast) ? <FaFire aria-hidden className="notif-toast-icon lottery"/>
                         : isDailyResults(toast) ? <FaBell aria-hidden className="notif-toast-icon"/>
                         : !isFriendNotification(toast) ? <FaFlagCheckered aria-hidden className="notif-toast-icon friend"/>
@@ -179,6 +179,16 @@ export default function NotificationBell({enabled}: { enabled: boolean }) {
                             <>
                                 <strong>Tu as gagné {lotteryName(toast.data.kind)} !</strong>
                                 <span>+{fr(toast.data.prize)} crédits avec {fr(toast.data.tickets)} ticket{toast.data.tickets > 1 ? "s" : ""} sur {fr(toast.data.totalTickets)}</span>
+                            </>
+                        ) : isQuizzReport(toast) ? (
+                            <>
+                                <strong>{quizzReportText(toast).title}</strong>
+                                <span>{quizzReportText(toast).body}</span>
+                            </>
+                        ) : isQuizzTheme(toast) ? (
+                            <>
+                                <strong>{quizzThemeText(toast).title}</strong>
+                                <span>{quizzThemeText(toast).body}</span>
                             </>
                         ) : isQuizzApproved(toast) ? (
                             <>
@@ -258,6 +268,31 @@ function NotificationItem({notification, onNavigate}: { notification: AppNotific
                     <small>{ago(notification.createdAt)}</small>
                 </div>
                 <p className="notif-daily-xp">+{fr(notification.data.credits)} crédits offerts</p>
+            </div>
+        );
+    }
+    if (isQuizzReport(notification)) {
+        const text = quizzReportText(notification);
+        return (
+            <div className="notif-daily notif-lottery">
+                <div className="notif-daily-head">
+                    <span><FaCheckCircle aria-hidden/> {text.title}</span>
+                    <small>{ago(notification.createdAt)}</small>
+                </div>
+                <p className="notif-lottery-detail">{text.body} <Link to={`/quizz/${notification.data.topicId}`} onClick={onNavigate}>Rejouer</Link></p>
+            </div>
+        );
+    }
+    if (isQuizzTheme(notification)) {
+        const text = quizzThemeText(notification);
+        return (
+            <div className="notif-daily notif-lottery">
+                <div className="notif-daily-head">
+                    <span><FaCheckCircle aria-hidden/> {text.title}</span>
+                    <small>{ago(notification.createdAt)}</small>
+                </div>
+                <p className="notif-lottery-detail">{text.body} <Link to={text.to} onClick={onNavigate}>
+                    {notification.kind === "quizz_theme_approved" ? "Jouer" : "Reprendre"}</Link></p>
             </div>
         );
     }
@@ -388,10 +423,20 @@ function LotteryItem({notification: n, onNavigate}: { notification: LotteryWinNo
 
 // ---------- Défis entre amis
 const challengeTitle = (n: ChallengeNotification) =>
-    n.kind !== "challenge_result" ? `${n.data.from.username} te défie`
+    n.kind === "quizz_duel" ? `${n.data.from.username} te défie au Quizz`
+    : n.kind === "quizz_duel_result" ? `${n.data.by.username} a joué votre duel`
+    : n.kind !== "challenge_result" ? `${n.data.from.username} te défie`
         : n.data.senderMs === null ? `${n.data.by.username} a joué votre duel` : `${n.data.by.username} a relevé ton défi`;
 
 function challengeText(n: ChallengeNotification) {
+    if (n.kind === "quizz_duel") {
+        return n.data.live ? <>Duel en direct sur {n.data.topicName} : il ou elle t'attend dans le salon !</>
+            : <>Duel sur {n.data.topicName} : bats ses {n.data.score} points !</>;
+    }
+    if (n.kind === "quizz_duel_result") {
+        const {myScore, theirScore} = n.data;
+        return <>{n.data.topicName} : {myScore} – {theirScore} · {myScore > theirScore ? "tu gagnes !" : myScore < theirScore ? `${n.data.by.username} gagne` : "égalité"}</>;
+    }
     if (n.kind === "friend_challenge") {
         return n.data.senderMs === null
             ? <>Un duel de {n.data.gameName} ({n.data.difficulty}) : la même grille pour vous deux. À toi !</>
@@ -406,6 +451,8 @@ function challengeText(n: ChallengeNotification) {
 
 // Lien d'une notification de défi : la grille à faire, le défi du jour, ou la page de l'ami·e
 function challengeLink(n: ChallengeNotification) {
+    if (n.kind === "quizz_duel") return {to: `/quizz/duel/${n.data.duelId}`, label: n.data.live ? "Rejoindre le duel" : "Jouer le duel"};
+    if (n.kind === "quizz_duel_result") return {to: `/quizz/duel/${n.data.duelId}`, label: "Voir le duel"};
     if (n.kind === "friend_challenge") return {to: challengePath(n.data.challengeId), label: "Relever le défi"};
     if (n.kind === "daily_challenge") return {to: `/defi/${n.data.gameCode}`, label: "Jouer le défi du jour"};
     if (n.data.senderMs === null) return {to: challengePath(n.data.challengeId), label: "Jouer le duel"};
@@ -413,7 +460,7 @@ function challengeLink(n: ChallengeNotification) {
 }
 
 function ChallengeItem({notification: n, onNavigate}: { notification: ChallengeNotification; onNavigate: () => void }) {
-    const who = n.kind === "challenge_result" ? n.data.by : n.data.from;
+    const who = n.kind === "challenge_result" || n.kind === "quizz_duel_result" ? n.data.by : n.data.from;
     const link = challengeLink(n);
     return (
         <div className="notif-friend notif-challenge">

@@ -1,10 +1,11 @@
-import type {Kysely} from "kysely";
+import {sql, type Kysely} from "kysely";
 import type {DB} from "../db/schema.js";
 import {QUIZZ_APPROVED_CREDITS, QUIZZ_TOPIC_NAMES, type QuestionInput, type ReviewInput} from "../utils/quizz.js";
 
 /*
- * Questions du Quizz proposées par les joueurs : envoi (joueur connecté), questions validées d'un thème (tout le
- * monde, pour les parties), file d'attente et décision (administrateur).
+ * Questions du Quizz : celles du site (numérotées, sans auteur) et celles proposées par les joueurs. Envoi (joueur
+ * connecté), questions validées d'un thème (tout le monde, pour les parties), file d'attente et décision
+ * (administrateur).
  * Question validée : son auteur gagne QUIZZ_APPROVED_CREDITS crédits et reçoit une notification « quizz_approved ».
  */
 export class QuizzRepository {
@@ -21,11 +22,32 @@ export class QuizzRepository {
             .execute();
     }
 
-    // Questions validées d'un thème (la bonne réponse en premier)
-    async approved(topicId: string): Promise<QuestionInput[]> {
-        const rows = await this.db.selectFrom("quizz_questions").select(["question", "answers"])
-            .where("topic_id", "=", topicId).where("status", "=", "approved").orderBy("created_at").execute();
-        return rows.map(r => ({question: r.question, answers: r.answers as QuestionInput["answers"]}));
+    // Questions validées d'un thème (la bonne réponse en premier) : celles du site dans l'ordre de leur numéro, puis
+    // celles des joueurs. id : identifiant en base (statistiques : clé q:<id>)
+    async approved(topicId: string): Promise<(QuestionInput & { id: string })[]> {
+        const rows = await this.db.selectFrom("quizz_questions").select(["id", "question", "answers"])
+            .where("topic_id", "=", topicId).where("status", "=", "approved")
+            .orderBy(sql`number nulls last`).orderBy("created_at").execute();
+        return rows.map(r => ({id: r.id, question: r.question, answers: r.answers as QuestionInput["answers"]}));
+    }
+
+    // Questions validées de plusieurs thèmes (mélanges de thèmes), par thème
+    async approvedMany(topicIds: string[]): Promise<Record<string, (QuestionInput & { id: string })[]>> {
+        const out: Record<string, (QuestionInput & { id: string })[]> = Object.fromEntries(topicIds.map(id => [id, []]));
+        if (topicIds.length === 0) return out;
+        const rows = await this.db.selectFrom("quizz_questions").select(["id", "topic_id", "question", "answers"])
+            .where("topic_id", "in", topicIds).where("status", "=", "approved")
+            .orderBy(sql`number nulls last`).orderBy("created_at").execute();
+        for (const r of rows) out[r.topic_id]!.push({id: r.id, question: r.question, answers: r.answers as QuestionInput["answers"]});
+        return out;
+    }
+
+    // Nombre de questions validées par thème (cartes de la page Quizz)
+    async approvedCounts(): Promise<Record<string, number>> {
+        const rows = await this.db.selectFrom("quizz_questions")
+            .select(eb => ["topic_id", eb.fn.countAll<string>().as("n")])
+            .where("status", "=", "approved").groupBy("topic_id").execute();
+        return Object.fromEntries(rows.map(r => [r.topic_id, Number(r.n)]));
     }
 
     // Questions proposées par un joueur sur un thème, par état (en attente, validées, refusées)
@@ -65,7 +87,8 @@ export class QuizzRepository {
             if (review.status === "approved" && row.author_id) {
                 await trx.updateTable("users").set(eb => ({credits: eb("credits", "+", QUIZZ_APPROVED_CREDITS)}))
                     .where("id", "=", row.author_id).execute();
-                const data = {topicId: row.topic_id, topicName: QUIZZ_TOPIC_NAMES[row.topic_id] ?? row.topic_id,
+                const theme = await trx.selectFrom("quizz_themes").select("name").where("slug", "=", row.topic_id).executeTakeFirst();
+                const data = {topicId: row.topic_id, topicName: QUIZZ_TOPIC_NAMES[row.topic_id] ?? theme?.name ?? row.topic_id,
                     question: row.question, credits: QUIZZ_APPROVED_CREDITS};
                 await trx.insertInto("notifications")
                     .values({user_id: row.author_id, kind: "quizz_approved", ref: id, data: JSON.stringify(data)})

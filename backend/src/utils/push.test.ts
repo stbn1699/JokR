@@ -98,6 +98,28 @@ describe("pushMessage", () => {
             url: "/quizz/star-wars"});
     });
 
+    it("annonce la décision sur une question contestée", () => {
+        expect(pushMessage({id: "13", kind: "quizz_report_reviewed", data: {topicId: "cars", topicName: "Cars", question: "Q ?", status: "fixed"}}))
+            .toMatchObject({title: "Question corrigée, merci !", body: "Cars : « Q ? »", url: "/quizz/cars"});
+    });
+
+    it("annonce un duel du Quizz et son résultat", () => {
+        const from = {username: "Léa"};
+        expect(pushMessage({id: "10", kind: "quizz_duel", data: {duelId: "d1", from, topicName: "Cars", live: true, score: null}}))
+            .toMatchObject({title: "Léa te défie au Quizz", url: "/quizz/duel/d1"});
+        expect(pushMessage({id: "11", kind: "quizz_duel", data: {duelId: "d1", from, topicName: "Cars", live: false, score: 84}})?.body)
+            .toBe("Duel sur Cars : bats ses 84 points !");
+        expect(pushMessage({id: "12", kind: "quizz_duel_result", data: {duelId: "d1", by: from, topicName: "Cars", myScore: 50, theirScore: 70}})?.body)
+            .toBe("Cars : Léa gagne (50 – 70)");
+    });
+
+    it("annonce un thème du Quizz validé ou refusé", () => {
+        expect(pushMessage({id: "8", kind: "quizz_theme_approved", data: {slug: "zelda", name: "Zelda"}}))
+            .toMatchObject({title: "Ton thème est validé !", url: "/quizz/zelda"});
+        expect(pushMessage({id: "9", kind: "quizz_theme_rejected", data: {themeId: "abc", name: "Zelda"}}))
+            .toMatchObject({title: "Ton thème n'a pas été validé", url: "/quizz/creer/abc"});
+    });
+
     it("résume les défis du jour", () => {
         const m = pushMessage({id: "5", kind: "daily_results", data: {games: [{name: "Queens", rank: 1, total: 8}, {name: "Tracé", rank: 2, total: 5}]}});
         expect(m?.body).toBe("Tu termines 1er sur 8 au Queens (et 1 autre défi)");

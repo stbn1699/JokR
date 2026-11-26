@@ -108,6 +108,31 @@ export function pushMessage(n: { id: string; kind: string; data: unknown }): Pus
             return {title: "Ta question est validée !",
                 body: `+${fr(data.credits as number)} crédits : elle arrive dans les parties de ${data.topicName as string}.`,
                 url: `/quizz/${encodeURIComponent(data.topicId as string)}`, tag};
+        case "quizz_report_reviewed":
+            return {title: data.status === "fixed" ? "Question corrigée, merci !" : "Question contestée : la réponse est juste",
+                body: `${data.topicName as string} : « ${data.question as string} »`,
+                url: `/quizz/${encodeURIComponent(data.topicId as string)}`, tag};
+        case "quizz_duel": {
+            const from = data.from as Player;
+            return {title: `${from.username} te défie au Quizz`,
+                body: data.live ? `Duel en direct sur ${data.topicName as string} : il t'attend, rejoins-le !`
+                    : `Duel sur ${data.topicName as string} : bats ses ${fr(data.score as number)} points !`,
+                url: `/quizz/duel/${encodeURIComponent(data.duelId as string)}`, tag};
+        }
+        case "quizz_duel_result": {
+            const by = data.by as Player;
+            const mine = data.myScore as number, theirs = data.theirScore as number;
+            const verdict = mine > theirs ? "tu gagnes" : mine < theirs ? `${by.username} gagne` : "égalité";
+            return {title: `${by.username} a joué votre duel`,
+                body: `${data.topicName as string} : ${verdict} (${fr(mine)} – ${fr(theirs)})`,
+                url: `/quizz/duel/${encodeURIComponent(data.duelId as string)}`, tag};
+        }
+        case "quizz_theme_approved":
+            return {title: "Ton thème est validé !", body: `« ${data.name as string} » est maintenant dans le Quizz.`,
+                url: `/quizz/${encodeURIComponent(data.slug as string)}`, tag};
+        case "quizz_theme_rejected":
+            return {title: "Ton thème n'a pas été validé", body: `Reprends « ${data.name as string} » pour le corriger et le soumettre à nouveau.`,
+                url: `/quizz/creer/${encodeURIComponent(data.themeId as string)}`, tag};
         case "daily_results": {
             const games = data.games as { name: string; rank: number; total: number }[];
             const best = games[0];

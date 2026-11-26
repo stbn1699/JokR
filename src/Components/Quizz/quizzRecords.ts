@@ -1,8 +1,11 @@
+import {useEffect, useState} from "react";
 import type {QuizzMode} from "./quizzMatch.ts";
+import {quizzService} from "../../Services/quizz.service.ts";
 
 /**
- * Records du Quizz, par thème, gardés dans ce navigateur seulement (localStorage) en attendant d'être enregistrés
- * sur le serveur : meilleur score en solo, victoires / égalités / défaites en duel.
+ * Records du Quizz, par thème, gardés dans ce navigateur (localStorage) : meilleur score en solo.
+ * Joueur connecté : ses parties sont aussi enregistrées sur le serveur (statistiques) ; useSoloBest prend le meilleur
+ * des deux, pour un record qui suit le joueur d'un appareil à l'autre.
  * Stockage indisponible (navigation privée…) : tout reste à zéro, sans erreur.
  */
 
@@ -34,4 +37,17 @@ export function saveResult(topicId: string, mode: QuizzMode, myScore: number, op
         // stockage indisponible : le record n'est pas gardé
     }
     return next;
+}
+
+// Meilleur score solo sur ce thème (ou ce mélange) : celui de ce navigateur, ou celui du serveur s'il est meilleur
+export function useSoloBest(topicId: string, loggedIn: boolean): number {
+    const [local] = useState(() => readRecord(topicId).soloBest);
+    const [server, setServer] = useState(0);
+    useEffect(() => {
+        if (!loggedIn) return;
+        const controller = new AbortController();
+        quizzService.soloRecord(topicId, controller.signal).then(r => setServer(r.best)).catch(() => undefined);
+        return () => controller.abort();
+    }, [topicId, loggedIn]);
+    return Math.max(local, server);
 }
