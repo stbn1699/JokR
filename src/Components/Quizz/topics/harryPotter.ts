@@ -23,16 +23,4 @@ export const harryPotter: QuizzTopic = {
         ],
         url: "https://fr.wikipedia.org/wiki/Harry_Potter",
     },
-    questions: [
-        {question: "Dans quelle maison de Poudlard Harry est-il envoyé ?", answers: ["Gryffondor", "Serpentard", "Poufsouffle", "Serdaigle"]},
-        {question: "Comment s'appelle la chouette de Harry ?", answers: ["Hedwige", "Coquecigrue", "Errol", "Hermès"]},
-        {question: "Quelle forme prend le Patronus de Harry ?", answers: ["Un cerf", "Une loutre", "Un phénix", "Un loup"]},
-        {question: "De quelle voie part le Poudlard Express, à King's Cross ?", answers: ["La voie 9 ¾", "La voie 7 ½", "La voie 10 ¼", "La voie 9 ½"]},
-        {question: "Qui se cache derrière le « Prince de Sang-Mêlé » ?", answers: ["Severus Rogue", "Tom Jedusor", "Albus Dumbledore", "Sirius Black"]},
-        {question: "À quel poste Harry joue-t-il dans l'équipe de Quidditch ?", answers: ["Attrapeur", "Gardien", "Poursuiveur", "Batteur"]},
-        {question: "Quel est le vrai nom de Voldemort ?", answers: ["Tom Elvis Jedusor", "Gellert Grindelwald", "Bartemius Croupton", "Peter Pettigrow"]},
-        {question: "Quel sortilège fait sauter la baguette des mains de l'adversaire ?", answers: ["Expelliarmus", "Stupéfix", "Wingardium Leviosa", "Lumos"]},
-        {question: "Comment s'appelle l'elfe de maison que Harry libère avec une chaussette ?", answers: ["Dobby", "Kreattur", "Winky", "Hokey"]},
-        {question: "Quelle balle faut-il attraper pour finir un match de Quidditch ?", answers: ["Le Vif d'or", "Le Souafle", "Le Cognard", "La Bombabouse"]},
-    ],
 };

@@ -23,16 +23,4 @@ export const starWars: QuizzTopic = {
         ],
         url: "https://fr.wikipedia.org/wiki/Star_Wars",
     },
-    questions: [
-        {question: "Qui est le père de Luke Skywalker ?", answers: ["Dark Vador", "Obi-Wan Kenobi", "L'empereur Palpatine", "Owen Lars"]},
-        {question: "Comment s'appelle le vaisseau de Han Solo ?", answers: ["Le Faucon Millenium", "Le Slave I", "L'Executor", "Le Ghost"]},
-        {question: "Sur quelle planète Luke a-t-il grandi ?", answers: ["Tatooine", "Naboo", "Hoth", "Endor"]},
-        {question: "Qui entraîne Luke sur Dagobah ?", answers: ["Yoda", "Qui-Gon Jinn", "Mace Windu", "Ahsoka Tano"]},
-        {question: "À quelle espèce appartient Chewbacca ?", answers: ["Wookiee", "Ewok", "Hutt", "Twi'lek"]},
-        {question: "En quelle année le premier film Star Wars est-il sorti au cinéma ?", answers: ["1977", "1980", "1975", "1983"]},
-        {question: "De quelle couleur est le sabre laser de Mace Windu ?", answers: ["Violet", "Vert", "Bleu", "Rouge"]},
-        {question: "Comment s'appelle la princesse d'Alderaan, sœur jumelle de Luke ?", answers: ["Leia Organa", "Padmé Amidala", "Mon Mothma", "Jyn Erso"]},
-        {question: "Quel chasseur de primes livre Han Solo, figé dans la carbonite, à Jabba ?", answers: ["Boba Fett", "Bossk", "IG-88", "Greedo"]},
-        {question: "Quel ordre pousse les clones à se retourner contre les Jedi ?", answers: ["L'ordre 66", "L'ordre 99", "L'ordre 77", "L'ordre 33"]},
-    ],
 };
